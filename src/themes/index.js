@@ -18,6 +18,7 @@ import { StefanZweifelTheme } from './StefanZweifel/StefanZweifelTheme';
 import { DmythroTheme } from './Dmythro/DmythroTheme';
 import { DTCTheme } from './DTC/DTCTheme';
 import { KubreTheme } from './Kubre/KubreTheme';
+import { PacoTheme } from './Paco/PacoTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -139,6 +140,12 @@ export const PORTFOLIO_THEMES = [
     name: 'Notebook',
     description: 'Monospace terminal aesthetic with glitch-style header, yellow accent hovers, and notebook paper dots. Inspired by kubre.in.',
     Component: KubreTheme,
+  },
+  {
+    id: 'paco',
+    name: 'Paco',
+    description: 'Minimalist grayscale portfolio with staggered animations, three-column layout, and indigo accent. Inspired by paco.me.',
+    Component: PacoTheme,
   },
 ];
 
