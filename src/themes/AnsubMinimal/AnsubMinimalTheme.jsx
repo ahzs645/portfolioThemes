@@ -1,5 +1,5 @@
-import React, { useMemo, useEffect } from 'react';
-import { useConfig } from '../../contexts/ConfigContext';
+import React, { useEffect } from 'react';
+import { useCV } from '../../contexts/ConfigContext';
 import { ShadowRoot } from '../../ui/ShadowRoot';
 
 import rawStyles from './ansubMinimal.css?raw';
@@ -25,72 +25,8 @@ const FONT_FACE_CSS = `
 }
 `;
 
-function isPresent(value) {
-  return String(value || '')
-    .trim()
-    .toLowerCase() === 'present';
-}
-
-function getPrimaryHeadline(cv, config) {
-  const custom = config?.CUSTOM_PROFESSION;
-  if (custom) return custom;
-
-  const experience = cv?.sections?.experience || [];
-  const currentJob =
-    experience.find((exp) => {
-      if (isPresent(exp?.end_date)) return true;
-      if (Array.isArray(exp?.positions)) {
-        return exp.positions.some((pos) => isPresent(pos?.end_date));
-      }
-      return false;
-    }) || experience[0];
-
-  if (!currentJob) return null;
-
-  if (Array.isArray(currentJob.positions) && currentJob.positions.length > 0) {
-    const currentPosition =
-      currentJob.positions.find((pos) => isPresent(pos?.end_date)) || currentJob.positions[0];
-    return currentPosition?.title || currentJob.position || null;
-  }
-
-  return currentJob.position || null;
-}
-
-function flattenExperience(experience = []) {
-  const items = [];
-
-  for (const entry of experience) {
-    if (!entry) continue;
-
-    if (Array.isArray(entry.positions) && entry.positions.length > 0) {
-      for (const position of entry.positions) {
-        items.push({
-          company: entry.company,
-          title: position?.title || entry.position,
-          endDate: position?.end_date ?? entry.end_date ?? null,
-        });
-      }
-      continue;
-    }
-
-    items.push({
-      company: entry.company,
-      title: entry.position,
-      endDate: entry.end_date ?? null,
-    });
-  }
-
-  return items;
-}
-
-function pickSocialUrl(socials, networkNames = []) {
-  const lowered = networkNames.map((n) => n.toLowerCase());
-  const found = socials.find((s) => lowered.includes(String(s.network || '').toLowerCase()));
-  return found?.url || null;
-}
-
-export function AnsubMinimalTheme() {
-  const { config, cvData, getAboutContent } = useConfig();
+export function AnsubMinimalTheme({ darkMode }) {
+  const cv = useCV();
 
   // Inject @font-face into document head (required for Shadow DOM font support)
   useEffect(() => {
@@ -107,41 +43,27 @@ export function AnsubMinimalTheme() {
     };
   }, []);
 
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
-  const fullName = cv?.name || 'User';
+  if (!cv) return null;
 
-  const headline = getPrimaryHeadline(cv, config) || 'Engineer & Designer';
-  const aboutText = getAboutContent()?.markdown || '';
+  // Use normalized data from context
+  const {
+    name: fullName,
+    about: aboutText,
+    currentJobTitle: headline,
+    socialLinks,
+    experience,
+    projects,
+    email,
+    location,
+    website,
+  } = cv;
 
-  const socials = cv?.social || [];
-  const xUrl = pickSocialUrl(socials, ['x', 'twitter']);
-  const githubUrl = pickSocialUrl(socials, ['github']);
-  const linkedinUrl = pickSocialUrl(socials, ['linkedin']);
-  const email = cv?.email || null;
+  // Use darkMode prop from App instead of local state
+  const isDark = darkMode;
 
-  const isDark = useMemo(() => {
-    let stored = null;
-    try {
-      stored = window.localStorage.getItem('theme');
-    } catch {
-      stored = null;
-    }
-
-    if (stored === 'dark') return true;
-    if (stored === 'light') return false;
-
-    return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  }, []);
-
-  const experienceItems = useMemo(() => {
-    const list = flattenExperience(cv?.sections?.experience || []);
-    return list.slice(0, 5);
-  }, [cv]);
-
-  const projectItems = useMemo(() => {
-    const list = cv?.sections?.projects || [];
-    return list.slice(0, 4);
-  }, [cv]);
+  // Apply limits for display
+  const experienceItems = experience.slice(0, 5);
+  const projectItems = projects.slice(0, 4);
 
   return (
     <div style={{ height: '100%', width: '100%', overflow: 'auto', overscrollBehavior: 'none', background: isDark ? '#171717' : '#fafafa' }}>
@@ -151,31 +73,31 @@ export function AnsubMinimalTheme() {
             <div className="w-full max-w-3xl">
               <div className="mb-12 mt-2">
                 <a
-                  href={cv?.website || '#'}
-                  target={cv?.website ? '_blank' : undefined}
-                  rel={cv?.website ? 'noreferrer' : undefined}
+                  href={website || '#'}
+                  target={website ? '_blank' : undefined}
+                  rel={website ? 'noreferrer' : undefined}
                 >
                   <h1 className="font-medium text-gray-900 dark:text-gray-100 text-2xl font-heading">
-                    {fullName}
+                    {fullName || 'User'}
                   </h1>
                 </a>
-                <p className="text-gray-500 dark:text-gray-400 uppercase text-xs">{headline}</p>
+                <p className="text-gray-500 dark:text-gray-400 uppercase text-xs">{headline || 'Engineer & Designer'}</p>
 
                 <div className="flex flex-row justify-between items-center mt-4">
                   <div className="flex flex-row items-center justify-between w-full">
                     <div className="flex flex-row gap-x-3 text-xs tracking-tighter" style={{ color: isDark ? '#9ca3af' : '#4b5563' }}>
-                      {xUrl ? (
+                      {socialLinks.twitter ? (
                         <>
-                          <a target="_blank" rel="noreferrer" href={xUrl}>
+                          <a target="_blank" rel="noreferrer" href={socialLinks.twitter}>
                             X
                           </a>
                           <span className="mx-1">/</span>
                         </>
                       ) : null}
 
-                      {githubUrl ? (
+                      {socialLinks.github ? (
                         <>
-                          <a target="_blank" rel="noreferrer" href={githubUrl}>
+                          <a target="_blank" rel="noreferrer" href={socialLinks.github}>
                             GH
                           </a>
                           <span className="mx-1">/</span>
@@ -191,8 +113,8 @@ export function AnsubMinimalTheme() {
                         </>
                       ) : null}
 
-                      {linkedinUrl ? (
-                        <a target="_blank" rel="noreferrer" href={linkedinUrl}>
+                      {socialLinks.linkedin ? (
+                        <a target="_blank" rel="noreferrer" href={socialLinks.linkedin}>
                           LI
                         </a>
                       ) : null}
@@ -214,35 +136,32 @@ export function AnsubMinimalTheme() {
                   <div>
                     <div className="font-medium mb-4 text-lg" style={{ color: isDark ? '#f3f4f6' : '#1a1a1a' }}>Experience</div>
                     <ol className="relative border-s" style={{ borderColor: isDark ? '#374151' : '#e5e7eb' }}>
-                      {experienceItems.map((item, idx) => {
-                        const current = isPresent(item.endDate);
-                        return (
-                          <li key={`${item.company}-${item.title}-${idx}`} className="mb-10 ms-4">
-                            <div
-                              className="absolute w-3 h-3 rounded-full mt-1.5 -start-1.5"
-                              style={{
-                                backgroundColor: current
-                                  ? (isDark ? '#9ca3af' : '#4b5563')
-                                  : (isDark ? '#4b5563' : '#e5e7eb'),
-                                border: isDark ? 'none' : '1px solid #e5e7eb'
-                              }}
-                            ></div>
-                            <div className="flex flex-row items-center gap-2">
-                              <div className="text-md font-medium text-gray-900 dark:text-gray-300 tracking-tighter">
-                                {item.title || 'Role'}
-                                {current ? (
-                                  <span className="text-xs text-gray-500 dark:text-gray-400 ml-2 uppercase">
-                                    Current
-                                  </span>
-                                ) : null}
-                              </div>
+                      {experienceItems.map((item, idx) => (
+                        <li key={`${item.company}-${item.title}-${idx}`} className="mb-10 ms-4">
+                          <div
+                            className="absolute w-3 h-3 rounded-full mt-1.5 -start-1.5"
+                            style={{
+                              backgroundColor: item.isCurrent
+                                ? (isDark ? '#9ca3af' : '#4b5563')
+                                : (isDark ? '#4b5563' : '#e5e7eb'),
+                              border: isDark ? 'none' : '1px solid #e5e7eb'
+                            }}
+                          ></div>
+                          <div className="flex flex-row items-center gap-2">
+                            <div className="text-md font-medium text-gray-900 dark:text-gray-300 tracking-tighter">
+                              {item.title || 'Role'}
+                              {item.isCurrent ? (
+                                <span className="text-xs text-gray-500 dark:text-gray-400 ml-2 uppercase">
+                                  Current
+                                </span>
+                              ) : null}
                             </div>
-                            <div className="mb-4 text-sm font-normal text-gray-500 dark:text-gray-400">
-                              {item.company || 'Company'}
-                            </div>
-                          </li>
-                        );
-                      })}
+                          </div>
+                          <div className="mb-4 text-sm font-normal text-gray-500 dark:text-gray-400">
+                            {item.company || 'Company'}
+                          </div>
+                        </li>
+                      ))}
                     </ol>
                   </div>
                 ) : null}
@@ -279,12 +198,12 @@ export function AnsubMinimalTheme() {
                       Contact
                     </div>
                     <div className="text-sm font-normal text-gray-500 tracking-tighter">
-                      {cv?.location ? <div>{cv.location}</div> : null}
+                      {location ? <div>{location}</div> : null}
                       {email ? <div>{email}</div> : null}
-                      {cv?.website ? (
+                      {website ? (
                         <div>
-                          <a target="_blank" rel="noreferrer" href={cv.website}>
-                            {cv.website}
+                          <a target="_blank" rel="noreferrer" href={website}>
+                            {website}
                           </a>
                         </div>
                       ) : null}

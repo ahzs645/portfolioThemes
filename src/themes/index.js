@@ -5,6 +5,10 @@ import { ChiangCurrentTheme } from './ChiangCurrent/ChiangCurrentTheme';
 import { NickComputerTheme } from './NickComputer/NickComputerTheme';
 import { BrianLovinTheme } from './BrianLovin/BrianLovinTheme';
 import { JoshBradleyTheme } from './JoshBradley/JoshBradleyTheme';
+import { HendoTheme } from './Hendo/HendoTheme';
+import { PiTheme } from './Pi/PiTheme';
+import { ChiziTheme } from './Chizi/ChiziTheme';
+import { GerhardTheme } from './Gerhard/GerhardTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -48,6 +52,30 @@ export const PORTFOLIO_THEMES = [
     name: 'Editorial',
     description: 'Two-column layout with italic navigation, justified text, and leader-dot lists. Warm cream background with serif accents.',
     Component: JoshBradleyTheme,
+  },
+  {
+    id: 'hendo',
+    name: 'Hendo',
+    description: 'Clean minimal design with scramble text animation on hover. Light/dark mode toggle, centered content, and simple navigation.',
+    Component: HendoTheme,
+  },
+  {
+    id: 'pi',
+    name: 'Research Lab',
+    description: 'Monospace timeline layout with featured cards and box shadows. Cream background, serif logo, and vertical timeline with square dots.',
+    Component: PiTheme,
+  },
+  {
+    id: 'chizi',
+    name: 'Modern Blue',
+    description: 'Clean minimalist design with blue accents. Features a live clock, project cards grid, and smooth hover animations.',
+    Component: ChiziTheme,
+  },
+  {
+    id: 'gerhard',
+    name: 'Plain Text',
+    description: 'Ultra-minimal design with system fonts, 60ch width, and automatic dark/light mode. Subtle gray underlines and muted section labels.',
+    Component: GerhardTheme,
   },
 ];
 

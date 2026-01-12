@@ -580,7 +580,7 @@ const CompanyName = styled.h3`
   font-weight: 500;
   margin: 0 0 0.5rem;
   text-align: left;
-  color: #262626;
+  color: #1f1e1d;
 `;
 
 const PositionsList = styled.div`

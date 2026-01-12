@@ -1,22 +1,22 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import yaml from 'js-yaml';
+import {
+  flattenExperience,
+  normalizeSocialLinks,
+  filterActive,
+  getCurrentJobTitle,
+} from '../utils/cvHelpers';
 
 const ConfigContext = createContext(null);
 
-// Path to your CV.yaml - adjust as needed
-const CV_YAML_PATH = '/Users/ahmadjalil/Github/resumerr/CV.yaml';
-
 export function ConfigProvider({ children }) {
   const [cvData, setCvData] = useState(null);
-  const [config, setConfig] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     async function loadCV() {
       try {
-        // In development, we'll fetch from public folder or use import
-        // For now, try fetching from public/CV.yaml
         const response = await fetch('/CV.yaml');
         if (!response.ok) {
           throw new Error(`Failed to load CV.yaml: ${response.status}`);
@@ -34,21 +34,67 @@ export function ConfigProvider({ children }) {
     loadCV();
   }, []);
 
-  function getAboutContent() {
-    // Return about section from config or CV
-    const aboutSection = cvData?.cv?.sections?.about;
-    if (aboutSection) {
-      return { markdown: aboutSection };
-    }
-    return { markdown: '' };
-  }
+  // Normalized CV data - computed once when cvData changes
+  const cv = useMemo(() => {
+    if (!cvData?.cv) return null;
+
+    const raw = cvData.cv;
+    const sections = raw.sections || {};
+
+    return {
+      // Basic info
+      name: raw.name || '',
+      email: raw.email || null,
+      phone: raw.phone || null,
+      location: raw.location || null,
+      website: raw.website || null,
+
+      // About/summary text
+      about: sections.about || '',
+
+      // Normalized social links
+      socialLinks: normalizeSocialLinks(raw.social || [], raw.email),
+
+      // Raw social array (for themes that need custom handling)
+      socialRaw: raw.social || [],
+
+      // Current job title (derived)
+      currentJobTitle: getCurrentJobTitle(sections.experience),
+
+      // Pre-processed sections
+      experience: flattenExperience(sections.experience || []),
+      projects: filterActive(sections.projects || []),
+      education: filterActive(sections.education || []),
+      skills: sections.skills || [],
+      languages: sections.languages || [],
+      awards: filterActive(sections.awards || []),
+      publications: filterActive(sections.publications || []),
+      presentations: filterActive(sections.presentations || []),
+      volunteer: flattenExperience(sections.volunteer || []),
+      certifications: filterActive(sections.certifications || []),
+
+      // Raw sections (for themes that need unprocessed data)
+      sectionsRaw: sections,
+    };
+  }, [cvData]);
+
+  // Backward compatibility helper (deprecated - use cv.about instead)
+  const getAboutContent = () => {
+    return { markdown: cv?.about || '' };
+  };
 
   const value = {
+    // Raw data (for backward compatibility)
     cvData,
-    config,
-    setConfig,
+
+    // Normalized data (preferred)
+    cv,
+
+    // Loading state
     loading,
     error,
+
+    // Deprecated - for backward compatibility with unmigrated themes
     getAboutContent,
   };
 
@@ -61,4 +107,13 @@ export function useConfig() {
     throw new Error('useConfig must be used within a ConfigProvider');
   }
   return context;
+}
+
+/**
+ * Convenience hook that returns just the normalized CV data
+ * Returns null while loading
+ */
+export function useCV() {
+  const { cv } = useConfig();
+  return cv;
 }
