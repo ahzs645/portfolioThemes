@@ -92,11 +92,39 @@ export default function App() {
 
   return (
     <AppContainer>
-      <ThemeSwitcher>
-        <SwitcherButton $darkMode={darkMode} onClick={() => setShowCatalog(true)}>
-          Switch Theme ({currentTheme?.name})
-        </SwitcherButton>
-      </ThemeSwitcher>
+      <TopBar $darkMode={darkMode}>
+        <ThemeInfo>
+          <ThemeLabel $darkMode={darkMode}>Theme:</ThemeLabel>
+          <CurrentThemeName $darkMode={darkMode}>{currentTheme?.name}</CurrentThemeName>
+        </ThemeInfo>
+        <TopBarActions>
+          <SwitcherButton $darkMode={darkMode} onClick={() => setShowCatalog(true)}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            Browse Themes
+          </SwitcherButton>
+          <ModeToggleSmall
+            $darkMode={darkMode}
+            onClick={() => setDarkMode(!darkMode)}
+            title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {darkMode ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="5"/>
+                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            )}
+          </ModeToggleSmall>
+        </TopBarActions>
+      </TopBar>
       <ThemeContainer>
         {ThemeComponent ? <ThemeComponent darkMode={darkMode} /> : <div>No theme selected</div>}
       </ThemeContainer>
@@ -140,27 +168,75 @@ const AppContainer = styled.div`
   flex-direction: column;
 `;
 
-const ThemeSwitcher = styled.div`
-  position: fixed;
-  top: 16px;
-  right: 16px;
+const TopBar = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: ${({ $darkMode }) => ($darkMode ? '#0f0f0f' : '#ffffff')};
+  border-bottom: 1px solid ${({ $darkMode }) => ($darkMode ? '#262626' : '#e5e7eb')};
   z-index: 1000;
+  flex-shrink: 0;
+`;
+
+const ThemeInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const ThemeLabel = styled.span`
+  font-size: 13px;
+  color: ${({ $darkMode }) => ($darkMode ? '#737373' : '#6b7280')};
+`;
+
+const CurrentThemeName = styled.span`
+  font-size: 13px;
+  font-weight: 600;
+  color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#111827')};
+`;
+
+const TopBarActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
 `;
 
 const SwitcherButton = styled.button`
-  background: ${({ $darkMode }) => ($darkMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.9)')};
-  color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#1f2937')};
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#f3f4f6')};
+  color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#374151')};
   border: 1px solid ${({ $darkMode }) => ($darkMode ? '#333' : '#d1d5db')};
-  padding: 8px 16px;
+  padding: 8px 14px;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
-  backdrop-filter: blur(8px);
   transition: all 0.2s;
 
   &:hover {
-    background: ${({ $darkMode }) => ($darkMode ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 1)')};
-    border-color: ${({ $darkMode }) => ($darkMode ? '#555' : '#9ca3af')};
+    background: ${({ $darkMode }) => ($darkMode ? '#2a2a2a' : '#e5e7eb')};
+    border-color: ${({ $darkMode }) => ($darkMode ? '#444' : '#9ca3af')};
+  }
+`;
+
+const ModeToggleSmall = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#f3f4f6')};
+  color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#374151')};
+  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#333' : '#d1d5db')};
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: ${({ $darkMode }) => ($darkMode ? '#2a2a2a' : '#e5e7eb')};
+    border-color: ${({ $darkMode }) => ($darkMode ? '#444' : '#9ca3af')};
   }
 `;
 
