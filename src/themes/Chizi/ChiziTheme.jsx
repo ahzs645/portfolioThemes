@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
-import { useCV } from '../../contexts/ConfigContext';
+import { useCV, useConfig } from '../../contexts/ConfigContext';
+import { isArchived, isPresent } from '../../utils/cvHelpers';
 
 // Load Inter font (closest to Uncut Sans available on Google Fonts)
 // Uncut Sans is the original font but not available publicly
@@ -30,14 +31,83 @@ const colors = {
   },
 };
 
+// Process experience with nesting support
+function processExperienceWithNesting(rawExperience = []) {
+  const items = [];
+
+  for (const entry of rawExperience) {
+    if (!entry || isArchived(entry)) continue;
+
+    if (Array.isArray(entry.positions) && entry.positions.length > 0) {
+      // Nested positions under same company
+      items.push({
+        type: 'nested',
+        company: entry.company,
+        url: entry.url,
+        positions: entry.positions.map(pos => ({
+          title: pos.title || pos.position || entry.position,
+          startDate: pos.start_date,
+          endDate: pos.end_date,
+          isCurrent: isPresent(pos.end_date),
+        })),
+      });
+    } else {
+      // Single position
+      items.push({
+        type: 'single',
+        company: entry.company,
+        title: entry.position,
+        startDate: entry.start_date,
+        endDate: entry.end_date,
+        isCurrent: isPresent(entry.end_date),
+        url: entry.url,
+      });
+    }
+  }
+
+  return items;
+}
+
 export function ChiziTheme({ darkMode }) {
   const cv = useCV();
+  const { cvData } = useConfig();
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Process experience with nesting from raw data
+  const experienceItems = useMemo(() => {
+    const raw = cvData?.cv?.sections?.experience || [];
+    return processExperienceWithNesting(raw).slice(0, 6);
+  }, [cvData]);
+
+  // Education items
+  const educationItems = useMemo(() => {
+    const raw = cvData?.cv?.sections?.education || [];
+    return raw.filter(e => e && !isArchived(e)).slice(0, 4);
+  }, [cvData]);
+
+  // Volunteer items
+  const volunteerItems = useMemo(() => {
+    const raw = cvData?.cv?.sections?.volunteer || [];
+    return raw.filter(e => e && !isArchived(e)).map(vol => ({
+      organization: vol.organization || vol.company || '',
+      position: vol.position || vol.role || 'Volunteer',
+      startDate: vol.start_date,
+      endDate: vol.end_date,
+      isCurrent: isPresent(vol.end_date),
+      url: vol.url,
+    })).slice(0, 4);
+  }, [cvData]);
+
+  // Publications items
+  const publicationItems = useMemo(() => {
+    const raw = cvData?.cv?.sections?.publications || [];
+    return raw.filter(e => e && !isArchived(e)).slice(0, 6);
+  }, [cvData]);
 
   if (!cv) return null;
 
@@ -48,12 +118,10 @@ export function ChiziTheme({ darkMode }) {
     about,
     currentJobTitle,
     socialLinks,
-    experience,
     projects,
   } = cv;
 
   const theme = darkMode ? colors.dark : colors.light;
-  const experienceItems = experience.slice(0, 5);
   const projectItems = projects.slice(0, 6);
 
   const formatTime = (date) => {
@@ -135,14 +203,34 @@ export function ChiziTheme({ darkMode }) {
                 <ExperienceList>
                   {experienceItems.map((item, idx) => (
                     <ExperienceItem key={`exp-${idx}`}>
-                      <ExperienceDate $theme={theme}>
-                        {item.isCurrent ? 'Present' : item.endDate?.split('-')[0] || ''}
-                        {item.startDate && ` - ${item.startDate.split('-')[0]}`}
-                      </ExperienceDate>
-                      <ExperienceInfo>
-                        <ExperienceRole $theme={theme}>{item.title}</ExperienceRole>
-                        <ExperienceCompany $theme={theme}>{item.company}</ExperienceCompany>
-                      </ExperienceInfo>
+                      {item.type === 'nested' ? (
+                        <>
+                          <ExperienceInfo>
+                            <ExperienceCompany $theme={theme}>{item.company}</ExperienceCompany>
+                            <NestedPositions $theme={theme}>
+                              {item.positions.map((pos, posIdx) => (
+                                <NestedPosition key={`pos-${posIdx}`} $theme={theme}>
+                                  <ExperienceRole $theme={theme}>{pos.title}</ExperienceRole>
+                                  <NestedDate $theme={theme}>
+                                    {pos.startDate?.split('-')[0] || ''} - {pos.isCurrent ? 'Present' : pos.endDate?.split('-')[0] || ''}
+                                  </NestedDate>
+                                </NestedPosition>
+                              ))}
+                            </NestedPositions>
+                          </ExperienceInfo>
+                        </>
+                      ) : (
+                        <>
+                          <ExperienceDate $theme={theme}>
+                            {item.isCurrent ? 'Present' : item.endDate?.split('-')[0] || ''}
+                            {item.startDate && ` - ${item.startDate.split('-')[0]}`}
+                          </ExperienceDate>
+                          <ExperienceInfo>
+                            <ExperienceRole $theme={theme}>{item.title}</ExperienceRole>
+                            <ExperienceCompany $theme={theme}>{item.company}</ExperienceCompany>
+                          </ExperienceInfo>
+                        </>
+                      )}
                     </ExperienceItem>
                   ))}
                 </ExperienceList>
@@ -170,6 +258,85 @@ export function ChiziTheme({ darkMode }) {
                         {project.url && <span> ↗</span>}
                       </ProjectLink>
                       <ProjectDesc $theme={theme}>{project.summary}</ProjectDesc>
+                    </ProjectItem>
+                  ))}
+                </ProjectList>
+              </SectionRight>
+            </Section>
+          )}
+
+          {/* Education Section */}
+          {educationItems.length > 0 && (
+            <Section id="education">
+              <SectionLeft>
+                <SectionTitle $theme={theme}>Education</SectionTitle>
+              </SectionLeft>
+              <SectionRight>
+                <ExperienceList>
+                  {educationItems.map((edu, idx) => (
+                    <ExperienceItem key={`edu-${idx}`}>
+                      <ExperienceDate $theme={theme}>
+                        {edu.end_date?.split('-')[0] || edu.graduation_date?.split('-')[0] || ''}
+                        {edu.start_date && ` - ${edu.start_date.split('-')[0]}`}
+                      </ExperienceDate>
+                      <ExperienceInfo>
+                        <ExperienceRole $theme={theme}>{edu.degree || edu.area}</ExperienceRole>
+                        <ExperienceCompany $theme={theme}>{edu.institution}</ExperienceCompany>
+                      </ExperienceInfo>
+                    </ExperienceItem>
+                  ))}
+                </ExperienceList>
+              </SectionRight>
+            </Section>
+          )}
+
+          {/* Volunteer Section */}
+          {volunteerItems.length > 0 && (
+            <Section id="volunteer">
+              <SectionLeft>
+                <SectionTitle $theme={theme}>Volunteer</SectionTitle>
+              </SectionLeft>
+              <SectionRight>
+                <ExperienceList>
+                  {volunteerItems.map((vol, idx) => (
+                    <ExperienceItem key={`vol-${idx}`}>
+                      <ExperienceDate $theme={theme}>
+                        {vol.isCurrent ? 'Present' : vol.endDate?.split('-')[0] || ''}
+                        {vol.startDate && ` - ${vol.startDate.split('-')[0]}`}
+                      </ExperienceDate>
+                      <ExperienceInfo>
+                        <ExperienceRole $theme={theme}>{vol.position}</ExperienceRole>
+                        <ExperienceCompany $theme={theme}>{vol.organization}</ExperienceCompany>
+                      </ExperienceInfo>
+                    </ExperienceItem>
+                  ))}
+                </ExperienceList>
+              </SectionRight>
+            </Section>
+          )}
+
+          {/* Publications Section */}
+          {publicationItems.length > 0 && (
+            <Section id="publications">
+              <SectionLeft>
+                <SectionTitle $theme={theme}>Publications</SectionTitle>
+              </SectionLeft>
+              <SectionRight>
+                <ProjectList>
+                  {publicationItems.map((pub, idx) => (
+                    <ProjectItem key={`pub-${idx}`}>
+                      <ProjectLink
+                        $theme={theme}
+                        href={pub.url || (pub.doi ? `https://doi.org/${pub.doi}` : '#')}
+                        target={pub.url || pub.doi ? '_blank' : undefined}
+                        rel={pub.url || pub.doi ? 'noreferrer' : undefined}
+                      >
+                        {pub.name || pub.title}
+                        {(pub.url || pub.doi) && <span> ↗</span>}
+                      </ProjectLink>
+                      <ProjectDesc $theme={theme}>
+                        {pub.publisher || pub.journal}{pub.date && ` • ${String(pub.date).split('-')[0]}`}
+                      </ProjectDesc>
                     </ProjectItem>
                   ))}
                 </ProjectList>
@@ -460,6 +627,34 @@ const ExperienceRole = styled.p`
 const ExperienceCompany = styled.p`
   margin: 0;
   color: ${({ $theme }) => $theme.mutedForeground};
+`;
+
+const NestedPositions = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-left: 1rem;
+  border-left: 2px solid ${({ $theme }) => $theme.border};
+`;
+
+const NestedPosition = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+
+  @media (min-width: 640px) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+`;
+
+const NestedDate = styled.span`
+  font-size: 0.75rem;
+  color: ${({ $theme }) => $theme.mutedForeground};
+  flex-shrink: 0;
 `;
 
 const ProjectList = styled.div`

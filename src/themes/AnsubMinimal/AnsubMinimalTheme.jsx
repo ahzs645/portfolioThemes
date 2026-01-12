@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
-import { useCV } from '../../contexts/ConfigContext';
+import React, { useEffect, useMemo } from 'react';
+import { useCV, useConfig } from '../../contexts/ConfigContext';
 import { ShadowRoot } from '../../ui/ShadowRoot';
+import { isArchived, isPresent } from '../../utils/cvHelpers';
 
 import rawStyles from './ansubMinimal.css?raw';
 import departureMonoWoffUrl from './assets/departure-mono.woff?url';
@@ -25,8 +26,85 @@ const FONT_FACE_CSS = `
 }
 `;
 
+// Process experience with nesting support
+function processExperienceWithNesting(rawExperience = []) {
+  const items = [];
+
+  for (const entry of rawExperience) {
+    if (!entry || isArchived(entry)) continue;
+
+    if (Array.isArray(entry.positions) && entry.positions.length > 0) {
+      // Nested positions under same company
+      items.push({
+        type: 'nested',
+        company: entry.company,
+        url: entry.url,
+        positions: entry.positions.map(pos => ({
+          title: pos.title || pos.position || entry.position,
+          startDate: pos.start_date,
+          endDate: pos.end_date,
+          isCurrent: isPresent(pos.end_date),
+          summary: pos.summary,
+        })),
+      });
+    } else {
+      // Single position
+      items.push({
+        type: 'single',
+        company: entry.company,
+        title: entry.position,
+        startDate: entry.start_date,
+        endDate: entry.end_date,
+        isCurrent: isPresent(entry.end_date),
+        url: entry.url,
+        summary: entry.summary,
+      });
+    }
+  }
+
+  return items;
+}
+
+// Process volunteer with nesting support
+function processVolunteerWithNesting(rawVolunteer = []) {
+  const items = [];
+
+  for (const entry of rawVolunteer) {
+    if (!entry || isArchived(entry)) continue;
+
+    if (Array.isArray(entry.positions) && entry.positions.length > 0) {
+      items.push({
+        type: 'nested',
+        organization: entry.organization,
+        url: entry.url,
+        positions: entry.positions.map(pos => ({
+          title: pos.title || pos.position || pos.role || entry.position || entry.role,
+          startDate: pos.start_date,
+          endDate: pos.end_date,
+          isCurrent: isPresent(pos.end_date),
+          summary: pos.summary,
+        })),
+      });
+    } else {
+      items.push({
+        type: 'single',
+        organization: entry.organization,
+        title: entry.position || entry.role,
+        startDate: entry.start_date,
+        endDate: entry.end_date,
+        isCurrent: isPresent(entry.end_date),
+        url: entry.url,
+        summary: entry.summary,
+      });
+    }
+  }
+
+  return items;
+}
+
 export function AnsubMinimalTheme({ darkMode }) {
   const cv = useCV();
+  const { cvData } = useConfig();
 
   // Inject @font-face into document head (required for Shadow DOM font support)
   useEffect(() => {
@@ -43,6 +121,24 @@ export function AnsubMinimalTheme({ darkMode }) {
     };
   }, []);
 
+  // Process experience with nesting from raw data
+  const experienceItems = useMemo(() => {
+    const raw = cvData?.cv?.sections?.experience || [];
+    return processExperienceWithNesting(raw).slice(0, 6);
+  }, [cvData]);
+
+  // Process education
+  const educationItems = useMemo(() => {
+    const raw = cvData?.cv?.sections?.education || [];
+    return raw.filter(e => e && !isArchived(e)).slice(0, 4);
+  }, [cvData]);
+
+  // Process volunteer with nesting
+  const volunteerItems = useMemo(() => {
+    const raw = cvData?.cv?.sections?.volunteer || [];
+    return processVolunteerWithNesting(raw).slice(0, 4);
+  }, [cvData]);
+
   if (!cv) return null;
 
   // Use normalized data from context
@@ -51,7 +147,6 @@ export function AnsubMinimalTheme({ darkMode }) {
     about: aboutText,
     currentJobTitle: headline,
     socialLinks,
-    experience,
     projects,
     email,
     location,
@@ -62,7 +157,6 @@ export function AnsubMinimalTheme({ darkMode }) {
   const isDark = darkMode;
 
   // Apply limits for display
-  const experienceItems = experience.slice(0, 5);
   const projectItems = projects.slice(0, 4);
 
   return (
@@ -137,29 +231,55 @@ export function AnsubMinimalTheme({ darkMode }) {
                     <div className="font-medium mb-4 text-lg" style={{ color: isDark ? '#f3f4f6' : '#1a1a1a' }}>Experience</div>
                     <ol className="relative border-s" style={{ borderColor: isDark ? '#374151' : '#e5e7eb' }}>
                       {experienceItems.map((item, idx) => (
-                        <li key={`${item.company}-${item.title}-${idx}`} className="mb-10 ms-4">
+                        <li key={`exp-${idx}`} className="mb-10 ms-4">
                           <div
                             className="absolute w-3 h-3 rounded-full mt-1.5 -start-1.5"
                             style={{
-                              backgroundColor: item.isCurrent
+                              backgroundColor: (item.type === 'nested' ? item.positions[0]?.isCurrent : item.isCurrent)
                                 ? (isDark ? '#9ca3af' : '#4b5563')
                                 : (isDark ? '#4b5563' : '#e5e7eb'),
                               border: isDark ? 'none' : '1px solid #e5e7eb'
                             }}
                           ></div>
-                          <div className="flex flex-row items-center gap-2">
-                            <div className="text-md font-medium text-gray-900 dark:text-gray-300 tracking-tighter">
-                              {item.title || 'Role'}
-                              {item.isCurrent ? (
-                                <span className="text-xs text-gray-500 dark:text-gray-400 ml-2 uppercase">
-                                  Current
-                                </span>
-                              ) : null}
-                            </div>
-                          </div>
-                          <div className="mb-4 text-sm font-normal text-gray-500 dark:text-gray-400">
-                            {item.company || 'Company'}
-                          </div>
+                          {item.type === 'nested' ? (
+                            <>
+                              <div className="mb-2 text-sm font-normal text-gray-500 dark:text-gray-400">
+                                {item.company}
+                              </div>
+                              <div className="flex flex-col gap-3 ml-2" style={{ borderLeft: `2px solid ${isDark ? '#374151' : '#e5e7eb'}`, paddingLeft: '12px' }}>
+                                {item.positions.map((pos, posIdx) => (
+                                  <div key={`pos-${posIdx}`}>
+                                    <div className="flex flex-row items-center gap-2">
+                                      <div className="text-md font-medium text-gray-900 dark:text-gray-300 tracking-tighter">
+                                        {pos.title || 'Role'}
+                                        {pos.isCurrent ? (
+                                          <span className="text-xs text-gray-500 dark:text-gray-400 ml-2 uppercase">
+                                            Current
+                                          </span>
+                                        ) : null}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex flex-row items-center gap-2">
+                                <div className="text-md font-medium text-gray-900 dark:text-gray-300 tracking-tighter">
+                                  {item.title || 'Role'}
+                                  {item.isCurrent ? (
+                                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2 uppercase">
+                                      Current
+                                    </span>
+                                  ) : null}
+                                </div>
+                              </div>
+                              <div className="mb-4 text-sm font-normal text-gray-500 dark:text-gray-400">
+                                {item.company || 'Company'}
+                              </div>
+                            </>
+                          )}
                         </li>
                       ))}
                     </ol>
@@ -192,6 +312,93 @@ export function AnsubMinimalTheme({ darkMode }) {
                   </div>
                 ) : null}
 
+                {educationItems.length > 0 ? (
+                  <div>
+                    <div className="font-medium mb-4 text-lg" style={{ color: isDark ? '#f3f4f6' : '#1a1a1a' }}>Education</div>
+                    <ol className="relative border-s" style={{ borderColor: isDark ? '#374151' : '#e5e7eb' }}>
+                      {educationItems.map((item, idx) => (
+                        <li key={`edu-${idx}`} className="mb-10 ms-4">
+                          <div
+                            className="absolute w-3 h-3 rounded-full mt-1.5 -start-1.5"
+                            style={{
+                              backgroundColor: isDark ? '#4b5563' : '#e5e7eb',
+                              border: isDark ? 'none' : '1px solid #e5e7eb'
+                            }}
+                          ></div>
+                          <div className="flex flex-row items-center gap-2">
+                            <div className="text-md font-medium text-gray-900 dark:text-gray-300 tracking-tighter">
+                              {item.degree || item.area || 'Degree'}
+                            </div>
+                          </div>
+                          <div className="mb-4 text-sm font-normal text-gray-500 dark:text-gray-400">
+                            {item.institution || 'Institution'}
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ) : null}
+
+                {volunteerItems.length > 0 ? (
+                  <div>
+                    <div className="font-medium mb-4 text-lg" style={{ color: isDark ? '#f3f4f6' : '#1a1a1a' }}>Volunteer</div>
+                    <ol className="relative border-s" style={{ borderColor: isDark ? '#374151' : '#e5e7eb' }}>
+                      {volunteerItems.map((item, idx) => (
+                        <li key={`vol-${idx}`} className="mb-10 ms-4">
+                          <div
+                            className="absolute w-3 h-3 rounded-full mt-1.5 -start-1.5"
+                            style={{
+                              backgroundColor: (item.type === 'nested' ? item.positions[0]?.isCurrent : item.isCurrent)
+                                ? (isDark ? '#9ca3af' : '#4b5563')
+                                : (isDark ? '#4b5563' : '#e5e7eb'),
+                              border: isDark ? 'none' : '1px solid #e5e7eb'
+                            }}
+                          ></div>
+                          {item.type === 'nested' ? (
+                            <>
+                              <div className="mb-2 text-sm font-normal text-gray-500 dark:text-gray-400">
+                                {item.organization}
+                              </div>
+                              <div className="flex flex-col gap-3 ml-2" style={{ borderLeft: `2px solid ${isDark ? '#374151' : '#e5e7eb'}`, paddingLeft: '12px' }}>
+                                {item.positions.map((pos, posIdx) => (
+                                  <div key={`vpos-${posIdx}`}>
+                                    <div className="flex flex-row items-center gap-2">
+                                      <div className="text-md font-medium text-gray-900 dark:text-gray-300 tracking-tighter">
+                                        {pos.title || 'Role'}
+                                        {pos.isCurrent ? (
+                                          <span className="text-xs text-gray-500 dark:text-gray-400 ml-2 uppercase">
+                                            Current
+                                          </span>
+                                        ) : null}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex flex-row items-center gap-2">
+                                <div className="text-md font-medium text-gray-900 dark:text-gray-300 tracking-tighter">
+                                  {item.title || 'Role'}
+                                  {item.isCurrent ? (
+                                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2 uppercase">
+                                      Current
+                                    </span>
+                                  ) : null}
+                                </div>
+                              </div>
+                              <div className="mb-4 text-sm font-normal text-gray-500 dark:text-gray-400">
+                                {item.organization || 'Organization'}
+                              </div>
+                            </>
+                          )}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ) : null}
+
                 <div className="flex flex-col">
                   <div>
                     <div className="font-medium mb-4 text-lg" style={{ color: isDark ? '#f3f4f6' : '#1a1a1a' }}>
@@ -210,27 +417,6 @@ export function AnsubMinimalTheme({ darkMode }) {
                     </div>
                   </div>
 
-                  <div className="mt-8">
-                    <div className="font-medium mb-4 text-lg" style={{ color: isDark ? '#f3f4f6' : '#1a1a1a' }}>Newsletter</div>
-                    <p className="text-gray-500 dark:text-gray-400 mt-4 tracking-tighter">
-                      Monthly insights on web development and design, delivered to your inbox.
-                    </p>
-                    <form className="relative">
-                      <input
-                        className="border dark:border-gray-900 w-full mt-4 px-2 py-3 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                        placeholder="Enter your email"
-                        value=""
-                        readOnly
-                      />
-                      <button
-                        className="bg-gray-900 hover:bg-gray-700 inline-block top-6 text-xs right-1 text-white px-2 py-2 rounded-md absolute disabled:opacity-80"
-                        type="button"
-                        disabled
-                      >
-                        Subscribe
-                      </button>
-                    </form>
-                  </div>
                 </div>
               </div>
             </div>

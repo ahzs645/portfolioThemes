@@ -12,17 +12,24 @@ function isPresent(value) {
 
 function formatDateShort(dateStr) {
   if (!dateStr) return '';
-  if (isPresent(dateStr)) return 'Present';
+  // Handle Date objects
+  if (dateStr instanceof Date) {
+    const month = String(dateStr.getMonth() + 1).padStart(2, '0');
+    const year = dateStr.getFullYear();
+    return `${month}/${year}`;
+  }
+  const str = String(dateStr);
+  if (isPresent(str)) return 'Present';
   // Try to extract month/year format like "08/2024"
-  const date = new Date(dateStr);
+  const date = new Date(str);
   if (!isNaN(date.getTime())) {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     return `${month}/${year}`;
   }
   // Fallback: extract year
-  const yearMatch = String(dateStr).match(/\d{4}/);
-  return yearMatch ? yearMatch[0] : dateStr;
+  const yearMatch = str.match(/\d{4}/);
+  return yearMatch ? yearMatch[0] : str;
 }
 
 function pickSocialUrl(socials, networkNames = []) {
@@ -60,34 +67,54 @@ export function StefanZweifelTheme() {
     return '';
   }, [cv]);
 
-  // Experience items
+  // Experience items with nesting support
   const experienceItems = useMemo(() => {
     const items = [];
     const experiences = (cv?.sections?.experience || []).filter(e => !isArchived(e));
 
     for (const exp of experiences) {
       if (Array.isArray(exp.positions) && exp.positions.length > 0) {
-        for (const pos of exp.positions) {
-          items.push({
-            company: exp.company,
+        // Nested positions under same company
+        items.push({
+          type: 'nested',
+          company: exp.company,
+          url: exp.url,
+          positions: exp.positions.map(pos => ({
             title: pos.title || pos.position,
             startDate: formatDateShort(pos.start_date),
-            summary: pos.summary || exp.summary,
-            url: exp.url,
-          });
-        }
+            isCurrent: isPresent(pos.end_date),
+          })),
+        });
       } else {
+        // Single position
         items.push({
+          type: 'single',
           company: exp.company,
           title: exp.position,
           startDate: formatDateShort(exp.start_date),
-          summary: exp.summary,
+          isCurrent: isPresent(exp.end_date),
           url: exp.url,
         });
       }
     }
 
     return items.slice(0, 8);
+  }, [cv]);
+
+  // Education items
+  const educationItems = useMemo(() => {
+    return (cv?.sections?.education || []).filter(e => !isArchived(e)).slice(0, 4);
+  }, [cv]);
+
+  // Volunteer items
+  const volunteerItems = useMemo(() => {
+    return (cv?.sections?.volunteer || []).filter(e => !isArchived(e)).map(vol => ({
+      organization: vol.organization || vol.company || '',
+      position: vol.position || vol.role || 'Volunteer',
+      startDate: formatDateShort(vol.start_date),
+      isCurrent: isPresent(vol.end_date),
+      url: vol.url,
+    })).slice(0, 6);
   }, [cv]);
 
   // Project items
@@ -102,7 +129,10 @@ export function StefanZweifelTheme() {
 
   return (
     <Container>
-      <PrideBar />
+      <PrideBarWrapper>
+        <PrideBar $blur="4px" />
+        <PrideBar $blur="1px" />
+      </PrideBarWrapper>
 
       <Content>
         <Header>
@@ -163,18 +193,32 @@ export function StefanZweifelTheme() {
               <SectionTitle>Experience</SectionTitle>
               <ItemList>
                 {experienceItems.map((exp, idx) => (
-                  <ListItem key={`exp-${idx}`}>
-                    <ItemDate>{exp.startDate}</ItemDate>
-                    <ItemContent>
+                  <NestedExperience key={`exp-${idx}`}>
+                    <CompanyHeader>
                       {exp.url ? (
                         <ItemLink href={exp.url} target="_blank" rel="noopener">
-                          {exp.title} at {exp.company}
+                          {exp.company}
                         </ItemLink>
                       ) : (
-                        <span>{exp.title} at {exp.company}</span>
+                        exp.company
                       )}
-                    </ItemContent>
-                  </ListItem>
+                    </CompanyHeader>
+                    <NestedPositions>
+                      {exp.type === 'nested' ? (
+                        exp.positions.map((pos, posIdx) => (
+                          <ListItem key={`pos-${posIdx}`}>
+                            <ItemDate>{pos.startDate}</ItemDate>
+                            <ItemContent>{pos.title}</ItemContent>
+                          </ListItem>
+                        ))
+                      ) : (
+                        <ListItem>
+                          <ItemDate>{exp.startDate}</ItemDate>
+                          <ItemContent>{exp.title}</ItemContent>
+                        </ListItem>
+                      )}
+                    </NestedPositions>
+                  </NestedExperience>
                 ))}
               </ItemList>
             </Section>
@@ -203,20 +247,67 @@ export function StefanZweifelTheme() {
             </Section>
           )}
 
+          {educationItems.length > 0 && (
+            <Section id="education">
+              <SectionTitle>Education</SectionTitle>
+              <ItemList>
+                {educationItems.map((edu, idx) => (
+                  <ListItem key={`edu-${idx}`}>
+                    <ItemDate>{formatDateShort(edu.end_date || edu.graduation_date)}</ItemDate>
+                    <ItemContent>
+                      {edu.url ? (
+                        <ItemLink href={edu.url} target="_blank" rel="noopener">
+                          {edu.degree || edu.area} at {edu.institution}
+                        </ItemLink>
+                      ) : (
+                        <span>{edu.degree || edu.area} at {edu.institution}</span>
+                      )}
+                    </ItemContent>
+                  </ListItem>
+                ))}
+              </ItemList>
+            </Section>
+          )}
+
+          {volunteerItems.length > 0 && (
+            <Section id="volunteer">
+              <SectionTitle>Volunteer</SectionTitle>
+              <ItemList>
+                {volunteerItems.map((vol, idx) => (
+                  <ListItem key={`vol-${idx}`}>
+                    <ItemDate>{vol.startDate}</ItemDate>
+                    <ItemContent>
+                      {vol.url ? (
+                        <ItemLink href={vol.url} target="_blank" rel="noopener">
+                          {vol.position} at {vol.organization}
+                        </ItemLink>
+                      ) : (
+                        <span>{vol.position} at {vol.organization}</span>
+                      )}
+                    </ItemContent>
+                  </ListItem>
+                ))}
+              </ItemList>
+            </Section>
+          )}
+
           {publicationItems.length > 0 && (
-            <Section>
-              <SectionTitle>Writing</SectionTitle>
+            <Section id="publications">
+              <SectionTitle>Publications</SectionTitle>
               <ItemList>
                 {publicationItems.map((pub, idx) => (
                   <ListItem key={`pub-${idx}`}>
                     <ItemDate>{formatDateShort(pub.date || pub.releaseDate)}</ItemDate>
                     <ItemContent>
-                      {pub.url ? (
-                        <ItemLink href={pub.url} target="_blank" rel="noopener">
+                      {(pub.url || pub.doi) ? (
+                        <ItemLink href={pub.url || `https://doi.org/${pub.doi}`} target="_blank" rel="noopener">
                           {pub.name || pub.title}
                         </ItemLink>
                       ) : (
                         <span>{pub.name || pub.title}</span>
+                      )}
+                      {(pub.publisher || pub.journal) && (
+                        <ItemSummary> — {pub.publisher || pub.journal}</ItemSummary>
                       )}
                     </ItemContent>
                   </ListItem>
@@ -253,8 +344,18 @@ const Container = styled.div`
   }
 `;
 
+const PrideBarWrapper = styled.div`
+  display: flex;
+  width: 100%;
+  height: 4px;
+  position: relative;
+`;
+
 const PrideBar = styled.div`
-  height: 2px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 4px;
   width: 100%;
   background: linear-gradient(
     90deg,
@@ -273,7 +374,7 @@ const PrideBar = styled.div`
     #a855f7,
     #a855f700
   );
-  filter: blur(1px);
+  filter: blur(${props => props.$blur || '1px'});
 `;
 
 const Content = styled.div`
@@ -476,6 +577,25 @@ const ItemLink = styled.a`
 
 const ItemSummary = styled.span`
   color: #6b7280;
+`;
+
+const NestedExperience = styled.li`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const CompanyHeader = styled.div`
+  font-weight: 500;
+  color: #0f172a;
+`;
+
+const NestedPositions = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-left: 1rem;
+  border-left: 2px solid #e5e7eb;
 `;
 
 const Footer = styled.footer`

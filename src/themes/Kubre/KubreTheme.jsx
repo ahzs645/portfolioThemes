@@ -1,23 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 
-// Global styles
+// Global styles for background
 const GlobalStyle = createGlobalStyle`
   html, body {
     background-color: #eeeeee !important;
-    margin: 0;
-    padding: 0;
-  }
-
-  a {
-    color: inherit;
-    text-decoration-color: #666666;
-  }
-
-  a:hover {
-    background: #facc15;
-    color: #000;
   }
 `;
 
@@ -30,17 +18,6 @@ const isPresent = (value) => String(value || '').trim().toLowerCase() === 'prese
 export function KubreTheme() {
   const cv = useCV();
   const [activeTab, setActiveTab] = useState('profile');
-
-  // Load Space Mono font
-  useEffect(() => {
-    const link = document.createElement('link');
-    link.href = 'https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap';
-    link.rel = 'stylesheet';
-    document.head.appendChild(link);
-    return () => {
-      document.head.removeChild(link);
-    };
-  }, []);
 
   if (!cv) return null;
 
@@ -80,8 +57,9 @@ export function KubreTheme() {
   };
 
   return (
-    <Container>
+    <PageWrapper>
       <GlobalStyle />
+      <Container>
 
       {/* Navigation */}
       <Nav>
@@ -168,9 +146,9 @@ export function KubreTheme() {
 
             {/* Resume Link */}
             <ResumeLink>
-              <ResumeLinkAnchor href={`mailto:${email}`}>
+              <ResumeLinkButton onClick={() => setActiveTab('work')}>
                 Complete Resume →
-              </ResumeLinkAnchor>
+              </ResumeLinkButton>
             </ResumeLink>
           </>
         )}
@@ -293,17 +271,24 @@ export function KubreTheme() {
           © 2018 - {new Date().getFullYear()}, {firstName}. Creative Commons Attribution 4.0 International License.
         </Copyright>
       </Footer>
-    </Container>
+      </Container>
+    </PageWrapper>
   );
 }
 
 // Styled Components
+const PageWrapper = styled.div`
+  min-height: 100vh;
+  width: 100%;
+  background: #eeeeee;
+`;
+
 const Container = styled.div`
   min-height: 100%;
   width: 100%;
   background: #eeeeee;
   color: #222222;
-  font-family: 'Space Mono', 'Consolas', 'Menlo', monospace;
+  font-family: 'Departure Mono', 'JetBrains Mono', monospace;
   font-size: 0.875rem;
   line-height: 1.5;
   padding: 0 1rem;
@@ -315,6 +300,16 @@ const Container = styled.div`
   }
 
   ::selection {
+    background: #facc15;
+    color: #000;
+  }
+
+  a {
+    color: inherit;
+    text-decoration-color: #666666;
+  }
+
+  a:hover {
     background: #facc15;
     color: #000;
   }
@@ -658,13 +653,17 @@ const ResumeLink = styled.div`
   justify-content: flex-end;
 `;
 
-const ResumeLinkAnchor = styled.a`
+const ResumeLinkButton = styled.button`
   margin-left: auto;
   padding: 0 0.5rem;
   background: #fef08a;
   text-decoration: underline;
   text-decoration-color: #666666;
   color: #222222;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
 
   &:hover {
     background: #facc15;

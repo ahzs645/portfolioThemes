@@ -180,12 +180,17 @@ export function PiTheme() {
     return (cv?.sections?.volunteer || [])
       .filter(e => !isArchived(e))
       .slice(0, 10)
-      .map(vol => ({
-        title: `${vol.position} at ${vol.organization}`,
-        description: vol.summary || '',
-        date: formatDate(vol.start_date),
-        url: vol.url || null,
-      }));
+      .map(vol => {
+        const role = vol.position || vol.role || 'Volunteer';
+        const org = vol.organization || vol.company || '';
+        const title = org ? `${role} at ${org}` : role;
+        return {
+          title,
+          description: vol.summary || '',
+          date: formatDate(vol.start_date),
+          url: vol.url || null,
+        };
+      });
   }, [cv]);
 
   // Project items - no featuring

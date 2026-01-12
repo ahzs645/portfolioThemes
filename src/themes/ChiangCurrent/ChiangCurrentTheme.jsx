@@ -83,11 +83,34 @@ export function ChiangCurrentTheme() {
   const email = cv?.email || null;
   const website = cv?.website || null;
   const location = cv?.location || null;
+  const headline = cv?.label || cv?.headline || '';
+  const aboutText = cv?.sections?.about || '';
 
   const socials = cv?.social || [];
   const githubUrl = pickSocialUrl(socials, ['github']);
   const linkedinUrl = pickSocialUrl(socials, ['linkedin']);
   const twitterUrl = pickSocialUrl(socials, ['twitter', 'x']);
+
+  // Get current job title from experience
+  const currentJobTitle = useMemo(() => {
+    const exp = cv?.sections?.experience || [];
+    for (const entry of exp) {
+      if (Array.isArray(entry.positions) && entry.positions.length > 0) {
+        const pos = entry.positions[0];
+        if (isPresent(pos.end_date)) return pos.title || entry.position;
+      }
+      if (isPresent(entry.end_date)) return entry.position;
+    }
+    // Fallback to first position
+    if (exp.length > 0) {
+      const first = exp[0];
+      if (Array.isArray(first.positions) && first.positions.length > 0) {
+        return first.positions[0].title || first.position;
+      }
+      return first.position;
+    }
+    return headline || 'Engineer';
+  }, [cv, headline]);
 
   const experienceItems = useMemo(() => {
     return flattenExperience(cv?.sections?.experience || []);
@@ -140,8 +163,8 @@ export function ChiangCurrentTheme() {
         <LeftColumn>
           <Header>
             <Name>{fullName}</Name>
-            <Title>Software Engineer</Title>
-            <Bio>I build accessible, inclusive products and digital experiences for the web.</Bio>
+            <Title>{currentJobTitle}</Title>
+            {headline && <Bio>{headline}</Bio>}
           </Header>
 
           <Nav>
@@ -197,20 +220,13 @@ export function ChiangCurrentTheme() {
               <MobileSectionTitle>About</MobileSectionTitle>
             </MobileSectionHeader>
             <SectionContent>
-              <p>
-                Back in 2012, I decided to try my hand at creating custom Tumblr themes and
-                tumbled head first into the rabbit hole of coding and web development.
-                Fast-forward to today, and I've had the privilege of building software for
-                various companies and organizations.
-              </p>
-              <p>
-                My main focus these days is building accessible, inclusive products and
-                digital experiences. I enjoy bridging the gap between engineering and design.
-              </p>
-              <p>
-                When I'm not at the computer, I'm usually reading, hanging out with my family,
-                or exploring new places.
-              </p>
+              {aboutText ? (
+                aboutText.split('\n\n').map((paragraph, idx) => (
+                  <p key={idx}>{paragraph}</p>
+                ))
+              ) : (
+                <p>Welcome to my portfolio. Here you can learn more about my experience and projects.</p>
+              )}
             </SectionContent>
           </Section>
 
