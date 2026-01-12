@@ -208,42 +208,57 @@ export function KubreTheme() {
                 {experienceRaw.map((company, idx) => {
                   const positions = company.positions && company.positions.length > 0
                     ? company.positions
-                    : [{ title: company.position, start_date: company.start_date, end_date: company.end_date, summary: company.summary }];
+                    : [{ title: company.position, start_date: company.start_date, end_date: company.end_date, summary: company.summary, highlights: company.highlights }];
 
-                  return positions.map((pos, posIdx) => (
-                    <TimelineItem key={`work-${idx}-${posIdx}`}>
+                  const hasMultiplePositions = positions.length > 1;
+                  const companyStartDate = positions[positions.length - 1]?.start_date;
+
+                  return (
+                    <TimelineItem key={`work-${idx}`}>
                       <TimelineDiamond>♦</TimelineDiamond>
                       <TimelineDate>
-                        {formatDate(pos.start_date)}
+                        {formatDate(companyStartDate)}
                       </TimelineDate>
                       <TimelineCard>
+                        {/* Company Header */}
                         <TimelineTitle>
                           {company.url ? (
                             <StyledLink href={company.url} target="_blank" rel="noreferrer">
-                              {pos.title} @ {company.company}
+                              {company.company}
                             </StyledLink>
                           ) : (
-                            <>{pos.title} @ {company.company}</>
+                            company.company
                           )}
                         </TimelineTitle>
-                        <TimelineMeta>
-                          {formatDateRange(pos.start_date, pos.end_date)}
-                          {company.location && ` • ${company.location}`}
-                        </TimelineMeta>
-                        {pos.summary && (
-                          <TimelineDescription>{pos.summary}</TimelineDescription>
+                        {company.location && (
+                          <TimelineMeta>{company.location}</TimelineMeta>
                         )}
-                        {pos.highlights && pos.highlights.length > 0 && (
-                          <TimelineHighlights>
-                            {pos.highlights.slice(0, 3).map((h, hIdx) => (
-                              <li key={hIdx}>{h}</li>
-                            ))}
-                          </TimelineHighlights>
-                        )}
+
+                        {/* Positions */}
+                        <PositionsList $nested={hasMultiplePositions}>
+                          {positions.map((pos, posIdx) => (
+                            <PositionItem key={`pos-${posIdx}`} $nested={hasMultiplePositions}>
+                              <PositionTitle>{pos.title}</PositionTitle>
+                              <PositionMeta>
+                                {formatDateRange(pos.start_date, pos.end_date)}
+                              </PositionMeta>
+                              {pos.summary && (
+                                <TimelineDescription>{pos.summary}</TimelineDescription>
+                              )}
+                              {pos.highlights && pos.highlights.length > 0 && (
+                                <TimelineHighlights>
+                                  {pos.highlights.slice(0, 3).map((h, hIdx) => (
+                                    <li key={hIdx}>{h}</li>
+                                  ))}
+                                </TimelineHighlights>
+                              )}
+                            </PositionItem>
+                          ))}
+                        </PositionsList>
                         <TimelineReadMore>Read more ↳</TimelineReadMore>
                       </TimelineCard>
                     </TimelineItem>
-                  ));
+                  );
                 })}
               </TimelineItems>
             </TimelineContainer>
@@ -611,6 +626,37 @@ const TimelineReadMore = styled.span`
   color: #666666;
 `;
 
+const PositionsList = styled.div`
+  margin-top: ${({ $nested }) => $nested ? '1rem' : '0.5rem'};
+  ${({ $nested }) => $nested && `
+    border-left: 1px solid #cccccc;
+    padding-left: 1rem;
+    margin-left: 0.25rem;
+  `}
+`;
+
+const PositionItem = styled.div`
+  ${({ $nested }) => $nested && `
+    padding: 0.75rem 0;
+    &:not(:last-child) {
+      border-bottom: 1px dashed #dddddd;
+    }
+  `}
+`;
+
+const PositionTitle = styled.h4`
+  font-size: 1rem;
+  font-weight: 500;
+  color: #222222;
+`;
+
+const PositionMeta = styled.div`
+  font-size: 0.75rem;
+  color: #666666;
+  margin-top: 0.125rem;
+  margin-bottom: 0.5rem;
+`;
+
 const StyledLink = styled.a`
   text-decoration: underline;
   text-decoration-color: #666666;
@@ -676,15 +722,12 @@ const Footer = styled.footer`
 `;
 
 const ContactLinks = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  text-align: center;
-  gap: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
   padding-bottom: 1rem;
-
-  @media (min-width: 1024px) {
-    grid-template-columns: repeat(6, 1fr);
-  }
 `;
 
 const ContactLink = styled.a`
