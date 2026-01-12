@@ -618,10 +618,12 @@ const TimelineReadMore = styled.span`
 
 const StyledLink = styled.a`
   text-decoration: underline;
-  color: inherit;
+  text-decoration-color: #666666;
+  color: #222222;
 
   &:hover {
     background: #facc15;
+    color: #000;
   }
 `;
 
@@ -661,9 +663,12 @@ const ResumeLinkAnchor = styled.a`
   padding: 0 0.5rem;
   background: #fef08a;
   text-decoration: underline;
+  text-decoration-color: #666666;
+  color: #222222;
 
   &:hover {
     background: #facc15;
+    color: #000;
   }
 `;
 
@@ -685,10 +690,13 @@ const ContactLinks = styled.div`
 
 const ContactLink = styled.a`
   text-decoration: underline;
+  text-decoration-color: #666666;
+  color: #222222;
   padding: 0 0.5rem;
 
   &:hover {
     background: #facc15;
+    color: #000;
   }
 `;
 

@@ -633,11 +633,15 @@ const SectionTitle = styled.div`
 `;
 
 const SectionHeading = styled.h3`
-  margin: 20px 0;
+  margin: 40px 0 20px;
   text-align: center;
   font-size: 1.5rem;
   font-weight: 500;
   line-height: 1.334;
+
+  &:first-of-type {
+    margin-top: 0;
+  }
 `;
 
 const ProjectsGrid = styled.div`
