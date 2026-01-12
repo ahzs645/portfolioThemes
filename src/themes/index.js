@@ -9,6 +9,15 @@ import { HendoTheme } from './Hendo/HendoTheme';
 import { PiTheme } from './Pi/PiTheme';
 import { ChiziTheme } from './Chizi/ChiziTheme';
 import { GerhardTheme } from './Gerhard/GerhardTheme';
+import { AlanaGoyalTheme } from './AlanaGoyal/AlanaGoyalTheme';
+import { AmirmxtTheme } from './Amirmxt/AmirmxtTheme';
+import { FelixDornerTheme } from './FelixDorner/FelixDornerTheme';
+import { TerminalTheme } from './Terminal/TerminalTheme';
+import { StammyTheme } from './Stammy/StammyTheme';
+import { StefanZweifelTheme } from './StefanZweifel/StefanZweifelTheme';
+import { DmythroTheme } from './Dmythro/DmythroTheme';
+import { DTCTheme } from './DTC/DTCTheme';
+import { KubreTheme } from './Kubre/KubreTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -76,6 +85,60 @@ export const PORTFOLIO_THEMES = [
     name: 'Plain Text',
     description: 'Ultra-minimal design with system fonts, 60ch width, and automatic dark/light mode. Subtle gray underlines and muted section labels.',
     Component: GerhardTheme,
+  },
+  {
+    id: 'alana-goyal',
+    name: 'Notes',
+    description: 'Notes-style layout with emoji icons, golden accent color, and dark mode default. Clean SF Pro typography with lowercase aesthetic.',
+    Component: AlanaGoyalTheme,
+  },
+  {
+    id: 'amirmxt',
+    name: 'Builder',
+    description: 'Clean professional layout with card-based projects and section dividers. Inter font, subtle hover effects, and live footer clock.',
+    Component: AmirmxtTheme,
+  },
+  {
+    id: 'felix-dorner',
+    name: 'Timeline',
+    description: 'Clean professional design with timeline layout, monospace dates, and indigo accent links. Inter font with uppercase section labels.',
+    Component: FelixDornerTheme,
+  },
+  {
+    id: 'terminal',
+    name: 'Terminal',
+    description: 'Hacker-style black terminal with Geist Mono font, ALL CAPS text, blinking cursor, and animated link underlines. Inspired by ragojose.com.',
+    Component: TerminalTheme,
+  },
+  {
+    id: 'stammy',
+    name: 'Stammy',
+    description: 'Dark olive theme with left icon sidebar, serif typography, and table-style work history. Inspired by paulstamatiou.com.',
+    Component: StammyTheme,
+  },
+  {
+    id: 'stefan-zweifel',
+    name: 'Developer',
+    description: 'Clean white portfolio with pride gradient bar, system fonts, underlined links, and tabular date formatting. Inspired by stefanzweifel.dev.',
+    Component: StefanZweifelTheme,
+  },
+  {
+    id: 'dmythro',
+    name: 'Two Column',
+    description: 'Modern two-column layout with sticky photo card, accordion sections, timeline with chip dates, and gradient social buttons. Dark mode support.',
+    Component: DmythroTheme,
+  },
+  {
+    id: 'dtc',
+    name: 'Splash',
+    description: 'Full-screen hero splash with profile picture, colorful project cards, and alternating timeline. Dark theme with Roboto typography.',
+    Component: DTCTheme,
+  },
+  {
+    id: 'kubre',
+    name: 'Notebook',
+    description: 'Monospace terminal aesthetic with glitch-style header, yellow accent hovers, and notebook paper dots. Inspired by kubre.in.',
+    Component: KubreTheme,
   },
 ];
 
