@@ -81,10 +81,27 @@ export function ChiangCurrentTheme() {
 
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;
+  const phone = cv?.phone || null;
   const website = cv?.website || null;
   const location = cv?.location || null;
   const headline = cv?.label || cv?.headline || '';
   const aboutText = cv?.sections?.about || '';
+
+  const awardItems = useMemo(() => {
+    return cv?.sections?.awards || [];
+  }, [cv]);
+
+  const presentationItems = useMemo(() => {
+    return cv?.sections?.presentations || [];
+  }, [cv]);
+
+  const publicationItems = useMemo(() => {
+    return cv?.sections?.publications || [];
+  }, [cv]);
+
+  const professionalDevItems = useMemo(() => {
+    return cv?.sections?.professional_development || [];
+  }, [cv]);
 
   const socials = cv?.social || [];
   const githubUrl = pickSocialUrl(socials, ['github']);
@@ -180,6 +197,18 @@ export function ChiangCurrentTheme() {
               <NavLine $active={activeSection === 'projects'} />
               <NavText>Projects</NavText>
             </NavItem>
+            {awardItems.length > 0 && (
+              <NavItem href="#awards" $active={activeSection === 'awards'}>
+                <NavLine $active={activeSection === 'awards'} />
+                <NavText>Awards</NavText>
+              </NavItem>
+            )}
+            {publicationItems.length > 0 && (
+              <NavItem href="#publications" $active={activeSection === 'publications'}>
+                <NavLine $active={activeSection === 'publications'} />
+                <NavText>Publications</NavText>
+              </NavItem>
+            )}
           </Nav>
 
           <SocialLinks>
@@ -208,6 +237,13 @@ export function ChiangCurrentTheme() {
               <SocialLink href={`mailto:${email}`} aria-label="Email">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
                   <path d="M0 3v18h24v-18h-24zm21.518 2l-9.518 7.713-9.518-7.713h19.036zm-19.518 14v-11.817l10 8.104 10-8.104v11.817h-20z"/>
+                </svg>
+              </SocialLink>
+            )}
+            {phone && (
+              <SocialLink href={`tel:${phone}`} aria-label="Phone">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                  <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
                 </svg>
               </SocialLink>
             )}
@@ -293,6 +329,102 @@ export function ChiangCurrentTheme() {
               ))}
             </ProjectsList>
           </Section>
+
+          {awardItems.length > 0 && (
+            <Section id="awards">
+              <MobileSectionHeader>
+                <MobileSectionTitle>Awards</MobileSectionTitle>
+              </MobileSectionHeader>
+              <ExperienceList>
+                {awardItems.map((award, idx) => (
+                  <ExperienceCard key={`award-${idx}`}>
+                    <ExperienceDate>{award.date}</ExperienceDate>
+                    <ExperienceContent>
+                      <ExperienceTitle>{award.name}</ExperienceTitle>
+                      {award.summary && (
+                        <ExperienceDescription>{award.summary}</ExperienceDescription>
+                      )}
+                    </ExperienceContent>
+                  </ExperienceCard>
+                ))}
+              </ExperienceList>
+            </Section>
+          )}
+
+          {presentationItems.length > 0 && (
+            <Section id="presentations">
+              <MobileSectionHeader>
+                <MobileSectionTitle>Presentations</MobileSectionTitle>
+              </MobileSectionHeader>
+              <ExperienceList>
+                {presentationItems.map((pres, idx) => (
+                  <ExperienceCard key={`pres-${idx}`}>
+                    <ExperienceDate>{pres.date}</ExperienceDate>
+                    <ExperienceContent>
+                      <ExperienceTitle>{pres.name}</ExperienceTitle>
+                      {pres.summary && (
+                        <ExperienceDescription>
+                          {pres.summary} {pres.location && `@ ${pres.location}`}
+                        </ExperienceDescription>
+                      )}
+                    </ExperienceContent>
+                  </ExperienceCard>
+                ))}
+              </ExperienceList>
+            </Section>
+          )}
+
+          {publicationItems.length > 0 && (
+            <Section id="publications">
+              <MobileSectionHeader>
+                <MobileSectionTitle>Publications</MobileSectionTitle>
+              </MobileSectionHeader>
+              <ProjectsList>
+                {publicationItems.map((pub, idx) => (
+                  <ProjectCard
+                    key={`pub-${idx}`}
+                    href={pub.doi ? `https://doi.org/${pub.doi}` : '#'}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <ProjectImage>
+                      <ProjectPlaceholder>{pub.title?.charAt(0) || 'P'}</ProjectPlaceholder>
+                    </ProjectImage>
+                    <ProjectContent>
+                      <ProjectTitle>
+                        {pub.title}
+                        {pub.doi && <ProjectArrow>↗</ProjectArrow>}
+                      </ProjectTitle>
+                      <ProjectDescription>{pub.journal} ({pub.date})</ProjectDescription>
+                    </ProjectContent>
+                  </ProjectCard>
+                ))}
+              </ProjectsList>
+            </Section>
+          )}
+
+          {professionalDevItems.length > 0 && (
+            <Section id="professional-development">
+              <MobileSectionHeader>
+                <MobileSectionTitle>Professional Development</MobileSectionTitle>
+              </MobileSectionHeader>
+              <ExperienceList>
+                {professionalDevItems.map((item, idx) => (
+                  <ExperienceCard key={`profdev-${idx}`}>
+                    <ExperienceDate>{item.date}</ExperienceDate>
+                    <ExperienceContent>
+                      <ExperienceTitle>{item.name}</ExperienceTitle>
+                      {item.summary && (
+                        <ExperienceDescription>
+                          {item.summary} {item.location && `@ ${item.location}`}
+                        </ExperienceDescription>
+                      )}
+                    </ExperienceContent>
+                  </ExperienceCard>
+                ))}
+              </ExperienceList>
+            </Section>
+          )}
 
           <Footer>
             <FooterText>

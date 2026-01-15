@@ -72,6 +72,8 @@ export function ConfigProvider({ children }) {
       presentations: filterActive(sections.presentations || []),
       volunteer: flattenExperience(sections.volunteer || []),
       certifications: filterActive(sections.certifications || []),
+      professionalDevelopment: filterActive(sections.professional_development || []),
+      certificationsSkills: sections.certifications_skills || [],
 
       // Raw sections (for themes that need unprocessed data)
       sectionsRaw: sections,

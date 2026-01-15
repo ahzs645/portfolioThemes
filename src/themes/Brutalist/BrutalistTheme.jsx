@@ -66,6 +66,22 @@ export function BrutalistTheme() {
     return cv?.sections?.certifications_skills || [];
   }, [cv]);
 
+  const awardItems = useMemo(() => {
+    return cv?.sections?.awards || [];
+  }, [cv]);
+
+  const presentationItems = useMemo(() => {
+    return cv?.sections?.presentations || [];
+  }, [cv]);
+
+  const publicationItems = useMemo(() => {
+    return cv?.sections?.publications || [];
+  }, [cv]);
+
+  const professionalDevItems = useMemo(() => {
+    return cv?.sections?.professional_development || [];
+  }, [cv]);
+
   return (
     <div style={{ height: '100%', width: '100%', overflow: 'auto' }}>
       <body>
@@ -140,6 +156,66 @@ export function BrutalistTheme() {
                 </li>
               ))}
             </ul>
+          </>
+        )}
+
+        {awardItems.length > 0 && (
+          <>
+            <h2>Awards</h2>
+            {awardItems.map((award, idx) => (
+              <div key={`award-${idx}`}>
+                <h3>{award.name}</h3>
+                <p>
+                  <em>{award.summary}</em> — {award.date}
+                </p>
+              </div>
+            ))}
+          </>
+        )}
+
+        {presentationItems.length > 0 && (
+          <>
+            <h2>Presentations</h2>
+            {presentationItems.map((pres, idx) => (
+              <div key={`pres-${idx}`}>
+                <h3>{pres.name}</h3>
+                <p>
+                  <em>{pres.summary}</em> — {pres.location} ({pres.date})
+                </p>
+              </div>
+            ))}
+          </>
+        )}
+
+        {publicationItems.length > 0 && (
+          <>
+            <h2>Publications</h2>
+            {publicationItems.map((pub, idx) => (
+              <div key={`pub-${idx}`}>
+                <h3>
+                  {pub.title}
+                  {pub.doi && <> — <a href={`https://doi.org/${pub.doi}`}>DOI</a></>}
+                </h3>
+                <p>
+                  <em>{pub.journal}</em> ({pub.date})
+                </p>
+                {pub.authors && <p><small>Authors: {pub.authors.join(', ')}</small></p>}
+              </div>
+            ))}
+          </>
+        )}
+
+        {professionalDevItems.length > 0 && (
+          <>
+            <h2>Professional Development</h2>
+            {professionalDevItems.map((item, idx) => (
+              <div key={`profdev-${idx}`}>
+                <h3>{item.name}</h3>
+                <p>
+                  <em>{item.summary}</em> — {item.location} ({item.date})
+                </p>
+              </div>
+            ))}
           </>
         )}
 

@@ -24,6 +24,7 @@ export function KubreTheme() {
   const {
     name,
     email,
+    phone,
     location,
     about,
     currentJobTitle,
@@ -36,6 +37,12 @@ export function KubreTheme() {
 
   // Get raw experience data
   const experienceRaw = (sectionsRaw?.experience || []).filter(e => !isArchived(e));
+
+  // Get additional sections
+  const awardItems = (sectionsRaw?.awards || []).filter(e => !isArchived(e));
+  const presentationItems = (sectionsRaw?.presentations || []).filter(e => !isArchived(e));
+  const publicationItems = (sectionsRaw?.publications || []).filter(e => !isArchived(e));
+  const professionalDevItems = (sectionsRaw?.professional_development || []).filter(e => !isArchived(e));
 
   // Get first name
   const firstName = name?.split(' ')[0] || 'User';
@@ -86,6 +93,14 @@ export function KubreTheme() {
           >
             ≥ WORK
           </NavItem>
+          {(awardItems.length > 0 || presentationItems.length > 0 || publicationItems.length > 0 || professionalDevItems.length > 0) && (
+            <NavItem
+              $active={activeTab === 'more'}
+              onClick={() => setActiveTab('more')}
+            >
+              ◆ MORE
+            </NavItem>
+          )}
         </NavLinks>
       </Nav>
 
@@ -264,6 +279,83 @@ export function KubreTheme() {
             </TimelineContainer>
           </Section>
         )}
+
+        {/* More Tab - Awards, Presentations, Publications, Prof Dev */}
+        {activeTab === 'more' && (
+          <Section>
+            {awardItems.length > 0 && (
+              <>
+                <SectionTitle># Awards</SectionTitle>
+                <EducationList>
+                  {awardItems.map((award, idx) => (
+                    <EducationItem key={`award-${idx}`}>
+                      <EducationDate>{award.date}</EducationDate>
+                      <EducationDegree>{award.name}</EducationDegree>
+                      {award.summary && <EducationSchool>{award.summary}</EducationSchool>}
+                    </EducationItem>
+                  ))}
+                </EducationList>
+              </>
+            )}
+
+            {presentationItems.length > 0 && (
+              <>
+                <SectionTitle># Presentations</SectionTitle>
+                <EducationList>
+                  {presentationItems.map((pres, idx) => (
+                    <EducationItem key={`pres-${idx}`}>
+                      <EducationDate>{pres.date}</EducationDate>
+                      <EducationDegree>{pres.name}</EducationDegree>
+                      {pres.location && <EducationSchool>{pres.location}</EducationSchool>}
+                    </EducationItem>
+                  ))}
+                </EducationList>
+              </>
+            )}
+
+            {publicationItems.length > 0 && (
+              <>
+                <SectionTitle># Publications</SectionTitle>
+                <EducationList>
+                  {publicationItems.map((pub, idx) => (
+                    <EducationItem key={`pub-${idx}`}>
+                      <EducationDate>{pub.date || pub.releaseDate}</EducationDate>
+                      <EducationDegree>
+                        {pub.doi ? (
+                          <StyledLink href={`https://doi.org/${pub.doi}`} target="_blank" rel="noreferrer">
+                            {pub.name || pub.title}
+                          </StyledLink>
+                        ) : pub.url ? (
+                          <StyledLink href={pub.url} target="_blank" rel="noreferrer">
+                            {pub.name || pub.title}
+                          </StyledLink>
+                        ) : (
+                          pub.name || pub.title
+                        )}
+                      </EducationDegree>
+                      {pub.authors && <EducationSchool>{pub.authors.join(', ')}</EducationSchool>}
+                    </EducationItem>
+                  ))}
+                </EducationList>
+              </>
+            )}
+
+            {professionalDevItems.length > 0 && (
+              <>
+                <SectionTitle># Professional Development</SectionTitle>
+                <EducationList>
+                  {professionalDevItems.map((item, idx) => (
+                    <EducationItem key={`pd-${idx}`}>
+                      <EducationDate>{item.date}</EducationDate>
+                      <EducationDegree>{item.name}</EducationDegree>
+                      {item.location && <EducationSchool>{item.location}</EducationSchool>}
+                    </EducationItem>
+                  ))}
+                </EducationList>
+              </>
+            )}
+          </Section>
+        )}
       </Main>
 
       {/* Footer */}
@@ -271,6 +363,9 @@ export function KubreTheme() {
         <ContactLinks>
           {email && (
             <ContactLink href={`mailto:${email}`}>Email</ContactLink>
+          )}
+          {phone && (
+            <ContactLink href={`tel:${phone}`}>Phone</ContactLink>
           )}
           {socialLinks.linkedin && (
             <ContactLink href={socialLinks.linkedin} target="_blank" rel="noreferrer">LinkedIn</ContactLink>

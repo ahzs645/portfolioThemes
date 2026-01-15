@@ -149,8 +149,13 @@ export function AnsubMinimalTheme({ darkMode }) {
     socialLinks,
     projects,
     email,
+    phone,
     location,
     website,
+    awards,
+    presentations,
+    publications,
+    professionalDevelopment,
   } = cv;
 
   // Use darkMode prop from App instead of local state
@@ -399,6 +404,115 @@ export function AnsubMinimalTheme({ darkMode }) {
                   </div>
                 ) : null}
 
+                {/* Awards Section */}
+                {awards?.length > 0 ? (
+                  <div>
+                    <div className="font-medium mb-4 text-lg" style={{ color: isDark ? '#f3f4f6' : '#1a1a1a' }}>Awards</div>
+                    <ol className="relative border-s" style={{ borderColor: isDark ? '#374151' : '#e5e7eb' }}>
+                      {awards.map((award, idx) => (
+                        <li key={`award-${idx}`} className="mb-10 ms-4">
+                          <div
+                            className="absolute w-3 h-3 rounded-full mt-1.5 -start-1.5"
+                            style={{
+                              backgroundColor: isDark ? '#fbbf24' : '#f59e0b',
+                              border: isDark ? 'none' : '1px solid #e5e7eb'
+                            }}
+                          ></div>
+                          <div className="flex flex-row items-center gap-2">
+                            <div className="text-md font-medium text-gray-900 dark:text-gray-300 tracking-tighter">
+                              {award.name}
+                            </div>
+                          </div>
+                          <div className="mb-4 text-sm font-normal text-gray-500 dark:text-gray-400">
+                            {award.summary} {award.date && `(${award.date})`}
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ) : null}
+
+                {/* Presentations Section */}
+                {presentations?.length > 0 ? (
+                  <div>
+                    <div className="font-medium mb-4 text-lg" style={{ color: isDark ? '#f3f4f6' : '#1a1a1a' }}>Presentations</div>
+                    <ol className="relative border-s" style={{ borderColor: isDark ? '#374151' : '#e5e7eb' }}>
+                      {presentations.map((pres, idx) => (
+                        <li key={`pres-${idx}`} className="mb-10 ms-4">
+                          <div
+                            className="absolute w-3 h-3 rounded-full mt-1.5 -start-1.5"
+                            style={{
+                              backgroundColor: isDark ? '#4b5563' : '#e5e7eb',
+                              border: isDark ? 'none' : '1px solid #e5e7eb'
+                            }}
+                          ></div>
+                          <div className="flex flex-row items-center gap-2">
+                            <div className="text-md font-medium text-gray-900 dark:text-gray-300 tracking-tighter">
+                              {pres.name}
+                            </div>
+                          </div>
+                          <div className="mb-4 text-sm font-normal text-gray-500 dark:text-gray-400">
+                            {pres.summary} {pres.location && `@ ${pres.location}`} {pres.date && `(${pres.date})`}
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ) : null}
+
+                {/* Publications Section */}
+                {publications?.length > 0 ? (
+                  <div>
+                    <div className="font-medium mb-4 text-lg" style={{ color: isDark ? '#f3f4f6' : '#1a1a1a' }}>Publications</div>
+                    <div className="flex flex-col gap-y-5">
+                      {publications.map((pub, idx) => (
+                        <div key={`pub-${idx}`}>
+                          <a
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            href={pub.doi ? `https://doi.org/${pub.doi}` : '#'}
+                          >
+                            <div className="text-sm mb-1 tracking-tight" style={{ color: isDark ? '#e5e7eb' : '#1a1a1a' }}>
+                              {pub.title || pub.name}
+                            </div>
+                            <div className="text-sm font-normal text-gray-500 tracking-tighter">
+                              {pub.journal} {pub.date && `(${pub.date})`}
+                            </div>
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Professional Development Section */}
+                {professionalDevelopment?.length > 0 ? (
+                  <div>
+                    <div className="font-medium mb-4 text-lg" style={{ color: isDark ? '#f3f4f6' : '#1a1a1a' }}>Professional Development</div>
+                    <ol className="relative border-s" style={{ borderColor: isDark ? '#374151' : '#e5e7eb' }}>
+                      {professionalDevelopment.map((item, idx) => (
+                        <li key={`profdev-${idx}`} className="mb-10 ms-4">
+                          <div
+                            className="absolute w-3 h-3 rounded-full mt-1.5 -start-1.5"
+                            style={{
+                              backgroundColor: isDark ? '#4b5563' : '#e5e7eb',
+                              border: isDark ? 'none' : '1px solid #e5e7eb'
+                            }}
+                          ></div>
+                          <div className="flex flex-row items-center gap-2">
+                            <div className="text-md font-medium text-gray-900 dark:text-gray-300 tracking-tighter">
+                              {item.name}
+                            </div>
+                          </div>
+                          <div className="mb-4 text-sm font-normal text-gray-500 dark:text-gray-400">
+                            {item.summary} {item.location && `@ ${item.location}`} {item.date && `(${item.date})`}
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ) : null}
+
                 <div className="flex flex-col">
                   <div>
                     <div className="font-medium mb-4 text-lg" style={{ color: isDark ? '#f3f4f6' : '#1a1a1a' }}>
@@ -407,6 +521,7 @@ export function AnsubMinimalTheme({ darkMode }) {
                     <div className="text-sm font-normal text-gray-500 tracking-tighter">
                       {location ? <div>{location}</div> : null}
                       {email ? <div>{email}</div> : null}
+                      {phone ? <div>{phone}</div> : null}
                       {website ? (
                         <div>
                           <a target="_blank" rel="noreferrer" href={website}>

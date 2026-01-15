@@ -21,6 +21,7 @@ export function TerminalTheme() {
   const {
     name,
     email,
+    phone,
     location,
     about,
     currentJobTitle,
@@ -31,6 +32,10 @@ export function TerminalTheme() {
     awards,
     sectionsRaw,
   } = cv;
+
+  // Get additional sections
+  const presentationsRaw = (sectionsRaw?.presentations || []).filter(e => !isArchived(e));
+  const professionalDevRaw = (sectionsRaw?.professional_development || []).filter(e => !isArchived(e));
 
   // Get raw experience and volunteer data
   const experienceRaw = (sectionsRaw?.experience || []).filter(e => !isArchived(e));
@@ -172,6 +177,34 @@ export function TerminalTheme() {
           </>
         )}
 
+        {/* Presentations Section */}
+        {presentationsRaw.length > 0 && (
+          <>
+            <SectionTitle>PRESENTATIONS</SectionTitle>
+            <List>
+              {presentationsRaw.map((pres, idx) => (
+                <ListItem key={`pres-${idx}`}>
+                  {pres.name?.toUpperCase()} {pres.location && `— ${pres.location?.toUpperCase()}`} ({pres.date?.split('-')[0]})
+                </ListItem>
+              ))}
+            </List>
+          </>
+        )}
+
+        {/* Professional Development Section */}
+        {professionalDevRaw.length > 0 && (
+          <>
+            <SectionTitle>PROFESSIONAL DEVELOPMENT</SectionTitle>
+            <List>
+              {professionalDevRaw.map((item, idx) => (
+                <ListItem key={`profdev-${idx}`}>
+                  {item.name?.toUpperCase()} {item.location && `— ${item.location?.toUpperCase()}`} ({item.date?.split('-')[0]})
+                </ListItem>
+              ))}
+            </List>
+          </>
+        )}
+
         {/* Connect Section */}
         <SectionTitle>CONNECT</SectionTitle>
         <SectionText>
@@ -181,9 +214,15 @@ export function TerminalTheme() {
               <StyledLink href={`mailto:${email}`}>{email.toUpperCase()}</StyledLink>
             </>
           )}
+          {phone && (
+            <>
+              {email ? ' OR CALL ' : 'CALL '}
+              <StyledLink href={`tel:${phone}`}>{phone}</StyledLink>
+            </>
+          )}
           {socialLinks.github && (
             <>
-              {email ? ' OR ' : ''}FOLLOW MY WORK ON{' '}
+              {(email || phone) ? '. FOLLOW MY WORK ON ' : 'FOLLOW MY WORK ON '}
               <StyledLink href={socialLinks.github} target="_blank" rel="noreferrer">
                 GITHUB
               </StyledLink>

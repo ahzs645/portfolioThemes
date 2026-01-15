@@ -51,6 +51,7 @@ export function AmirmxtTheme({ darkMode }) {
   const {
     name,
     email,
+    phone,
     location,
     about,
     currentJobTitle,
@@ -58,6 +59,9 @@ export function AmirmxtTheme({ darkMode }) {
     projects,
     education,
     publications,
+    awards,
+    presentations,
+    professionalDevelopment,
     sectionsRaw,
   } = cv;
 
@@ -106,11 +110,22 @@ export function AmirmxtTheme({ darkMode }) {
                 )}
               </BioText>
 
-              {(socialLinks.github || socialLinks.linkedin || socialLinks.twitter || email) && (
+              {(socialLinks.github || socialLinks.linkedin || socialLinks.twitter || email || phone) && (
                 <ContactButtons>
                   {email && (
                     <Button $theme={theme} href={`mailto:${email}`}>
                       Email
+                      <ButtonIcon>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10" />
+                          <path d="M8 12h8M12 8l4 4-4 4" />
+                        </svg>
+                      </ButtonIcon>
+                    </Button>
+                  )}
+                  {phone && (
+                    <Button $theme={theme} href={`tel:${phone}`}>
+                      Phone
                       <ButtonIcon>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <circle cx="12" cy="12" r="10" />
@@ -316,6 +331,76 @@ export function AmirmxtTheme({ darkMode }) {
                     </PublicationItem>
                   ))}
                 </PublicationList>
+              </Section>
+            )}
+
+            {/* Awards Section */}
+            {awards?.length > 0 && (
+              <Section>
+                <SectionHeader $theme={theme}>Awards</SectionHeader>
+                <ExperienceList>
+                  {awards.map((award, idx) => (
+                    <ExperienceCompanyBlock key={`award-${idx}`}>
+                      <ExperienceCompanyName $theme={theme}>
+                        {award.name}
+                        {award.date && (
+                          <ExperienceDate $theme={theme}>{award.date}</ExperienceDate>
+                        )}
+                      </ExperienceCompanyName>
+                      {award.summary && (
+                        <ExperiencePosition $theme={theme}>
+                          {award.summary}
+                        </ExperiencePosition>
+                      )}
+                    </ExperienceCompanyBlock>
+                  ))}
+                </ExperienceList>
+              </Section>
+            )}
+
+            {/* Presentations Section */}
+            {presentations?.length > 0 && (
+              <Section>
+                <SectionHeader $theme={theme}>Presentations</SectionHeader>
+                <ExperienceList>
+                  {presentations.map((pres, idx) => (
+                    <ExperienceCompanyBlock key={`pres-${idx}`}>
+                      <ExperienceCompanyName $theme={theme}>
+                        {pres.name}
+                        {pres.location && (
+                          <ExperienceLocation $theme={theme}>{pres.location}</ExperienceLocation>
+                        )}
+                      </ExperienceCompanyName>
+                      <ExperiencePosition $theme={theme}>
+                        {pres.summary}
+                        <ExperienceDate $theme={theme}>{pres.date}</ExperienceDate>
+                      </ExperiencePosition>
+                    </ExperienceCompanyBlock>
+                  ))}
+                </ExperienceList>
+              </Section>
+            )}
+
+            {/* Professional Development Section */}
+            {professionalDevelopment?.length > 0 && (
+              <Section>
+                <SectionHeader $theme={theme}>Professional Development</SectionHeader>
+                <ExperienceList>
+                  {professionalDevelopment.map((item, idx) => (
+                    <ExperienceCompanyBlock key={`profdev-${idx}`}>
+                      <ExperienceCompanyName $theme={theme}>
+                        {item.name}
+                        {item.location && (
+                          <ExperienceLocation $theme={theme}>{item.location}</ExperienceLocation>
+                        )}
+                      </ExperienceCompanyName>
+                      <ExperiencePosition $theme={theme}>
+                        {item.summary}
+                        <ExperienceDate $theme={theme}>{item.date}</ExperienceDate>
+                      </ExperiencePosition>
+                    </ExperienceCompanyBlock>
+                  ))}
+                </ExperienceList>
               </Section>
             )}
           </ContentContainer>

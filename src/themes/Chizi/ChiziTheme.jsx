@@ -114,12 +114,31 @@ export function ChiziTheme({ darkMode }) {
   const {
     name,
     email,
+    phone,
     location,
     about,
     currentJobTitle,
     socialLinks,
     projects,
   } = cv;
+
+  // Awards items
+  const awardItems = useMemo(() => {
+    const raw = cvData?.cv?.sections?.awards || [];
+    return raw.filter(e => e && !isArchived(e));
+  }, [cvData]);
+
+  // Presentations items
+  const presentationItems = useMemo(() => {
+    const raw = cvData?.cv?.sections?.presentations || [];
+    return raw.filter(e => e && !isArchived(e));
+  }, [cvData]);
+
+  // Professional Development items
+  const professionalDevItems = useMemo(() => {
+    const raw = cvData?.cv?.sections?.professional_development || [];
+    return raw.filter(e => e && !isArchived(e));
+  }, [cvData]);
 
   const theme = darkMode ? colors.dark : colors.light;
   const projectItems = projects.slice(0, 6);
@@ -183,6 +202,11 @@ export function ChiziTheme({ darkMode }) {
                   {socialLinks.twitter && (
                     <StyledLink $theme={theme} href={socialLinks.twitter} target="_blank" rel="noreferrer">
                       Twitter
+                    </StyledLink>
+                  )}
+                  {phone && (
+                    <StyledLink $theme={theme} href={`tel:${phone}`}>
+                      Phone
                     </StyledLink>
                   )}
                 </SocialRow>
@@ -340,6 +364,90 @@ export function ChiziTheme({ darkMode }) {
                     </ProjectItem>
                   ))}
                 </ProjectList>
+              </SectionRight>
+            </Section>
+          )}
+
+          {/* Awards Section */}
+          {awardItems.length > 0 && (
+            <Section id="awards">
+              <SectionLeft>
+                <SectionTitle $theme={theme}>Awards</SectionTitle>
+              </SectionLeft>
+              <SectionRight>
+                <ExperienceList>
+                  {awardItems.map((award, idx) => (
+                    <ExperienceItem key={`award-${idx}`}>
+                      <ExperienceDate $theme={theme}>
+                        {award.date?.split('-')[0] || ''}
+                      </ExperienceDate>
+                      <ExperienceInfo>
+                        <ExperienceRole $theme={theme}>{award.name}</ExperienceRole>
+                        {award.summary && (
+                          <ExperienceCompany $theme={theme}>{award.summary}</ExperienceCompany>
+                        )}
+                      </ExperienceInfo>
+                    </ExperienceItem>
+                  ))}
+                </ExperienceList>
+              </SectionRight>
+            </Section>
+          )}
+
+          {/* Presentations Section */}
+          {presentationItems.length > 0 && (
+            <Section id="presentations">
+              <SectionLeft>
+                <SectionTitle $theme={theme}>Presentations</SectionTitle>
+              </SectionLeft>
+              <SectionRight>
+                <ExperienceList>
+                  {presentationItems.map((pres, idx) => (
+                    <ExperienceItem key={`pres-${idx}`}>
+                      <ExperienceDate $theme={theme}>
+                        {pres.date?.split('-')[0] || ''}
+                      </ExperienceDate>
+                      <ExperienceInfo>
+                        <ExperienceRole $theme={theme}>{pres.name}</ExperienceRole>
+                        {pres.location && (
+                          <ExperienceCompany $theme={theme}>{pres.location}</ExperienceCompany>
+                        )}
+                        {pres.summary && (
+                          <ProjectDesc $theme={theme}>{pres.summary}</ProjectDesc>
+                        )}
+                      </ExperienceInfo>
+                    </ExperienceItem>
+                  ))}
+                </ExperienceList>
+              </SectionRight>
+            </Section>
+          )}
+
+          {/* Professional Development Section */}
+          {professionalDevItems.length > 0 && (
+            <Section id="professional-development">
+              <SectionLeft>
+                <SectionTitle $theme={theme}>Professional Development</SectionTitle>
+              </SectionLeft>
+              <SectionRight>
+                <ExperienceList>
+                  {professionalDevItems.map((item, idx) => (
+                    <ExperienceItem key={`profdev-${idx}`}>
+                      <ExperienceDate $theme={theme}>
+                        {item.date?.split('-')[0] || ''}
+                      </ExperienceDate>
+                      <ExperienceInfo>
+                        <ExperienceRole $theme={theme}>{item.name}</ExperienceRole>
+                        {item.location && (
+                          <ExperienceCompany $theme={theme}>{item.location}</ExperienceCompany>
+                        )}
+                        {item.summary && (
+                          <ProjectDesc $theme={theme}>{item.summary}</ProjectDesc>
+                        )}
+                      </ExperienceInfo>
+                    </ExperienceItem>
+                  ))}
+                </ExperienceList>
               </SectionRight>
             </Section>
           )}

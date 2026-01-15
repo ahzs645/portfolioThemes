@@ -109,6 +109,29 @@ export function AlanaGoyalTheme() {
     return cv?.sections?.skills || [];
   }, [cv]);
 
+  // Awards items
+  const awardItems = useMemo(() => {
+    return (cv?.sections?.awards || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Presentations items
+  const presentationItems = useMemo(() => {
+    return (cv?.sections?.presentations || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Publications items
+  const publicationItems = useMemo(() => {
+    return (cv?.sections?.publications || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Professional Development items
+  const professionalDevItems = useMemo(() => {
+    return (cv?.sections?.professional_development || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Phone
+  const phone = cv?.phone || null;
+
   const theme = isDark ? darkTheme : lightTheme;
 
   // Current position
@@ -277,8 +300,72 @@ export function AlanaGoyalTheme() {
       });
     }
 
+    // Awards
+    if (awardItems.length > 0) {
+      const awardDate = getDateForCategory('7');
+      notes.push({
+        id: 'awards',
+        emoji: '🏆',
+        title: 'awards',
+        preview: awardItems.slice(0, 2).map(a => a.name?.toLowerCase()).join(', '),
+        pinned: false,
+        category: '7',
+        date: awardDate,
+        dateStr: formatNoteDate(awardDate),
+        fullDate: formatFullDate(awardDate),
+      });
+    }
+
+    // Presentations
+    if (presentationItems.length > 0) {
+      const presDate = getDateForCategory('30');
+      notes.push({
+        id: 'presentations',
+        emoji: '🎤',
+        title: 'presentations',
+        preview: presentationItems.slice(0, 2).map(p => p.name?.toLowerCase()).join(', '),
+        pinned: false,
+        category: '30',
+        date: presDate,
+        dateStr: formatNoteDate(presDate),
+        fullDate: formatFullDate(presDate),
+      });
+    }
+
+    // Publications
+    if (publicationItems.length > 0) {
+      const pubDate = getDateForCategory('30');
+      notes.push({
+        id: 'publications',
+        emoji: '📄',
+        title: 'publications',
+        preview: publicationItems.slice(0, 2).map(p => (p.title || p.name)?.toLowerCase()).join(', '),
+        pinned: false,
+        category: '30',
+        date: pubDate,
+        dateStr: formatNoteDate(pubDate),
+        fullDate: formatFullDate(pubDate),
+      });
+    }
+
+    // Professional Development
+    if (professionalDevItems.length > 0) {
+      const profDevDate = getDateForCategory('older');
+      notes.push({
+        id: 'professional-development',
+        emoji: '📈',
+        title: 'professional development',
+        preview: professionalDevItems.slice(0, 2).map(p => p.name?.toLowerCase()).join(', '),
+        pinned: false,
+        category: 'older',
+        date: profDevDate,
+        dateStr: formatNoteDate(profDevDate),
+        fullDate: formatFullDate(profDevDate),
+      });
+    }
+
     return notes;
-  }, [aboutText, location, experienceItems, projectItems, volunteerItems, educationItems, skillItems]);
+  }, [aboutText, location, experienceItems, projectItems, volunteerItems, educationItems, skillItems, awardItems, presentationItems, publicationItems, professionalDevItems]);
 
   // Filter notes by search
   const filteredNotes = useMemo(() => {
@@ -426,6 +513,12 @@ export function AlanaGoyalTheme() {
                   <Muted> - inbox zero, i respond to every email</Muted>
                 </li>
               )}
+              {phone && (
+                <li>
+                  <Accent href={`tel:${phone}`}>phone</Accent>
+                  <Muted> - {phone}</Muted>
+                </li>
+              )}
               {twitterUrl && (
                 <li>
                   <Accent href={twitterUrl} target="_blank" rel="noopener">twitter</Accent>
@@ -444,6 +537,74 @@ export function AlanaGoyalTheme() {
                   <Muted> - professional profile</Muted>
                 </li>
               )}
+            </List>
+          </NoteContent>
+        );
+
+      case 'awards':
+        return (
+          <NoteContent>
+            <List>
+              {awardItems.map((award, idx) => (
+                <li key={`award-${idx}`}>
+                  <span>{award.name?.toLowerCase()}</span>
+                  {award.date && <Muted> ({award.date})</Muted>}
+                  {award.summary && <Muted> - {award.summary}</Muted>}
+                </li>
+              ))}
+            </List>
+          </NoteContent>
+        );
+
+      case 'presentations':
+        return (
+          <NoteContent>
+            <List>
+              {presentationItems.map((pres, idx) => (
+                <li key={`pres-${idx}`}>
+                  <span>{pres.name?.toLowerCase()}</span>
+                  {pres.location && <Muted> @ {pres.location}</Muted>}
+                  {pres.date && <Muted> ({pres.date})</Muted>}
+                  {pres.summary && <Muted> - {pres.summary}</Muted>}
+                </li>
+              ))}
+            </List>
+          </NoteContent>
+        );
+
+      case 'publications':
+        return (
+          <NoteContent>
+            <List>
+              {publicationItems.map((pub, idx) => (
+                <li key={`pub-${idx}`}>
+                  {pub.doi ? (
+                    <Accent href={`https://doi.org/${pub.doi}`} target="_blank" rel="noopener">
+                      {(pub.title || pub.name)?.toLowerCase()}
+                    </Accent>
+                  ) : (
+                    <span>{(pub.title || pub.name)?.toLowerCase()}</span>
+                  )}
+                  {pub.journal && <Muted> - {pub.journal}</Muted>}
+                  {pub.date && <Muted> ({pub.date})</Muted>}
+                </li>
+              ))}
+            </List>
+          </NoteContent>
+        );
+
+      case 'professional-development':
+        return (
+          <NoteContent>
+            <List>
+              {professionalDevItems.map((item, idx) => (
+                <li key={`profdev-${idx}`}>
+                  <span>{item.name?.toLowerCase()}</span>
+                  {item.summary && <Muted> - {item.summary}</Muted>}
+                  {item.location && <Muted> @ {item.location}</Muted>}
+                  {item.date && <Muted> ({item.date})</Muted>}
+                </li>
+              ))}
             </List>
           </NoteContent>
         );

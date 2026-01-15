@@ -129,6 +129,8 @@ export function DTCTheme() {
   const fullName = cv?.name || 'Your Name';
   const avatarUrl = cv?.avatar || null;
   const subtitle = cv?.label || cv?.headline || '';
+  const phone = cv?.phone || null;
+  const email = cv?.email || null;
 
   const socials = cv?.social || [];
   const aboutText = getAboutContent()?.markdown || '';
@@ -201,6 +203,26 @@ export function DTCTheme() {
     return (cv?.sections?.projects || []).filter(e => !isArchived(e)).slice(0, 6);
   }, [cv]);
 
+  // Awards items
+  const awardItems = useMemo(() => {
+    return (cv?.sections?.awards || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Presentations items
+  const presentationItems = useMemo(() => {
+    return (cv?.sections?.presentations || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Publications items
+  const publicationItems = useMemo(() => {
+    return (cv?.sections?.publications || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Professional Development items
+  const professionalDevItems = useMemo(() => {
+    return (cv?.sections?.professional_development || []).filter(e => !isArchived(e));
+  }, [cv]);
+
   // Theme state
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -239,6 +261,22 @@ export function DTCTheme() {
                 {social.network}
               </SocialLink>
             ))}
+            {phone && (
+              <SocialLink
+                href={`tel:${phone}`}
+                title="Phone"
+              >
+                Phone
+              </SocialLink>
+            )}
+            {email && (
+              <SocialLink
+                href={`mailto:${email}`}
+                title="Email"
+              >
+                Email
+              </SocialLink>
+            )}
             <ThemeToggle onClick={toggleDarkMode} title="Toggle theme">
               {isDark ? <SunIcon /> : <MoonIcon />}
             </ThemeToggle>
@@ -421,6 +459,135 @@ export function DTCTheme() {
                   </Timeline>
                 </>
               )}
+
+              {/* Awards Timeline */}
+              {awardItems.length > 0 && (
+                <>
+                  <SectionHeading>Awards</SectionHeading>
+                  <Timeline>
+                    {awardItems.map((item, idx) => {
+                      const color = COLORS[(idx + 1) % COLORS.length];
+                      return (
+                        <TimelineElement key={idx}>
+                          <TimelineIcon $bg={color.bg} $fg={color.fg}>
+                            <TrophyIcon />
+                          </TimelineIcon>
+                          <TimelineContent>
+                            <TimelineTitle>{item.name}</TimelineTitle>
+                            {item.summary && (
+                              <TimelineDescription>{item.summary}</TimelineDescription>
+                            )}
+                            <TimelineDate>
+                              {formatYear(item.date)}
+                            </TimelineDate>
+                          </TimelineContent>
+                        </TimelineElement>
+                      );
+                    })}
+                  </Timeline>
+                </>
+              )}
+
+              {/* Presentations Timeline */}
+              {presentationItems.length > 0 && (
+                <>
+                  <SectionHeading>Presentations</SectionHeading>
+                  <Timeline>
+                    {presentationItems.map((item, idx) => {
+                      const color = COLORS[(idx + 2) % COLORS.length];
+                      return (
+                        <TimelineElement key={idx}>
+                          <TimelineIcon $bg={color.bg} $fg={color.fg}>
+                            <MicIcon />
+                          </TimelineIcon>
+                          <TimelineContent>
+                            <TimelineTitle>{item.name}</TimelineTitle>
+                            {item.location && (
+                              <TimelineSubtitle>{item.location}</TimelineSubtitle>
+                            )}
+                            {item.summary && (
+                              <TimelineDescription>{item.summary}</TimelineDescription>
+                            )}
+                            <TimelineDate>
+                              {formatYear(item.date)}
+                            </TimelineDate>
+                          </TimelineContent>
+                        </TimelineElement>
+                      );
+                    })}
+                  </Timeline>
+                </>
+              )}
+
+              {/* Publications Timeline */}
+              {publicationItems.length > 0 && (
+                <>
+                  <SectionHeading>Publications</SectionHeading>
+                  <Timeline>
+                    {publicationItems.map((item, idx) => {
+                      const color = COLORS[(idx + 4) % COLORS.length];
+                      return (
+                        <TimelineElement key={idx}>
+                          <TimelineIcon $bg={color.bg} $fg={color.fg}>
+                            <BookIcon />
+                          </TimelineIcon>
+                          <TimelineContent>
+                            <TimelineTitle>
+                              {item.url || item.doi ? (
+                                <a href={item.url || `https://doi.org/${item.doi}`} target="_blank" rel="noopener">
+                                  {item.name || item.title}
+                                </a>
+                              ) : (
+                                item.name || item.title
+                              )}
+                            </TimelineTitle>
+                            {(item.publisher || item.journal) && (
+                              <TimelineSubtitle>{item.publisher || item.journal}</TimelineSubtitle>
+                            )}
+                            {item.summary && (
+                              <TimelineDescription>{item.summary}</TimelineDescription>
+                            )}
+                            <TimelineDate>
+                              {formatYear(item.date)}
+                            </TimelineDate>
+                          </TimelineContent>
+                        </TimelineElement>
+                      );
+                    })}
+                  </Timeline>
+                </>
+              )}
+
+              {/* Professional Development Timeline */}
+              {professionalDevItems.length > 0 && (
+                <>
+                  <SectionHeading>Professional Development</SectionHeading>
+                  <Timeline>
+                    {professionalDevItems.map((item, idx) => {
+                      const color = COLORS[(idx + 6) % COLORS.length];
+                      return (
+                        <TimelineElement key={idx}>
+                          <TimelineIcon $bg={color.bg} $fg={color.fg}>
+                            <StarIcon />
+                          </TimelineIcon>
+                          <TimelineContent>
+                            <TimelineTitle>{item.name}</TimelineTitle>
+                            {item.location && (
+                              <TimelineSubtitle>{item.location}</TimelineSubtitle>
+                            )}
+                            {item.summary && (
+                              <TimelineDescription>{item.summary}</TimelineDescription>
+                            )}
+                            <TimelineDate>
+                              {formatYear(item.date)}
+                            </TimelineDate>
+                          </TimelineContent>
+                        </TimelineElement>
+                      );
+                    })}
+                  </Timeline>
+                </>
+              )}
             </SectionContainer>
           </Section>
         )}
@@ -478,6 +645,30 @@ const MoonIcon = () => (
 const HeartIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+  </svg>
+);
+
+const TrophyIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+    <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/>
+  </svg>
+);
+
+const MicIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+  </svg>
+);
+
+const BookIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+    <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/>
+  </svg>
+);
+
+const StarIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
   </svg>
 );
 

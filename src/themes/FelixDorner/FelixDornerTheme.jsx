@@ -78,6 +78,7 @@ export function FelixDornerTheme() {
   const fullName = cv?.name || 'Your Name';
   const firstName = fullName.split(' ')[0];
   const email = cv?.email || null;
+  const phone = cv?.phone || null;
   const location = cv?.location || null;
 
   const socials = cv?.social || [];
@@ -153,6 +154,21 @@ export function FelixDornerTheme() {
   // Education items
   const educationItems = useMemo(() => {
     return (cv?.sections?.education || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Award items
+  const awardItems = useMemo(() => {
+    return (cv?.sections?.awards || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Presentation items
+  const presentationItems = useMemo(() => {
+    return (cv?.sections?.presentations || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Professional development items
+  const professionalDevItems = useMemo(() => {
+    return (cv?.sections?.professional_development || []).filter(e => !isArchived(e));
   }, [cv]);
 
   return (
@@ -316,7 +332,82 @@ export function FelixDornerTheme() {
           </AnimatedSection>
         )}
 
-        <AnimatedSection delay={700}>
+        {awardItems.length > 0 && (
+          <AnimatedSection delay={700}>
+            <Section>
+              <SectionLabel $dark={isDark}>Awards</SectionLabel>
+              <TimelineList>
+                {awardItems.map((award, idx) => (
+                  <AnimatedRow key={`award-${idx}`} index={idx} isDark={isDark}>
+                    <TimelineDate $dark={isDark}>
+                      {formatDate(award.date)}
+                    </TimelineDate>
+                    <TimelineContent>
+                      <TimelineText $dark={isDark}>{award.name}</TimelineText>
+                      {award.summary && (
+                        <TimelineSubtext $dark={isDark}>{award.summary}</TimelineSubtext>
+                      )}
+                    </TimelineContent>
+                  </AnimatedRow>
+                ))}
+              </TimelineList>
+            </Section>
+          </AnimatedSection>
+        )}
+
+        {presentationItems.length > 0 && (
+          <AnimatedSection delay={800}>
+            <Section>
+              <SectionLabel $dark={isDark}>Presentations</SectionLabel>
+              <TimelineList>
+                {presentationItems.map((pres, idx) => (
+                  <AnimatedRow key={`pres-${idx}`} index={idx} isDark={isDark}>
+                    <TimelineDate $dark={isDark}>
+                      {formatDate(pres.date)}
+                    </TimelineDate>
+                    <TimelineContent>
+                      <TimelineText $dark={isDark}>{pres.name}</TimelineText>
+                      {pres.location && (
+                        <TimelineSubtext $dark={isDark}>{pres.location}</TimelineSubtext>
+                      )}
+                      {pres.summary && (
+                        <TimelineSubtext $dark={isDark}>{pres.summary}</TimelineSubtext>
+                      )}
+                    </TimelineContent>
+                  </AnimatedRow>
+                ))}
+              </TimelineList>
+            </Section>
+          </AnimatedSection>
+        )}
+
+        {professionalDevItems.length > 0 && (
+          <AnimatedSection delay={900}>
+            <Section>
+              <SectionLabel $dark={isDark}>Professional Development</SectionLabel>
+              <TimelineList>
+                {professionalDevItems.map((item, idx) => (
+                  <AnimatedRow key={`profdev-${idx}`} index={idx} isDark={isDark}>
+                    <TimelineDate $dark={isDark}>
+                      {formatDate(item.date)}
+                    </TimelineDate>
+                    <TimelineContent>
+                      <TimelineText $dark={isDark}>{item.name}</TimelineText>
+                      {item.location && (
+                        <TimelineSubtext $dark={isDark}>{item.location}</TimelineSubtext>
+                      )}
+                      {item.summary && (
+                        <TimelineSubtext $dark={isDark}>{item.summary}</TimelineSubtext>
+                      )}
+                    </TimelineContent>
+                  </AnimatedRow>
+                ))}
+              </TimelineList>
+            </Section>
+          </AnimatedSection>
+        )}
+
+        <AnimatedSection delay={1000}>
           <Section>
             <SectionLabel $dark={isDark}>Connect</SectionLabel>
             <ConnectList>
@@ -324,6 +415,13 @@ export function FelixDornerTheme() {
                 <ConnectItem>
                   <ConnectLink href={`mailto:${email}`} $dark={isDark}>
                     Email <Arrow>↗</Arrow>
+                  </ConnectLink>
+                </ConnectItem>
+              )}
+              {phone && (
+                <ConnectItem>
+                  <ConnectLink href={`tel:${phone}`} $dark={isDark}>
+                    Phone <Arrow>↗</Arrow>
                   </ConnectLink>
                 </ConnectItem>
               )}

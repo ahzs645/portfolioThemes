@@ -116,6 +116,7 @@ export function PiTheme() {
 
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;
+  const phone = cv?.phone || null;
   const location = cv?.location || null;
 
   const socials = cv?.social || [];
@@ -217,6 +218,26 @@ export function PiTheme() {
     return cv?.sections?.skills || [];
   }, [cv]);
 
+  // Award items
+  const awardItems = useMemo(() => {
+    return (cv?.sections?.awards || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Presentation items
+  const presentationItems = useMemo(() => {
+    return (cv?.sections?.presentations || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Publication items
+  const publicationItems = useMemo(() => {
+    return (cv?.sections?.publications || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Professional development items
+  const professionalDevItems = useMemo(() => {
+    return (cv?.sections?.professional_development || []).filter(e => !isArchived(e));
+  }, [cv]);
+
   return (
     <Container>
       <ContentWrapper>
@@ -286,11 +307,68 @@ export function PiTheme() {
           </Section>
         )}
 
+        {awardItems.length > 0 && (
+          <Section id="awards">
+            <SectionTitle>Awards</SectionTitle>
+            <TimelineWrapper>
+              <TimelineList items={awardItems.map(award => ({
+                title: award.name,
+                description: award.summary || '',
+                date: formatDate(award.date),
+              }))} />
+            </TimelineWrapper>
+          </Section>
+        )}
+
+        {presentationItems.length > 0 && (
+          <Section id="presentations">
+            <SectionTitle>Presentations</SectionTitle>
+            <TimelineWrapper>
+              <TimelineList items={presentationItems.map(pres => ({
+                title: pres.name,
+                description: pres.location || pres.summary || '',
+                date: formatDate(pres.date),
+              }))} />
+            </TimelineWrapper>
+          </Section>
+        )}
+
+        {publicationItems.length > 0 && (
+          <Section id="publications">
+            <SectionTitle>Publications</SectionTitle>
+            <TimelineWrapper>
+              <TimelineList items={publicationItems.map(pub => ({
+                title: pub.title || pub.name,
+                description: pub.journal || pub.authors?.join(', ') || '',
+                date: formatDate(pub.date || pub.releaseDate),
+                url: pub.doi ? `https://doi.org/${pub.doi}` : pub.url,
+              }))} />
+            </TimelineWrapper>
+          </Section>
+        )}
+
+        {professionalDevItems.length > 0 && (
+          <Section id="professional-development">
+            <SectionTitle>Professional Development</SectionTitle>
+            <TimelineWrapper>
+              <TimelineList items={professionalDevItems.map(item => ({
+                title: item.name,
+                description: item.location || item.summary || '',
+                date: formatDate(item.date),
+              }))} />
+            </TimelineWrapper>
+          </Section>
+        )}
+
         <ContactText>
           {email && (
             <>
               If you'd like to get in touch, please{' '}
-              <ContactLink href={`mailto:${email}`}>email me</ContactLink>.
+              <ContactLink href={`mailto:${email}`}>email me</ContactLink>
+              {phone && (
+                <> or <ContactLink href={`tel:${phone}`}>call me</ContactLink></>
+              )}
+              .
             </>
           )}
         </ContactText>

@@ -17,6 +17,7 @@ build/
 
 # OS files
 .DS_Store
+._*
 Thumbs.db
 
 # Logs
@@ -34,3 +35,6 @@ pnpm-debug.log*
 # Cache
 .cache/
 .eslintcache
+
+# Claude Code
+.claude/

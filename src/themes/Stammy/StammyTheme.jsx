@@ -89,6 +89,7 @@ export function StammyTheme() {
   const {
     name,
     email,
+    phone,
     location,
     about,
     currentJobTitle,
@@ -101,6 +102,10 @@ export function StammyTheme() {
   // Get raw experience and volunteer data
   const experienceRaw = (sectionsRaw?.experience || []).filter(e => !isArchived(e));
   const volunteerRaw = (sectionsRaw?.volunteer || []).filter(e => !isArchived(e));
+  const awardsRaw = (sectionsRaw?.awards || []).filter(e => !isArchived(e));
+  const presentationsRaw = (sectionsRaw?.presentations || []).filter(e => !isArchived(e));
+  const publicationsRaw = (sectionsRaw?.publications || []).filter(e => !isArchived(e));
+  const professionalDevRaw = (sectionsRaw?.professional_development || []).filter(e => !isArchived(e));
 
   // Get first name for greeting
   const firstName = name?.split(' ')[0] || 'Hello';
@@ -364,6 +369,75 @@ export function StammyTheme() {
             </Section>
           )}
 
+          {/* Awards Section */}
+          {awardsRaw.length > 0 && (
+            <Section>
+              <SectionTitle $theme={theme}>Awards</SectionTitle>
+              <WorkTable>
+                {awardsRaw.map((item, idx) => (
+                  <WorkRow key={`award-${idx}`}>
+                    <WorkCompany $theme={theme}>{item.name}</WorkCompany>
+                    <WorkRole $theme={theme}>{item.summary || ''}</WorkRole>
+                    <WorkDate $theme={theme}>{item.date?.split('-')[0]}</WorkDate>
+                  </WorkRow>
+                ))}
+              </WorkTable>
+            </Section>
+          )}
+
+          {/* Presentations Section */}
+          {presentationsRaw.length > 0 && (
+            <Section>
+              <SectionTitle $theme={theme}>Presentations</SectionTitle>
+              <WorkTable>
+                {presentationsRaw.map((item, idx) => (
+                  <WorkRow key={`pres-${idx}`}>
+                    <WorkCompany $theme={theme}>{item.name}</WorkCompany>
+                    <WorkRole $theme={theme}>{item.location || ''}</WorkRole>
+                    <WorkDate $theme={theme}>{item.date?.split('-')[0]}</WorkDate>
+                  </WorkRow>
+                ))}
+              </WorkTable>
+            </Section>
+          )}
+
+          {/* Publications Section */}
+          {publicationsRaw.length > 0 && (
+            <Section>
+              <SectionTitle $theme={theme}>Publications</SectionTitle>
+              <DashList>
+                {publicationsRaw.map((pub, idx) => (
+                  <DashItem key={`pub-${idx}`} $theme={theme}>
+                    {pub.doi ? (
+                      <StyledLink href={`https://doi.org/${pub.doi}`} target="_blank" rel="noreferrer" $theme={theme}>
+                        {pub.title || pub.name}
+                      </StyledLink>
+                    ) : (
+                      pub.title || pub.name
+                    )}
+                    {pub.journal && ` — ${pub.journal}`}
+                  </DashItem>
+                ))}
+              </DashList>
+            </Section>
+          )}
+
+          {/* Professional Development Section */}
+          {professionalDevRaw.length > 0 && (
+            <Section>
+              <SectionTitle $theme={theme}>Professional Development</SectionTitle>
+              <WorkTable>
+                {professionalDevRaw.map((item, idx) => (
+                  <WorkRow key={`profdev-${idx}`}>
+                    <WorkCompany $theme={theme}>{item.name}</WorkCompany>
+                    <WorkRole $theme={theme}>{item.location || ''}</WorkRole>
+                    <WorkDate $theme={theme}>{item.date?.split('-')[0]}</WorkDate>
+                  </WorkRow>
+                ))}
+              </WorkTable>
+            </Section>
+          )}
+
           {/* Elsewhere Section */}
           <Section ref={elsewhereRef}>
             <SectionTitle $theme={theme}>Elsewhere</SectionTitle>
@@ -374,6 +448,11 @@ export function StammyTheme() {
               {email && (
                 <DashItem $theme={theme}>
                   Email: <StyledLink href={`mailto:${email}`} $theme={theme}>{email}</StyledLink>
+                </DashItem>
+              )}
+              {phone && (
+                <DashItem $theme={theme}>
+                  Phone: <StyledLink href={`tel:${phone}`} $theme={theme}>{phone}</StyledLink>
                 </DashItem>
               )}
               {socialLinks.github && (

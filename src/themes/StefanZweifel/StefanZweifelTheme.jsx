@@ -44,6 +44,7 @@ export function StefanZweifelTheme() {
 
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;
+  const phone = cv?.phone || null;
   const location = cv?.location || null;
 
   const socials = cv?.social || [];
@@ -127,6 +128,21 @@ export function StefanZweifelTheme() {
     return (cv?.sections?.publications || []).filter(e => !isArchived(e)).slice(0, 6);
   }, [cv]);
 
+  // Award items
+  const awardItems = useMemo(() => {
+    return (cv?.sections?.awards || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Presentation items
+  const presentationItems = useMemo(() => {
+    return (cv?.sections?.presentations || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Professional development items
+  const professionalDevItems = useMemo(() => {
+    return (cv?.sections?.professional_development || []).filter(e => !isArchived(e));
+  }, [cv]);
+
   return (
     <Container>
       <PrideBarWrapper>
@@ -183,6 +199,11 @@ export function StefanZweifelTheme() {
               {email && (
                 <SocialItem>
                   <SocialLink href={`mailto:${email}`}>Email</SocialLink>
+                </SocialItem>
+              )}
+              {phone && (
+                <SocialItem>
+                  <SocialLink href={`tel:${phone}`}>Phone</SocialLink>
                 </SocialItem>
               )}
             </SocialList>
@@ -309,6 +330,57 @@ export function StefanZweifelTheme() {
                       {(pub.publisher || pub.journal) && (
                         <ItemSummary> — {pub.publisher || pub.journal}</ItemSummary>
                       )}
+                    </ItemContent>
+                  </ListItem>
+                ))}
+              </ItemList>
+            </Section>
+          )}
+
+          {awardItems.length > 0 && (
+            <Section id="awards">
+              <SectionTitle>Awards</SectionTitle>
+              <ItemList>
+                {awardItems.map((award, idx) => (
+                  <ListItem key={`award-${idx}`}>
+                    <ItemDate>{formatDateShort(award.date)}</ItemDate>
+                    <ItemContent>
+                      <span>{award.name}</span>
+                      {award.summary && <ItemSummary> — {award.summary}</ItemSummary>}
+                    </ItemContent>
+                  </ListItem>
+                ))}
+              </ItemList>
+            </Section>
+          )}
+
+          {presentationItems.length > 0 && (
+            <Section id="presentations">
+              <SectionTitle>Presentations</SectionTitle>
+              <ItemList>
+                {presentationItems.map((pres, idx) => (
+                  <ListItem key={`pres-${idx}`}>
+                    <ItemDate>{formatDateShort(pres.date)}</ItemDate>
+                    <ItemContent>
+                      <span>{pres.name}</span>
+                      {pres.location && <ItemSummary> — {pres.location}</ItemSummary>}
+                    </ItemContent>
+                  </ListItem>
+                ))}
+              </ItemList>
+            </Section>
+          )}
+
+          {professionalDevItems.length > 0 && (
+            <Section id="professional-development">
+              <SectionTitle>Professional Development</SectionTitle>
+              <ItemList>
+                {professionalDevItems.map((item, idx) => (
+                  <ListItem key={`profdev-${idx}`}>
+                    <ItemDate>{formatDateShort(item.date)}</ItemDate>
+                    <ItemContent>
+                      <span>{item.name}</span>
+                      {item.location && <ItemSummary> — {item.location}</ItemSummary>}
                     </ItemContent>
                   </ListItem>
                 ))}

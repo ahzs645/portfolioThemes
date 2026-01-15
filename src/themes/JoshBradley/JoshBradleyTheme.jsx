@@ -63,6 +63,8 @@ const NAV_ITEMS = [
   { id: 'projects', label: 'projects' },
   { id: 'education', label: 'education' },
   { id: 'awards', label: 'awards' },
+  { id: 'publications', label: 'publications' },
+  { id: 'prof-dev', label: 'prof. dev.' },
 ];
 
 export function JoshBradleyTheme() {
@@ -72,6 +74,7 @@ export function JoshBradleyTheme() {
 
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;
+  const phone = cv?.phone || null;
   const location = cv?.location || null;
 
   const socials = cv?.social || [];
@@ -101,6 +104,14 @@ export function JoshBradleyTheme() {
     return (cv?.sections?.presentations || []).filter(e => !isArchived(e)).slice(0, 8);
   }, [cv]);
 
+  const publicationItems = useMemo(() => {
+    return (cv?.sections?.publications || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  const professionalDevItems = useMemo(() => {
+    return (cv?.sections?.professional_development || []).filter(e => !isArchived(e));
+  }, [cv]);
+
   // Filter nav items based on available content
   const visibleNavItems = NAV_ITEMS.filter(item => {
     if (item.id === 'about') return true;
@@ -108,6 +119,8 @@ export function JoshBradleyTheme() {
     if (item.id === 'projects') return projectItems.length > 0;
     if (item.id === 'education') return educationItems.length > 0;
     if (item.id === 'awards') return awardItems.length > 0 || presentationItems.length > 0;
+    if (item.id === 'publications') return publicationItems.length > 0;
+    if (item.id === 'prof-dev') return professionalDevItems.length > 0;
     return true;
   });
 
@@ -210,6 +223,50 @@ export function JoshBradleyTheme() {
           </Article>
         );
 
+      case 'publications':
+        return (
+          <Article>
+            <PageTitle>Publications</PageTitle>
+            <LeaderList>
+              {publicationItems.map((pub, idx) => (
+                <LeaderItem key={`pub-${idx}`}>
+                  <LeaderTitle>
+                    {pub.doi ? (
+                      <ProjectLink href={`https://doi.org/${pub.doi}`} target="_blank" rel="noreferrer">
+                        {pub.name || pub.title}
+                      </ProjectLink>
+                    ) : pub.url ? (
+                      <ProjectLink href={pub.url} target="_blank" rel="noreferrer">
+                        {pub.name || pub.title}
+                      </ProjectLink>
+                    ) : (
+                      pub.name || pub.title
+                    )}
+                  </LeaderTitle>
+                  <LeaderDots />
+                  <LeaderDate>{pub.date || pub.releaseDate}</LeaderDate>
+                </LeaderItem>
+              ))}
+            </LeaderList>
+          </Article>
+        );
+
+      case 'prof-dev':
+        return (
+          <Article>
+            <PageTitle>Professional Development</PageTitle>
+            <LeaderList>
+              {professionalDevItems.map((item, idx) => (
+                <LeaderItem key={`pd-${idx}`}>
+                  <LeaderTitle>{item.name}</LeaderTitle>
+                  <LeaderDots />
+                  <LeaderDate>{item.date}</LeaderDate>
+                </LeaderItem>
+              ))}
+            </LeaderList>
+          </Article>
+        );
+
       default: // about
         return (
           <Article>
@@ -237,6 +294,9 @@ export function JoshBradleyTheme() {
               )}
               {email && (
                 <SocialLink href={`mailto:${email}`}>Email</SocialLink>
+              )}
+              {phone && (
+                <SocialLink href={`tel:${phone}`}>Phone</SocialLink>
               )}
             </SocialLinks>
           </Article>

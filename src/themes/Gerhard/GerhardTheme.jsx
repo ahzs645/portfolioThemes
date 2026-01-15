@@ -44,6 +44,7 @@ export function GerhardTheme() {
 
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;
+  const phone = cv?.phone || null;
   const location = cv?.location || null;
 
   const socials = cv?.social || [];
@@ -113,6 +114,26 @@ export function GerhardTheme() {
   // Education items
   const educationItems = useMemo(() => {
     return (cv?.sections?.education || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Publication items
+  const publicationItems = useMemo(() => {
+    return (cv?.sections?.publications || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Award items
+  const awardItems = useMemo(() => {
+    return (cv?.sections?.awards || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Presentation items
+  const presentationItems = useMemo(() => {
+    return (cv?.sections?.presentations || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Professional development items
+  const professionalDevItems = useMemo(() => {
+    return (cv?.sections?.professional_development || []).filter(e => !isArchived(e));
   }, [cv]);
 
   const theme = isDark ? darkTheme : lightTheme;
@@ -216,11 +237,86 @@ export function GerhardTheme() {
             </>
           )}
 
+          {awardItems.length > 0 && (
+            <>
+              <SectionLabel>Awards</SectionLabel>
+              <List>
+                {awardItems.map((award, idx) => (
+                  <ListItem key={`award-${idx}`}>
+                    <Small className="spacing">{formatDate(award.date)}</Small>
+                    <span>{award.name}</span>
+                    {award.summary && <Small> - {award.summary}</Small>}
+                  </ListItem>
+                ))}
+              </List>
+            </>
+          )}
+
+          {presentationItems.length > 0 && (
+            <>
+              <SectionLabel>Presentations</SectionLabel>
+              <List>
+                {presentationItems.map((pres, idx) => (
+                  <ListItem key={`pres-${idx}`}>
+                    <Small className="spacing">{formatDate(pres.date)}</Small>
+                    <span>{pres.name}</span>
+                    {pres.location && <Small> - {pres.location}</Small>}
+                  </ListItem>
+                ))}
+              </List>
+            </>
+          )}
+
+          {publicationItems.length > 0 && (
+            <>
+              <SectionLabel>Publications</SectionLabel>
+              <List>
+                {publicationItems.map((pub, idx) => (
+                  <ListItem key={`pub-${idx}`}>
+                    <Small className="spacing">{formatDate(pub.date || pub.releaseDate)}</Small>
+                    {pub.doi ? (
+                      <Link href={`https://doi.org/${pub.doi}`} target="_blank" rel="noopener">
+                        {pub.name || pub.title}
+                      </Link>
+                    ) : pub.url ? (
+                      <Link href={pub.url} target="_blank" rel="noopener">
+                        {pub.name || pub.title}
+                      </Link>
+                    ) : (
+                      <span>{pub.name || pub.title}</span>
+                    )}
+                    {pub.authors && <Small> - {pub.authors}</Small>}
+                  </ListItem>
+                ))}
+              </List>
+            </>
+          )}
+
+          {professionalDevItems.length > 0 && (
+            <>
+              <SectionLabel>Professional Development</SectionLabel>
+              <List>
+                {professionalDevItems.map((item, idx) => (
+                  <ListItem key={`profdev-${idx}`}>
+                    <Small className="spacing">{formatDate(item.date)}</Small>
+                    <span>{item.name}</span>
+                    {item.location && <Small> at {item.location}</Small>}
+                  </ListItem>
+                ))}
+              </List>
+            </>
+          )}
+
           <SectionLabel>Elsewhere</SectionLabel>
           <List>
             {email && (
               <ListItem>
                 <Link href={`mailto:${email}`}>{email}</Link>
+              </ListItem>
+            )}
+            {phone && (
+              <ListItem>
+                <Link href={`tel:${phone}`}>{phone}</Link>
               </ListItem>
             )}
             {githubUrl && (

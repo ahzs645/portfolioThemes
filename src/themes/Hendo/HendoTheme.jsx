@@ -76,6 +76,10 @@ const NAV_ITEMS = [
   { id: 'experience', label: 'Experience' },
   { id: 'projects', label: 'Projects' },
   { id: 'education', label: 'Education' },
+  { id: 'awards', label: 'Awards' },
+  { id: 'presentations', label: 'Presentations' },
+  { id: 'publications', label: 'Publications' },
+  { id: 'professional-development', label: 'Prof. Dev.' },
 ];
 
 export function HendoTheme() {
@@ -86,6 +90,7 @@ export function HendoTheme() {
 
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;
+  const phone = cv?.phone || null;
   const location = cv?.location || null;
 
   const socials = cv?.social || [];
@@ -107,12 +112,32 @@ export function HendoTheme() {
     return (cv?.sections?.education || []).filter(e => !isArchived(e));
   }, [cv]);
 
+  const awardItems = useMemo(() => {
+    return (cv?.sections?.awards || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  const presentationItems = useMemo(() => {
+    return (cv?.sections?.presentations || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  const publicationItems = useMemo(() => {
+    return (cv?.sections?.publications || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  const professionalDevItems = useMemo(() => {
+    return (cv?.sections?.professional_development || []).filter(e => !isArchived(e));
+  }, [cv]);
+
   // Filter nav items based on available content
   const visibleNavItems = NAV_ITEMS.filter(item => {
     if (item.id === 'about') return true;
     if (item.id === 'experience') return experienceItems.length > 0;
     if (item.id === 'projects') return projectItems.length > 0;
     if (item.id === 'education') return educationItems.length > 0;
+    if (item.id === 'awards') return awardItems.length > 0;
+    if (item.id === 'presentations') return presentationItems.length > 0;
+    if (item.id === 'publications') return publicationItems.length > 0;
+    if (item.id === 'professional-development') return professionalDevItems.length > 0;
     return true;
   });
 
@@ -178,6 +203,91 @@ export function HendoTheme() {
           </ContentArea>
         );
 
+      case 'awards':
+        return (
+          <ContentArea>
+            <PageHeader>Awards</PageHeader>
+            <DividedList>
+              {awardItems.map((award, idx) => (
+                <DividedItem key={`award-${idx}`}>
+                  <ItemRow>
+                    <ItemTitle>{award.name}</ItemTitle>
+                    <ItemMeta>{award.date}</ItemMeta>
+                  </ItemRow>
+                  {award.summary && <ItemDesc>{award.summary}</ItemDesc>}
+                </DividedItem>
+              ))}
+            </DividedList>
+          </ContentArea>
+        );
+
+      case 'presentations':
+        return (
+          <ContentArea>
+            <PageHeader>Presentations</PageHeader>
+            <DividedList>
+              {presentationItems.map((pres, idx) => (
+                <DividedItem key={`pres-${idx}`}>
+                  <ItemRow>
+                    <ItemTitle>{pres.name}</ItemTitle>
+                    <ItemMeta>{pres.date}</ItemMeta>
+                  </ItemRow>
+                  {pres.location && <ItemDesc>{pres.location}</ItemDesc>}
+                  {pres.summary && <ItemDesc>{pres.summary}</ItemDesc>}
+                </DividedItem>
+              ))}
+            </DividedList>
+          </ContentArea>
+        );
+
+      case 'publications':
+        return (
+          <ContentArea>
+            <PageHeader>Publications</PageHeader>
+            <DividedList>
+              {publicationItems.map((pub, idx) => (
+                <DividedItem key={`pub-${idx}`}>
+                  <ItemRow>
+                    {pub.doi ? (
+                      <ItemLink href={`https://doi.org/${pub.doi}`} target="_blank" rel="noreferrer">
+                        {pub.name || pub.title}
+                      </ItemLink>
+                    ) : pub.url ? (
+                      <ItemLink href={pub.url} target="_blank" rel="noreferrer">
+                        {pub.name || pub.title}
+                      </ItemLink>
+                    ) : (
+                      <ItemTitle>{pub.name || pub.title}</ItemTitle>
+                    )}
+                    <ItemMeta>{pub.date || pub.releaseDate}</ItemMeta>
+                  </ItemRow>
+                  {pub.authors && <ItemDesc>{pub.authors}</ItemDesc>}
+                  {pub.journal && <ItemDesc>{pub.journal}</ItemDesc>}
+                </DividedItem>
+              ))}
+            </DividedList>
+          </ContentArea>
+        );
+
+      case 'professional-development':
+        return (
+          <ContentArea>
+            <PageHeader>Professional Development</PageHeader>
+            <DividedList>
+              {professionalDevItems.map((item, idx) => (
+                <DividedItem key={`profdev-${idx}`}>
+                  <ItemRow>
+                    <ItemTitle>{item.name}</ItemTitle>
+                    <ItemMeta>{item.date}</ItemMeta>
+                  </ItemRow>
+                  {item.location && <ItemDesc>{item.location}</ItemDesc>}
+                  {item.summary && <ItemDesc>{item.summary}</ItemDesc>}
+                </DividedItem>
+              ))}
+            </DividedList>
+          </ContentArea>
+        );
+
       default: // about
         return (
           <AboutArea>
@@ -214,6 +324,13 @@ export function HendoTheme() {
                   <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="2" y="4" width="20" height="16" rx="2"/>
                     <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                  </svg>
+                </SocialIcon>
+              )}
+              {phone && (
+                <SocialIcon href={`tel:${phone}`} title="Phone">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
                   </svg>
                 </SocialIcon>
               )}

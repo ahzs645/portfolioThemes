@@ -74,9 +74,26 @@ export function ChiangV4Theme() {
 
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;
+  const phone = cv?.phone || null;
   const website = cv?.website || null;
 
   const socials = cv?.social || [];
+
+  const awardItems = useMemo(() => {
+    return cv?.sections?.awards || [];
+  }, [cv]);
+
+  const presentationItems = useMemo(() => {
+    return cv?.sections?.presentations || [];
+  }, [cv]);
+
+  const publicationItems = useMemo(() => {
+    return cv?.sections?.publications || [];
+  }, [cv]);
+
+  const professionalDevItems = useMemo(() => {
+    return cv?.sections?.professional_development || [];
+  }, [cv]);
   const githubUrl = pickSocialUrl(socials, ['github']);
   const linkedinUrl = pickSocialUrl(socials, ['linkedin']);
   const twitterUrl = pickSocialUrl(socials, ['twitter', 'x']);
@@ -196,11 +213,99 @@ export function ChiangV4Theme() {
           </ContactContent>
         </Section>
 
+        {awardItems.length > 0 && (
+          <Section id="awards">
+            <SectionTitle><SectionNumber>05.</SectionNumber> Awards & Recognition</SectionTitle>
+            <ExperienceList>
+              {awardItems.map((award, idx) => (
+                <ExperienceItem key={`award-${idx}`}>
+                  <ExperienceHeader>
+                    <ExperienceTitle>{award.name}</ExperienceTitle>
+                    <ExperienceDate>{award.date}</ExperienceDate>
+                  </ExperienceHeader>
+                  {award.summary && (
+                    <ExperienceHighlights>
+                      <li>{award.summary}</li>
+                    </ExperienceHighlights>
+                  )}
+                </ExperienceItem>
+              ))}
+            </ExperienceList>
+          </Section>
+        )}
+
+        {presentationItems.length > 0 && (
+          <Section id="presentations">
+            <SectionTitle><SectionNumber>06.</SectionNumber> Presentations</SectionTitle>
+            <ExperienceList>
+              {presentationItems.map((pres, idx) => (
+                <ExperienceItem key={`pres-${idx}`}>
+                  <ExperienceHeader>
+                    <ExperienceTitle>{pres.name}</ExperienceTitle>
+                    <ExperienceDate>{pres.date}</ExperienceDate>
+                  </ExperienceHeader>
+                  {(pres.summary || pres.location) && (
+                    <ExperienceHighlights>
+                      {pres.summary && <li>{pres.summary}</li>}
+                      {pres.location && <li>Location: {pres.location}</li>}
+                    </ExperienceHighlights>
+                  )}
+                </ExperienceItem>
+              ))}
+            </ExperienceList>
+          </Section>
+        )}
+
+        {publicationItems.length > 0 && (
+          <Section id="publications">
+            <SectionTitle><SectionNumber>07.</SectionNumber> Publications</SectionTitle>
+            <ProjectsGrid>
+              {publicationItems.map((pub, idx) => (
+                <ProjectCard key={`pub-${idx}`}>
+                  <ProjectTop>
+                    <FolderIcon>📄</FolderIcon>
+                    {pub.doi && (
+                      <ProjectLinks>
+                        <a href={`https://doi.org/${pub.doi}`} target="_blank" rel="noreferrer">↗</a>
+                      </ProjectLinks>
+                    )}
+                  </ProjectTop>
+                  <ProjectTitle>{pub.title}</ProjectTitle>
+                  <ProjectDescription>{pub.journal} ({pub.date})</ProjectDescription>
+                </ProjectCard>
+              ))}
+            </ProjectsGrid>
+          </Section>
+        )}
+
+        {professionalDevItems.length > 0 && (
+          <Section id="professional-development">
+            <SectionTitle><SectionNumber>08.</SectionNumber> Professional Development</SectionTitle>
+            <ExperienceList>
+              {professionalDevItems.map((item, idx) => (
+                <ExperienceItem key={`profdev-${idx}`}>
+                  <ExperienceHeader>
+                    <ExperienceTitle>{item.name}</ExperienceTitle>
+                    <ExperienceDate>{item.date}</ExperienceDate>
+                  </ExperienceHeader>
+                  {(item.summary || item.location) && (
+                    <ExperienceHighlights>
+                      {item.summary && <li>{item.summary}</li>}
+                      {item.location && <li>Location: {item.location}</li>}
+                    </ExperienceHighlights>
+                  )}
+                </ExperienceItem>
+              ))}
+            </ExperienceList>
+          </Section>
+        )}
+
         <Footer>
           <SocialLinks>
             {githubUrl && <a href={githubUrl} target="_blank" rel="noreferrer">GitHub</a>}
             {linkedinUrl && <a href={linkedinUrl} target="_blank" rel="noreferrer">LinkedIn</a>}
             {twitterUrl && <a href={twitterUrl} target="_blank" rel="noreferrer">Twitter</a>}
+            {phone && <a href={`tel:${phone}`}>Phone</a>}
           </SocialLinks>
           <FooterCredit>
             Built with React & styled-components

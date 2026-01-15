@@ -10,13 +10,21 @@ export function PacoTheme({ darkMode }) {
   const {
     name,
     email,
+    phone,
     location,
     about,
     currentJobTitle,
     socialLinks,
     projects,
     experience,
+    sectionsRaw,
   } = cv;
+
+  // Get additional sections
+  const awards = (sectionsRaw?.awards || []).filter(e => !Array.isArray(e?.tags) || !e.tags.includes('archived'));
+  const presentations = (sectionsRaw?.presentations || []).filter(e => !Array.isArray(e?.tags) || !e.tags.includes('archived'));
+  const publications = (sectionsRaw?.publications || []).filter(e => !Array.isArray(e?.tags) || !e.tags.includes('archived'));
+  const professionalDevelopment = (sectionsRaw?.professional_development || []).filter(e => !Array.isArray(e?.tags) || !e.tags.includes('archived'));
 
   // Get active projects (limit to 4)
   const activeProjects = projects?.slice(0, 4) || [];
@@ -149,8 +157,79 @@ export function PacoTheme({ darkMode }) {
                     </ItemLink>
                   </ListItem>
                 )}
+                {phone && (
+                  <ListItem $darkMode={darkMode}>
+                    <ItemLink href={`tel:${phone}`} $darkMode={darkMode}>
+                      Phone
+                      <ArrowIcon $darkMode={darkMode}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M7 17L17 7M17 7H7M17 7V17" />
+                        </svg>
+                      </ArrowIcon>
+                    </ItemLink>
+                  </ListItem>
+                )}
               </ColumnList>
             </Column>
+
+            {/* Recognition Column */}
+            {(awards.length > 0 || presentations.length > 0) && (
+              <Column style={{ '--stagger': 5 }}>
+                <ColumnHeader $darkMode={darkMode}>Recognition</ColumnHeader>
+                <ColumnList>
+                  {awards.slice(0, 2).map((award, idx) => (
+                    <ListItem key={`award-${idx}`} $darkMode={darkMode}>
+                      <ItemHeader>
+                        <ItemText $darkMode={darkMode}>{award.name}</ItemText>
+                      </ItemHeader>
+                      {award.date && (
+                        <ItemDescription $darkMode={darkMode}>{award.date}</ItemDescription>
+                      )}
+                    </ListItem>
+                  ))}
+                  {presentations.slice(0, 2).map((pres, idx) => (
+                    <ListItem key={`pres-${idx}`} $darkMode={darkMode}>
+                      <ItemHeader>
+                        <ItemText $darkMode={darkMode}>{pres.name}</ItemText>
+                      </ItemHeader>
+                      {pres.location && (
+                        <ItemDescription $darkMode={darkMode}>{pres.location}</ItemDescription>
+                      )}
+                    </ListItem>
+                  ))}
+                </ColumnList>
+              </Column>
+            )}
+
+            {/* Publications Column */}
+            {publications.length > 0 && (
+              <Column style={{ '--stagger': 6 }}>
+                <ColumnHeader $darkMode={darkMode}>Publications</ColumnHeader>
+                <ColumnList>
+                  {publications.slice(0, 4).map((pub, idx) => (
+                    <ListItem key={`pub-${idx}`} $darkMode={darkMode}>
+                      <ItemHeader>
+                        {pub.doi ? (
+                          <ItemLink href={`https://doi.org/${pub.doi}`} target="_blank" rel="noreferrer" $darkMode={darkMode}>
+                            {pub.title || pub.name}
+                            <ArrowIcon $darkMode={darkMode}>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M7 17L17 7M17 7H7M17 7V17" />
+                              </svg>
+                            </ArrowIcon>
+                          </ItemLink>
+                        ) : (
+                          <ItemText $darkMode={darkMode}>{pub.title || pub.name}</ItemText>
+                        )}
+                      </ItemHeader>
+                      {pub.journal && (
+                        <ItemDescription $darkMode={darkMode}>{pub.journal}</ItemDescription>
+                      )}
+                    </ListItem>
+                  ))}
+                </ColumnList>
+              </Column>
+            )}
           </ColumnsWrapper>
 
           {/* About Section */}

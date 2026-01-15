@@ -25,6 +25,7 @@ export function DmythroTheme() {
   const avatarUrl = cv?.avatar || null;
   const location = cv?.location || null;
   const email = cv?.email || null;
+  const phone = cv?.phone || null;
 
   const socials = cv?.social || [];
   const aboutText = getAboutContent()?.markdown || '';
@@ -94,7 +95,22 @@ export function DmythroTheme() {
 
   // Publication items
   const publicationItems = useMemo(() => {
-    return (cv?.sections?.publications || []).filter(e => !isArchived(e)).slice(0, 6);
+    return (cv?.sections?.publications || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Awards items
+  const awardItems = useMemo(() => {
+    return (cv?.sections?.awards || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Presentations items
+  const presentationItems = useMemo(() => {
+    return (cv?.sections?.presentations || []).filter(e => !isArchived(e));
+  }, [cv]);
+
+  // Professional Development items
+  const professionalDevItems = useMemo(() => {
+    return (cv?.sections?.professional_development || []).filter(e => !isArchived(e));
   }, [cv]);
 
   // Project items
@@ -433,17 +449,152 @@ export function DmythroTheme() {
                           </TimelineChip>
                           <TimelineDetails>
                             <TimelineTitle>
-                              {pub.url ? (
-                                <TimelineCompanyLink href={pub.url} target="_blank" rel="noopener">
+                              {pub.url || pub.doi ? (
+                                <TimelineCompanyLink href={pub.url || `https://doi.org/${pub.doi}`} target="_blank" rel="noopener">
                                   {pub.name || pub.title}
                                 </TimelineCompanyLink>
                               ) : (pub.name || pub.title)}
                             </TimelineTitle>
-                            {pub.publisher && (
-                              <TimelineSubtitle>{pub.publisher}</TimelineSubtitle>
+                            {(pub.publisher || pub.journal) && (
+                              <TimelineSubtitle>{pub.publisher || pub.journal}</TimelineSubtitle>
                             )}
                             {pub.summary && (
                               <TimelineDescription>{pub.summary}</TimelineDescription>
+                            )}
+                          </TimelineDetails>
+                        </TimelineBlockContent>
+                      </TimelineBlock>
+                    ))}
+                  </Timeline>
+                </AccordionContent>
+              )}
+            </AccordionSection>
+          )}
+
+          {/* Awards Accordion */}
+          {awardItems.length > 0 && (
+            <AccordionSection id="awards">
+              <AccordionHeader
+                onClick={() => toggleSection('awards')}
+                $isOpen={openSections.includes('awards')}
+              >
+                <AccordionIcon>
+                  <TrophyIcon />
+                </AccordionIcon>
+                <AccordionTitleGroup>
+                  <AccordionTitle>Awards</AccordionTitle>
+                  <AccordionSubtitle>Recognition and achievements</AccordionSubtitle>
+                </AccordionTitleGroup>
+                <AccordionArrow $isOpen={openSections.includes('awards')}>
+                  <ChevronIcon />
+                </AccordionArrow>
+              </AccordionHeader>
+
+              {openSections.includes('awards') && (
+                <AccordionContent>
+                  <Timeline>
+                    {awardItems.map((award, idx) => (
+                      <TimelineBlock key={`award-${idx}`}>
+                        <TimelineBlockContent>
+                          <TimelineChip>
+                            {formatYear(award.date)}
+                          </TimelineChip>
+                          <TimelineDetails>
+                            <TimelineTitle>{award.name}</TimelineTitle>
+                            {award.summary && (
+                              <TimelineDescription>{award.summary}</TimelineDescription>
+                            )}
+                          </TimelineDetails>
+                        </TimelineBlockContent>
+                      </TimelineBlock>
+                    ))}
+                  </Timeline>
+                </AccordionContent>
+              )}
+            </AccordionSection>
+          )}
+
+          {/* Presentations Accordion */}
+          {presentationItems.length > 0 && (
+            <AccordionSection id="presentations">
+              <AccordionHeader
+                onClick={() => toggleSection('presentations')}
+                $isOpen={openSections.includes('presentations')}
+              >
+                <AccordionIcon>
+                  <MicIcon />
+                </AccordionIcon>
+                <AccordionTitleGroup>
+                  <AccordionTitle>Presentations</AccordionTitle>
+                  <AccordionSubtitle>Talks and speaking engagements</AccordionSubtitle>
+                </AccordionTitleGroup>
+                <AccordionArrow $isOpen={openSections.includes('presentations')}>
+                  <ChevronIcon />
+                </AccordionArrow>
+              </AccordionHeader>
+
+              {openSections.includes('presentations') && (
+                <AccordionContent>
+                  <Timeline>
+                    {presentationItems.map((pres, idx) => (
+                      <TimelineBlock key={`pres-${idx}`}>
+                        <TimelineBlockContent>
+                          <TimelineChip>
+                            {formatYear(pres.date)}
+                          </TimelineChip>
+                          <TimelineDetails>
+                            <TimelineTitle>{pres.name}</TimelineTitle>
+                            {pres.location && (
+                              <TimelineSubtitle>{pres.location}</TimelineSubtitle>
+                            )}
+                            {pres.summary && (
+                              <TimelineDescription>{pres.summary}</TimelineDescription>
+                            )}
+                          </TimelineDetails>
+                        </TimelineBlockContent>
+                      </TimelineBlock>
+                    ))}
+                  </Timeline>
+                </AccordionContent>
+              )}
+            </AccordionSection>
+          )}
+
+          {/* Professional Development Accordion */}
+          {professionalDevItems.length > 0 && (
+            <AccordionSection id="professional-development">
+              <AccordionHeader
+                onClick={() => toggleSection('professional-development')}
+                $isOpen={openSections.includes('professional-development')}
+              >
+                <AccordionIcon>
+                  <StarIcon />
+                </AccordionIcon>
+                <AccordionTitleGroup>
+                  <AccordionTitle>Professional Development</AccordionTitle>
+                  <AccordionSubtitle>Courses, workshops, and training</AccordionSubtitle>
+                </AccordionTitleGroup>
+                <AccordionArrow $isOpen={openSections.includes('professional-development')}>
+                  <ChevronIcon />
+                </AccordionArrow>
+              </AccordionHeader>
+
+              {openSections.includes('professional-development') && (
+                <AccordionContent>
+                  <Timeline>
+                    {professionalDevItems.map((item, idx) => (
+                      <TimelineBlock key={`profdev-${idx}`}>
+                        <TimelineBlockContent>
+                          <TimelineChip>
+                            {formatYear(item.date)}
+                          </TimelineChip>
+                          <TimelineDetails>
+                            <TimelineTitle>{item.name}</TimelineTitle>
+                            {item.location && (
+                              <TimelineSubtitle>{item.location}</TimelineSubtitle>
+                            )}
+                            {item.summary && (
+                              <TimelineDescription>{item.summary}</TimelineDescription>
                             )}
                           </TimelineDetails>
                         </TimelineBlockContent>
@@ -536,6 +687,11 @@ export function DmythroTheme() {
                         Email
                       </SocialButton>
                     )}
+                    {phone && (
+                      <SocialButton href={`tel:${phone}`}>
+                        Phone
+                      </SocialButton>
+                    )}
                   </LinksGrid>
                 </AccordionContent>
               )}
@@ -601,6 +757,24 @@ const GraduationIcon = () => (
 const BookIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
     <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/>
+  </svg>
+);
+
+const TrophyIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+    <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/>
+  </svg>
+);
+
+const MicIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+  </svg>
+);
+
+const StarIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
   </svg>
 );
 
