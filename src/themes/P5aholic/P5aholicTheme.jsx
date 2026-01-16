@@ -940,17 +940,12 @@ const Copyright = styled.div`
 const Content = styled.main`
   position: absolute;
   z-index: 2;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
+  inset: var(--pad);
   overflow: hidden;
   mix-blend-mode: difference;
 
   @media (max-width: 768px) {
-    position: absolute;
     inset: 0;
-    height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
@@ -974,15 +969,15 @@ const Page = styled.section`
 // Home Page
 const HomeContent = styled.div`
   position: absolute;
-  right: calc(var(--pad) * 2);
-  bottom: calc(var(--pad) * 2);
-  white-space: nowrap;
+  right: calc(var(--pad));
+  bottom: calc(var(--pad));
+  max-width: 60%;
 
   @media (max-width: 768px) {
     position: relative;
     right: auto;
     bottom: auto;
-    white-space: normal;
+    max-width: 100%;
   }
 `;
 
@@ -1002,12 +997,11 @@ const AboutText = styled.p`
 
 // Projects Page
 const ProjectsContent = styled.div`
-  padding: calc(var(--pad) * 2 + 96px) calc(var(--pad) * 2);
+  padding: calc(var(--pad) + 96px) calc(var(--pad));
   text-align: right;
-  white-space: nowrap;
 
   @media (min-width: 1280px) {
-    padding: calc(var(--pad) * 2 + 125px) calc(var(--pad) * 2);
+    padding: calc(var(--pad) + 125px) calc(var(--pad));
   }
 
   @media (max-width: 768px) {
@@ -1015,7 +1009,6 @@ const ProjectsContent = styled.div`
     padding-left: 0;
     padding-top: 0;
     text-align: left;
-    white-space: normal;
   }
 `;
 
@@ -1082,14 +1075,14 @@ const InfoContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 40px;
-  padding: calc(var(--pad) * 2);
-  padding-top: calc(var(--pad) * 2 + 85px);
-  padding-bottom: calc(var(--pad) * 4);
-  padding-left: calc(var(--pad) * 2 + 250px);
+  padding: calc(var(--pad));
+  padding-top: calc(var(--pad) + 85px);
+  padding-bottom: calc(var(--pad) * 2);
+  padding-left: calc(var(--pad) + 250px);
 
   @media (min-width: 1280px) {
-    padding-top: calc(var(--pad) * 2 + 115px);
-    padding-left: calc(var(--pad) * 2 + 350px);
+    padding-top: calc(var(--pad) + 115px);
+    padding-left: calc(var(--pad) + 350px);
   }
 
   @media (max-width: 768px) {
@@ -1105,12 +1098,7 @@ const InfoContent = styled.div`
 
 const InfoItem = styled.div`
   position: relative;
-  white-space: nowrap;
   flex: 0 0 auto;
-
-  @media (max-width: 768px) {
-    white-space: normal;
-  }
 `;
 
 const InfoSectionLabel = styled.div`
@@ -1153,9 +1141,9 @@ const InfoLink = styled.a`
 // Contact Page
 const ContactContent = styled.div`
   position: absolute;
-  right: calc(var(--pad) * 2);
-  bottom: calc(var(--pad) * 2);
-  white-space: nowrap;
+  right: calc(var(--pad));
+  bottom: calc(var(--pad));
+  max-width: 60%;
   display: flex;
   flex-direction: column;
   gap: 1em;
@@ -1164,7 +1152,7 @@ const ContactContent = styled.div`
     position: relative;
     right: auto;
     bottom: auto;
-    white-space: normal;
+    max-width: 100%;
   }
 `;
 
