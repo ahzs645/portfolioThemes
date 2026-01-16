@@ -19,6 +19,7 @@ import { DmythroTheme } from './Dmythro/DmythroTheme';
 import { DTCTheme } from './DTC/DTCTheme';
 import { KubreTheme } from './Kubre/KubreTheme';
 import { PacoTheme } from './Paco/PacoTheme';
+import { P5aholicTheme } from './P5aholic/P5aholicTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -146,6 +147,12 @@ export const PORTFOLIO_THEMES = [
     name: 'Paco',
     description: 'Minimalist grayscale portfolio with staggered animations, three-column layout, and indigo accent. Inspired by paco.me.',
     Component: PacoTheme,
+  },
+  {
+    id: 'p5aholic',
+    name: 'Framed',
+    description: 'Artistic portfolio with border frame, mix-blend-mode difference, left navigation with dot indicators, and right-aligned projects. Sans/Mono toggle.',
+    Component: P5aholicTheme,
   },
 ];
 
