@@ -84,7 +84,7 @@ export function BrutalistTheme() {
 
   return (
     <div style={{ height: '100%', width: '100%', overflow: 'auto' }}>
-      <body>
+      <div>
         <h1>{fullName}</h1>
         <p>
           {location && <>{location}<br /></>}
@@ -221,7 +221,7 @@ export function BrutalistTheme() {
 
         <hr />
         <p><small>This is a resume. It's lightweight and loads fast.</small></p>
-      </body>
+      </div>
     </div>
   );
 }

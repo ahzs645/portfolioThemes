@@ -56,12 +56,13 @@ function formatDateRange(start, end) {
   const formatDate = (d) => {
     if (!d) return '';
     if (isPresent(d)) return 'Present';
-    if (d.length === 7) {
-      const [year, month] = d.split('-');
+    const str = String(d);
+    if (str.length === 7) {
+      const [year, month] = str.split('-');
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       return `${months[parseInt(month, 10) - 1]} ${year}`;
     }
-    return d;
+    return str;
   };
   return `${formatDate(start)} — ${formatDate(end)}`;
 }

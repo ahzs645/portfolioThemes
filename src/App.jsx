@@ -25,6 +25,21 @@ export default function App() {
 
   const currentTheme = useMemo(() => getPortfolioTheme(currentThemeId), [currentThemeId]);
 
+  const currentThemeIndex = useMemo(() =>
+    PORTFOLIO_THEMES.findIndex(t => t.id === currentThemeId),
+    [currentThemeId]
+  );
+
+  const goToPrevTheme = () => {
+    const prevIndex = currentThemeIndex <= 0 ? PORTFOLIO_THEMES.length - 1 : currentThemeIndex - 1;
+    setCurrentThemeId(PORTFOLIO_THEMES[prevIndex].id);
+  };
+
+  const goToNextTheme = () => {
+    const nextIndex = currentThemeIndex >= PORTFOLIO_THEMES.length - 1 ? 0 : currentThemeIndex + 1;
+    setCurrentThemeId(PORTFOLIO_THEMES[nextIndex].id);
+  };
+
   if (loading) {
     return (
       <LoadingScreen>
@@ -98,6 +113,19 @@ export default function App() {
           <CurrentThemeName $darkMode={darkMode}>{currentTheme?.name}</CurrentThemeName>
         </ThemeInfo>
         <TopBarActions>
+          <ThemeNavGroup>
+            <NavArrowButton $darkMode={darkMode} onClick={goToPrevTheme} title="Previous theme">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </NavArrowButton>
+            <NavArrowButton $darkMode={darkMode} onClick={goToNextTheme} title="Next theme">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </NavArrowButton>
+          </ThemeNavGroup>
+          <Separator $darkMode={darkMode} />
           <SwitcherButton $darkMode={darkMode} onClick={() => setShowCatalog(true)}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="3" width="7" height="7" rx="1"/>
@@ -105,7 +133,7 @@ export default function App() {
               <rect x="3" y="14" width="7" height="7" rx="1"/>
               <rect x="14" y="14" width="7" height="7" rx="1"/>
             </svg>
-            Browse Themes
+            <BrowseText>Browse Themes</BrowseText>
           </SwitcherButton>
           <ModeToggleSmall
             $darkMode={darkMode}
@@ -196,6 +224,38 @@ const CurrentThemeName = styled.span`
   color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#111827')};
 `;
 
+const ThemeNavGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+`;
+
+const NavArrowButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#f3f4f6')};
+  color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#374151')};
+  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#333' : '#d1d5db')};
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: ${({ $darkMode }) => ($darkMode ? '#2a2a2a' : '#e5e7eb')};
+    border-color: ${({ $darkMode }) => ($darkMode ? '#444' : '#9ca3af')};
+  }
+`;
+
+const Separator = styled.div`
+  width: 1px;
+  height: 24px;
+  background: ${({ $darkMode }) => ($darkMode ? '#333' : '#d1d5db')};
+  margin: 0 4px;
+`;
+
 const TopBarActions = styled.div`
   display: flex;
   align-items: center;
@@ -205,6 +265,7 @@ const TopBarActions = styled.div`
 const SwitcherButton = styled.button`
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   background: ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#f3f4f6')};
   color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#374151')};
@@ -215,9 +276,21 @@ const SwitcherButton = styled.button`
   cursor: pointer;
   transition: all 0.2s;
 
+  @media (max-width: 640px) {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+  }
+
   &:hover {
     background: ${({ $darkMode }) => ($darkMode ? '#2a2a2a' : '#e5e7eb')};
     border-color: ${({ $darkMode }) => ($darkMode ? '#444' : '#9ca3af')};
+  }
+`;
+
+const BrowseText = styled.span`
+  @media (max-width: 640px) {
+    display: none;
   }
 `;
 

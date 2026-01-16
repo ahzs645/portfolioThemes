@@ -700,9 +700,7 @@ const PageWrapper = styled.div`
   --c-bg: ${({ $darkMode }) => ($darkMode ? 'hsl(0, 0%, 5%)' : 'hsl(0, 0%, 90%)')};
   --c-text: ${({ $darkMode }) => ($darkMode ? 'hsl(0, 0%, 95%)' : 'hsl(0, 0%, 10%)')};
 
-  position: fixed;
-  left: 0;
-  top: 0;
+  position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -717,9 +715,8 @@ const PageWrapper = styled.div`
   transition: background-color 0.9s cubic-bezier(0.1, 0.4, 0.2, 1);
 
   @media (max-width: 768px) {
-    position: relative;
     height: auto;
-    min-height: 100vh;
+    min-height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
     overscroll-behavior: none;
@@ -727,7 +724,7 @@ const PageWrapper = styled.div`
 `;
 
 const BackgroundWrapper = styled.div`
-  position: fixed;
+  position: absolute;
   z-index: 1;
   left: var(--pad);
   right: var(--pad);
@@ -747,7 +744,7 @@ const CanvasContainer = styled.div`
 `;
 
 const Mask = styled.div`
-  position: fixed;
+  position: absolute;
   z-index: 3;
   left: 0;
   top: 0;
@@ -780,7 +777,7 @@ const MaskBottom = styled.div`
 `;
 
 const Frame = styled.div`
-  position: fixed;
+  position: absolute;
   z-index: 10;
   left: var(--pad);
   right: var(--pad);
@@ -812,7 +809,7 @@ const FrameLine = styled.div`
 `;
 
 const ThemeToggle = styled.div`
-  position: fixed;
+  position: absolute;
   z-index: 10;
   left: calc(var(--pad) - 0.15em);
   bottom: var(--pad);
@@ -848,7 +845,7 @@ const Box = styled.span`
 `;
 
 const SiteHeader = styled.header`
-  position: fixed;
+  position: absolute;
   z-index: 10;
   left: calc(var(--pad) * 2);
   top: calc(var(--pad) * 2);
@@ -931,7 +928,7 @@ const NavText = styled.span`
 `;
 
 const Copyright = styled.div`
-  position: fixed;
+  position: absolute;
   z-index: 10;
   left: var(--pad);
   bottom: calc(var(--pad) * 0.5 - 0.5em);
@@ -946,7 +943,7 @@ const Copyright = styled.div`
 `;
 
 const Content = styled.main`
-  position: fixed;
+  position: absolute;
   z-index: 2;
   left: 0;
   top: 0;
@@ -958,7 +955,7 @@ const Content = styled.main`
   @media (max-width: 768px) {
     position: relative;
     height: auto;
-    min-height: 100vh;
+    min-height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
     overscroll-behavior: none;
@@ -975,7 +972,7 @@ const ContentInner = styled.div`
 
 const Page = styled.section`
   width: 100%;
-  min-height: 100vh;
+  min-height: 100%;
 `;
 
 // Home Page
@@ -1090,20 +1087,26 @@ const ProjectInfo = styled.p`
 // Info Page
 const InfoContent = styled.div`
   position: relative;
-  min-height: 100vh;
+  height: 100%;
+  overflow-y: auto;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 40px;
   padding: calc(var(--pad) * 2);
-  padding-top: calc(var(--pad) * 2 + 100px);
+  padding-top: calc(var(--pad) * 2 + 85px);
+  padding-bottom: calc(var(--pad) * 4);
+  padding-left: calc(var(--pad) * 2 + 250px);
 
   @media (min-width: 1280px) {
-    padding-top: calc(var(--pad) * 2);
+    padding-top: calc(var(--pad) * 2 + 115px);
+    padding-left: calc(var(--pad) * 2 + 350px);
   }
 
   @media (max-width: 768px) {
     flex-direction: column;
+    height: auto;
     min-height: auto;
+    overflow-y: visible;
     padding: calc(var(--pad) * 1.5);
     padding-left: 0;
     gap: 30px;

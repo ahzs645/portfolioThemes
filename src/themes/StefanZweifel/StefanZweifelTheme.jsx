@@ -227,16 +227,16 @@ export function StefanZweifelTheme() {
                     <NestedPositions>
                       {exp.type === 'nested' ? (
                         exp.positions.map((pos, posIdx) => (
-                          <ListItem key={`pos-${posIdx}`}>
+                          <PositionRow key={`pos-${posIdx}`}>
                             <ItemDate>{pos.startDate}</ItemDate>
                             <ItemContent>{pos.title}</ItemContent>
-                          </ListItem>
+                          </PositionRow>
                         ))
                       ) : (
-                        <ListItem>
+                        <PositionRow>
                           <ItemDate>{exp.startDate}</ItemDate>
                           <ItemContent>{exp.title}</ItemContent>
-                        </ListItem>
+                        </PositionRow>
                       )}
                     </NestedPositions>
                   </NestedExperience>
@@ -622,6 +622,11 @@ const ItemList = styled.ul`
 `;
 
 const ListItem = styled.li`
+  display: flex;
+  gap: 0.5rem;
+`;
+
+const PositionRow = styled.div`
   display: flex;
   gap: 0.5rem;
 `;

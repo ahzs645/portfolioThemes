@@ -230,8 +230,8 @@ export function AmirmxtTheme({ darkMode }) {
                               <ExperiencePosition $theme={theme}>
                                 {pos.title}
                                 <ExperienceDate $theme={theme}>
-                                  {isPresent(pos.end_date) ? 'Present' : pos.end_date?.split('-')[0]}
-                                  {pos.start_date && ` — ${pos.start_date.split('-')[0]}`}
+                                  {isPresent(pos.end_date) ? 'Present' : pos.end_date ? String(pos.end_date).split('-')[0] : ''}
+                                  {pos.start_date && ` — ${String(pos.start_date).split('-')[0]}`}
                                 </ExperienceDate>
                               </ExperiencePosition>
                             </PositionItem>
@@ -241,8 +241,8 @@ export function AmirmxtTheme({ darkMode }) {
                         <ExperiencePosition $theme={theme}>
                           {company.position}
                           <ExperienceDate $theme={theme}>
-                            {isPresent(company.end_date) ? 'Present' : company.end_date?.split('-')[0]}
-                            {company.start_date && ` — ${company.start_date.split('-')[0]}`}
+                            {isPresent(company.end_date) ? 'Present' : company.end_date ? String(company.end_date).split('-')[0] : ''}
+                            {company.start_date && ` — ${String(company.start_date).split('-')[0]}`}
                           </ExperienceDate>
                         </ExperiencePosition>
                       )}
@@ -268,8 +268,8 @@ export function AmirmxtTheme({ darkMode }) {
                       <ExperiencePosition $theme={theme}>
                         {item.position}
                         <ExperienceDate $theme={theme}>
-                          {isPresent(item.end_date) ? 'Present' : item.end_date?.split('-')[0]}
-                          {item.start_date && ` — ${item.start_date.split('-')[0]}`}
+                          {isPresent(item.end_date) ? 'Present' : item.end_date ? String(item.end_date).split('-')[0] : ''}
+                          {item.start_date && ` — ${String(item.start_date).split('-')[0]}`}
                         </ExperienceDate>
                       </ExperiencePosition>
                     </ExperienceCompanyBlock>
@@ -294,8 +294,8 @@ export function AmirmxtTheme({ darkMode }) {
                       <ExperiencePosition $theme={theme}>
                         {item.degree} — {item.area}
                         <ExperienceDate $theme={theme}>
-                          {item.end_date?.split('-')[0]}
-                          {item.start_date && ` — ${item.start_date.split('-')[0]}`}
+                          {item.end_date ? String(item.end_date).split('-')[0] : ''}
+                          {item.start_date && ` — ${String(item.start_date).split('-')[0]}`}
                         </ExperienceDate>
                       </ExperiencePosition>
                     </ExperienceCompanyBlock>
@@ -429,7 +429,7 @@ export function AmirmxtTheme({ darkMode }) {
 
 // Styled Components
 const Container = styled.div`
-  min-height: 100%;
+  height: 100%;
   width: 100%;
   background: ${({ $theme }) => $theme.bgColor};
   color: ${({ $theme }) => $theme.primaryColor};
@@ -437,7 +437,8 @@ const Container = styled.div`
   font-size: 0.9375rem;
   line-height: 1.6;
   letter-spacing: -0.02em;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

@@ -112,8 +112,8 @@ export function StammyTheme() {
 
   // Format date range
   const formatDateRange = (startDate, endDate) => {
-    const start = startDate?.split('-')[0] || '';
-    const end = isPresent(endDate) ? 'Present' : endDate?.split('-')[0] || '';
+    const start = startDate ? String(startDate).split('-')[0] : '';
+    const end = isPresent(endDate) ? 'Present' : endDate ? String(endDate).split('-')[0] : '';
     if (start === end) return start;
     return `${start}–${end}`;
   };
@@ -338,7 +338,7 @@ export function StammyTheme() {
                   <WorkRow key={`edu-${idx}`}>
                     <WorkCompany $theme={theme}>{item.institution}</WorkCompany>
                     <WorkRole $theme={theme}>{item.degree} in {item.area}</WorkRole>
-                    <WorkDate $theme={theme}>{item.end_date?.split('-')[0]}</WorkDate>
+                    <WorkDate $theme={theme}>{item.end_date ? String(item.end_date).split('-')[0] : ''}</WorkDate>
                   </WorkRow>
                 ))}
               </WorkTable>
@@ -378,7 +378,7 @@ export function StammyTheme() {
                   <WorkRow key={`award-${idx}`}>
                     <WorkCompany $theme={theme}>{item.name}</WorkCompany>
                     <WorkRole $theme={theme}>{item.summary || ''}</WorkRole>
-                    <WorkDate $theme={theme}>{item.date?.split('-')[0]}</WorkDate>
+                    <WorkDate $theme={theme}>{item.date ? String(item.date).split('-')[0] : ''}</WorkDate>
                   </WorkRow>
                 ))}
               </WorkTable>
@@ -394,7 +394,7 @@ export function StammyTheme() {
                   <WorkRow key={`pres-${idx}`}>
                     <WorkCompany $theme={theme}>{item.name}</WorkCompany>
                     <WorkRole $theme={theme}>{item.location || ''}</WorkRole>
-                    <WorkDate $theme={theme}>{item.date?.split('-')[0]}</WorkDate>
+                    <WorkDate $theme={theme}>{item.date ? String(item.date).split('-')[0] : ''}</WorkDate>
                   </WorkRow>
                 ))}
               </WorkTable>
@@ -431,7 +431,7 @@ export function StammyTheme() {
                   <WorkRow key={`profdev-${idx}`}>
                     <WorkCompany $theme={theme}>{item.name}</WorkCompany>
                     <WorkRole $theme={theme}>{item.location || ''}</WorkRole>
-                    <WorkDate $theme={theme}>{item.date?.split('-')[0]}</WorkDate>
+                    <WorkDate $theme={theme}>{item.date ? String(item.date).split('-')[0] : ''}</WorkDate>
                   </WorkRow>
                 ))}
               </WorkTable>
@@ -491,7 +491,7 @@ export function StammyTheme() {
 
 // Styled Components
 const Container = styled.div`
-  min-height: 100%;
+  height: 100%;
   width: 100%;
   background: ${({ $theme }) => $theme.bg};
   color: ${({ $theme }) => $theme.text};
@@ -499,7 +499,8 @@ const Container = styled.div`
   font-size: 1.0625rem;
   line-height: 1.7;
   display: flex;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   overscroll-behavior: none;
   transition: background-color 0.4s ease, color 0.4s ease;
 `;

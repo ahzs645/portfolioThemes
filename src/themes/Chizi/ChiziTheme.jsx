@@ -236,7 +236,7 @@ export function ChiziTheme({ darkMode }) {
                                 <NestedPosition key={`pos-${posIdx}`} $theme={theme}>
                                   <ExperienceRole $theme={theme}>{pos.title}</ExperienceRole>
                                   <NestedDate $theme={theme}>
-                                    {pos.startDate?.split('-')[0] || ''} - {pos.isCurrent ? 'Present' : pos.endDate?.split('-')[0] || ''}
+                                    {pos.startDate ? String(pos.startDate).split('-')[0] : ''} - {pos.isCurrent ? 'Present' : pos.endDate ? String(pos.endDate).split('-')[0] : ''}
                                   </NestedDate>
                                 </NestedPosition>
                               ))}
@@ -246,8 +246,8 @@ export function ChiziTheme({ darkMode }) {
                       ) : (
                         <>
                           <ExperienceDate $theme={theme}>
-                            {item.isCurrent ? 'Present' : item.endDate?.split('-')[0] || ''}
-                            {item.startDate && ` - ${item.startDate.split('-')[0]}`}
+                            {item.isCurrent ? 'Present' : item.endDate ? String(item.endDate).split('-')[0] : ''}
+                            {item.startDate && ` - ${String(item.startDate).split('-')[0]}`}
                           </ExperienceDate>
                           <ExperienceInfo>
                             <ExperienceRole $theme={theme}>{item.title}</ExperienceRole>
@@ -300,8 +300,8 @@ export function ChiziTheme({ darkMode }) {
                   {educationItems.map((edu, idx) => (
                     <ExperienceItem key={`edu-${idx}`}>
                       <ExperienceDate $theme={theme}>
-                        {edu.end_date?.split('-')[0] || edu.graduation_date?.split('-')[0] || ''}
-                        {edu.start_date && ` - ${edu.start_date.split('-')[0]}`}
+                        {edu.end_date ? String(edu.end_date).split('-')[0] : edu.graduation_date ? String(edu.graduation_date).split('-')[0] : ''}
+                        {edu.start_date && ` - ${String(edu.start_date).split('-')[0]}`}
                       </ExperienceDate>
                       <ExperienceInfo>
                         <ExperienceRole $theme={theme}>{edu.degree || edu.area}</ExperienceRole>
@@ -325,8 +325,8 @@ export function ChiziTheme({ darkMode }) {
                   {volunteerItems.map((vol, idx) => (
                     <ExperienceItem key={`vol-${idx}`}>
                       <ExperienceDate $theme={theme}>
-                        {vol.isCurrent ? 'Present' : vol.endDate?.split('-')[0] || ''}
-                        {vol.startDate && ` - ${vol.startDate.split('-')[0]}`}
+                        {vol.isCurrent ? 'Present' : vol.endDate ? String(vol.endDate).split('-')[0] : ''}
+                        {vol.startDate && ` - ${String(vol.startDate).split('-')[0]}`}
                       </ExperienceDate>
                       <ExperienceInfo>
                         <ExperienceRole $theme={theme}>{vol.position}</ExperienceRole>
@@ -379,7 +379,7 @@ export function ChiziTheme({ darkMode }) {
                   {awardItems.map((award, idx) => (
                     <ExperienceItem key={`award-${idx}`}>
                       <ExperienceDate $theme={theme}>
-                        {award.date?.split('-')[0] || ''}
+                        {award.date ? String(award.date).split('-')[0] : ''}
                       </ExperienceDate>
                       <ExperienceInfo>
                         <ExperienceRole $theme={theme}>{award.name}</ExperienceRole>
@@ -405,7 +405,7 @@ export function ChiziTheme({ darkMode }) {
                   {presentationItems.map((pres, idx) => (
                     <ExperienceItem key={`pres-${idx}`}>
                       <ExperienceDate $theme={theme}>
-                        {pres.date?.split('-')[0] || ''}
+                        {pres.date ? String(pres.date).split('-')[0] : ''}
                       </ExperienceDate>
                       <ExperienceInfo>
                         <ExperienceRole $theme={theme}>{pres.name}</ExperienceRole>
@@ -434,7 +434,7 @@ export function ChiziTheme({ darkMode }) {
                   {professionalDevItems.map((item, idx) => (
                     <ExperienceItem key={`profdev-${idx}`}>
                       <ExperienceDate $theme={theme}>
-                        {item.date?.split('-')[0] || ''}
+                        {item.date ? String(item.date).split('-')[0] : ''}
                       </ExperienceDate>
                       <ExperienceInfo>
                         <ExperienceRole $theme={theme}>{item.name}</ExperienceRole>
@@ -491,7 +491,7 @@ export function ChiziTheme({ darkMode }) {
 
 // Styled Components
 const Container = styled.div`
-  min-height: 100%;
+  height: 100%;
   width: 100%;
   background: ${({ $theme }) => $theme.background};
   color: ${({ $theme }) => $theme.foreground};
@@ -499,7 +499,8 @@ const Container = styled.div`
   font-size: 16px;
   line-height: 1.5;
   letter-spacing: -0.025em;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   overscroll-behavior: none;
   transition: background 0.2s, color 0.2s;
 `;

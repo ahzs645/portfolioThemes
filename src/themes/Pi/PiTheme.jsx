@@ -23,8 +23,9 @@ function isActiveJob(entry) {
 function formatDate(dateStr) {
   if (!dateStr) return '';
   if (isPresent(dateStr)) return 'Present';
+  const str = String(dateStr);
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  const parts = dateStr.split('-');
+  const parts = str.split('-');
   const year = parts[0] || '';
   const month = parts[1] ? months[parseInt(parts[1], 10) - 1] : '';
   if (month && year) return `${month} ${year}`;

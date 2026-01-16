@@ -81,12 +81,12 @@ export function TerminalTheme() {
                   {company.positions && company.positions.length > 0 ? (
                     company.positions.map((pos, posIdx) => (
                       <PositionLine key={`pos-${posIdx}`}>
-                        {pos.title?.toUpperCase()} ({isPresent(pos.end_date) ? 'PRESENT' : pos.end_date?.split('-')[0]} - {pos.start_date?.split('-')[0]})
+                        {pos.title?.toUpperCase()} ({isPresent(pos.end_date) ? 'PRESENT' : pos.end_date ? String(pos.end_date).split('-')[0] : ''} - {pos.start_date ? String(pos.start_date).split('-')[0] : ''})
                       </PositionLine>
                     ))
                   ) : (
                     <PositionLine>
-                      {company.position?.toUpperCase()} ({isPresent(company.end_date) ? 'PRESENT' : company.end_date?.split('-')[0]} - {company.start_date?.split('-')[0]})
+                      {company.position?.toUpperCase()} ({isPresent(company.end_date) ? 'PRESENT' : company.end_date ? String(company.end_date).split('-')[0] : ''} - {company.start_date ? String(company.start_date).split('-')[0] : ''})
                     </PositionLine>
                   )}
                 </ListItem>
@@ -102,7 +102,7 @@ export function TerminalTheme() {
             <List>
               {education.map((item, idx) => (
                 <ListItem key={`edu-${idx}`}>
-                  {item.degree?.toUpperCase()} IN {item.area?.toUpperCase()}, {item.institution?.toUpperCase()} ({item.end_date?.split('-')[0]})
+                  {item.degree?.toUpperCase()} IN {item.area?.toUpperCase()}, {item.institution?.toUpperCase()} ({item.end_date ? String(item.end_date).split('-')[0] : ''})
                 </ListItem>
               ))}
             </List>
@@ -150,7 +150,7 @@ export function TerminalTheme() {
             <List>
               {awards.slice(0, 5).map((award, idx) => (
                 <ListItem key={`award-${idx}`}>
-                  {award.name?.toUpperCase()} ({award.date?.split('-')[0]})
+                  {award.name?.toUpperCase()} ({award.date ? String(award.date).split('-')[0] : ''})
                 </ListItem>
               ))}
             </List>
@@ -184,7 +184,7 @@ export function TerminalTheme() {
             <List>
               {presentationsRaw.map((pres, idx) => (
                 <ListItem key={`pres-${idx}`}>
-                  {pres.name?.toUpperCase()} {pres.location && `— ${pres.location?.toUpperCase()}`} ({pres.date?.split('-')[0]})
+                  {pres.name?.toUpperCase()} {pres.location && `— ${pres.location?.toUpperCase()}`} ({pres.date ? String(pres.date).split('-')[0] : ''})
                 </ListItem>
               ))}
             </List>
@@ -198,7 +198,7 @@ export function TerminalTheme() {
             <List>
               {professionalDevRaw.map((item, idx) => (
                 <ListItem key={`profdev-${idx}`}>
-                  {item.name?.toUpperCase()} {item.location && `— ${item.location?.toUpperCase()}`} ({item.date?.split('-')[0]})
+                  {item.name?.toUpperCase()} {item.location && `— ${item.location?.toUpperCase()}`} ({item.date ? String(item.date).split('-')[0] : ''})
                 </ListItem>
               ))}
             </List>
@@ -259,14 +259,15 @@ const blink = keyframes`
 
 // Styled Components
 const Container = styled.div`
-  min-height: 100%;
+  height: 100%;
   width: 100%;
   background: #000000;
   color: #ffffff;
   font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.75rem;
   line-height: 1.3;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   overscroll-behavior: none;
   padding: 1rem 1.5rem;
   display: flex;

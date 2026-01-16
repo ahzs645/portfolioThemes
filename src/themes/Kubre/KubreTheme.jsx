@@ -57,8 +57,8 @@ export function KubreTheme() {
 
   // Format date range
   const formatDateRange = (startDate, endDate) => {
-    const start = startDate?.split('-')[0] || '';
-    const end = isPresent(endDate) ? 'Present' : endDate?.split('-')[0] || '';
+    const start = startDate ? String(startDate).split('-')[0] : '';
+    const end = isPresent(endDate) ? 'Present' : endDate ? String(endDate).split('-')[0] : '';
     if (start === end) return start;
     return `${start} - ${end}`;
   };
@@ -148,7 +148,7 @@ export function KubreTheme() {
                 <EducationList>
                   {education.map((item, idx) => (
                     <EducationItem key={`edu-${idx}`}>
-                      <EducationDate>{item.end_date?.split('-')[0]}</EducationDate>
+                      <EducationDate>{item.end_date ? String(item.end_date).split('-')[0] : ''}</EducationDate>
                       <EducationDegree>
                         {item.degree} in {item.area}
                       </EducationDegree>
@@ -388,13 +388,14 @@ export function KubreTheme() {
 
 // Styled Components
 const PageWrapper = styled.div`
-  min-height: 100vh;
+  height: 100%;
   width: 100%;
   background: #eeeeee;
+  overflow-y: auto;
+  overflow-x: hidden;
 `;
 
 const Container = styled.div`
-  min-height: 100%;
   width: 100%;
   background: #eeeeee;
   color: #222222;
@@ -402,6 +403,7 @@ const Container = styled.div`
   font-size: 0.875rem;
   line-height: 1.5;
   padding: 0 1rem;
+  padding-bottom: 2rem;
   max-width: 64rem;
   margin: 0 auto;
 

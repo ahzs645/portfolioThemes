@@ -50,8 +50,9 @@ function groupExperience(experience = []) {
 function getYear(dateStr) {
   if (!dateStr) return '';
   if (isPresent(dateStr)) return 'Present';
-  if (dateStr.length >= 4) return dateStr.substring(0, 4);
-  return dateStr;
+  const str = String(dateStr);
+  if (str.length >= 4) return str.substring(0, 4);
+  return str;
 }
 
 function formatDateRange(start, end) {

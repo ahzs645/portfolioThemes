@@ -739,19 +739,20 @@ export function AlanaGoyalTheme() {
 
 const Container = styled.div`
   display: flex;
-  height: 100vh;
+  height: 100%;
   width: 100%;
   background-color: ${props => props.theme.background};
   color: ${props => props.theme.foreground};
   font-family: -apple-system, SF Pro, SF Pro Display, SF Pro Text, ui-sans-serif, system-ui, sans-serif;
   font-size: 15px;
   line-height: 1.6;
+  overflow: hidden;
 `;
 
 const Sidebar = styled.aside`
   width: 320px;
   min-width: 320px;
-  height: 100vh;
+  height: 100%;
   background-color: ${props => props.theme.sidebar};
   border-right: 1px solid ${props => props.theme.border};
   display: flex;
@@ -946,7 +947,7 @@ const NoteCardPreview = styled.span`
 
 const Main = styled.main`
   flex: 1;
-  height: 100vh;
+  height: 100%;
   overflow-y: auto;
   padding: 24px 48px;
 
