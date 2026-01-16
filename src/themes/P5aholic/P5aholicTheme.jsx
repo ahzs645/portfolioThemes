@@ -847,8 +847,8 @@ const SiteHeader = styled.header`
   mix-blend-mode: difference;
 
   @media (max-width: 768px) {
-    left: calc(var(--pad));
-    top: calc(var(--pad));
+    left: calc(var(--pad) * 1.5);
+    top: calc(var(--pad) * 1.5);
   }
 `;
 
@@ -955,7 +955,7 @@ const Content = styled.main`
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     padding-left: 120px;
-    padding-top: calc(var(--pad) + 75px);
+    padding-top: calc(var(--pad) * 1.5 + 75px);
     padding-right: var(--pad);
     padding-bottom: var(--pad);
   }
