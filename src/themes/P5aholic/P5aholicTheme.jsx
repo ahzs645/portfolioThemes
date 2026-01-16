@@ -714,9 +714,7 @@ const PageWrapper = styled.div`
   transition: background-color 0.9s cubic-bezier(0.1, 0.4, 0.2, 1);
 
   @media (max-width: 768px) {
-    overflow-y: auto;
-    overflow-x: hidden;
-    overscroll-behavior: none;
+    overflow: hidden;
   }
 `;
 
@@ -849,6 +847,7 @@ const SiteHeader = styled.header`
   mix-blend-mode: difference;
 
   @media (max-width: 768px) {
+    position: fixed;
     left: calc(var(--pad) * 1.5);
     top: calc(var(--pad) * 1.5);
   }
@@ -950,14 +949,15 @@ const Content = styled.main`
   mix-blend-mode: difference;
 
   @media (max-width: 768px) {
-    position: relative;
-    height: auto;
-    min-height: 100%;
+    position: absolute;
+    inset: 0;
+    height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
-    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
     padding-left: 120px;
-    padding-top: 105px;
+    padding-top: var(--pad);
+    padding-right: var(--pad);
     padding-bottom: var(--pad);
   }
 `;
@@ -983,13 +983,7 @@ const HomeContent = styled.div`
     position: relative;
     right: auto;
     bottom: auto;
-    min-height: calc(100vh - 105px - var(--pad) * 2);
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: calc(var(--pad) * 1.5);
-    padding-left: 0;
-    padding-top: 0;
+    white-space: normal;
   }
 `;
 
@@ -1171,11 +1165,7 @@ const ContactContent = styled.div`
     position: relative;
     right: auto;
     bottom: auto;
-    min-height: calc(100vh - 105px - var(--pad) * 2);
-    justify-content: flex-end;
-    padding: calc(var(--pad) * 1.5);
-    padding-left: 0;
-    padding-top: 0;
+    white-space: normal;
   }
 `;
 

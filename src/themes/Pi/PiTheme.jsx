@@ -395,7 +395,7 @@ export function PiTheme() {
 }
 
 const Container = styled.div`
-  min-height: 100%;
+  height: 100%;
   width: 100%;
   background-color: #f5f4ef;
   color: #000;
@@ -403,6 +403,8 @@ const Container = styled.div`
   font-size: 14px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  overflow-y: auto;
+  overflow-x: hidden;
 `;
 
 const ContentWrapper = styled.div`

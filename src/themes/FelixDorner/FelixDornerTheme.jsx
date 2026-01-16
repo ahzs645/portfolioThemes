@@ -485,7 +485,7 @@ const AnimatedDiv = styled.div`
 `;
 
 const Container = styled.div`
-  min-height: 100vh;
+  height: 100%;
   width: 100%;
   background-color: ${props => props.$dark ? '#121212' : '#ffffff'};
   color: ${props => props.$dark ? '#e5e5e5' : '#171717'};
@@ -494,6 +494,8 @@ const Container = styled.div`
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-y: auto;
+  overflow-x: hidden;
 `;
 
 const Main = styled.main`
