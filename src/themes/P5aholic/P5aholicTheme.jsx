@@ -700,9 +700,8 @@ const PageWrapper = styled.div`
   --c-bg: ${({ $darkMode }) => ($darkMode ? 'hsl(0, 0%, 5%)' : 'hsl(0, 0%, 90%)')};
   --c-text: ${({ $darkMode }) => ($darkMode ? 'hsl(0, 0%, 95%)' : 'hsl(0, 0%, 10%)')};
 
+  flex: 1;
   position: relative;
-  width: 100%;
-  height: 100%;
   overflow: hidden;
   background-color: var(--c-bg);
   color: var(--c-text);
@@ -715,8 +714,6 @@ const PageWrapper = styled.div`
   transition: background-color 0.9s cubic-bezier(0.1, 0.4, 0.2, 1);
 
   @media (max-width: 768px) {
-    height: auto;
-    min-height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
     overscroll-behavior: none;

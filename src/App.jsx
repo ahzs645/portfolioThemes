@@ -315,7 +315,10 @@ const ModeToggleSmall = styled.button`
 
 const ThemeContainer = styled.div`
   flex: 1;
-  overflow: auto;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
 `;
 
 const CatalogView = styled.div`
