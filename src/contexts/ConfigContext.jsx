@@ -6,6 +6,7 @@ import {
   filterActive,
   getCurrentJobTitle,
 } from '../utils/cvHelpers';
+import { envConfig } from '../config/envConfig';
 
 const ConfigContext = createContext(null);
 
@@ -35,11 +36,13 @@ export function ConfigProvider({ children }) {
   }, []);
 
   // Normalized CV data - computed once when cvData changes
+  // Also applies section exclusions from environment config
   const cv = useMemo(() => {
     if (!cvData?.cv) return null;
 
     const raw = cvData.cv;
     const sections = raw.sections || {};
+    const { isSectionVisible, excludedSections } = envConfig;
 
     return {
       // Basic info
@@ -49,34 +52,66 @@ export function ConfigProvider({ children }) {
       location: raw.location || null,
       website: raw.website || null,
 
-      // About/summary text
-      about: sections.about || '',
+      // About/summary text (respects exclusion)
+      about: isSectionVisible('about') ? (sections.about || '') : '',
 
-      // Normalized social links
-      socialLinks: normalizeSocialLinks(raw.social || [], raw.email),
+      // Normalized social links (respects exclusion)
+      socialLinks: isSectionVisible('socialLinks')
+        ? normalizeSocialLinks(raw.social || [], raw.email)
+        : {},
 
       // Raw social array (for themes that need custom handling)
-      socialRaw: raw.social || [],
+      socialRaw: isSectionVisible('socialLinks') ? (raw.social || []) : [],
 
-      // Current job title (derived)
-      currentJobTitle: getCurrentJobTitle(sections.experience),
+      // Current job title (derived from experience)
+      currentJobTitle: isSectionVisible('experience')
+        ? getCurrentJobTitle(sections.experience)
+        : null,
 
-      // Pre-processed sections
-      experience: flattenExperience(sections.experience || []),
-      projects: filterActive(sections.projects || []),
-      education: filterActive(sections.education || []),
-      skills: sections.skills || [],
-      languages: sections.languages || [],
-      awards: filterActive(sections.awards || []),
-      publications: filterActive(sections.publications || []),
-      presentations: filterActive(sections.presentations || []),
-      volunteer: flattenExperience(sections.volunteer || []),
-      certifications: filterActive(sections.certifications || []),
-      professionalDevelopment: filterActive(sections.professional_development || []),
-      certificationsSkills: sections.certifications_skills || [],
+      // Pre-processed sections (respecting exclusions)
+      experience: isSectionVisible('experience')
+        ? flattenExperience(sections.experience || [])
+        : [],
+      projects: isSectionVisible('projects')
+        ? filterActive(sections.projects || [])
+        : [],
+      education: isSectionVisible('education')
+        ? filterActive(sections.education || [])
+        : [],
+      skills: isSectionVisible('skills')
+        ? (sections.skills || [])
+        : [],
+      languages: isSectionVisible('languages')
+        ? (sections.languages || [])
+        : [],
+      awards: isSectionVisible('awards')
+        ? filterActive(sections.awards || [])
+        : [],
+      publications: isSectionVisible('publications')
+        ? filterActive(sections.publications || [])
+        : [],
+      presentations: isSectionVisible('presentations')
+        ? filterActive(sections.presentations || [])
+        : [],
+      volunteer: isSectionVisible('volunteer')
+        ? flattenExperience(sections.volunteer || [])
+        : [],
+      certifications: isSectionVisible('certifications')
+        ? filterActive(sections.certifications || [])
+        : [],
+      professionalDevelopment: isSectionVisible('professionalDevelopment')
+        ? filterActive(sections.professional_development || [])
+        : [],
+      certificationsSkills: isSectionVisible('certifications')
+        ? (sections.certifications_skills || [])
+        : [],
 
       // Raw sections (for themes that need unprocessed data)
       sectionsRaw: sections,
+
+      // Expose excluded sections for themes to check
+      excludedSections,
+      isSectionVisible,
     };
   }, [cvData]);
 
@@ -95,6 +130,9 @@ export function ConfigProvider({ children }) {
     // Loading state
     loading,
     error,
+
+    // Environment configuration
+    envConfig,
 
     // Deprecated - for backward compatibility with unmigrated themes
     getAboutContent,

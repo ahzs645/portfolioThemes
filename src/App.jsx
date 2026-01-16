@@ -2,20 +2,36 @@ import React, { useState, useMemo, useEffect } from 'react';
 import styled from 'styled-components';
 import { useConfig } from './contexts/ConfigContext';
 import { PORTFOLIO_THEMES, getPortfolioTheme } from './themes';
+import { envConfig } from './config/envConfig';
 
 const getInitialDarkMode = () => {
+  // First check localStorage
   try {
     const stored = localStorage.getItem('portfolioThemes-darkMode');
     if (stored !== null) return stored === 'true';
   } catch {}
+
+  // Then check env config default
+  if (envConfig.defaultDarkMode !== null) {
+    return envConfig.defaultDarkMode;
+  }
+
+  // Finally fall back to system preference
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true;
 };
 
 export default function App() {
   const { loading, error } = useConfig();
-  const [currentThemeId, setCurrentThemeId] = useState('ansub-minimal');
-  const [showCatalog, setShowCatalog] = useState(false);
+
+  // Initialize state from environment configuration
+  const [currentThemeId, setCurrentThemeId] = useState(envConfig.themeId);
+  const [showCatalog, setShowCatalog] = useState(envConfig.isGalleryMode);
   const [darkMode, setDarkMode] = useState(getInitialDarkMode);
+
+  // Determine if we should show the top bar
+  // In gallery mode, always show catalog header instead
+  // In theme mode, respect the showTopBar config
+  const shouldShowTopBar = envConfig.isThemeMode && envConfig.showTopBar;
 
   useEffect(() => {
     try {
@@ -89,6 +105,17 @@ export default function App() {
   }
 
   const ThemeComponent = currentTheme?.Component;
+
+  // When in theme mode without top bar, render just the theme
+  if (!shouldShowTopBar && !showCatalog) {
+    return (
+      <AppContainer>
+        <ThemeContainerFullHeight>
+          {ThemeComponent ? <ThemeComponent darkMode={darkMode} /> : <div>No theme selected</div>}
+        </ThemeContainerFullHeight>
+      </AppContainer>
+    );
+  }
 
   return (
     <AppContainer>
@@ -242,6 +269,11 @@ const ModeToggleSmall = styled.button`
 
 const ThemeContainer = styled.div`
   flex: 1;
+  overflow: auto;
+`;
+
+const ThemeContainerFullHeight = styled.div`
+  height: 100%;
   overflow: auto;
 `;
 
