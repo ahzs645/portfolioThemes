@@ -347,12 +347,26 @@ export function P5aholicTheme({ darkMode }) {
     socialLinks,
     projects,
     experience,
+    education,
+    skills,
+    publications,
+    presentations,
+    certifications,
+    languages,
+    volunteer,
+    professionalDevelopment,
     sectionsRaw,
   } = cv;
 
   const awards = (sectionsRaw?.awards || []).filter(e => !Array.isArray(e?.tags) || !e.tags.includes('archived'));
   const activeProjects = projects?.slice(0, 12) || [];
   const recentExperience = experience?.slice(0, 4) || [];
+  const recentEducation = education?.slice(0, 3) || [];
+  const recentPublications = publications?.slice(0, 3) || [];
+  const recentPresentations = presentations?.slice(0, 3) || [];
+  const recentCertifications = certifications?.slice(0, 3) || [];
+  const recentVolunteer = volunteer?.slice(0, 3) || [];
+  const recentProfDev = professionalDevelopment?.slice(0, 3) || [];
 
   const pages = [
     { id: 'home', label: 'Home' },
@@ -482,7 +496,9 @@ export function P5aholicTheme({ darkMode }) {
           {activePage === 'info' && (
             <Page>
               <InfoContent>
-                <InfoItem $position="center">
+                {/* Social Links */}
+                <InfoItem>
+                  <InfoSectionLabel>Links</InfoSectionLabel>
                   <InfoList>
                     {socialLinks.twitter && (
                       <li>
@@ -508,26 +524,144 @@ export function P5aholicTheme({ darkMode }) {
                   </InfoList>
                 </InfoItem>
 
-                <InfoItem $position="top-right">
-                  <InfoList>
-                    {recentExperience.slice(0, 2).map((exp, idx) => (
-                      <li key={idx}>
-                        <span className="light">{exp.company}</span>
-                        <br />
-                        <span>{exp.position || exp.positions?.[0]?.title}</span>
-                      </li>
-                    ))}
-                  </InfoList>
-                </InfoItem>
+                {/* Experience */}
+                {recentExperience.length > 0 && (
+                  <InfoItem>
+                    <InfoSectionLabel>Experience</InfoSectionLabel>
+                    <InfoList>
+                      {recentExperience.slice(0, 3).map((exp, idx) => (
+                        <li key={idx}>
+                          {exp.title}
+                          <span className="light"> — {exp.company}</span>
+                        </li>
+                      ))}
+                    </InfoList>
+                  </InfoItem>
+                )}
 
+                {/* Awards */}
                 {awards.length > 0 && (
-                  <InfoItem $position="bottom-right">
+                  <InfoItem>
+                    <InfoSectionLabel>Awards</InfoSectionLabel>
                     <InfoList>
                       {awards.slice(0, 3).map((award, idx) => (
+                        <li key={idx}>{award.name}</li>
+                      ))}
+                    </InfoList>
+                  </InfoItem>
+                )}
+
+                {/* Education */}
+                {recentEducation.length > 0 && (
+                  <InfoItem>
+                    <InfoSectionLabel>Education</InfoSectionLabel>
+                    <InfoList>
+                      {recentEducation.map((edu, idx) => (
                         <li key={idx}>
-                          <span className="light">{award.issuer || 'Award'}</span>
-                          <br />
-                          <span>{award.name}</span>
+                          {edu.degree}{edu.field ? `, ${edu.field}` : ''}
+                          <span className="light"> — {edu.institution}</span>
+                        </li>
+                      ))}
+                    </InfoList>
+                  </InfoItem>
+                )}
+
+                {/* Publications */}
+                {recentPublications.length > 0 && (
+                  <InfoItem>
+                    <InfoSectionLabel>Publications</InfoSectionLabel>
+                    <InfoList>
+                      {recentPublications.map((pub, idx) => (
+                        <li key={idx}>{pub.title}</li>
+                      ))}
+                    </InfoList>
+                  </InfoItem>
+                )}
+
+                {/* Presentations */}
+                {recentPresentations.length > 0 && (
+                  <InfoItem>
+                    <InfoSectionLabel>Presentations</InfoSectionLabel>
+                    <InfoList>
+                      {recentPresentations.map((pres, idx) => (
+                        <li key={idx}>
+                          {pres.name}
+                          {pres.summary && <span className="light"> — {pres.summary}</span>}
+                        </li>
+                      ))}
+                    </InfoList>
+                  </InfoItem>
+                )}
+
+                {/* Certifications */}
+                {recentCertifications.length > 0 && (
+                  <InfoItem>
+                    <InfoSectionLabel>Certifications</InfoSectionLabel>
+                    <InfoList>
+                      {recentCertifications.map((cert, idx) => (
+                        <li key={idx}>
+                          {cert.name}
+                          {cert.issuer && <span className="light"> — {cert.issuer}</span>}
+                        </li>
+                      ))}
+                    </InfoList>
+                  </InfoItem>
+                )}
+
+                {/* Skills */}
+                {skills && skills.length > 0 && (
+                  <InfoItem>
+                    <InfoSectionLabel>Skills</InfoSectionLabel>
+                    <InfoList>
+                      {skills.slice(0, 4).map((skillGroup, idx) => (
+                        <li key={idx}>
+                          {Array.isArray(skillGroup.items) ? skillGroup.items.slice(0, 5).join(', ') : skillGroup.name}
+                          {skillGroup.category && <span className="light"> — {skillGroup.category}</span>}
+                        </li>
+                      ))}
+                    </InfoList>
+                  </InfoItem>
+                )}
+
+                {/* Languages */}
+                {languages && languages.length > 0 && (
+                  <InfoItem>
+                    <InfoSectionLabel>Languages</InfoSectionLabel>
+                    <InfoList>
+                      {languages.map((lang, idx) => (
+                        <li key={idx}>
+                          {lang.name}
+                          {lang.proficiency && <span className="light"> — {lang.proficiency}</span>}
+                        </li>
+                      ))}
+                    </InfoList>
+                  </InfoItem>
+                )}
+
+                {/* Volunteer */}
+                {recentVolunteer.length > 0 && (
+                  <InfoItem>
+                    <InfoSectionLabel>Volunteer</InfoSectionLabel>
+                    <InfoList>
+                      {recentVolunteer.map((vol, idx) => (
+                        <li key={idx}>
+                          {vol.title}
+                          <span className="light"> — {vol.company}</span>
+                        </li>
+                      ))}
+                    </InfoList>
+                  </InfoItem>
+                )}
+
+                {/* Professional Development */}
+                {recentProfDev.length > 0 && (
+                  <InfoItem>
+                    <InfoSectionLabel>Professional Development</InfoSectionLabel>
+                    <InfoList>
+                      {recentProfDev.map((dev, idx) => (
+                        <li key={idx}>
+                          {dev.name || dev.title}
+                          {dev.summary && <span className="light"> — {dev.summary}</span>}
                         </li>
                       ))}
                     </InfoList>
@@ -581,6 +715,15 @@ const PageWrapper = styled.div`
   font-size: 12px;
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.9s cubic-bezier(0.1, 0.4, 0.2, 1);
+
+  @media (max-width: 768px) {
+    position: relative;
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: none;
+  }
 `;
 
 const BackgroundWrapper = styled.div`
@@ -818,6 +961,7 @@ const Content = styled.main`
     min-height: 100vh;
     overflow-y: auto;
     overflow-x: hidden;
+    overscroll-behavior: none;
     padding-left: 120px;
     padding-top: 105px;
     padding-bottom: var(--pad);
@@ -947,70 +1091,54 @@ const ProjectInfo = styled.p`
 const InfoContent = styled.div`
   position: relative;
   min-height: 100vh;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  padding: calc(var(--pad) * 2);
+  padding-top: calc(var(--pad) * 2 + 100px);
+
+  @media (min-width: 1280px) {
+    padding-top: calc(var(--pad) * 2);
+  }
 
   @media (max-width: 768px) {
-    display: flex;
     flex-direction: column;
-    gap: 40px;
     min-height: auto;
     padding: calc(var(--pad) * 1.5);
     padding-left: 0;
+    gap: 30px;
   }
 `;
 
 const InfoItem = styled.div`
-  position: absolute;
+  position: relative;
   white-space: nowrap;
+  flex: 0 0 auto;
 
   @media (max-width: 768px) {
-    position: relative;
     white-space: normal;
-    left: auto !important;
-    right: auto !important;
-    top: auto !important;
-    bottom: auto !important;
   }
+`;
 
-  ${({ $position }) => {
-    switch ($position) {
-      case 'center':
-        return css`
-          left: calc(var(--pad) * 2);
-          bottom: calc(var(--pad) * 2);
-          @media (min-width: 1280px) {
-            left: 55%;
-            top: calc(50% - 19px);
-            bottom: auto;
-          }
-        `;
-      case 'top-right':
-        return css`
-          right: calc(var(--pad) * 2);
-          top: calc(var(--pad) * 2 + 100px);
-          @media (min-width: 1280px) {
-            top: calc(var(--pad) * 2);
-          }
-        `;
-      case 'bottom-right':
-        return css`
-          right: calc(var(--pad) * 2);
-          bottom: calc(var(--pad) * 2);
-        `;
-      default:
-        return '';
-    }
-  }}
+const InfoSectionLabel = styled.div`
+  font-weight: 400;
+  opacity: 0.5;
+  color: #fff;
+  margin-bottom: 0.75em;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.1em;
 `;
 
 const InfoList = styled.ul`
   list-style: none;
   padding: 0;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.6;
   color: #fff;
 
   li + li {
-    margin-top: 1em;
+    margin-top: 0.75em;
   }
 
   .light {
