@@ -21,6 +21,9 @@ import { KubreTheme } from './Kubre/KubreTheme';
 import { PacoTheme } from './Paco/PacoTheme';
 import { P5aholicTheme } from './P5aholic/P5aholicTheme';
 import { RinkitadhanaTheme } from './Rinkitadhana/RinkitadhanaTheme';
+import { U11gTheme } from './U11g/U11gTheme';
+import { ShubhamTheme } from './Shubham/ShubhamTheme';
+import { PalmesTheme } from './Palmes/PalmesTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -183,6 +186,27 @@ export const PORTFOLIO_THEMES = [
     name: 'Dashed',
     description: 'Clean portfolio with dashed border separators, dot grid header, social pills, and two-column project grid. Geist-inspired typography.',
     Component: RinkitadhanaTheme,
+  },
+  {
+    id: 'u11g',
+    slug: 'mainframe',
+    name: 'Mainframe',
+    description: 'Brutalist dashboard with zinc surfaces, monospace typography, topic cards with colored accents, and grid-based project layout.',
+    Component: U11gTheme,
+  },
+  {
+    id: 'shubham',
+    slug: 'imml',
+    name: 'IMML',
+    description: 'Minimal page-based portfolio with hash navigation, blockquote work entries, project tables, and dotted link underlines. Inspired by shubhwym.me.',
+    Component: ShubhamTheme,
+  },
+  {
+    id: 'palmes',
+    slug: '3d-duck',
+    name: '3D Duck',
+    description: 'Dark portfolio with scroll-synchronized 3D duck animation, cyan gradients, and comprehensive CV display. Inspired by palmes.dev.',
+    Component: PalmesTheme,
   },
 ];
 
