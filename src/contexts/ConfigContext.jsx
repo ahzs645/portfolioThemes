@@ -13,6 +13,7 @@ export function ConfigProvider({ children }) {
   const [cvData, setCvData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isCustomCV, setIsCustomCV] = useState(false);
 
   useEffect(() => {
     async function loadCV() {
@@ -85,6 +86,41 @@ export function ConfigProvider({ children }) {
     return { markdown: cv?.about || '' };
   };
 
+  // Function to upload new CV data from a YAML string
+  const uploadCV = (yamlString) => {
+    try {
+      const data = yaml.load(yamlString);
+      setCvData(data);
+      setError(null);
+      setIsCustomCV(true);
+      return { success: true };
+    } catch (err) {
+      console.error('Error parsing uploaded CV:', err);
+      return { success: false, error: err.message };
+    }
+  };
+
+  // Function to reset to original CV
+  const resetCV = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/CV.yaml');
+      if (!response.ok) {
+        throw new Error(`Failed to load CV.yaml: ${response.status}`);
+      }
+      const text = await response.text();
+      const data = yaml.load(text);
+      setCvData(data);
+      setError(null);
+      setIsCustomCV(false);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error resetting CV:', err);
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
   const value = {
     // Raw data (for backward compatibility)
     cvData,
@@ -95,6 +131,11 @@ export function ConfigProvider({ children }) {
     // Loading state
     loading,
     error,
+
+    // Upload/reset functions
+    uploadCV,
+    resetCV,
+    isCustomCV,
 
     // Deprecated - for backward compatibility with unmigrated themes
     getAboutContent,

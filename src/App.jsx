@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useConfig } from './contexts/ConfigContext';
 import { PORTFOLIO_THEMES, getPortfolioTheme } from './themes';
@@ -12,16 +12,66 @@ const getInitialDarkMode = () => {
 };
 
 export default function App() {
-  const { loading, error } = useConfig();
+  const { loading, error, uploadCV, resetCV, isCustomCV } = useConfig();
   const [currentThemeId, setCurrentThemeId] = useState('ansub-minimal');
   const [showCatalog, setShowCatalog] = useState(false);
   const [darkMode, setDarkMode] = useState(getInitialDarkMode);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     try {
       localStorage.setItem('portfolioThemes-darkMode', darkMode);
     } catch {}
   }, [darkMode]);
+
+  const processFile = (file) => {
+    if (!file) return;
+
+    // Check file extension
+    const validExtensions = ['.yaml', '.yml'];
+    const hasValidExtension = validExtensions.some(ext =>
+      file.name.toLowerCase().endsWith(ext)
+    );
+
+    if (!hasValidExtension) {
+      alert('Please upload a .yaml or .yml file');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result;
+      if (typeof content === 'string') {
+        const result = uploadCV(content);
+        if (!result.success) {
+          alert(`Error parsing CV: ${result.error}`);
+        }
+      }
+    };
+    reader.onerror = () => {
+      alert('Error reading file');
+    };
+    reader.readAsText(file);
+  };
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files?.[0];
+    processFile(file);
+    // Reset input so same file can be uploaded again
+    event.target.value = '';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const file = e.dataTransfer.files?.[0];
+    processFile(file);
+  };
 
   const currentTheme = useMemo(() => getPortfolioTheme(currentThemeId), [currentThemeId]);
 
@@ -106,13 +156,49 @@ export default function App() {
   const ThemeComponent = currentTheme?.Component;
 
   return (
-    <AppContainer>
+    <AppContainer
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
       <TopBar $darkMode={darkMode}>
         <ThemeInfo>
           <ThemeLabel $darkMode={darkMode}>Theme:</ThemeLabel>
           <CurrentThemeName $darkMode={darkMode}>{currentTheme?.name}</CurrentThemeName>
         </ThemeInfo>
         <TopBarActions>
+          <HiddenFileInput
+            ref={fileInputRef}
+            type="file"
+            accept=".yaml,.yml"
+            onChange={handleFileUpload}
+          />
+          {isCustomCV ? (
+            <ClearButton
+              $darkMode={darkMode}
+              onClick={resetCV}
+              title="Clear uploaded CV"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              <ClearText>Clear CV</ClearText>
+            </ClearButton>
+          ) : (
+            <UploadButton
+              $darkMode={darkMode}
+              onClick={() => fileInputRef.current?.click()}
+              title="Upload CV.yaml"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <UploadText>Upload CV</UploadText>
+            </UploadButton>
+          )}
+          <Separator $darkMode={darkMode} />
           <ThemeNavGroup>
             <NavArrowButton $darkMode={darkMode} onClick={goToPrevTheme} title="Previous theme">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -289,6 +375,74 @@ const SwitcherButton = styled.button`
 `;
 
 const BrowseText = styled.span`
+  @media (max-width: 640px) {
+    display: none;
+  }
+`;
+
+const HiddenFileInput = styled.input`
+  display: none;
+`;
+
+const UploadButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#f3f4f6')};
+  color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#374151')};
+  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#333' : '#d1d5db')};
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  @media (max-width: 640px) {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+  }
+
+  &:hover {
+    background: ${({ $darkMode }) => ($darkMode ? '#2a2a2a' : '#e5e7eb')};
+    border-color: ${({ $darkMode }) => ($darkMode ? '#444' : '#9ca3af')};
+  }
+`;
+
+const UploadText = styled.span`
+  @media (max-width: 640px) {
+    display: none;
+  }
+`;
+
+const ClearButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: ${({ $darkMode }) => ($darkMode ? '#7f1d1d' : '#fef2f2')};
+  color: ${({ $darkMode }) => ($darkMode ? '#fca5a5' : '#dc2626')};
+  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#991b1b' : '#fecaca')};
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  @media (max-width: 640px) {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+  }
+
+  &:hover {
+    background: ${({ $darkMode }) => ($darkMode ? '#991b1b' : '#fee2e2')};
+    border-color: ${({ $darkMode }) => ($darkMode ? '#b91c1c' : '#fca5a5')};
+  }
+`;
+
+const ClearText = styled.span`
   @media (max-width: 640px) {
     display: none;
   }
