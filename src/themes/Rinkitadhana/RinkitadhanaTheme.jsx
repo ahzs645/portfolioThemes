@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import styled, { css, keyframes } from 'styled-components';
+import styled, { css, createGlobalStyle } from 'styled-components';
 import { useConfig } from '../../contexts/ConfigContext';
 
 function isArchived(entry) {
@@ -29,16 +29,15 @@ export function RinkitadhanaTheme() {
   const cv = useMemo(() => cvData?.cv || {}, [cvData]);
   const [isDark, setIsDark] = useState(false);
   const [expandedExp, setExpandedExp] = useState({});
-  const [isTransitioning, setIsTransitioning] = useState(false);
-
   const toggleTheme = () => {
-    setIsTransitioning(true);
-    setTimeout(() => {
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        setIsDark(!isDark);
+      });
+    } else {
+      // Fallback for browsers that don't support View Transitions
       setIsDark(!isDark);
-    }, 300);
-    setTimeout(() => {
-      setIsTransitioning(false);
-    }, 600);
+    }
   };
 
   const fullName = cv?.name || 'Your Name';
@@ -114,7 +113,7 @@ export function RinkitadhanaTheme() {
 
   return (
     <Container $dark={isDark}>
-      <ThemeTransitionOverlay $active={isTransitioning} $dark={!isDark} />
+      <ViewTransitionStyles />
       {/* Top dot grid section */}
       <DotGridSection $dark={isDark}>
         <ContentWrapper $dark={isDark}>
@@ -371,50 +370,76 @@ export function RinkitadhanaTheme() {
   );
 }
 
+// Color tokens matching the original
+const colors = {
+  light: {
+    background: '#ffffff',
+    foreground: '#424242',
+    title: '#333333',
+    muted: '#9f9fa9',
+    mutedForeground: '#71717b',
+    border: '#d1d1d1',
+    bgHover: '#f5f5f5',
+    mutedBackground: '#f2f2f2',
+  },
+  dark: {
+    background: '#0e0d09',
+    foreground: '#d4d4d4',
+    title: '#ebebeb',
+    muted: '#5d5d5d',
+    mutedForeground: '#989898',
+    border: '#313131',
+    bgHover: '#151515',
+    mutedBackground: '#1f1f1f',
+  },
+};
+
+// Global styles for View Transitions API
+const ViewTransitionStyles = createGlobalStyle`
+  @keyframes slideDown {
+    from {
+      clip-path: inset(0 0 100%);
+    }
+    to {
+      clip-path: inset(0);
+    }
+  }
+
+  ::view-transition-new(root) {
+    animation: 0.6s ease-in-out slideDown;
+  }
+
+  ::view-transition-old(root) {
+    z-index: -1;
+    animation: none;
+  }
+`;
+
 // Styled Components
 const Container = styled.div`
   height: 100%;
   width: 100%;
-  background-color: ${props => props.$dark ? '#09090b' : '#ffffff'};
-  color: ${props => props.$dark ? '#fafafa' : '#09090b'};
+  background-color: ${props => props.$dark ? colors.dark.background : colors.light.background};
+  color: ${props => props.$dark ? colors.dark.foreground : colors.light.foreground};
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   overflow-y: auto;
   overflow-x: hidden;
-  transition: background-color 0.3s ease, color 0.3s ease;
-
-  * {
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
-  }
-`;
-
-const ThemeTransitionOverlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: ${props => props.$dark ? '#09090b' : '#ffffff'};
-  z-index: 9999;
-  pointer-events: none;
-  transform-origin: top center;
-  transform: scaleY(${props => props.$active ? 1 : 0});
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 `;
 
 const dashedBorder = css`
   background-image: repeating-linear-gradient(
     to bottom,
-    ${props => props.$dark ? '#3f3f46' : '#d4d4d8'} 0px,
-    ${props => props.$dark ? '#3f3f46' : '#d4d4d8'} 6px,
+    ${props => props.$dark ? '#313131' : '#d1d1d1'} 0px,
+    ${props => props.$dark ? '#313131' : '#d1d1d1'} 6px,
     transparent 6px,
     transparent 14px
   ), repeating-linear-gradient(
     to bottom,
-    ${props => props.$dark ? '#3f3f46' : '#d4d4d8'} 0px,
-    ${props => props.$dark ? '#3f3f46' : '#d4d4d8'} 6px,
+    ${props => props.$dark ? '#313131' : '#d1d1d1'} 0px,
+    ${props => props.$dark ? '#313131' : '#d1d1d1'} 6px,
     transparent 6px,
     transparent 14px
   );
@@ -425,7 +450,7 @@ const dashedBorder = css`
 
 const Section = styled.div`
   position: relative;
-  background-color: ${props => props.$dark ? '#09090b' : '#ffffff'};
+  background-color: ${props => props.$dark ? '#0e0d09' : '#ffffff'};
 `;
 
 const ContentWrapper = styled.div`
@@ -449,8 +474,8 @@ const DashedLine = styled.div`
   height: 1px;
   background-image: repeating-linear-gradient(
     to right,
-    ${props => props.$dark ? '#3f3f46' : '#d4d4d8'} 0px,
-    ${props => props.$dark ? '#3f3f46' : '#d4d4d8'} 6px,
+    ${props => props.$dark ? '#313131' : '#d1d1d1'} 0px,
+    ${props => props.$dark ? '#313131' : '#d1d1d1'} 6px,
     transparent 6px,
     transparent 14px
   );
@@ -460,7 +485,7 @@ const DashedLine = styled.div`
 
 const DotGridSection = styled.div`
   position: relative;
-  background-color: ${props => props.$dark ? '#09090b' : '#ffffff'};
+  background-color: ${props => props.$dark ? '#0e0d09' : '#ffffff'};
 `;
 
 const DotGrid = styled.div`
@@ -491,7 +516,7 @@ const ProfileImage = styled.div`
   width: 90px;
   height: 90px;
   border-radius: 12px;
-  border: 1px solid ${props => props.$dark ? '#27272a' : '#e4e4e7'};
+  border: 1px solid ${props => props.$dark ? '#313131' : '#d1d1d1'};
   padding: 4px;
   display: flex;
   align-items: center;
@@ -503,7 +528,7 @@ const ProfileInitials = styled.div`
   width: 100%;
   height: 100%;
   border-radius: 8px;
-  background: linear-gradient(135deg, ${props => props.$dark ? '#3f3f46' : '#d4d4d8'}, ${props => props.$dark ? '#27272a' : '#e4e4e7'});
+  background: linear-gradient(135deg, ${props => props.$dark ? '#313131' : '#d1d1d1'}, ${props => props.$dark ? '#313131' : '#d1d1d1'});
   display: flex;
   align-items: center;
   justify-content: center;
@@ -523,7 +548,7 @@ const Name = styled.h1`
   font-weight: 700;
   line-height: 1.08;
   margin: 0 0 4px;
-  color: ${props => props.$dark ? '#fafafa' : '#09090b'};
+  color: ${props => props.$dark ? '#fafafa' : '#0e0d09'};
 `;
 
 const JobTitle = styled.p`
@@ -550,7 +575,7 @@ const ThemeToggle = styled.button`
 
   &:hover {
     background-color: ${props => props.$dark ? '#18181b' : '#f4f4f5'};
-    border-color: ${props => props.$dark ? '#27272a' : '#e4e4e7'};
+    border-color: ${props => props.$dark ? '#313131' : '#d1d1d1'};
     color: ${props => props.$dark ? '#a1a1aa' : '#71717b'};
   }
 `;
@@ -558,7 +583,7 @@ const ThemeToggle = styled.button`
 const BioText = styled.p`
   font-size: 14px;
   line-height: 1.6;
-  color: ${props => props.$dark ? '#fafafa' : '#09090b'};
+  color: ${props => props.$dark ? '#fafafa' : '#0e0d09'};
   margin: 0 0 16px;
 `;
 
@@ -593,7 +618,7 @@ const SocialsSection = styled.div`
 
 const SocialsLabel = styled.p`
   font-size: 14px;
-  color: ${props => props.$dark ? '#fafafa' : '#09090b'};
+  color: ${props => props.$dark ? '#fafafa' : '#0e0d09'};
   margin: 0 0 8px;
 
   strong {
@@ -618,11 +643,11 @@ const SocialPill = styled.a`
   font-size: 14px;
   font-weight: 500;
   text-decoration: none;
-  color: ${props => props.$dark ? '#fafafa' : '#09090b'};
+  color: ${props => props.$dark ? '#fafafa' : '#0e0d09'};
   transition: all 0.2s ease;
 
   &:hover {
-    background-color: ${props => props.$dark ? '#27272a' : '#e4e4e7'};
+    background-color: ${props => props.$dark ? '#313131' : '#d1d1d1'};
   }
 `;
 
@@ -631,12 +656,12 @@ const SectionTitle = styled.h2`
   font-weight: 700;
   line-height: 1.2;
   margin: 0;
-  color: ${props => props.$dark ? '#fafafa' : '#09090b'};
+  color: ${props => props.$dark ? '#fafafa' : '#0e0d09'};
 `;
 
 const ExperienceItemWrapper = styled.div`
   &:not(:last-child) {
-    border-bottom: 1px dashed ${props => props.$dark ? '#3f3f46' : '#d4d4d8'};
+    border-bottom: 1px dashed ${props => props.$dark ? '#313131' : '#d1d1d1'};
   }
 `;
 
@@ -666,7 +691,7 @@ const ChevronIcon = styled.div`
   }
 
   ${ExperienceItem}:hover & {
-    color: ${props => props.$dark ? '#fafafa' : '#09090b'};
+    color: ${props => props.$dark ? '#fafafa' : '#0e0d09'};
   }
 `;
 
@@ -700,7 +725,7 @@ const HighlightBullet = styled.span`
 const HighlightText = styled.p`
   font-size: 14px;
   line-height: 1.6;
-  color: ${props => props.$dark ? '#fafafa' : '#09090b'};
+  color: ${props => props.$dark ? '#fafafa' : '#0e0d09'};
   margin: 0;
 `;
 
@@ -717,7 +742,7 @@ const CompanyIcon = styled.div`
   height: 44px;
   flex-shrink: 0;
   border-radius: 10px;
-  border: 1px solid ${props => props.$dark ? '#27272a' : '#e4e4e7'};
+  border: 1px solid ${props => props.$dark ? '#313131' : '#d1d1d1'};
   padding: 2px;
   background-color: ${props => props.$dark ? '#18181b' : '#fafafa'};
   display: flex;
@@ -745,7 +770,7 @@ const CompanyName = styled.h3`
   font-weight: 600;
   line-height: 0.9;
   margin: 0;
-  color: ${props => props.$dark ? '#fafafa' : '#09090b'};
+  color: ${props => props.$dark ? '#fafafa' : '#0e0d09'};
 
   @media (min-width: 640px) {
     font-size: 1.2rem;
@@ -773,7 +798,7 @@ const ExperienceRight = styled.div`
 const DateRange = styled.p`
   font-size: 12px;
   font-weight: 500;
-  color: ${props => props.$dark ? '#fafafa' : '#09090b'};
+  color: ${props => props.$dark ? '#fafafa' : '#0e0d09'};
   margin: 0;
 
   @media (min-width: 640px) {
@@ -820,7 +845,7 @@ const ProjectImagePlaceholder = styled.div`
   width: 100%;
   height: 170px;
   border-radius: 12px;
-  border: 1px solid ${props => props.$dark ? '#27272a' : '#e4e4e7'};
+  border: 1px solid ${props => props.$dark ? '#313131' : '#d1d1d1'};
   background-color: ${props => props.$dark ? '#18181b' : '#fafafa'};
   display: flex;
   align-items: center;
@@ -835,7 +860,7 @@ const ProjectImagePlaceholder = styled.div`
 const ProjectInitial = styled.div`
   font-size: 48px;
   font-weight: 700;
-  color: ${props => props.$dark ? '#3f3f46' : '#d4d4d8'};
+  color: ${props => props.$dark ? '#313131' : '#d1d1d1'};
 `;
 
 const ProjectInfo = styled.div`
@@ -850,7 +875,7 @@ const ProjectName = styled.h3`
   font-weight: 700;
   line-height: 1.1;
   margin: 0;
-  color: ${props => props.$dark ? '#fafafa' : '#09090b'};
+  color: ${props => props.$dark ? '#fafafa' : '#0e0d09'};
 `;
 
 const ProjectSummary = styled.p`
@@ -876,7 +901,7 @@ const ViewProject = styled.span`
   }
 
   ${ProjectCard}:hover & {
-    color: ${props => props.$dark ? '#fafafa' : '#09090b'};
+    color: ${props => props.$dark ? '#fafafa' : '#0e0d09'};
 
     svg {
       transform: rotate(45deg);
@@ -903,6 +928,6 @@ const FooterPhone = styled.a`
   text-decoration: none;
 
   &:hover {
-    color: ${props => props.$dark ? '#fafafa' : '#09090b'};
+    color: ${props => props.$dark ? '#fafafa' : '#0e0d09'};
   }
 `;
