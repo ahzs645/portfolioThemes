@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import styled, { css, createGlobalStyle } from 'styled-components';
+import React, { useMemo, useState, useEffect } from 'react';
+import styled, { css } from 'styled-components';
 import { useConfig } from '../../contexts/ConfigContext';
 
 function isArchived(entry) {
@@ -29,6 +29,33 @@ export function RinkitadhanaTheme() {
   const cv = useMemo(() => cvData?.cv || {}, [cvData]);
   const [isDark, setIsDark] = useState(false);
   const [expandedExp, setExpandedExp] = useState({});
+  // Inject view transition CSS into document head
+  useEffect(() => {
+    const styleId = 'rinkitadhana-view-transition-styles';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        @keyframes slideDown {
+          from { clip-path: inset(0 0 100%); }
+          to { clip-path: inset(0); }
+        }
+        ::view-transition-new(root) {
+          animation: 0.6s ease-in-out slideDown;
+        }
+        ::view-transition-old(root) {
+          z-index: -1;
+          animation: none;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    return () => {
+      const style = document.getElementById(styleId);
+      if (style) style.remove();
+    };
+  }, []);
+
   const toggleTheme = () => {
     if (document.startViewTransition) {
       document.startViewTransition(() => {
@@ -113,7 +140,6 @@ export function RinkitadhanaTheme() {
 
   return (
     <Container $dark={isDark}>
-      <ViewTransitionStyles />
       {/* Top dot grid section */}
       <DotGridSection $dark={isDark}>
         <ContentWrapper $dark={isDark}>
@@ -393,27 +419,6 @@ const colors = {
     mutedBackground: '#1f1f1f',
   },
 };
-
-// Global styles for View Transitions API
-const ViewTransitionStyles = createGlobalStyle`
-  @keyframes slideDown {
-    from {
-      clip-path: inset(0 0 100%);
-    }
-    to {
-      clip-path: inset(0);
-    }
-  }
-
-  ::view-transition-new(root) {
-    animation: 0.6s ease-in-out slideDown;
-  }
-
-  ::view-transition-old(root) {
-    z-index: -1;
-    animation: none;
-  }
-`;
 
 // Styled Components
 const Container = styled.div`
