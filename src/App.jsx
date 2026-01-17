@@ -1,7 +1,7 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { useConfig } from './contexts/ConfigContext';
-import { PORTFOLIO_THEMES, getPortfolioTheme } from './themes';
+import { PORTFOLIO_THEMES, getPortfolioTheme, getThemeIdFromPath } from './themes';
 
 const getInitialDarkMode = () => {
   try {
@@ -11,9 +11,14 @@ const getInitialDarkMode = () => {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true;
 };
 
+const getInitialThemeId = () => {
+  const themeIdFromUrl = getThemeIdFromPath(window.location.pathname);
+  return themeIdFromUrl || 'ansub-minimal';
+};
+
 export default function App() {
   const { loading, error, uploadCV, resetCV, isCustomCV } = useConfig();
-  const [currentThemeId, setCurrentThemeId] = useState('ansub-minimal');
+  const [currentThemeId, setCurrentThemeId] = useState(getInitialThemeId);
   const [showCatalog, setShowCatalog] = useState(false);
   const [darkMode, setDarkMode] = useState(getInitialDarkMode);
   const fileInputRef = useRef(null);
@@ -23,6 +28,30 @@ export default function App() {
       localStorage.setItem('portfolioThemes-darkMode', darkMode);
     } catch {}
   }, [darkMode]);
+
+  // Update URL when theme changes
+  useEffect(() => {
+    const theme = getPortfolioTheme(currentThemeId);
+    const newPath = theme.slug === 'minimal' ? '/' : `/${theme.slug}`;
+    if (window.location.pathname !== newPath) {
+      window.history.pushState({ themeId: currentThemeId }, '', newPath);
+    }
+  }, [currentThemeId]);
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = (event) => {
+      if (event.state?.themeId) {
+        setCurrentThemeId(event.state.themeId);
+      } else {
+        const themeId = getThemeIdFromPath(window.location.pathname);
+        setCurrentThemeId(themeId || 'ansub-minimal');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const processFile = (file) => {
     if (!file) return;
