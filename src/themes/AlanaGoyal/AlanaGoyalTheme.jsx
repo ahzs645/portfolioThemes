@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
 import { useConfig } from '../../contexts/ConfigContext';
 
@@ -50,6 +50,18 @@ export function AlanaGoyalTheme() {
   const [isDark, setIsDark] = useState(true);
   const [activeNote, setActiveNote] = useState('about');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(true);
+
+  // Handle note selection on mobile (close sidebar after selection)
+  const handleNoteSelect = (noteId) => {
+    setActiveNote(noteId);
+    setIsMobileSidebarOpen(false);
+  };
+
+  // Handle back button on mobile (show sidebar)
+  const handleMobileBack = () => {
+    setIsMobileSidebarOpen(true);
+  };
 
   const fullName = cv?.name || 'your name';
   const email = cv?.email || null;
@@ -619,7 +631,10 @@ export function AlanaGoyalTheme() {
   return (
     <ThemeProvider theme={theme}>
       <Container>
-        <Sidebar>
+        {/* Mobile overlay when sidebar is open */}
+        <MobileOverlay $isOpen={isMobileSidebarOpen} onClick={() => setIsMobileSidebarOpen(false)} />
+
+        <Sidebar $isOpen={isMobileSidebarOpen}>
           <WindowControls>
             <TrafficLight $color="#FF5F57" />
             <TrafficLight $color="#FEBC2E" />
@@ -679,7 +694,7 @@ export function AlanaGoyalTheme() {
                   <NoteCard
                     key={note.id}
                     $active={activeNote === note.id}
-                    onClick={() => setActiveNote(note.id)}
+                    onClick={() => handleNoteSelect(note.id)}
                   >
                     <NoteCardHeader>
                       <NoteCardTitleRow>
@@ -705,7 +720,7 @@ export function AlanaGoyalTheme() {
                   <NoteCard
                     key={note.id}
                     $active={activeNote === note.id}
-                    onClick={() => setActiveNote(note.id)}
+                    onClick={() => handleNoteSelect(note.id)}
                   >
                     <NoteCardHeader>
                       <NoteCardTitleRow>
@@ -724,7 +739,13 @@ export function AlanaGoyalTheme() {
           </NotesListWrapper>
         </Sidebar>
 
-        <Main>
+        <Main $sidebarOpen={isMobileSidebarOpen}>
+          <MobileBackButton onClick={handleMobileBack}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+            <span>Notes</span>
+          </MobileBackButton>
           <MainDateTime>{activeNoteData?.fullDate}</MainDateTime>
           <MainHeader>
             <MainHeaderEmoji>{activeNoteData?.emoji}</MainHeaderEmoji>
@@ -740,6 +761,7 @@ export function AlanaGoyalTheme() {
 const Container = styled.div`
   display: flex;
   height: 100%;
+  height: 100dvh;
   width: 100%;
   background-color: ${props => props.theme.background};
   color: ${props => props.theme.foreground};
@@ -747,6 +769,25 @@ const Container = styled.div`
   font-size: 15px;
   line-height: 1.6;
   overflow: hidden;
+  position: relative;
+`;
+
+const MobileOverlay = styled.div`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+    opacity: ${props => props.$isOpen ? 1 : 0};
+    pointer-events: ${props => props.$isOpen ? 'auto' : 'none'};
+    transition: opacity 0.3s ease;
+  }
 `;
 
 const Sidebar = styled.aside`
@@ -760,8 +801,17 @@ const Sidebar = styled.aside`
   overflow: hidden;
 
   @media (max-width: 768px) {
-    width: 280px;
-    min-width: 280px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-width: 100%;
+    height: 100%;
+    height: 100dvh;
+    z-index: 50;
+    transform: translateX(${props => props.$isOpen ? '0' : '-100%'});
+    transition: transform 0.3s ease;
+    border-right: none;
   }
 `;
 
@@ -769,6 +819,10 @@ const WindowControls = styled.div`
   display: flex;
   gap: 8px;
   padding: 12px 16px;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const TrafficLight = styled.div`
@@ -783,6 +837,10 @@ const SidebarHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 0 16px 12px;
+
+  @media (max-width: 768px) {
+    padding: 16px 16px 12px;
+  }
 `;
 
 const SidebarTitle = styled.h1`
@@ -848,6 +906,30 @@ const NotesListWrapper = styled.div`
   flex: 1;
   overflow-y: auto;
   padding: 0 8px 16px;
+
+  /* Custom scrollbar */
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: ${props => props.theme.border};
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: ${props => props.theme.muted};
+  }
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: ${props => props.theme.border} transparent;
 `;
 
 const NotesGroup = styled.div`
@@ -951,8 +1033,66 @@ const Main = styled.main`
   overflow-y: auto;
   padding: 24px 48px;
 
+  /* Custom scrollbar */
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: ${props => props.theme.border};
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: ${props => props.theme.muted};
+  }
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: ${props => props.theme.border} transparent;
+
   @media (max-width: 768px) {
-    padding: 20px 24px;
+    padding: 16px 20px;
+    padding-top: 60px;
+    width: 100%;
+    display: ${props => props.$sidebarOpen ? 'none' : 'block'};
+  }
+`;
+
+const MobileBackButton = styled.button`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    background: ${props => props.theme.sidebar};
+    border: 1px solid ${props => props.theme.border};
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: ${props => props.theme.accent};
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    z-index: 30;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: ${props => props.theme.hover};
+    }
+
+    svg {
+      stroke: ${props => props.theme.accent};
+    }
   }
 `;
 

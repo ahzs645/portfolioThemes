@@ -410,6 +410,9 @@ const GlobalStyle = createGlobalStyle`
 const Container = styled.div`
   min-height: 100%;
   width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
   background-color: ${props => props.theme.background};
   color: ${props => props.theme.foreground};
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -427,9 +430,15 @@ const Navbar = styled.nav`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 1.5rem;
+  padding: 0.5rem 1rem;
   background-color: ${props => props.theme.background};
   transition: background-color 0.3s ease;
+  max-width: 100%;
+  box-sizing: border-box;
+
+  @media (min-width: 768px) {
+    padding: 0.5rem 1.5rem;
+  }
 `;
 
 const NavLeft = styled.div`
@@ -454,13 +463,21 @@ const NavBrand = styled.a`
 const NavRight = styled.div`
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+
+  @media (min-width: 768px) {
+    gap: 1rem;
+    flex-wrap: nowrap;
+  }
 `;
 
 const NavLink = styled.a`
   color: ${props => props.theme.foreground};
   text-decoration: none;
-  font-size: 14px;
+  font-size: 12px;
+  white-space: nowrap;
 
   @media (min-width: 768px) {
     font-size: 16px;
@@ -473,6 +490,9 @@ const Main = styled.main`
   align-items: center;
   min-height: ${props => props.$hasBreakcrumbs ? 'calc(100vh - 82px)' : 'calc(100vh - 41px)'};
   padding: 1rem;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 `;
 
 const Breadcrumbs = styled.div`
@@ -550,11 +570,13 @@ const SocialIcon = styled.a`
 
 const ContentArea = styled.div`
   width: 100%;
-  max-width: 32rem;
-  padding: 2rem 1rem;
+  max-width: 100%;
+  padding: 1rem;
+  box-sizing: border-box;
 
   @media (min-width: 640px) {
     max-width: 42rem;
+    padding: 2rem 1rem;
   }
 `;
 
@@ -586,6 +608,9 @@ const ItemRow = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  min-width: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 
   @media (min-width: 640px) {
     flex-direction: row;
@@ -597,6 +622,8 @@ const ItemRow = styled.div`
 
 const ItemTitle = styled.span`
   font-size: 14px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 
   @media (min-width: 768px) {
     font-size: 16px;
@@ -608,6 +635,8 @@ const ItemLink = styled.a`
   color: inherit;
   text-decoration: none;
   transition: color 0.2s ease;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 
   @media (min-width: 768px) {
     font-size: 16px;
