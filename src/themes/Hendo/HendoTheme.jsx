@@ -408,11 +408,13 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 const Container = styled.div`
-  min-height: 100%;
+  height: 100%;
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow: hidden;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   background-color: ${props => props.theme.background};
   color: ${props => props.theme.foreground};
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -423,8 +425,7 @@ const Container = styled.div`
 `;
 
 const Navbar = styled.nav`
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
   z-index: 50;
   display: flex;
   flex-direction: row;
@@ -485,21 +486,23 @@ const NavLink = styled.a`
 `;
 
 const Main = styled.main`
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: ${props => props.$hasBreakcrumbs ? 'calc(100vh - 82px)' : 'calc(100vh - 41px)'};
   padding: 1rem;
   max-width: 100%;
   box-sizing: border-box;
+  overflow-y: auto;
   overflow-x: hidden;
 `;
 
 const Breadcrumbs = styled.div`
+  flex-shrink: 0;
   display: flex;
   justify-content: center;
   width: 100%;
-  margin-top: 0.5rem;
+  padding-top: 0.5rem;
 `;
 
 const BreadcrumbList = styled.div`

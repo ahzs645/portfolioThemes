@@ -6,6 +6,7 @@ import {
   filterActive,
   getCurrentJobTitle,
 } from '../utils/cvHelpers';
+import { normalizeMarkdownInObject } from '../utils/parseMarkdown';
 
 const ConfigContext = createContext(null);
 
@@ -42,6 +43,9 @@ export function ConfigProvider({ children }) {
     const raw = cvData.cv;
     const sections = raw.sections || {};
 
+    // Normalize markdown in sections (strips **bold**, *italic*, etc.)
+    const normalizedSections = normalizeMarkdownInObject(sections);
+
     return {
       // Basic info
       name: raw.name || '',
@@ -51,7 +55,7 @@ export function ConfigProvider({ children }) {
       website: raw.website || null,
 
       // About/summary text
-      about: sections.about || '',
+      about: normalizedSections.about || '',
 
       // Normalized social links
       socialLinks: normalizeSocialLinks(raw.social || [], raw.email),
@@ -62,21 +66,21 @@ export function ConfigProvider({ children }) {
       // Current job title (derived)
       currentJobTitle: getCurrentJobTitle(sections.experience),
 
-      // Pre-processed sections
-      experience: flattenExperience(sections.experience || []),
-      projects: filterActive(sections.projects || []),
-      education: filterActive(sections.education || []),
-      skills: sections.skills || [],
-      languages: sections.languages || [],
-      awards: filterActive(sections.awards || []),
-      publications: filterActive(sections.publications || []),
-      presentations: filterActive(sections.presentations || []),
-      volunteer: flattenExperience(sections.volunteer || []),
-      certifications: filterActive(sections.certifications || []),
-      professionalDevelopment: filterActive(sections.professional_development || []),
-      certificationsSkills: sections.certifications_skills || [],
+      // Pre-processed sections (with markdown stripped)
+      experience: flattenExperience(normalizedSections.experience || []),
+      projects: filterActive(normalizedSections.projects || []),
+      education: filterActive(normalizedSections.education || []),
+      skills: normalizedSections.skills || [],
+      languages: normalizedSections.languages || [],
+      awards: filterActive(normalizedSections.awards || []),
+      publications: filterActive(normalizedSections.publications || []),
+      presentations: filterActive(normalizedSections.presentations || []),
+      volunteer: flattenExperience(normalizedSections.volunteer || []),
+      certifications: filterActive(normalizedSections.certifications || []),
+      professionalDevelopment: filterActive(normalizedSections.professional_development || []),
+      certificationsSkills: normalizedSections.certifications_skills || [],
 
-      // Raw sections (for themes that need unprocessed data)
+      // Raw sections (for themes that need unprocessed data with markdown)
       sectionsRaw: sections,
     };
   }, [cvData]);
