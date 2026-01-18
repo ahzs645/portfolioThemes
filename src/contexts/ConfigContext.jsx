@@ -25,7 +25,9 @@ export function ConfigProvider({ children }) {
         }
         const text = await response.text();
         const data = yaml.load(text);
-        setCvData(data);
+        // Normalize markdown in the raw data so all themes get clean text
+        const normalizedData = normalizeMarkdownInObject(data);
+        setCvData(normalizedData);
         setLoading(false);
       } catch (err) {
         console.error('Error loading CV:', err);
@@ -37,14 +39,12 @@ export function ConfigProvider({ children }) {
   }, []);
 
   // Normalized CV data - computed once when cvData changes
+  // Note: Markdown is already stripped at load time via normalizeMarkdownInObject
   const cv = useMemo(() => {
     if (!cvData?.cv) return null;
 
     const raw = cvData.cv;
     const sections = raw.sections || {};
-
-    // Normalize markdown in sections (strips **bold**, *italic*, etc.)
-    const normalizedSections = normalizeMarkdownInObject(sections);
 
     return {
       // Basic info
@@ -55,7 +55,7 @@ export function ConfigProvider({ children }) {
       website: raw.website || null,
 
       // About/summary text
-      about: normalizedSections.about || '',
+      about: sections.about || '',
 
       // Normalized social links
       socialLinks: normalizeSocialLinks(raw.social || [], raw.email),
@@ -66,21 +66,21 @@ export function ConfigProvider({ children }) {
       // Current job title (derived)
       currentJobTitle: getCurrentJobTitle(sections.experience),
 
-      // Pre-processed sections (with markdown stripped)
-      experience: flattenExperience(normalizedSections.experience || []),
-      projects: filterActive(normalizedSections.projects || []),
-      education: filterActive(normalizedSections.education || []),
-      skills: normalizedSections.skills || [],
-      languages: normalizedSections.languages || [],
-      awards: filterActive(normalizedSections.awards || []),
-      publications: filterActive(normalizedSections.publications || []),
-      presentations: filterActive(normalizedSections.presentations || []),
-      volunteer: flattenExperience(normalizedSections.volunteer || []),
-      certifications: filterActive(normalizedSections.certifications || []),
-      professionalDevelopment: filterActive(normalizedSections.professional_development || []),
-      certificationsSkills: normalizedSections.certifications_skills || [],
+      // Pre-processed sections
+      experience: flattenExperience(sections.experience || []),
+      projects: filterActive(sections.projects || []),
+      education: filterActive(sections.education || []),
+      skills: sections.skills || [],
+      languages: sections.languages || [],
+      awards: filterActive(sections.awards || []),
+      publications: filterActive(sections.publications || []),
+      presentations: filterActive(sections.presentations || []),
+      volunteer: flattenExperience(sections.volunteer || []),
+      certifications: filterActive(sections.certifications || []),
+      professionalDevelopment: filterActive(sections.professional_development || []),
+      certificationsSkills: sections.certifications_skills || [],
 
-      // Raw sections (for themes that need unprocessed data with markdown)
+      // Raw sections
       sectionsRaw: sections,
     };
   }, [cvData]);
@@ -94,7 +94,9 @@ export function ConfigProvider({ children }) {
   const uploadCV = (yamlString) => {
     try {
       const data = yaml.load(yamlString);
-      setCvData(data);
+      // Normalize markdown in the raw data so all themes get clean text
+      const normalizedData = normalizeMarkdownInObject(data);
+      setCvData(normalizedData);
       setError(null);
       setIsCustomCV(true);
       return { success: true };
@@ -114,7 +116,9 @@ export function ConfigProvider({ children }) {
       }
       const text = await response.text();
       const data = yaml.load(text);
-      setCvData(data);
+      // Normalize markdown in the raw data so all themes get clean text
+      const normalizedData = normalizeMarkdownInObject(data);
+      setCvData(normalizedData);
       setError(null);
       setIsCustomCV(false);
       setLoading(false);
