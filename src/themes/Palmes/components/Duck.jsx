@@ -57,7 +57,7 @@ function distance(pos1, pos2) {
   );
 }
 
-export default function Duck({ scrollPercent, isScrolling, setFogDistance }) {
+export default function Duck({ scrollPercent, isScrolling }) {
   const duckRef = useRef();
   const mixerRef = useRef(null);
   const lastScrollRef = useRef(0);
@@ -68,18 +68,7 @@ export default function Duck({ scrollPercent, isScrolling, setFogDistance }) {
   const [movements, setMovements] = useState(DuckMoves.duckKeyframes);
 
   // Load duck model
-  const gltf = useLoader(GLTFLoader, '/models/duck_centered.glb', undefined, (xhr) => {
-    if (xhr.loaded === xhr.total) {
-      console.log('Duck model loaded');
-      // Animate fog in
-      let fogValue = 0;
-      const fogInterval = setInterval(() => {
-        fogValue += 2;
-        setFogDistance(fogValue);
-        if (fogValue >= 30) clearInterval(fogInterval);
-      }, 50);
-    }
-  });
+  const gltf = useLoader(GLTFLoader, '/models/duck_centered.glb');
 
   // Load cisco accessory
   const cisco = useGLTF('/models/cisco_centered.glb');

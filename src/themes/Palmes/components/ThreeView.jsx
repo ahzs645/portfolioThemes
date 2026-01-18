@@ -1,10 +1,9 @@
-import React, { Suspense, useRef, useState } from 'react';
+import React, { Suspense, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import Duck from './Duck';
 
 export default function ThreeView({ scrollPercent, isScrolling }) {
   const canvasRef = useRef();
-  const [fogDistance, setFogDistance] = useState(0);
 
   return (
     <div
@@ -59,13 +58,12 @@ export default function ThreeView({ scrollPercent, isScrolling }) {
         />
 
         {/* Fog effect */}
-        <fog attach="fog" args={['#000', 0, fogDistance]} />
+        <fog attach="fog" args={['#000', 0, 30]} />
 
         <Suspense fallback={null}>
           <Duck
             scrollPercent={scrollPercent}
             isScrolling={isScrolling}
-            setFogDistance={setFogDistance}
           />
         </Suspense>
       </Canvas>
