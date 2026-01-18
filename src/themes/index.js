@@ -31,6 +31,7 @@ export const PORTFOLIO_THEMES = [
     slug: 'minimal',
     name: 'Minimal',
     description: 'Clean single-page layout powered by CV.yaml. Features a timeline experience view, projects section, and contact info.',
+    source: 'https://ansub.com',
     Component: AnsubMinimalTheme,
   },
   {
@@ -38,13 +39,15 @@ export const PORTFOLIO_THEMES = [
     slug: 'brutalist',
     name: 'Brutalist',
     description: 'No-frills, lightweight design. Just content, system fonts, and zero bullshit.',
+    source: null,
     Component: BrutalistTheme,
   },
   {
     id: 'chiang-v4',
     slug: 'developer-dark',
     name: 'Developer Dark',
-    description: 'Dark navy portfolio with green accents. Inspired by brittanychiang.com v4. Full-page sections with numbered headings.',
+    description: 'Dark navy portfolio with green accents. Full-page sections with numbered headings.',
+    source: 'https://v4.brittanychiang.com',
     Component: ChiangV4Theme,
   },
   {
@@ -52,6 +55,7 @@ export const PORTFOLIO_THEMES = [
     slug: 'spotlight',
     name: 'Spotlight',
     description: 'Modern two-column layout with slate colors and teal accents. Sticky navigation with scroll-aware highlighting.',
+    source: 'https://brittanychiang.com',
     Component: ChiangCurrentTheme,
   },
   {
@@ -59,13 +63,15 @@ export const PORTFOLIO_THEMES = [
     slug: 'creative-dark',
     name: 'Creative Dark',
     description: 'Bold dark theme with Rammetto One display font. Horizontal project cards and clean experience list.',
+    source: 'https://nick.computer',
     Component: NickComputerTheme,
   },
   {
     id: 'brian-lovin',
     slug: 'designer',
     name: 'Designer',
-    description: 'Clean minimal portfolio with centered content, monospace dates, and elegant project listings. Inspired by brianlovin.com.',
+    description: 'Clean minimal portfolio with centered content, monospace dates, and elegant project listings.',
+    source: 'https://brianlovin.com',
     Component: BrianLovinTheme,
   },
   {
@@ -73,6 +79,7 @@ export const PORTFOLIO_THEMES = [
     slug: 'editorial',
     name: 'Editorial',
     description: 'Two-column layout with italic navigation, justified text, and leader-dot lists. Warm cream background with serif accents.',
+    source: 'https://joshbradley.me',
     Component: JoshBradleyTheme,
   },
   {
@@ -80,6 +87,7 @@ export const PORTFOLIO_THEMES = [
     slug: 'hendo',
     name: 'Hendo',
     description: 'Clean minimal design with scramble text animation on hover. Light/dark mode toggle, centered content, and simple navigation.',
+    source: 'https://hendo.dev',
     Component: HendoTheme,
   },
   {
@@ -87,6 +95,7 @@ export const PORTFOLIO_THEMES = [
     slug: 'research-lab',
     name: 'Research Lab',
     description: 'Monospace timeline layout with featured cards and box shadows. Cream background, serif logo, and vertical timeline with square dots.',
+    source: 'https://www.andrewheiss.com',
     Component: PiTheme,
   },
   {
@@ -94,6 +103,7 @@ export const PORTFOLIO_THEMES = [
     slug: 'modern-blue',
     name: 'Modern Blue',
     description: 'Clean minimalist design with blue accents. Features a live clock, project cards grid, and smooth hover animations.',
+    source: 'https://chizi.me',
     Component: ChiziTheme,
   },
   {
@@ -101,6 +111,7 @@ export const PORTFOLIO_THEMES = [
     slug: 'plain-text',
     name: 'Plain Text',
     description: 'Ultra-minimal design with system fonts, 60ch width, and automatic dark/light mode. Subtle gray underlines and muted section labels.',
+    source: 'https://gerhard.io',
     Component: GerhardTheme,
   },
   {
@@ -108,6 +119,7 @@ export const PORTFOLIO_THEMES = [
     slug: 'notes',
     name: 'Notes',
     description: 'Notes-style layout with emoji icons, golden accent color, and dark mode default. Clean SF Pro typography with lowercase aesthetic.',
+    source: 'https://alanagoyal.com',
     Component: AlanaGoyalTheme,
   },
   {
@@ -115,6 +127,7 @@ export const PORTFOLIO_THEMES = [
     slug: 'builder',
     name: 'Builder',
     description: 'Clean professional layout with card-based projects and section dividers. Inter font, subtle hover effects, and live footer clock.',
+    source: 'https://amirmxt.com',
     Component: AmirmxtTheme,
   },
   {
@@ -122,27 +135,31 @@ export const PORTFOLIO_THEMES = [
     slug: 'timeline',
     name: 'Timeline',
     description: 'Clean professional design with timeline layout, monospace dates, and indigo accent links. Inter font with uppercase section labels.',
+    source: 'https://felixdorner.com',
     Component: FelixDornerTheme,
   },
   {
     id: 'terminal',
     slug: 'terminal',
     name: 'Terminal',
-    description: 'Hacker-style black terminal with Geist Mono font, ALL CAPS text, blinking cursor, and animated link underlines. Inspired by ragojose.com.',
+    description: 'Hacker-style black terminal with Geist Mono font, ALL CAPS text, blinking cursor, and animated link underlines.',
+    source: 'https://ragojose.com',
     Component: TerminalTheme,
   },
   {
     id: 'stammy',
     slug: 'stammy',
     name: 'Stammy',
-    description: 'Dark olive theme with left icon sidebar, serif typography, and table-style work history. Inspired by paulstamatiou.com.',
+    description: 'Dark olive theme with left icon sidebar, serif typography, and table-style work history.',
+    source: 'https://paulstamatiou.com',
     Component: StammyTheme,
   },
   {
     id: 'stefan-zweifel',
     slug: 'developer',
     name: 'Developer',
-    description: 'Clean white portfolio with pride gradient bar, system fonts, underlined links, and tabular date formatting. Inspired by stefanzweifel.dev.',
+    description: 'Clean white portfolio with pride gradient bar, system fonts, underlined links, and tabular date formatting.',
+    source: 'https://stefanzweifel.dev',
     Component: StefanZweifelTheme,
   },
   {
@@ -150,6 +167,7 @@ export const PORTFOLIO_THEMES = [
     slug: 'two-column',
     name: 'Two Column',
     description: 'Modern two-column layout with sticky photo card, accordion sections, timeline with chip dates, and gradient social buttons. Dark mode support.',
+    source: 'https://dmythro.com',
     Component: DmythroTheme,
   },
   {
@@ -157,20 +175,23 @@ export const PORTFOLIO_THEMES = [
     slug: 'splash',
     name: 'Splash',
     description: 'Full-screen hero splash with profile picture, colorful project cards, and alternating timeline. Dark theme with Roboto typography.',
+    source: 'https://dtc.dev',
     Component: DTCTheme,
   },
   {
     id: 'kubre',
     slug: 'notebook',
     name: 'Notebook',
-    description: 'Monospace terminal aesthetic with glitch-style header, yellow accent hovers, and notebook paper dots. Inspired by kubre.in.',
+    description: 'Monospace terminal aesthetic with glitch-style header, yellow accent hovers, and notebook paper dots.',
+    source: 'https://kubre.in',
     Component: KubreTheme,
   },
   {
     id: 'paco',
     slug: 'paco',
     name: 'Paco',
-    description: 'Minimalist grayscale portfolio with staggered animations, three-column layout, and indigo accent. Inspired by paco.me.',
+    description: 'Minimalist grayscale portfolio with staggered animations, three-column layout, and indigo accent.',
+    source: 'https://paco.me',
     Component: PacoTheme,
   },
   {
@@ -178,6 +199,7 @@ export const PORTFOLIO_THEMES = [
     slug: 'framed',
     name: 'Framed',
     description: 'Artistic portfolio with border frame, mix-blend-mode difference, left navigation with dot indicators, and right-aligned projects. Sans/Mono toggle.',
+    source: 'https://p5aholic.me',
     Component: P5aholicTheme,
   },
   {
@@ -185,6 +207,7 @@ export const PORTFOLIO_THEMES = [
     slug: 'dashed',
     name: 'Dashed',
     description: 'Clean portfolio with dashed border separators, dot grid header, social pills, and two-column project grid. Geist-inspired typography.',
+    source: 'https://rinkitadhana.com',
     Component: RinkitadhanaTheme,
   },
   {
@@ -192,20 +215,23 @@ export const PORTFOLIO_THEMES = [
     slug: 'mainframe',
     name: 'Mainframe',
     description: 'Brutalist dashboard with zinc surfaces, monospace typography, topic cards with colored accents, and grid-based project layout.',
+    source: 'https://u11g.com',
     Component: U11gTheme,
   },
   {
     id: 'shubham',
     slug: 'imml',
     name: 'IMML',
-    description: 'Minimal page-based portfolio with hash navigation, blockquote work entries, project tables, and dotted link underlines. Inspired by shubhwym.me.',
+    description: 'Minimal page-based portfolio with hash navigation, blockquote work entries, project tables, and dotted link underlines.',
+    source: 'https://shubhwym.me',
     Component: ShubhamTheme,
   },
   {
     id: 'palmes',
     slug: '3d-duck',
     name: '3D Duck',
-    description: 'Dark portfolio with scroll-synchronized 3D duck animation, cyan gradients, and comprehensive CV display. Inspired by palmes.dev.',
+    description: 'Dark portfolio with scroll-synchronized 3D duck animation, cyan gradients, and comprehensive CV display.',
+    source: 'https://palmes.dev',
     Component: PalmesTheme,
   },
 ];

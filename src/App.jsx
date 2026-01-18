@@ -175,6 +175,17 @@ export default function App() {
             >
               <ThemeName $darkMode={darkMode}>{theme.name}</ThemeName>
               <ThemeDescription $darkMode={darkMode}>{theme.description}</ThemeDescription>
+              {theme.source && (
+                <ThemeSource
+                  $darkMode={darkMode}
+                  href={theme.source}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Inspired by {new URL(theme.source).hostname.replace('www.', '')}
+                </ThemeSource>
+              )}
             </ThemeCard>
           ))}
         </ThemeGrid>
@@ -603,4 +614,18 @@ const ThemeDescription = styled.div`
   font-size: 13px;
   color: ${({ $darkMode }) => ($darkMode ? '#9ca3af' : '#6b7280')};
   line-height: 1.4;
+`;
+
+const ThemeSource = styled.a`
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 11px;
+  color: ${({ $darkMode }) => ($darkMode ? '#60a5fa' : '#3b82f6')};
+  text-decoration: none;
+  transition: color 0.2s;
+
+  &:hover {
+    color: ${({ $darkMode }) => ($darkMode ? '#93c5fd' : '#2563eb')};
+    text-decoration: underline;
+  }
 `;
