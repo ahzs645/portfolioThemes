@@ -569,6 +569,88 @@ export function JamiePatesTheme() {
     }));
   }
 
+  function renderStatusPanel(interactive = false) {
+    return (
+      <div className="flex justify-between">
+        <div
+          className="_portrait_15lul_1"
+          data-shake={interactive && portraitShake ? 'true' : 'false'}
+          data-dying={interactive && portraitDying ? 'true' : 'false'}
+          data-interactive={interactive ? 'true' : 'false'}
+          data-health={String(currentHealth)}
+          onMouseEnter={() => interactive && currentHealth !== 0 && playSound('select')}
+          onClick={interactive ? handlePortraitClick : undefined}
+        >
+          {interactive && damageValue && (
+            <p className="absolute">
+              {GlyphText({ text: damageValue, resource: true, color: currentHealth === 0 ? 'yellow' : 'white' })}
+            </p>
+          )}
+          <div className="self-center relative">
+            <div className="jp-placeholder-portrait">{getInitials(cv.name)}</div>
+          </div>
+          {interactive && currentHealth === 0 && (
+            <div className="absolute top-full" onMouseEnter={() => playSound('select')}>
+              <WindowBox label="healButton">
+                {GlyphText({ text: 'Revive', color: currentMana < 34 ? 'grey' : 'white' })}
+              </WindowBox>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-2 ml-8">
+          <p className="mb-2">{GlyphText({ text: cv.name })}</p>
+          <p className="flex">
+            <GlyphToken sprite="lv" />
+            {GlyphText({ text: String(level), resource: true })}
+          </p>
+
+          <div className="_resourceCounter_12uml_1 flex">
+            <GlyphToken sprite="hp" className="mr-2" />
+            <div className="flex flex-col">
+              <div className="flex">
+                <span className="w-[92px] flex justify-end">{GlyphText({ text: String(currentHealth), resource: true, color: currentHealth <= Math.floor(maxHealth * 0.35) ? 'yellow' : 'white' })}</span>
+                <span>{GlyphText({ text: '/', resource: true })}</span>
+                <span className="w-[92px] flex justify-end">{GlyphText({ text: String(maxHealth), resource: true })}</span>
+              </div>
+              <div className="_resourceBar_12uml_5">
+                <div style={{ width: `${(currentHealth / maxHealth) * 100}%`, backgroundImage: 'linear-gradient(90deg, rgb(79, 143, 212), rgb(198, 205, 237))' }} />
+              </div>
+            </div>
+          </div>
+
+          <div className="_resourceCounter_12uml_1 flex">
+            <GlyphToken sprite="mp" className="mr-2" />
+            <div className="flex flex-col">
+              <div className="flex">
+                <span className="w-[92px] flex justify-end">{GlyphText({ text: String(currentMana), resource: true, color: currentMana <= Math.floor(maxMana * 0.35) ? 'yellow' : 'white' })}</span>
+                <span>{GlyphText({ text: '/', resource: true })}</span>
+                <span className="w-[92px] flex justify-end">{GlyphText({ text: String(maxMana), resource: true })}</span>
+              </div>
+              <div className="_resourceBar_12uml_5">
+                <div style={{ width: `${(currentMana / maxMana) * 100}%`, backgroundImage: 'linear-gradient(90deg, rgb(99, 217, 193), rgb(198, 205, 237))' }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function renderMateriaGroup(group, baseValue) {
+    return (
+      <div className="flex relative" key={`group-${baseValue}`}>
+        {group.map((skill, index) => (
+          <div key={`slot-${baseValue + index}`} className="_materiaSlot_i51mu_14" data-value={baseValue + index}>
+            <div className="_skill_i51mu_49" data-color={skill?.color || undefined}>
+              {skill?.name || ''}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   function renderMenuItem(id, label) {
     const active = page === id;
 
@@ -606,68 +688,7 @@ export function JamiePatesTheme() {
                     style={windowStyle}
                   >
                     <div className="flex justify-between">
-                      <div
-                        className="_portrait_15lul_1"
-                        data-shake={portraitShake ? 'true' : 'false'}
-                        data-dying={portraitDying ? 'true' : 'false'}
-                        data-interactive="true"
-                        data-health={String(currentHealth)}
-                        onMouseEnter={() => currentHealth !== 0 && playSound('select')}
-                        onClick={handlePortraitClick}
-                      >
-                        {damageValue && (
-                          <p className="absolute">
-                            {GlyphText({ text: damageValue, resource: true, color: currentHealth === 0 ? 'yellow' : 'white' })}
-                          </p>
-                        )}
-                        <div className="self-center relative">
-                          <div className="jp-placeholder-portrait">{getInitials(cv.name)}</div>
-                        </div>
-                        {currentHealth === 0 && (
-                          <div className="absolute top-full" onMouseEnter={() => playSound('select')}>
-                            <WindowBox label="healButton">
-                              {GlyphText({ text: 'Revive', color: currentMana < 34 ? 'grey' : 'white' })}
-                            </WindowBox>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="mt-2 ml-8">
-                        <p className="mb-2">{GlyphText({ text: cv.name })}</p>
-                        <p className="flex">
-                          <GlyphToken sprite="lv" />
-                          {GlyphText({ text: String(level), resource: true })}
-                        </p>
-
-                        <div className="_resourceCounter_12uml_1 flex">
-                          <GlyphToken sprite="hp" className="mr-2" />
-                          <div className="flex flex-col">
-                            <div className="flex">
-                              <span className="w-[92px] flex justify-end">{GlyphText({ text: String(currentHealth), resource: true, color: currentHealth <= Math.floor(maxHealth * 0.35) ? 'yellow' : 'white' })}</span>
-                              <span>{GlyphText({ text: '/', resource: true })}</span>
-                              <span className="w-[92px] flex justify-end">{GlyphText({ text: String(maxHealth), resource: true })}</span>
-                            </div>
-                            <div className="_resourceBar_12uml_5">
-                              <div style={{ width: `${(currentHealth / maxHealth) * 100}%`, backgroundImage: 'linear-gradient(90deg, rgb(79, 143, 212), rgb(198, 205, 237))' }} />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="_resourceCounter_12uml_1 flex">
-                          <GlyphToken sprite="mp" className="mr-2" />
-                          <div className="flex flex-col">
-                            <div className="flex">
-                              <span className="w-[92px] flex justify-end">{GlyphText({ text: String(currentMana), resource: true, color: currentMana <= Math.floor(maxMana * 0.35) ? 'yellow' : 'white' })}</span>
-                              <span>{GlyphText({ text: '/', resource: true })}</span>
-                              <span className="w-[92px] flex justify-end">{GlyphText({ text: String(maxMana), resource: true })}</span>
-                            </div>
-                            <div className="_resourceBar_12uml_5">
-                              <div style={{ width: `${(currentMana / maxMana) * 100}%`, backgroundImage: 'linear-gradient(90deg, rgb(99, 217, 193), rgb(198, 205, 237))' }} />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
+                      {renderStatusPanel(true)}
                       <div className="mt-12">
                         <p>{GlyphText({ text: 'next level' })}</p>
                         <div className="ml-7">
@@ -791,49 +812,35 @@ export function JamiePatesTheme() {
                   <WindowBox label="skillsHeader" className="h-[261px] absolute top-0" style={windowStyle}>
                     <div className="flex justify-between items-end">
                       <div className="w-[447px] mb-2 ml-2">
-                        <div className="flex justify-between">
-                          <div className="_portrait_15lul_1">
-                            <div className="self-center relative">
-                              <div className="jp-placeholder-portrait">{getInitials(cv.name)}</div>
-                            </div>
-                          </div>
-                          <div className="mt-2 ml-8">
-                            <p className="mb-2">{GlyphText({ text: cv.name })}</p>
-                            <p className="flex">
-                              <GlyphToken sprite="lv" />
-                              {GlyphText({ text: String(level), resource: true })}
-                            </p>
-                          </div>
-                        </div>
+                        {renderStatusPanel(false)}
                       </div>
 
                       <div className="mt-9 mr-2">
                         <p className="flex mt-1">
                           <span className="mr-3">{GlyphText({ text: 'Wpn.', color: 'blue' })}</span>
-                          <span>{GlyphText({ text: 'Toolkit' })}</span>
+                          <span>{GlyphText({ text: 'Mouse' })}</span>
                         </p>
                         <div className="_equipmentContainer_i51mu_1 flex">
-                          {skills.slice(0, 5).map((skill) => (
-                            <div key={skill.id} className="_materiaSlot_i51mu_14">
-                              <div className="_skill_i51mu_49" data-color={skill.color}>
-                                {skill.name}
-                              </div>
-                            </div>
-                          ))}
+                          {[
+                            [skills[0], null],
+                            [skills[1], skills[2]],
+                            [skills[3], skills[4]],
+                            [null],
+                            [skills[5]],
+                          ].map((group, index) => renderMateriaGroup(group, index * 2))}
                         </div>
 
                         <p className="flex mt-1">
                           <span className="mr-3">{GlyphText({ text: 'Arm.', color: 'blue' })}</span>
-                          <span>{GlyphText({ text: 'Stack' })}</span>
+                          <span>{GlyphText({ text: 'Keyboard' })}</span>
                         </p>
                         <div className="_equipmentContainer_i51mu_1 flex">
-                          {skills.slice(5, 9).map((skill) => (
-                            <div key={skill.id} className="_materiaSlot_i51mu_14">
-                              <div className="_skill_i51mu_49" data-color={skill.color}>
-                                {skill.name}
-                              </div>
-                            </div>
-                          ))}
+                          {[
+                            [skills[6], skills[7]],
+                            [skills[8], skills[9]],
+                            [null],
+                            [null],
+                          ].map((group, index) => renderMateriaGroup(group, index * 2))}
                         </div>
                       </div>
                     </div>
@@ -890,7 +897,7 @@ export function JamiePatesTheme() {
               )}
 
               {page === 'history' && (
-                <WindowBox label="historyWrapper" className="w-[1000px] h-[720px] m-auto absolute top-[44px]" style={windowStyle}>
+                <>
                   {historyPhase === 'select' && (
                     <>
                       <div className="relative h-[84px] mb-[10px]">
@@ -940,7 +947,7 @@ export function JamiePatesTheme() {
                         </WindowBox>
                       </div>
 
-                      {historyRecords.slice(0, 3).map((record) => {
+                      {historyRecords.slice(0, 3).map((record, index) => {
                         const ContentTag = record.link ? 'a' : 'button';
                         const contentProps = record.link
                           ? {
@@ -976,7 +983,7 @@ export function JamiePatesTheme() {
                                     <p className="mb-4">{GlyphText({ text: cv.name })}</p>
                                     <p className="flex">
                                       <GlyphToken sprite="lv" />
-                                      {GlyphText({ text: String(level), resource: true })}
+                                      {GlyphText({ text: String(Math.max(12, level - index * 6)), resource: true })}
                                     </p>
                                   </div>
                                 </div>
@@ -1010,7 +1017,7 @@ export function JamiePatesTheme() {
                       ))}
                     </>
                   )}
-                </WindowBox>
+                </>
               )}
 
               {page === 'config' && (
