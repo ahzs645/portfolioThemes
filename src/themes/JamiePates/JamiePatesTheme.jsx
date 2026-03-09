@@ -127,6 +127,15 @@ const DEFAULT_WINDOW_COLOR = {
 
 const COLOR_KEYS = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'];
 const MENU_ORDER = ['projects', 'skills', 'history', 'config'];
+const WORK_HISTORY_IMAGES = [
+  '/jamie-pates/history__dos.png',
+  '/jamie-pates/history__ruroc.png',
+  '/jamie-pates/history__tangymedia.png',
+];
+const EDUCATION_HISTORY_IMAGES = [
+  '/jamie-pates/history__plymouth.png',
+  '/jamie-pates/history__gloscol.png',
+];
 const PAGE_TITLES = {
   home: 'Homepage',
   projects: 'Projects',
@@ -282,6 +291,7 @@ function buildSkills(cv) {
 
   return deduped.slice(0, 12).map((item, index) => ({
     id: item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    slotId: index + 1,
     name: item.name,
     description: item.description,
     color: colors[index % colors.length],
@@ -289,7 +299,34 @@ function buildSkills(cv) {
   }));
 }
 
-function buildHistoryRecords(cv, mode) {
+function buildInitialMateriaLayout(skills) {
+  const slotIds = skills.map((skill) => skill.slotId);
+
+  return [
+    [
+      slotIds[0] ?? null,
+      null,
+      slotIds[1] ?? null,
+      slotIds[2] ?? null,
+      slotIds[3] ?? null,
+      slotIds[8] ?? null,
+      null,
+      slotIds[9] ?? null,
+    ],
+    [
+      slotIds[4] ?? null,
+      slotIds[5] ?? null,
+      slotIds[6] ?? null,
+      slotIds[7] ?? null,
+      null,
+      null,
+    ],
+  ];
+}
+
+function buildHistoryRecords(cv, mode, level) {
+  const imagePool = mode === 'education' ? EDUCATION_HISTORY_IMAGES : WORK_HISTORY_IMAGES;
+
   if (mode === 'education') {
     return (cv.education || []).map((item, index) => ({
       id: `education-${index}`,
@@ -298,6 +335,8 @@ function buildHistoryRecords(cv, mode) {
       year: formatDateRange(item.start_date || item.startDate, item.end_date || item.endDate),
       summary: item.highlights?.[0] || item.area || '',
       link: item.url || null,
+      level: Math.max(12, level - index * 4),
+      imagePath: imagePool[index] || null,
     }));
   }
 
@@ -315,6 +354,8 @@ function buildHistoryRecords(cv, mode) {
       item.location ||
       '',
     link: item.url || null,
+    level: Math.max(12, level - index * 6),
+    imagePath: imagePool[index] || null,
   }));
 }
 
@@ -369,6 +410,7 @@ export function JamiePatesTheme() {
   const [scale, setScale] = useState(1);
   const [hoverProjectIndex, setHoverProjectIndex] = useState(0);
   const [selectedSkillId, setSelectedSkillId] = useState(null);
+  const [selectedMateria, setSelectedMateria] = useState(null);
   const [selectedColorSlot, setSelectedColorSlot] = useState(null);
   const [historyPhase, setHistoryPhase] = useState('select');
   const [historyMode, setHistoryMode] = useState('experience');
@@ -379,11 +421,14 @@ export function JamiePatesTheme() {
 
   const summaryLines = useMemo(() => wrapText(buildSummary(cv || {}), 38, 6), [cv]);
   const skills = useMemo(() => buildSkills(cv || {}), [cv]);
+  const initialMateriaLayout = useMemo(() => buildInitialMateriaLayout(skills), [skills]);
+  const [currentMateria, setCurrentMateria] = useState(initialMateriaLayout);
   const selectedSkill = useMemo(() => {
     if (!skills.length) return null;
     return skills.find((item) => item.id === selectedSkillId) || skills[0];
   }, [skills, selectedSkillId]);
-  const historyRecords = useMemo(() => buildHistoryRecords(cv || {}, historyMode), [cv, historyMode]);
+  const level = useMemo(() => getLevel(cv || {}), [cv]);
+  const historyRecords = useMemo(() => buildHistoryRecords(cv || {}, historyMode, level), [cv, historyMode, level]);
   const windowStyle = useMemo(() => buildWindowStyle(windowColor), [windowColor]);
 
   const projects = cv?.projects || [];
@@ -393,7 +438,6 @@ export function JamiePatesTheme() {
     [hoverProject]
   );
 
-  const level = useMemo(() => getLevel(cv || {}), [cv]);
   const maxHealth = useMemo(() => getMaxHealth(cv || {}), [cv]);
   const maxMana = useMemo(() => getMaxMana(cv || {}, skills), [cv, skills]);
   const [currentHealth, setCurrentHealth] = useState(maxHealth);
@@ -423,6 +467,11 @@ export function JamiePatesTheme() {
       setSelectedSkillId(skills[0].id);
     }
   }, [skills, selectedSkillId]);
+
+  useEffect(() => {
+    setCurrentMateria(initialMateriaLayout);
+    setSelectedMateria(null);
+  }, [initialMateriaLayout]);
 
   useEffect(() => {
     function updateScale() {
@@ -558,6 +607,75 @@ export function JamiePatesTheme() {
     setWindowColor(DEFAULT_WINDOW_COLOR);
   }
 
+  function findSkillBySlotId(slotId) {
+    if (!slotId) return null;
+    return skills.find((item) => item.slotId === slotId) || null;
+  }
+
+  function handleSkillHover(skill) {
+    playSound('select');
+    if (!selectedMateria) {
+      setSelectedSkillId(skill.id);
+    }
+  }
+
+  function handleSkillSelect(slotId) {
+    if (!slotId) {
+      playSound('error');
+      return;
+    }
+
+    playSound('select');
+    setSelectedMateria((current) => (current !== slotId ? slotId : null));
+
+    const skill = findSkillBySlotId(slotId);
+    if (skill) {
+      setSelectedSkillId(skill.id);
+    }
+  }
+
+  function handleMateriaHover(sectionIndex, slotIndex) {
+    playSound('select');
+    const skill = findSkillBySlotId(currentMateria[sectionIndex]?.[slotIndex]);
+    if (skill) {
+      setSelectedSkillId(skill.id);
+    }
+  }
+
+  function handleMateriaSwap(sectionIndex, slotIndex) {
+    const previousValue = currentMateria[sectionIndex]?.[slotIndex] ?? null;
+
+    if (!selectedMateria && !previousValue) {
+      playSound('error');
+      return;
+    }
+
+    playSound('materia');
+    setCurrentMateria((current) => {
+      const next = current.map((group) => [...group]);
+
+      if (selectedMateria) {
+        for (let groupIndex = 0; groupIndex < next.length; groupIndex += 1) {
+          for (let valueIndex = 0; valueIndex < next[groupIndex].length; valueIndex += 1) {
+            if (next[groupIndex][valueIndex] === selectedMateria) {
+              next[groupIndex][valueIndex] = null;
+            }
+          }
+        }
+      }
+
+      next[sectionIndex][slotIndex] = selectedMateria;
+      return next;
+    });
+
+    setSelectedMateria(previousValue);
+
+    const skill = findSkillBySlotId(selectedMateria || previousValue);
+    if (skill) {
+      setSelectedSkillId(skill.id);
+    }
+  }
+
   function updateColor(channelIndex, value) {
     if (!selectedColorSlot) return;
     playSound('select');
@@ -637,16 +755,27 @@ export function JamiePatesTheme() {
     );
   }
 
-  function renderMateriaGroup(group, baseValue) {
+  function renderMateriaGroup(sectionIndex, startIndex, slotCount) {
     return (
-      <div className="flex relative" key={`group-${baseValue}`}>
-        {group.map((skill, index) => (
-          <div key={`slot-${baseValue + index}`} className="_materiaSlot_i51mu_14" data-value={baseValue + index}>
-            <div className="_skill_i51mu_49" data-color={skill?.color || undefined}>
-              {skill?.name || ''}
+      <div className="flex relative" key={`group-${sectionIndex}-${startIndex}`}>
+        {Array.from({ length: slotCount }).map((_, index) => {
+          const slotIndex = startIndex + index;
+          const skill = findSkillBySlotId(currentMateria[sectionIndex]?.[slotIndex]);
+
+          return (
+            <div
+              key={`slot-${sectionIndex}-${slotIndex}`}
+              className="_materiaSlot_i51mu_14"
+              data-value={slotIndex}
+              onMouseEnter={() => handleMateriaHover(sectionIndex, slotIndex)}
+              onClick={() => handleMateriaSwap(sectionIndex, slotIndex)}
+            >
+              <div className="_skill_i51mu_49" data-color={skill?.color || undefined}>
+                {skill?.name || ''}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   }
@@ -821,13 +950,9 @@ export function JamiePatesTheme() {
                           <span>{GlyphText({ text: 'Mouse' })}</span>
                         </p>
                         <div className="_equipmentContainer_i51mu_1 flex">
-                          {[
-                            [skills[0], null],
-                            [skills[1], skills[2]],
-                            [skills[3], skills[4]],
-                            [null],
-                            [skills[5]],
-                          ].map((group, index) => renderMateriaGroup(group, index * 2))}
+                          {[2, 2, 2, 1, 1].map((slotCount, index) => (
+                            renderMateriaGroup(0, index < 3 ? index * 2 : index + 3, slotCount)
+                          ))}
                         </div>
 
                         <p className="flex mt-1">
@@ -835,12 +960,9 @@ export function JamiePatesTheme() {
                           <span>{GlyphText({ text: 'Keyboard' })}</span>
                         </p>
                         <div className="_equipmentContainer_i51mu_1 flex">
-                          {[
-                            [skills[6], skills[7]],
-                            [skills[8], skills[9]],
-                            [null],
-                            [null],
-                          ].map((group, index) => renderMateriaGroup(group, index * 2))}
+                          {[2, 2, 1, 1].map((slotCount, index) => (
+                            renderMateriaGroup(1, index < 2 ? index * 2 : index + 2, slotCount)
+                          ))}
                         </div>
                       </div>
                     </div>
@@ -877,16 +999,10 @@ export function JamiePatesTheme() {
                         <li
                           key={skill.id}
                           className="mb-1.5"
-                          onMouseEnter={() => {
-                            playSound('select');
-                            setSelectedSkillId(skill.id);
-                          }}
-                          onClick={() => {
-                            playSound('materia');
-                            setSelectedSkillId(skill.id);
-                          }}
+                          onMouseEnter={() => handleSkillHover(skill)}
+                          onClick={() => handleSkillSelect(skill.slotId)}
                         >
-                          <span className="_skill_1cutj_1 flex" data-color={skill.color} data-active={selectedSkill?.id === skill.id ? 'true' : undefined}>
+                          <span className="_skill_1cutj_1 flex" data-color={skill.color} data-active={selectedMateria === skill.slotId ? 'true' : undefined}>
                             {GlyphText({ text: skill.name })}
                           </span>
                         </li>
@@ -977,13 +1093,17 @@ export function JamiePatesTheme() {
                             <ContentTag {...contentProps}>
                               <WindowBox label="historySave" className="h-[235px] relative" style={windowStyle}>
                                 <div className="mr-[414px] flex gap-5">
-                                  <div className="jp-history-thumb">{getInitials(record.name)}</div>
+                                  {record.imagePath ? (
+                                    <img className="h-[11.5rem] w-auto" src={record.imagePath} alt="" />
+                                  ) : (
+                                    <div className="jp-history-thumb">{getInitials(record.name)}</div>
+                                  )}
                                   <div className="jp-history-thumb">{getInitials(cv.name)}</div>
                                   <div className="ml-2 mt-[1.3rem]">
                                     <p className="mb-4">{GlyphText({ text: cv.name })}</p>
                                     <p className="flex">
                                       <GlyphToken sprite="lv" />
-                                      {GlyphText({ text: String(Math.max(12, level - index * 6)), resource: true })}
+                                      {GlyphText({ text: String(record.level), resource: true })}
                                     </p>
                                   </div>
                                 </div>
@@ -991,7 +1111,7 @@ export function JamiePatesTheme() {
                                 <WindowBox label="historySaveMeta" className="absolute w-[27rem] h-[7rem] top-[31px] right-[-2px]" style={windowStyle}>
                                   <ul>
                                     <li className="flex justify-between mb-3">
-                                      <span>{GlyphText({ text: 'Role' })}</span>
+                                      {historyMode !== 'education' && <span>{GlyphText({ text: 'Role' })}</span>}
                                       <span>{GlyphText({ text: record.role })}</span>
                                     </li>
                                     <li className="flex justify-between">
