@@ -1122,30 +1122,34 @@ export function JamiePatesTheme() {
                 style={windowStyle}
               >
                 <ul className="_menu_l1p5s_1">
-                  {MENU_ORDER.map((item, index) => (
-                    <li key={item} className={`h-[29px] mb-4 flex justify-between`}>
-                      {renderMenuItem(item, item.charAt(0).toUpperCase() + item.slice(1))}
-                    </li>
-                  ))}
+                  {MENU_ORDER.map((item) => {
+                    const isActive = page === item;
+                    const isVisible = page === 'home' || isActive;
 
-                  {page !== 'home' && (
-                    <li className="h-[29px] mb-4 flex justify-between">
-                      <button
-                        type="button"
-                        className="jp-button-reset flex w-100"
-                        data-label="close"
-                        onMouseEnter={() => playSound('select')}
-                        onClick={() => handleMenuClick('home')}
-                      >
-                        {GlyphText({ text: 'Close' })}
-                      </button>
-                    </li>
-                  )}
+                    return (
+                      <li key={item} className={`${isVisible ? 'h-[29px] mb-4' : 'h-0 invisible'} flex justify-between`}>
+                        {renderMenuItem(item, item.charAt(0).toUpperCase() + item.slice(1))}
+                        {page !== 'home' && isActive && (
+                          <button
+                            type="button"
+                            className="jp-button-reset"
+                            data-label="close"
+                            onMouseEnter={() => playSound('select')}
+                            onClick={() => handleMenuClick('home')}
+                          >
+                            <WindowBox label="close" className="absolute" style={windowStyle}>
+                              {GlyphText({ text: 'X' })}
+                            </WindowBox>
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
 
-                  {page === 'home' && <li className="h-[29px] mb-4 flex justify-between" />}
+                  <li className={`${page === 'home' ? 'h-[29px] mb-4' : 'h-0 invisible'} flex justify-between`} />
 
                   {menuLinks.map((link) => (
-                    <li key={link.id} className="h-[29px] mb-4 flex justify-between">
+                    <li key={link.id} className={`${page === 'home' ? 'h-[29px] mb-4' : 'h-0 invisible'} flex justify-between`}>
                       <button
                         type="button"
                         className="jp-button-reset flex w-100"
@@ -1159,8 +1163,8 @@ export function JamiePatesTheme() {
                     </li>
                   ))}
 
-                  {Array.from({ length: Math.max(0, 11 - MENU_ORDER.length - menuLinks.length - (page !== 'home' ? 1 : 0) - 1) }).map((_, index) => (
-                    <li key={`blank-${index}`} className="h-[29px] mb-4 flex justify-between" />
+                  {Array.from({ length: Math.max(0, 11 - MENU_ORDER.length - menuLinks.length - 1) }).map((_, index) => (
+                    <li key={`blank-${index}`} className={`${page === 'home' ? 'h-[29px] mb-4' : 'h-0 invisible'} flex justify-between`} />
                   ))}
                 </ul>
               </WindowBox>
