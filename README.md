@@ -54,11 +54,35 @@ npm install
 # Start development server
 npm run dev
 
+# Start with a random theme on each fresh visit to /
+npm run dev:random
+
 # Build for production
 npm run build
 
+# Build a production bundle that randomizes the theme on each fresh visit to /
+npm run build:random
+
 # Preview production build
 npm run preview
+```
+
+## Theme Selection Modes
+
+Theme selection is configurable with Vite env vars:
+
+```bash
+VITE_THEME_SELECTION_MODE=fixed
+VITE_DEFAULT_THEME_ID=ansub-minimal
+```
+
+- `fixed`: uses the theme from the URL, or falls back to `VITE_DEFAULT_THEME_ID` on `/`
+- `random`: keeps explicit theme URLs working, but picks a random theme on each fresh visit or refresh of `/`
+
+Use `.env.example` as the default setup, or build with the included random mode:
+
+```bash
+npm run build:random
 ```
 
 ## Project Structure

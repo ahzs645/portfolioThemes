@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useConfig } from './contexts/ConfigContext';
-import { PORTFOLIO_THEMES, getPortfolioTheme, getThemeIdFromPath } from './themes';
+import { PORTFOLIO_THEMES, getPortfolioTheme } from './themes';
+import { resolveThemeIdForPath, resolveThemePath } from './config/themeSelection';
 
 const getInitialDarkMode = () => {
   try {
@@ -12,8 +13,7 @@ const getInitialDarkMode = () => {
 };
 
 const getInitialThemeId = () => {
-  const themeIdFromUrl = getThemeIdFromPath(window.location.pathname);
-  return themeIdFromUrl || 'ansub-minimal';
+  return resolveThemeIdForPath(window.location.pathname);
 };
 
 export default function App() {
@@ -31,8 +31,7 @@ export default function App() {
 
   // Update URL when theme changes
   useEffect(() => {
-    const theme = getPortfolioTheme(currentThemeId);
-    const newPath = theme.slug === 'minimal' ? '/' : `/${theme.slug}`;
+    const newPath = resolveThemePath(currentThemeId, window.location.pathname);
     if (window.location.pathname !== newPath) {
       window.history.pushState({ themeId: currentThemeId }, '', newPath);
     }
@@ -44,8 +43,7 @@ export default function App() {
       if (event.state?.themeId) {
         setCurrentThemeId(event.state.themeId);
       } else {
-        const themeId = getThemeIdFromPath(window.location.pathname);
-        setCurrentThemeId(themeId || 'ansub-minimal');
+        setCurrentThemeId(resolveThemeIdForPath(window.location.pathname));
       }
     };
 
