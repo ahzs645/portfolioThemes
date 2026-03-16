@@ -1,6 +1,6 @@
 # Portfolio Themes
 
-A collection of 25+ portfolio themes built with React and Vite. Each theme is accessible via its own URL path and renders content from a single `CV.yaml` data file.
+A collection of 29+ portfolio themes built with React and Vite. Each theme is accessible via its own URL path and renders content from a single `CV.yaml` data file.
 
 **Live Demo:** [portfolio.ahmadjalil.com](https://portfolio.ahmadjalil.com)
 
@@ -20,6 +20,7 @@ A collection of 25+ portfolio themes built with React and Vite. Each theme is ac
 | Modern Blue | `/modern-blue` | Live clock and project cards grid |
 | Plain Text | `/plain-text` | Ultra-minimal with auto dark/light mode |
 | Notes | `/notes` | Notes-style with emoji icons |
+| Founder Badge | `/founder-badge` | Rounded founder landing page with suspended profile card and polished contact panel |
 | Builder | `/builder` | Card-based projects with live footer clock |
 | Timeline | `/timeline` | Professional design with monospace dates |
 | Terminal | `/terminal` | Hacker-style black terminal |

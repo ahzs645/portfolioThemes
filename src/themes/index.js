@@ -1,4 +1,5 @@
 import { AnsubMinimalTheme } from './AnsubMinimal/AnsubMinimalTheme';
+import { BoehsTheme } from './Boehs/BoehsTheme';
 import { BrutalistTheme } from './Brutalist/BrutalistTheme';
 import { ChiangV4Theme } from './ChiangV4/ChiangV4Theme';
 import { ChiangCurrentTheme } from './ChiangCurrent/ChiangCurrentTheme';
@@ -10,6 +11,7 @@ import { PiTheme } from './Pi/PiTheme';
 import { ChiziTheme } from './Chizi/ChiziTheme';
 import { GerhardTheme } from './Gerhard/GerhardTheme';
 import { AlanaGoyalTheme } from './AlanaGoyal/AlanaGoyalTheme';
+import { AysarTheme } from './Aysar/AysarTheme';
 import { AmirmxtTheme } from './Amirmxt/AmirmxtTheme';
 import { FelixDornerTheme } from './FelixDorner/FelixDornerTheme';
 import { JamiePatesTheme } from './JamiePates/JamiePatesTheme';
@@ -35,6 +37,14 @@ export const PORTFOLIO_THEMES = [
     description: 'Clean single-page layout powered by CV.yaml. Features a timeline experience view, projects section, and contact info.',
     source: 'https://ansub.com',
     Component: AnsubMinimalTheme,
+  },
+  {
+    id: 'boehs',
+    slug: 'indie-garden',
+    name: 'Indie Garden',
+    description: 'Warm paper layout with serif typography, left-rule cards, a playful status line, and footer navigation inspired by boehs.org.',
+    source: 'https://boehs.org',
+    Component: BoehsTheme,
   },
   {
     id: 'brutalist',
@@ -123,6 +133,14 @@ export const PORTFOLIO_THEMES = [
     description: 'Notes-style layout with emoji icons, golden accent color, and dark mode default. Clean SF Pro typography with lowercase aesthetic.',
     source: 'https://alanagoyal.com',
     Component: AlanaGoyalTheme,
+  },
+  {
+    id: 'aysar',
+    slug: 'founder-badge',
+    name: 'Founder Badge',
+    description: 'Rounded founder landing page with a suspended identity card hero, project deck, dark pedigree section, and contact composer.',
+    source: 'https://www.aysark.com',
+    Component: AysarTheme,
   },
   {
     id: 'amirmxt',
