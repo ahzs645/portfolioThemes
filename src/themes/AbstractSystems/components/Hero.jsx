@@ -1,18 +1,72 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { FONT, BREAKPOINT } from '../utils/tokens';
 import { getSkillLabel } from '../utils/helpers';
 
+function useClock() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
+
+function pad(n) {
+  return String(n).padStart(2, '0');
+}
+
+function isDaytime(date) {
+  const h = date.getHours();
+  return h >= 6 && h < 20;
+}
+
+function SunIcon({ theme }) {
+  return (
+    <IconWrap $theme={theme}>
+      <svg width="12" height="12" viewBox="0 0 18 18" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" stroke="currentColor">
+        <line x1="9" y1=".75" x2="9" y2="2.25" />
+        <line x1="14.834" y1="3.166" x2="13.773" y2="4.227" />
+        <line x1="17.25" y1="9" x2="15.75" y2="9" />
+        <line x1="14.834" y1="14.834" x2="13.773" y2="13.773" />
+        <line x1="9" y1="17.25" x2="9" y2="15.75" />
+        <line x1="3.166" y1="14.834" x2="4.227" y2="13.773" />
+        <line x1=".75" y1="9" x2="2.25" y2="9" />
+        <line x1="3.166" y1="3.166" x2="4.227" y2="4.227" />
+        <circle cx="9" cy="9" r="4.25" />
+      </svg>
+    </IconWrap>
+  );
+}
+
+function MoonIcon({ theme }) {
+  return (
+    <IconWrap $theme={theme}>
+      <svg width="12" height="12" viewBox="0 0 18 18" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" stroke="currentColor">
+        <path d="M15.935 9.644A7.063 7.063 0 0 1 8.356 2.065 7.065 7.065 0 1 0 15.935 9.644z" />
+      </svg>
+    </IconWrap>
+  );
+}
+
 export default function Hero({ cv, theme }) {
   const skills = (cv.skills || []).map(getSkillLabel).filter(Boolean).slice(0, 7);
+  const now = useClock();
+  const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  const day = isDaytime(now);
 
   return (
     <Section id="as-about">
       <StatusRow $delay={0}>
-        <StatusDot $theme={theme} />
+        <PingDotWrap>
+          <PingDot $theme={theme} />
+          <PingRing $theme={theme} />
+        </PingDotWrap>
         <StatusText $theme={theme}>
           {cv.location || 'Available'}
         </StatusText>
+        {day ? <SunIcon theme={theme} /> : <MoonIcon theme={theme} />}
+        <ClockText $theme={theme}>{timeStr}</ClockText>
       </StatusRow>
 
       <Name $theme={theme} $delay={1}>
@@ -61,6 +115,17 @@ const fadeSlideUp = keyframes`
   }
 `;
 
+const pingRing = keyframes`
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+`;
+
 const Section = styled.section`
   display: flex;
   flex-direction: column;
@@ -77,23 +142,58 @@ const StatusRow = styled(FadeIn)`
   display: flex;
   align-items: center;
   gap: 8px;
+  height: 40px;
   margin-bottom: 16px;
 `;
 
-const StatusDot = styled.div`
-  width: 8px;
-  height: 8px;
+const PingDotWrap = styled.span`
+  position: relative;
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  margin-right: 2px;
+`;
+
+const PingDot = styled.span`
+  position: absolute;
+  inset: 0;
   border-radius: 50%;
   background: ${p => p.$theme.green};
 `;
 
+const PingRing = styled.span`
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid ${p => p.$theme.green};
+  animation: ${pingRing} 2.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+`;
+
 const StatusText = styled.span`
   font-family: ${FONT.mono};
-  font-size: 11px;
-  line-height: 14px;
-  letter-spacing: 0.05em;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   color: ${p => p.$theme.muted};
+  flex-shrink: 0;
+`;
+
+const IconWrap = styled.span`
+  flex-shrink: 0;
+  color: ${p => p.$theme.muted};
+  display: flex;
+  align-items: center;
+`;
+
+const ClockText = styled.span`
+  font-family: ${FONT.mono};
+  font-size: 12px;
+  line-height: 16px;
+  color: ${p => p.$theme.muted};
+  display: flex;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
 `;
 
 const Name = styled(FadeIn)`
