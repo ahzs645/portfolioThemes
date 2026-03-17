@@ -8,6 +8,7 @@ import Experience from './components/Experience';
 import Education from './components/Education';
 import Projects from './components/Projects';
 import Awards from './components/Awards';
+import Activity from './components/Activity';
 import Connect from './components/Connect';
 
 const FontLoader = createGlobalStyle`
@@ -29,6 +30,8 @@ export function AbstractSystemsTheme({ darkMode }) {
           <Hero cv={cv} theme={theme} />
           <Spacer />
           <Experience cv={cv} theme={theme} />
+          <Spacer />
+          <Activity theme={theme} />
           <Spacer />
           <Education cv={cv} theme={theme} />
           <Spacer />
