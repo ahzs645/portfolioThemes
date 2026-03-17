@@ -6,7 +6,8 @@ import { getTimelineExperience, formatRange } from '../utils/helpers';
 const DEFAULT_VISIBLE = 4; // company groups shown in collapsed mode
 
 export default function Experience({ cv, theme, baseDelay = 340 }) {
-  const entries = getTimelineExperience(cv.experience || []);
+  // Use raw experience data (not flattened) so getTimelineExperience can detect nested positions
+  const entries = getTimelineExperience(cv.sectionsRaw?.experience || []);
   const [expanded, setExpanded] = useState(false);
 
   // Group entries by company so we can collapse by group
