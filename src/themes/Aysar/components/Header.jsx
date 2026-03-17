@@ -12,14 +12,16 @@ const HouseIcon = () => (
   </svg>
 );
 
-export default function Header({ theme }) {
+export default function Header({ theme, cv }) {
+  const contactHref = cv?.email ? `mailto:${cv.email}` : (cv?.socialLinks?.linkedin || '#');
+
   return (
     <Nav $theme={theme}>
       <NavInner>
         <HomeButton href="#" aria-label="Go to homepage">
           <HouseIcon />
         </HomeButton>
-        <ContactButton $theme={theme} href="#contact">
+        <ContactButton $theme={theme} href={contactHref}>
           Contact
         </ContactButton>
       </NavInner>

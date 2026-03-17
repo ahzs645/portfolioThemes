@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import styled from 'styled-components';
 import { BREAKPOINT, FONT } from '../utils/tokens';
+import BadgeCard from './BadgeCard';
 import { buildProjectCards, buildTrajectory } from '../utils/helpers';
 
 export default function Work({ cv, theme }) {
@@ -11,13 +12,14 @@ export default function Work({ cv, theme }) {
 
   return (
     <Section id="work">
+      {/* Projects badge card */}
       {cards.length > 0 && (
-        <>
+        <BadgeCard theme={theme}>
           <SectionLabel $theme={theme}>Work</SectionLabel>
           <SectionHeading $theme={theme}>Selected projects</SectionHeading>
-          <CardGrid>
+          <CardList>
             {cards.map(card => (
-              <Card
+              <ProjectItem
                 key={card.id}
                 $theme={theme}
                 as={card.href ? 'a' : 'div'}
@@ -25,24 +27,25 @@ export default function Work({ cv, theme }) {
                 target={card.href ? '_blank' : undefined}
                 rel={card.href ? 'noreferrer' : undefined}
               >
-                <CardMeta $theme={theme}>{card.meta}</CardMeta>
-                <CardTitle $theme={theme}>{card.title}</CardTitle>
-                <CardBody $theme={theme}>{card.body}</CardBody>
-                <CardFooter $theme={theme}>
-                  {card.detail}
-                  {card.href && <CardArrow>↗</CardArrow>}
-                </CardFooter>
-              </Card>
+                <ProjectMeta>
+                  <ProjectLabel $theme={theme}>{card.meta}</ProjectLabel>
+                  {card.href && <ProjectArrow $theme={theme}>↗</ProjectArrow>}
+                </ProjectMeta>
+                <ProjectTitle $theme={theme}>{card.title}</ProjectTitle>
+                <ProjectBody $theme={theme}>{card.body}</ProjectBody>
+                <ProjectDetail $theme={theme}>{card.detail}</ProjectDetail>
+              </ProjectItem>
             ))}
-          </CardGrid>
-        </>
+          </CardList>
+        </BadgeCard>
       )}
 
+      {/* Experience badge card */}
       {timeline.length > 0 && (
-        <TimelineSection>
+        <BadgeCard theme={theme}>
           <SectionLabel $theme={theme}>Experience</SectionLabel>
           <SectionHeading $theme={theme}>Career trajectory</SectionHeading>
-          <TimelineList>
+          <CardList>
             {timeline.map(item => (
               <TimelineItem key={item.id} $theme={theme}>
                 <TimelineDate $theme={theme}>{item.eyebrow}</TimelineDate>
@@ -51,18 +54,19 @@ export default function Work({ cv, theme }) {
                 <TimelineDesc $theme={theme}>{item.summary}</TimelineDesc>
               </TimelineItem>
             ))}
-          </TimelineList>
-        </TimelineSection>
+          </CardList>
+        </BadgeCard>
       )}
     </Section>
   );
 }
 
 const Section = styled.section`
-  padding: 40px 0 60px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 28px;
+  padding: 20px 0 60px;
 `;
 
 const SectionLabel = styled.div`
@@ -72,71 +76,72 @@ const SectionLabel = styled.div`
   font-weight: ${FONT.bold};
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
 `;
 
 const SectionHeading = styled.h2`
-  margin: 0 0 32px;
+  margin: 0 0 20px;
   color: ${p => p.$theme.text};
   font-family: ${FONT.family};
-  font-size: clamp(28px, 5vw, 42px);
+  font-size: clamp(24px, 5vw, 34px);
   font-weight: ${FONT.bold};
   letter-spacing: -0.05em;
   line-height: 110%;
-  text-align: center;
 `;
 
-const CardGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-  width: 100%;
-  max-width: 700px;
-  margin-bottom: 60px;
-
-  @media (max-width: ${BREAKPOINT}px) {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-`;
-
-const Card = styled.div`
+const CardList = styled.div`
   display: flex;
   flex-direction: column;
-  padding: 26px;
-  border-radius: 36px;
-  background: ${p => p.$theme.cardBg};
-  border: 1px solid ${p => p.$theme.border};
+  gap: 10px;
+  width: 100%;
+`;
+
+/* ── Project items ── */
+
+const ProjectItem = styled.div`
+  padding: 22px 24px;
+  border-radius: 24px;
+  background: ${p => p.$theme.formBg};
   text-decoration: none;
-  transition: border-color 0.2s;
+  transition: background 0.2s;
 
   &:hover {
-    border-color: ${p => p.$theme.text};
+    background: ${p => p.$theme.border};
   }
 `;
 
-const CardMeta = styled.div`
+const ProjectMeta = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+`;
+
+const ProjectLabel = styled.div`
   color: ${p => p.$theme.accent};
   font-family: ${FONT.family};
   font-size: 12px;
   font-weight: ${FONT.bold};
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  margin-bottom: 14px;
 `;
 
-const CardTitle = styled.h3`
-  margin: 0 0 10px;
+const ProjectArrow = styled.span`
+  color: ${p => p.$theme.textSecondary};
+  font-size: 16px;
+`;
+
+const ProjectTitle = styled.h3`
+  margin: 0 0 6px;
   color: ${p => p.$theme.text};
   font-family: ${FONT.family};
-  font-size: 22px;
+  font-size: 20px;
   font-weight: ${FONT.bold};
   letter-spacing: -0.05em;
   line-height: 110%;
 `;
 
-const CardBody = styled.p`
+const ProjectBody = styled.p`
   margin: 0;
   color: ${p => p.$theme.text};
   opacity: 0.6;
@@ -145,14 +150,10 @@ const CardBody = styled.p`
   font-weight: ${FONT.semibold};
   letter-spacing: -0.03em;
   line-height: 1.55;
-  flex: 1;
 `;
 
-const CardFooter = styled.div`
-  margin-top: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+const ProjectDetail = styled.div`
+  margin-top: 12px;
   color: ${p => p.$theme.textSecondary};
   font-family: ${FONT.family};
   font-size: 13px;
@@ -160,31 +161,12 @@ const CardFooter = styled.div`
   letter-spacing: -0.03em;
 `;
 
-const CardArrow = styled.span`
-  color: inherit;
-  font-size: 16px;
-`;
-
-const TimelineSection = styled.div`
-  width: 100%;
-  max-width: 550px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`;
-
-const TimelineList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-`;
+/* ── Timeline items ── */
 
 const TimelineItem = styled.div`
-  padding: 24px 28px;
-  border-radius: 32px;
+  padding: 22px 24px;
+  border-radius: 24px;
   background: ${p => p.$theme.formBg};
-  border: 1px solid ${p => p.$theme.border};
 `;
 
 const TimelineDate = styled.div`
@@ -194,7 +176,7 @@ const TimelineDate = styled.div`
   font-weight: ${FONT.bold};
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 `;
 
 const TimelineRole = styled.h3`
@@ -213,7 +195,7 @@ const TimelineCompany = styled.div`
   font-size: 14px;
   font-weight: ${FONT.semibold};
   letter-spacing: -0.03em;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 `;
 
 const TimelineDesc = styled.p`
