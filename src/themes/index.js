@@ -28,6 +28,7 @@ import { RinkitadhanaTheme } from './Rinkitadhana/RinkitadhanaTheme';
 import { U11gTheme } from './U11g/U11gTheme';
 import { ShubhamTheme } from './Shubham/ShubhamTheme';
 import { PalmesTheme } from './Palmes/PalmesTheme';
+import { AbstractSystemsTheme } from './AbstractSystems/AbstractSystemsTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -269,6 +270,14 @@ export const PORTFOLIO_THEMES = [
     description: 'Dark portfolio with scroll-synchronized 3D duck animation, cyan gradients, and comprehensive CV display.',
     source: 'https://palmes.dev',
     Component: PalmesTheme,
+  },
+  {
+    id: 'abstract-systems',
+    slug: 'abstract',
+    name: 'Abstract Systems',
+    description: 'Minimal blue-gray portfolio with floating pill nav, staggered fade-in animations, dotted section dividers, and monospace accents.',
+    source: 'https://www.abstract.systems',
+    Component: AbstractSystemsTheme,
   },
 ];
 
