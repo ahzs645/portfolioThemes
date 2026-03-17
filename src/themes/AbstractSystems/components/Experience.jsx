@@ -1,12 +1,31 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { FONT, BREAKPOINT } from '../utils/tokens';
 import { getTimelineExperience, formatRange } from '../utils/helpers';
 
+const DEFAULT_VISIBLE = 4; // company groups shown in collapsed mode
+
 export default function Experience({ cv, theme, baseDelay = 340 }) {
   const entries = getTimelineExperience(cv.experience || []);
+  const [expanded, setExpanded] = useState(false);
 
-  if (entries.length === 0) return null;
+  // Group entries by company so we can collapse by group
+  const { groups, totalGroups } = useMemo(() => {
+    const g = [];
+    for (const entry of entries) {
+      if (entry.type === 'company') {
+        g.push({ company: entry, subs: [] });
+      } else if (g.length > 0) {
+        g[g.length - 1].subs.push(entry);
+      }
+    }
+    return { groups: g, totalGroups: g.length };
+  }, [entries]);
+
+  if (groups.length === 0) return null;
+
+  const canExpand = totalGroups > DEFAULT_VISIBLE;
+  const visibleGroups = expanded ? groups : groups.slice(0, DEFAULT_VISIBLE);
 
   let companyIndex = 0;
 
@@ -18,55 +37,75 @@ export default function Experience({ cv, theme, baseDelay = 340 }) {
             <Label $theme={theme}>Experience</Label>
             <BlinkCursor $theme={theme} />
           </LabelRow>
+          {canExpand && (
+            <ToggleButton onClick={() => setExpanded(v => !v)}>
+              <ToggleLabel $theme={theme}>
+                {expanded ? 'Less' : 'More'}
+              </ToggleLabel>
+              <Chevron $theme={theme} $expanded={expanded}>
+                <path
+                  d="M2 3.5L5 6.5L8 3.5"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </Chevron>
+            </ToggleButton>
+          )}
         </SectionHeader>
       </FadeIn>
 
       <List className="blur-hover-group">
-        {entries.map((entry, i) => {
-          if (entry.type === 'company') companyIndex++;
+        {visibleGroups.map((group, gi) => {
+          companyIndex++;
           const delay = baseDelay + 50 + companyIndex * 50;
-
-          if (entry.type === 'sub') {
-            return (
-              <SubRow key={i} className="blur-hover" $theme={theme}>
-                <TimelineCol>
-                  <TimelineLine $theme={theme} $half={entry.isLast ? 'top' : 'full'} />
-                  <TimelineDot $theme={theme} />
-                </TimelineCol>
-                <SubContent>
-                  <SubTitle $theme={theme}>{entry.title}</SubTitle>
-                  <DottedFill $theme={theme} />
-                  <DateText $theme={theme}>
-                    {formatRange(entry.startDate, entry.endDate)}
-                  </DateText>
-                </SubContent>
-              </SubRow>
-            );
-          }
+          const entry = group.company;
 
           return (
-            <FadeIn key={i} $delay={delay}>
-              <CompanyRow className="blur-hover" $theme={theme}>
-                <TimelineCol>
-                  <InitialBadge $theme={theme}>
-                    {(entry.company || '?')[0].toUpperCase()}
-                  </InitialBadge>
-                  {entry.hasChildren && (
-                    <TimelineLine $theme={theme} $half="bottom" />
-                  )}
-                </TimelineCol>
-                <CompanyContent>
-                  <CompanyName $theme={theme}>{entry.company}</CompanyName>
-                  <InlineDetail>
-                    <RoleText $theme={theme}>{entry.title}</RoleText>
-                    <DottedFill $theme={theme} />
-                    <DateText $theme={theme}>
-                      {formatRange(entry.startDate, entry.endDate)}
-                    </DateText>
-                  </InlineDetail>
-                </CompanyContent>
-              </CompanyRow>
-            </FadeIn>
+            <React.Fragment key={gi}>
+              <FadeIn $delay={delay}>
+                <CompanyRow className="blur-hover" $theme={theme}>
+                  <TimelineCol>
+                    <InitialBadge $theme={theme}>
+                      {(entry.company || '?')[0].toUpperCase()}
+                    </InitialBadge>
+                    {group.subs.length > 0 && expanded && (
+                      <TimelineLine $theme={theme} $half="bottom" />
+                    )}
+                  </TimelineCol>
+                  <CompanyContent>
+                    <CompanyName $theme={theme}>{entry.company}</CompanyName>
+                    <InlineDetail>
+                      <RoleText $theme={theme}>{entry.title}</RoleText>
+                      <DottedFill $theme={theme} />
+                      <DateText $theme={theme}>
+                        {formatRange(entry.startDate, entry.endDate)}
+                      </DateText>
+                    </InlineDetail>
+                  </CompanyContent>
+                </CompanyRow>
+              </FadeIn>
+
+              {expanded && group.subs.map((sub, si) => (
+                <ExpandedRow key={`${gi}-sub-${si}`}>
+                  <SubRow className="blur-hover" $theme={theme}>
+                    <TimelineCol>
+                      <TimelineLine $theme={theme} $half={sub.isLast ? 'top' : 'full'} />
+                      <TimelineDot $theme={theme} />
+                    </TimelineCol>
+                    <SubContent>
+                      <SubTitle $theme={theme}>{sub.title}</SubTitle>
+                      <DottedFill $theme={theme} />
+                      <DateText $theme={theme}>
+                        {formatRange(sub.startDate, sub.endDate)}
+                      </DateText>
+                    </SubContent>
+                  </SubRow>
+                </ExpandedRow>
+              ))}
+            </React.Fragment>
           );
         })}
       </List>
@@ -140,10 +179,53 @@ const BlinkCursor = styled.span`
   animation: ${blink} 1s step-end infinite;
 `;
 
+/* ── Toggle button ────────────────────────────────────── */
+
+const ToggleButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+`;
+
+const ToggleLabel = styled.span`
+  font-family: ${FONT.sans};
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.02em;
+  color: ${p => p.$theme.muted};
+  transition: color 0.15s;
+
+  ${ToggleButton}:hover & {
+    color: ${p => p.$theme.body};
+  }
+`;
+
+const Chevron = styled.svg.attrs({ width: 10, height: 10, viewBox: '0 0 10 10' })`
+  color: ${p => p.$theme.muted};
+  transform: ${p => p.$expanded ? 'rotate(180deg)' : 'rotate(0deg)'};
+  transition: transform 0.2s, color 0.15s;
+
+  ${ToggleButton}:hover & {
+    color: ${p => p.$theme.body};
+  }
+`;
+
+/* ── List ─────────────────────────────────────────────── */
+
 const List = styled.div`
   display: flex;
   flex-direction: column;
   margin-top: 16px;
+`;
+
+/* ── Expanded row transition ──────────────────────────── */
+
+const ExpandedRow = styled.div`
+  animation: ${fadeSlideUp} 0.3s forwards;
 `;
 
 /* ── Timeline column ──────────────────────────────────── */

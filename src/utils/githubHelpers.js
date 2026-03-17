@@ -127,17 +127,24 @@ export async function fetchRepos(username, perPage = 30) {
 
 /**
  * Fetch recent public events (pushes, PRs, issues, etc.)
+ * Paginates up to 3 pages of 100 events each (max ~300, GitHub's hard limit)
  */
-export async function fetchEvents(username, perPage = 30) {
+export async function fetchEvents(username, maxPages = 3) {
   const key = `gh_events_${username}`;
   const cached = cacheGet(key);
   if (cached) return cached;
 
-  const raw = await apiFetch(
-    `/users/${username}/events/public?per_page=${perPage}`
-  );
+  const allRaw = [];
+  for (let page = 1; page <= maxPages; page++) {
+    const raw = await apiFetch(
+      `/users/${username}/events/public?per_page=100&page=${page}`
+    );
+    allRaw.push(...raw);
+    // Stop if we got fewer than a full page (no more data)
+    if (raw.length < 100) break;
+  }
 
-  const events = raw.map((e) => ({
+  const events = allRaw.map((e) => ({
     id: e.id,
     type: e.type,
     repo: e.repo?.name,

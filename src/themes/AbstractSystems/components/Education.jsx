@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { FONT } from '../utils/tokens';
+import { FONT, BREAKPOINT } from '../utils/tokens';
 import { formatRange } from '../utils/helpers';
 import { filterActive } from '../../../utils/cvHelpers';
 import { FadeIn, SectionHeader, LabelRow, Label, BlinkCursor, DottedFill } from './SectionShared';
@@ -25,11 +25,6 @@ export default function Education({ cv, theme, baseDelay = 560 }) {
         {items.map((entry, i) => (
           <FadeIn key={i} $delay={baseDelay + 50 + i * 50}>
             <Entry className="blur-hover" $theme={theme}>
-              <TimelineCol>
-                <InitialBadge $theme={theme}>
-                  {(entry.institution || '?')[0].toUpperCase()}
-                </InitialBadge>
-              </TimelineCol>
               <EntryContent>
                 <Institution $theme={theme}>{entry.institution}</Institution>
                 <InlineDetail>
@@ -75,40 +70,14 @@ const Entry = styled.div`
   }
 `;
 
-const TimelineCol = styled.div`
-  width: 17px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  align-self: stretch;
-`;
-
-const InitialBadge = styled.div`
-  width: 17px;
-  height: 17px;
-  border-radius: 4px;
-  background: ${p => p.$theme.pillBg};
-  border: 1px solid ${p => p.$theme.border};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: ${FONT.sans};
-  font-size: 9px;
-  font-weight: 600;
-  color: ${p => p.$theme.heading};
-  flex-shrink: 0;
-`;
-
 const EntryContent = styled.div`
   display: flex;
   flex-direction: column;
   padding: 6px 0;
   min-width: 0;
   flex: 1;
-  padding-left: 8px;
 
-  @media (min-width: 640px) {
+  @media (min-width: ${BREAKPOINT}px) {
     flex-direction: row;
     align-items: center;
     padding: 0;
@@ -141,7 +110,7 @@ const Degree = styled.span`
   flex-shrink: 0;
   padding-left: 0;
 
-  @media (min-width: 640px) {
+  @media (min-width: ${BREAKPOINT}px) {
     padding-left: 8px;
   }
 `;
