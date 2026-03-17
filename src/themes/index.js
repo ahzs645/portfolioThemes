@@ -138,7 +138,7 @@ export const PORTFOLIO_THEMES = [
     id: 'aysar',
     slug: 'founder-badge',
     name: 'Founder Badge',
-    description: 'Rounded founder landing page with a suspended identity card hero, project deck, dark pedigree section, and contact composer.',
+    description: 'Clean white portfolio with dark glass floating nav, Manrope typography, rounded project cards, and source-matched contact form.',
     source: 'https://www.aysark.com',
     Component: AysarTheme,
   },

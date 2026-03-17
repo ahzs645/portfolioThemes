@@ -1,9 +1,20 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import styled, { css, keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { formatMonthYear } from '../../utils/cvHelpers';
+import { randomGreeting } from './greetings';
+import { ProceduralTrees } from './ProceduralTrees';
+import { AnimatedFlower } from './AnimatedFlower';
 
-const accentHues = [0, 28, 64, 98, 132, 168, 202, 236, 270, 324];
+/* ── colour helpers ──────────────────────────────────────────── */
+
+function rainbow(index, total) {
+  return `hsl(${Math.round((360 / total) * index)}, 50%, 60%)`;
+}
+
+const FOOTER_LINK_COUNT = 11;
+
+/* ── data helpers ────────────────────────────────────────────── */
 
 const statusFallbacks = [
   'keeps a small internet home',
@@ -11,29 +22,6 @@ const statusFallbacks = [
   'prefers careful software over noisy software',
   'still believes personal sites should feel personal',
 ];
-
-const flowerArt = `
-
-
-
-
-        _/\\_
-     .-' || '-.
-        _||_
-   _____/____\\_____,....-----'------'-----''-------'---'----'--
-`;
-
-const fadeUp = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
 
 function splitParagraphs(text) {
   return String(text || '')
@@ -45,7 +33,6 @@ function splitParagraphs(text) {
 function formatRange(start, end) {
   const startLabel = formatMonthYear(start);
   const endLabel = end ? formatMonthYear(end) : '';
-
   if (startLabel && endLabel) return `${startLabel} - ${endLabel}`;
   return startLabel || endLabel || '';
 }
@@ -54,22 +41,32 @@ function summarizeHighlight(highlights = []) {
   return Array.isArray(highlights) && highlights.length > 0 ? highlights[0] : '';
 }
 
-function makeAccent(index) {
-  return accentHues[index % accentHues.length];
-}
+/* ── animation ───────────────────────────────────────────────── */
+
+const fadeUp = keyframes`
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
+
+/* ── main component ──────────────────────────────────────────── */
 
 export function BoehsTheme({ darkMode }) {
   const cv = useCV();
   const [statusIndex, setStatusIndex] = useState(0);
+  const [greeting] = useState(() => randomGreeting());
 
+  const cycleStatus = useCallback(
+    () => setStatusIndex((i) => (i + 1) % statusLines.length),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  /* derived data */
   const introParagraphs = useMemo(() => {
     if (!cv) return [];
-
     const paragraphs = splitParagraphs(cv.about);
     if (paragraphs.length > 0) return paragraphs;
-
     const generated = [];
-
     if (cv.currentJobTitle && cv.location) {
       generated.push(`Current work centers on ${cv.currentJobTitle} in ${cv.location}.`);
     } else if (cv.currentJobTitle) {
@@ -77,7 +74,6 @@ export function BoehsTheme({ darkMode }) {
     } else if (cv.location) {
       generated.push(`This page is organized from ${cv.location}.`);
     }
-
     if (cv.projects.length > 0) {
       generated.push(
         `This version keeps the page calm and readable while still surfacing ${cv.projects.length} active project${cv.projects.length === 1 ? '' : 's'} and the work behind them.`
@@ -85,14 +81,12 @@ export function BoehsTheme({ darkMode }) {
     } else {
       generated.push('This version keeps the page calm, readable, and focused on the work itself.');
     }
-
     return generated;
   }, [cv]);
 
   const statusLines = useMemo(() => {
     if (!cv) return statusFallbacks;
-
-    const dynamicLines = [
+    return [
       cv.currentJobTitle ? `currently: ${cv.currentJobTitle}` : null,
       cv.location ? `based in ${cv.location}` : null,
       cv.projects.length > 0
@@ -100,8 +94,6 @@ export function BoehsTheme({ darkMode }) {
         : null,
       ...statusFallbacks,
     ].filter(Boolean);
-
-    return dynamicLines;
   }, [cv]);
 
   const workItems = useMemo(() => cv?.experience.slice(0, 6) || [], [cv]);
@@ -111,8 +103,7 @@ export function BoehsTheme({ darkMode }) {
 
   const fieldNotes = useMemo(() => {
     if (!cv) return [];
-
-    const notes = [
+    return [
       ...cv.publications.map((item) => ({
         label: item.title,
         meta: [item.journal, item.date].filter(Boolean).join(' / '),
@@ -133,16 +124,15 @@ export function BoehsTheme({ darkMode }) {
         meta: [item.summary, item.date].filter(Boolean).join(' / '),
         href: item.url || null,
       })),
-    ].filter((item) => item.label);
-
-    return notes.slice(0, 6);
+    ]
+      .filter((n) => n.label)
+      .slice(0, 6);
   }, [cv]);
 
   const footerLinks = useMemo(() => {
     if (!cv) return [];
-
     const seen = new Set();
-    const items = [
+    return [
       cv.website || cv.socialLinks.website
         ? { label: 'Website', href: cv.website || cv.socialLinks.website }
         : null,
@@ -151,18 +141,17 @@ export function BoehsTheme({ darkMode }) {
       cv.socialLinks.twitter ? { label: 'Twitter', href: cv.socialLinks.twitter } : null,
       cv.email ? { label: 'Email', href: `mailto:${cv.email}` } : null,
       cv.phone ? { label: 'Phone', href: `tel:${cv.phone}` } : null,
-    ].filter(Boolean);
-
-    return items.filter((item) => {
-      if (seen.has(item.href)) return false;
-      seen.add(item.href);
-      return true;
-    });
+    ]
+      .filter(Boolean)
+      .filter((item) => {
+        if (seen.has(item.href)) return false;
+        seen.add(item.href);
+        return true;
+      });
   }, [cv]);
 
   const metaItems = useMemo(() => {
     if (!cv) return [];
-
     return [
       cv.currentJobTitle ? `Current: ${cv.currentJobTitle}` : null,
       cv.location ? `Location: ${cv.location}` : null,
@@ -173,10 +162,19 @@ export function BoehsTheme({ darkMode }) {
 
   if (!cv) return null;
 
+  /* rainbow colour counter */
+  let colorIdx = 0;
+
   return (
     <Page $darkMode={darkMode}>
+      <ProceduralTrees />
+
       <Column>
-        <Header>
+        {/* mobile-only flower at top */}
+        <AnimatedFlower placement="top" />
+
+        {/* ── header ── */}
+        <Header style={{ '--delay': '0ms' }}>
           <Identity>
             <HomeAnchor href="#top">
               <strong>{cv.name}</strong>
@@ -186,16 +184,20 @@ export function BoehsTheme({ darkMode }) {
           </Identity>
           <StatusButton
             type="button"
-            onClick={() => setStatusIndex((current) => (current + 1) % statusLines.length)}
+            onClick={cycleStatus}
             title="Cycle status line"
           >
-            {statusLines[statusIndex]}
+            is {statusLines[statusIndex]}
           </StatusButton>
         </Header>
 
+        {/* ── main ── */}
         <Main id="top">
+          {/* hero */}
           <Hero style={{ '--delay': '40ms' }}>
-            <HeroTitle>Hello.</HeroTitle>
+            <HeroTitle title={`"${greeting.hello}" is ${greeting.language}`}>
+              {greeting.hello}.
+            </HeroTitle>
             {(cv.currentJobTitle || cv.location) && (
               <HeroMeta>
                 {[cv.currentJobTitle, cv.location].filter(Boolean).join(' / ')}
@@ -206,12 +208,16 @@ export function BoehsTheme({ darkMode }) {
             ))}
           </Hero>
 
+          {/* work */}
           {workItems.length > 0 && (
             <Section id="work" style={{ '--delay': '90ms' }}>
               <SectionHeading>Selected work</SectionHeading>
-              <CardStack>
+              <CardGrid>
                 {workItems.map((item, index) => (
-                  <Card key={`work-${item.company}-${item.title}-${index}`} $accentHue={makeAccent(index)}>
+                  <Card
+                    key={`work-${item.company}-${item.title}-${index}`}
+                    style={{ '--accent': rainbow(index, workItems.length + 2) }}
+                  >
                     <CardMeta>{formatRange(item.startDate, item.endDate) || 'Current'}</CardMeta>
                     <CardTitle>{item.title}</CardTitle>
                     <CardSubtitle>{item.company}</CardSubtitle>
@@ -220,14 +226,15 @@ export function BoehsTheme({ darkMode }) {
                     )}
                   </Card>
                 ))}
-              </CardStack>
+              </CardGrid>
             </Section>
           )}
 
+          {/* projects */}
           {projectItems.length > 0 && (
             <Section id="projects" style={{ '--delay': '140ms' }}>
               <SectionHeading>Projects</SectionHeading>
-              <CardStack>
+              <MasonryGrid>
                 {projectItems.map((project, index) => (
                   <Card
                     key={`project-${project.name}-${index}`}
@@ -235,7 +242,7 @@ export function BoehsTheme({ darkMode }) {
                     href={project.url || undefined}
                     target={project.url ? '_blank' : undefined}
                     rel={project.url ? 'noreferrer' : undefined}
-                    $accentHue={makeAccent(index + 2)}
+                    style={{ '--accent': rainbow(index + 3, projectItems.length + 5) }}
                     $clickable={!!project.url}
                   >
                     {project.date && <CardMeta>{project.date}</CardMeta>}
@@ -249,10 +256,11 @@ export function BoehsTheme({ darkMode }) {
                     )}
                   </Card>
                 ))}
-              </CardStack>
+              </MasonryGrid>
             </Section>
           )}
 
+          {/* detail grid */}
           {(educationItems.length > 0 || fieldNotes.length > 0 || volunteerItems.length > 0) && (
             <DetailGrid style={{ '--delay': '190ms' }}>
               {educationItems.length > 0 && (
@@ -310,22 +318,40 @@ export function BoehsTheme({ darkMode }) {
           )}
         </Main>
 
+        {/* ── footer ── */}
         <Footer style={{ '--delay': '240ms' }}>
-          <Flower aria-hidden="true">{flowerArt}</Flower>
+          <AnimatedFlower />
+
           <FooterNav aria-label="Theme footer navigation">
             <FooterGrid>
               <FooterTitle>Main</FooterTitle>
               <FooterValue>
                 <FooterList>
-                  <li><FooterAnchor href="#top" $accentHue={makeAccent(0)}>Home</FooterAnchor></li>
+                  <li>
+                    <FooterAnchor href="#top" style={{ '--light': rainbow(colorIdx++, FOOTER_LINK_COUNT) }}>
+                      Home
+                    </FooterAnchor>
+                  </li>
                   {workItems.length > 0 && (
-                    <li><FooterAnchor href="#work" $accentHue={makeAccent(1)}>Work</FooterAnchor></li>
+                    <li>
+                      <FooterAnchor href="#work" style={{ '--light': rainbow(colorIdx++, FOOTER_LINK_COUNT) }}>
+                        Work
+                      </FooterAnchor>
+                    </li>
                   )}
                   {projectItems.length > 0 && (
-                    <li><FooterAnchor href="#projects" $accentHue={makeAccent(2)}>Projects</FooterAnchor></li>
+                    <li>
+                      <FooterAnchor href="#projects" style={{ '--light': rainbow(colorIdx++, FOOTER_LINK_COUNT) }}>
+                        Projects
+                      </FooterAnchor>
+                    </li>
                   )}
                   {educationItems.length > 0 && (
-                    <li><FooterAnchor href="#background" $accentHue={makeAccent(3)}>Background</FooterAnchor></li>
+                    <li>
+                      <FooterAnchor href="#background" style={{ '--light': rainbow(colorIdx++, FOOTER_LINK_COUNT) }}>
+                        Background
+                      </FooterAnchor>
+                    </li>
                   )}
                 </FooterList>
               </FooterValue>
@@ -333,13 +359,13 @@ export function BoehsTheme({ darkMode }) {
               <FooterTitle>Links</FooterTitle>
               <FooterValue>
                 <FooterList>
-                  {footerLinks.map((item, index) => (
+                  {footerLinks.map((item) => (
                     <li key={`footer-link-${item.label}`}>
                       <FooterAnchor
                         href={item.href}
                         target={/^https?:/i.test(item.href) ? '_blank' : undefined}
                         rel={/^https?:/i.test(item.href) ? 'noreferrer' : undefined}
-                        $accentHue={makeAccent(index + 4)}
+                        style={{ '--light': rainbow(colorIdx++, FOOTER_LINK_COUNT) }}
                       >
                         {item.label}
                       </FooterAnchor>
@@ -353,7 +379,9 @@ export function BoehsTheme({ darkMode }) {
                 <FooterList>
                   {metaItems.map((item, index) => (
                     <li key={`meta-${index}`}>
-                      <FooterMeta $accentHue={makeAccent(index + 7)}>{item}</FooterMeta>
+                      <FooterMeta style={{ '--light': rainbow(colorIdx++, FOOTER_LINK_COUNT) }}>
+                        {item}
+                      </FooterMeta>
                     </li>
                   ))}
                 </FooterList>
@@ -366,48 +394,10 @@ export function BoehsTheme({ darkMode }) {
   );
 }
 
-const linkStyles = css`
-  color: inherit;
-  text-decoration-color: ${({ $accentHue }) =>
-    `hsl(${$accentHue || 174} 58% var(--link-lightness))`};
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.18em;
-  transition:
-    color 140ms ease,
-    text-decoration-color 140ms ease;
+/* ── styled components ───────────────────────────────────────── */
 
-  &:hover {
-    color: ${({ $accentHue }) =>
-      `hsl(${$accentHue || 174} 62% var(--link-hover-lightness))`};
-  }
-`;
-
-const Page = styled.div`
-  --link-lightness: ${({ $darkMode }) => ($darkMode ? '62%' : '42%')};
-  --link-hover-lightness: ${({ $darkMode }) => ($darkMode ? '74%' : '34%')};
-  --card-lightness: ${({ $darkMode }) => ($darkMode ? '62%' : '52%')};
-  --card-hover-lightness: ${({ $darkMode }) => ($darkMode ? '72%' : '60%')};
-  --meta-lightness: ${({ $darkMode }) => ($darkMode ? '68%' : '54%')};
-  --flower-color: ${({ $darkMode }) => ($darkMode ? 'hsl(174 56% 58%)' : 'hsl(174 56% 46%)')};
-  min-height: 100%;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  padding: clamp(32px, 6vw, 72px) 20px 48px;
-  background:
-    radial-gradient(circle at top right, ${({ $darkMode }) => ($darkMode ? 'rgba(0, 167, 155, 0.16)' : 'rgba(0, 147, 136, 0.14)')}, transparent 28%),
-    radial-gradient(circle at bottom left, ${({ $darkMode }) => ($darkMode ? 'rgba(180, 92, 92, 0.12)' : 'rgba(180, 92, 92, 0.1)')}, transparent 32%),
-    ${({ $darkMode }) =>
-      $darkMode
-        ? 'linear-gradient(180deg, #24211f 0%, #171515 100%)'
-        : 'linear-gradient(180deg, #fffaf5 0%, #f7f0e9 100%)'};
-  color: ${({ $darkMode }) => ($darkMode ? '#f5f0ea' : '#111111')};
-  overflow-y: auto;
-`;
-
-const Column = styled.div`
-  width: min(620px, 100%);
-`;
+const SERIF = "'Crimson Text', 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif";
+const MONO = "'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace";
 
 const animatedBlock = css`
   opacity: 0;
@@ -415,36 +405,87 @@ const animatedBlock = css`
   animation-delay: var(--delay, 0ms);
 `;
 
+/* ── page shell ── */
+
+const Page = styled.div`
+  --light: ${({ $darkMode }) => ($darkMode ? '#00a79b' : '#009388')};
+  --warn: #b45c5c;
+  --flower-color: ${({ $darkMode }) => ($darkMode ? 'hsl(174 56% 58%)' : 'hsl(174 56% 46%)')};
+  position: relative;
+  min-height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 75px 20px 48px;
+  background: ${({ $darkMode }) => ($darkMode ? '#282828' : '#fff8f5')};
+  color: ${({ $darkMode }) => ($darkMode ? 'whitesmoke' : '#101010')};
+  overflow-y: auto;
+  font-family: ${SERIF};
+  font-size: 1.2rem;
+  line-height: 1.6;
+
+  a {
+    color: inherit;
+    text-decoration-color: var(--light);
+    text-decoration-thickness: 2px;
+    transition: color 0.3s;
+  }
+  a:hover {
+    color: var(--light);
+  }
+  a:active {
+    color: #ff9e9e;
+  }
+  /* external links get warning colour */
+  a[href*="//"]:not([href*="${typeof window !== 'undefined' ? window.location.hostname : ''}"]) {
+    --light: var(--warn);
+  }
+`;
+
+const Column = styled.div`
+  width: min(600px, 100%);
+  position: relative;
+  z-index: 1;
+`;
+
+/* ── header ── */
+
 const Header = styled.header`
   ${animatedBlock};
   margin-bottom: 28px;
   text-align: center;
-  font-family: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
   line-height: 1.6;
+
+  & > * {
+    display: block;
+    font-size: 1.25rem;
+  }
 `;
 
 const Identity = styled.span`
   display: block;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
+
+  a {
+    text-decoration: inherit;
+  }
 `;
 
 const HomeAnchor = styled.a`
-  ${linkStyles};
   margin-right: 0.45rem;
   text-decoration: none;
+  color: var(--light);
 `;
 
 const HeaderLink = styled.a`
-  ${linkStyles};
   font-size: 1rem;
   margin-right: 0.45rem;
-  font-family: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
+  font-family: ${MONO};
 `;
 
 const MetaText = styled.span`
   display: inline-block;
   font-size: 0.95rem;
-  color: ${({ theme }) => theme?.muted || 'inherit'};
   opacity: 0.75;
 `;
 
@@ -454,20 +495,25 @@ const StatusButton = styled.button`
   background: none;
   color: inherit;
   cursor: pointer;
-  margin-top: 0.35rem;
+  margin-top: 0.1rem;
   padding: 0;
-  font: italic 1.05rem 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+  font: italic 1.05rem ${SERIF};
   opacity: 0.82;
+  display: block;
+  width: 100%;
+  text-align: center;
 
   &:hover {
     opacity: 1;
   }
 `;
 
+/* ── main / hero ── */
+
 const Main = styled.main`
-  font-family: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
-  font-size: 1.14rem;
-  line-height: 1.7;
+  font-family: ${SERIF};
+  font-size: 1.2rem;
+  line-height: 1.6;
 `;
 
 const Hero = styled.article`
@@ -477,7 +523,7 @@ const Hero = styled.article`
 
 const HeroTitle = styled.h1`
   margin: 0 0 0.2rem;
-  font-size: clamp(2.2rem, 5vw, 2.8rem);
+  font-size: 1.5em;
   line-height: 1.05;
   font-weight: 700;
 `;
@@ -485,18 +531,17 @@ const HeroTitle = styled.h1`
 const HeroMeta = styled.p`
   margin: 0 0 1.1rem;
   font-size: 0.82rem;
-  font-family: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
+  font-family: ${MONO};
   letter-spacing: 0.03em;
   opacity: 0.75;
 `;
 
 const Paragraph = styled.p`
-  margin: 0 0 1rem;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
+  margin: 0 0 1em;
+  &:last-child { margin-bottom: 0; }
 `;
+
+/* ── sections ── */
 
 const Section = styled.section`
   ${animatedBlock};
@@ -510,38 +555,45 @@ const SectionHeading = styled.h2`
   line-height: 1.15;
 `;
 
-const CardStack = styled.div`
+/* ── cards ── */
+
+const CardGrid = styled.div`
   display: grid;
   gap: 16px;
 `;
 
+const MasonryGrid = styled.ul`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+`;
+
 const Card = styled.article`
   display: block;
-  border-left: 2px solid hsl(${({ $accentHue }) => $accentHue} 56% var(--card-lightness));
-  padding-left: 18px;
+  border-left: 2px solid var(--accent, var(--light));
+  padding-left: 20px;
   color: inherit;
   text-decoration: none;
-  transition:
-    transform 160ms ease,
-    border-color 160ms ease,
-    color 160ms ease;
+  transition: transform 160ms ease, border-color 160ms ease;
 
-  ${({ $clickable }) =>
-    $clickable &&
-    css`
-      cursor: pointer;
-    `}
+  > p {
+    margin-block: 0.25em;
+  }
+
+  ${({ $clickable }) => $clickable && css`cursor: pointer;`}
 
   &:hover {
     transform: translateX(4px);
-    border-color: hsl(${({ $accentHue }) => $accentHue} 62% var(--card-hover-lightness));
   }
 `;
 
 const CardMeta = styled.p`
   margin: 0 0 0.25rem;
   font-size: 0.82rem;
-  font-family: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
+  font-family: ${MONO};
   opacity: 0.72;
 `;
 
@@ -563,15 +615,17 @@ const CardText = styled.p`
 const CardHint = styled.p`
   margin: 0.35rem 0 0;
   font-size: 0.88rem;
-  font-family: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
+  font-family: ${MONO};
   opacity: 0.78;
 `;
 
 const ExternalMark = styled.span`
   font-size: 0.84rem;
-  font-family: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
+  font-family: ${MONO};
   opacity: 0.7;
 `;
+
+/* ── detail grid ── */
 
 const DetailGrid = styled.section`
   ${animatedBlock};
@@ -607,14 +661,15 @@ const CompactMeta = styled.p`
 const CompactText = styled.p`
   margin: 0.2rem 0 0;
   font-size: 0.84rem;
-  font-family: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
+  font-family: ${MONO};
   opacity: 0.74;
 `;
 
 const CompactAnchor = styled.a`
-  ${linkStyles};
   font-weight: 700;
 `;
+
+/* ── footer ── */
 
 const Footer = styled.footer`
   ${animatedBlock};
@@ -624,32 +679,27 @@ const Footer = styled.footer`
   gap: 18px;
 `;
 
-const Flower = styled.pre`
-  margin: 0;
-  width: 100%;
-  font-size: 0.96rem;
-  font-family: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
-  line-height: 1;
-  color: var(--flower-color);
-  white-space: pre;
-  overflow: hidden;
-  text-align: center;
-  opacity: 0.85;
-`;
-
 const FooterNav = styled.nav`
   width: 100%;
   line-height: 1.6;
 `;
 
 const FooterGrid = styled.dl`
+  font-feature-settings: 'onum';
   display: grid;
   grid-template-columns: auto max-content;
-  gap: 6px 20px;
+  gap: 5px;
   margin: 0;
-  font-feature-settings: 'onum';
 
-  @media (max-width: 640px) {
+  & > dd {
+    margin-left: auto;
+  }
+
+  * {
+    margin-block: 0;
+  }
+
+  @media (max-width: 800px) {
     display: block;
   }
 `;
@@ -658,7 +708,7 @@ const FooterTitle = styled.dt`
   margin: 0;
   font-weight: 700;
 
-  @media (max-width: 640px) {
+  @media (max-width: 800px) {
     margin-top: 10px;
   }
 `;
@@ -666,7 +716,7 @@ const FooterTitle = styled.dt`
 const FooterValue = styled.dd`
   margin: 0;
 
-  @media (max-width: 640px) {
+  @media (max-width: 800px) {
     margin-bottom: 12px;
   }
 `;
@@ -675,15 +725,19 @@ const FooterList = styled.ul`
   list-style: none;
   display: flex;
   flex-wrap: wrap;
-  gap: 0 14px;
+  gap: 0 15px;
   margin: 0;
   padding: 0;
 `;
 
 const FooterAnchor = styled.a`
-  ${linkStyles};
+  text-decoration-color: var(--light) !important;
+
+  &:hover {
+    color: var(--light) !important;
+  }
 `;
 
 const FooterMeta = styled.span`
-  color: ${({ $accentHue }) => `hsl(${$accentHue} 48% var(--meta-lightness))`};
+  color: var(--light);
 `;
