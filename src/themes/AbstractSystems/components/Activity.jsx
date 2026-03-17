@@ -5,20 +5,31 @@ import { useGitHubContext } from '../../../contexts/GitHubContext';
 
 const DAYS = 30;
 
-function buildBars(events) {
+/**
+ * Build bar chart data from contribution calendar (build-time data).
+ * Each bar = one day, using real contribution counts.
+ */
+function buildBars(contributions) {
   const now = new Date();
   const counts = new Array(DAYS).fill(0);
   let total = 0;
 
-  for (const e of events) {
-    if (e.type !== 'PushEvent') continue;
-    const d = new Date(e.createdAt);
-    const diff = Math.floor((now - d) / (1000 * 60 * 60 * 24));
-    if (diff >= 0 && diff < DAYS) {
-      const commitCount = e.commits?.length || 1;
-      counts[DAYS - 1 - diff] += commitCount;
-      total += commitCount;
-    }
+  if (!contributions?.days) return { counts, total, max: 1 };
+
+  // Build a date→count lookup from contribution data
+  const lookup = {};
+  for (const day of contributions.days) {
+    lookup[day.date] = day.count;
+  }
+
+  // Fill last N days
+  for (let i = 0; i < DAYS; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - (DAYS - 1 - i));
+    const key = d.toISOString().slice(0, 10);
+    const count = lookup[key] || 0;
+    counts[i] = count;
+    total += count;
   }
 
   const max = Math.max(...counts, 1);
@@ -40,9 +51,9 @@ export default function Activity({ theme, baseDelay = 460 }) {
   const { github, loading } = useGitHubContext();
 
   const { counts, total, max } = useMemo(() => {
-    if (!github?.events) return { counts: new Array(DAYS).fill(0), total: 0, max: 1 };
-    return buildBars(github.events);
-  }, [github?.events]);
+    if (!github?.contributions) return { counts: new Array(DAYS).fill(0), total: 0, max: 1 };
+    return buildBars(github.contributions);
+  }, [github?.contributions]);
 
   return (
     <Section>
@@ -60,7 +71,7 @@ export default function Activity({ theme, baseDelay = 460 }) {
           <StatLabel $theme={theme}>Last {DAYS} days</StatLabel>
           <DottedFill $theme={theme} />
           <StatLabel $theme={theme}>
-            {loading ? '…' : total} commits
+            {loading ? '…' : total} contributions
           </StatLabel>
         </StatsRow>
       </FadeIn>
@@ -72,7 +83,7 @@ export default function Activity({ theme, baseDelay = 460 }) {
               $theme={theme}
               $opacity={getBarOpacity(count, max)}
               $empty={count === 0}
-              title={`${count} commit${count !== 1 ? 's' : ''}`}
+              title={`${count} contribution${count !== 1 ? 's' : ''}`}
             />
           </BarSlot>
         ))}
@@ -187,7 +198,6 @@ const Bar = styled.div`
   background-color: ${p => {
     if (p.$empty) return p.$theme.barEmpty;
     const g = p.$theme.green;
-    // Parse hex green to rgba
     const r = parseInt(g.slice(1, 3), 16);
     const gr = parseInt(g.slice(3, 5), 16);
     const b = parseInt(g.slice(5, 7), 16);

@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "vite",
     "dev:random": "vite --mode random",
-    "build": "vite build",
-    "build:random": "vite build --mode random",
+    "prefetch": "node scripts/fetch-contributions.js",
+    "build": "node scripts/fetch-contributions.js && vite build",
+    "build:random": "node scripts/fetch-contributions.js && vite build --mode random",
     "preview": "vite preview"
   },
   "dependencies": {

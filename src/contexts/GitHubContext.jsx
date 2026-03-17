@@ -84,6 +84,9 @@ export function GitHubProvider({ children }) {
         .filter((e) => e.type === 'PushEvent')
         .slice(0, 10),
 
+      // Contribution calendar (from build-time fetch)
+      contributions: data.contributions,
+
       // Username
       username,
     };

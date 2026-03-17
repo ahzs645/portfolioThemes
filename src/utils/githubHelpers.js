@@ -238,16 +238,37 @@ function normalizeEventPayload(event) {
 }
 
 /**
+ * Fetch contribution calendar data (generated at build time by scripts/fetch-contributions.js)
+ * Returns { days: [{ date, level, count }], totalYear, fetchedAt } or null
+ */
+export async function fetchContributions() {
+  const key = 'gh_contributions';
+  const cached = cacheGet(key);
+  if (cached) return cached;
+
+  try {
+    const res = await fetch('/github-activity.json');
+    if (!res.ok) return null;
+    const data = await res.json();
+    cacheSet(key, data);
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Fetch all GitHub data for a username in parallel
  */
 export async function fetchAllGitHubData(username) {
-  const [profile, repos, events] = await Promise.all([
+  const [profile, repos, events, contributions] = await Promise.all([
     fetchProfile(username),
     fetchRepos(username),
     fetchEvents(username),
+    fetchContributions(),
   ]);
 
-  return { profile, repos, events };
+  return { profile, repos, events, contributions };
 }
 
 /**
@@ -269,6 +290,6 @@ export function aggregateLanguages(repos = []) {
  * Clear all GitHub cache entries
  */
 export function clearGitHubCache(username) {
-  const keys = [`gh_profile_${username}`, `gh_repos_${username}`, `gh_events_${username}`];
+  const keys = [`gh_profile_${username}`, `gh_repos_${username}`, `gh_events_${username}`, 'gh_contributions'];
   keys.forEach((k) => localStorage.removeItem(k));
 }
