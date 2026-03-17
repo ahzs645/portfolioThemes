@@ -1,14 +1,11 @@
 import React, { useMemo } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { FONT } from '../utils/tokens';
 import { useGitHubContext } from '../../../contexts/GitHubContext';
 
 const DAYS = 30;
-const CELL_SIZE = 11;
-const CELL_GAP = 3;
 
-function buildGrid(events) {
-  // Count push events per day over the last 30 days
+function buildBars(events) {
   const now = new Date();
   const counts = new Array(DAYS).fill(0);
   let total = 0;
@@ -28,105 +25,104 @@ function buildGrid(events) {
   return { counts, total, max };
 }
 
-function getLevel(count, max) {
+function getBarOpacity(count, max) {
   if (count === 0) return 0;
   const ratio = count / max;
-  if (ratio <= 0.25) return 1;
-  if (ratio <= 0.5) return 2;
-  if (ratio <= 0.75) return 3;
-  return 4;
+  if (ratio <= 0.15) return 0.22;
+  if (ratio <= 0.3) return 0.333;
+  if (ratio <= 0.45) return 0.44;
+  if (ratio <= 0.6) return 0.565;
+  if (ratio <= 0.8) return 0.72;
+  return 1;
 }
 
-export default function Activity({ theme }) {
-  const { github, loading, error } = useGitHubContext();
+export default function Activity({ theme, baseDelay = 460 }) {
+  const { github, loading } = useGitHubContext();
 
   const { counts, total, max } = useMemo(() => {
     if (!github?.events) return { counts: new Array(DAYS).fill(0), total: 0, max: 1 };
-    return buildGrid(github.events);
+    return buildBars(github.events);
   }, [github?.events]);
-
-  // Arrange into rows (7 days per column, like GitHub)
-  const cols = Math.ceil(DAYS / 7);
 
   return (
     <Section>
-      <Header>
-        <Label $theme={theme}>Activity</Label>
-      </Header>
+      <FadeIn $delay={baseDelay}>
+        <SectionHeader $theme={theme}>
+          <LabelRow>
+            <Label $theme={theme}>Activity</Label>
+            <BlinkCursor $theme={theme} />
+          </LabelRow>
+        </SectionHeader>
+      </FadeIn>
 
-      <Card $theme={theme}>
-        <GridRow>
-          <Grid>
-            {counts.map((count, i) => (
-              <Cell
-                key={i}
-                $theme={theme}
-                $level={getLevel(count, max)}
-                title={`${count} commit${count !== 1 ? 's' : ''}`}
-              />
-            ))}
-          </Grid>
-        </GridRow>
+      <FadeIn $delay={baseDelay + 50}>
+        <StatsRow>
+          <StatLabel $theme={theme}>Last {DAYS} days</StatLabel>
+          <DottedFill $theme={theme} />
+          <StatLabel $theme={theme}>
+            {loading ? '…' : total} commits
+          </StatLabel>
+        </StatsRow>
+      </FadeIn>
 
-        <Stats>
-          <StatRow>
-            <StatLabel $theme={theme}>Last {DAYS} days</StatLabel>
-            <StatValue $theme={theme}>
-              {loading ? '—' : total}
-              <StatUnit $theme={theme}> commits</StatUnit>
-            </StatValue>
-          </StatRow>
-          {github && (
-            <StatRow>
-              <StatLabel $theme={theme}>Public repos</StatLabel>
-              <StatValue $theme={theme}>{github.repoCount}</StatValue>
-            </StatRow>
-          )}
-          {github?.followers != null && (
-            <StatRow>
-              <StatLabel $theme={theme}>Followers</StatLabel>
-              <StatValue $theme={theme}>{github.followers}</StatValue>
-            </StatRow>
-          )}
-        </Stats>
-
-        {github?.recentPushes?.length > 0 && (
-          <RecentList>
-            <StatLabel $theme={theme} style={{ marginBottom: 8 }}>Recent pushes</StatLabel>
-            {github.recentPushes.slice(0, 4).map((push, i) => (
-              <PushEntry key={push.id || i} $theme={theme}>
-                <PushRepo
-                  $theme={theme}
-                  as={push.repoUrl ? 'a' : 'span'}
-                  href={push.repoUrl || undefined}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {push.repo?.split('/')[1] || push.repo}
-                </PushRepo>
-                <PushMessage $theme={theme}>
-                  {push.commits?.[0]?.message || push.branch || 'push'}
-                </PushMessage>
-              </PushEntry>
-            ))}
-          </RecentList>
-        )}
-
-        {error && !github && (
-          <ErrorText $theme={theme}>{error}</ErrorText>
-        )}
-      </Card>
+      <BarChart>
+        {counts.map((count, i) => (
+          <BarSlot key={i}>
+            <Bar
+              $theme={theme}
+              $opacity={getBarOpacity(count, max)}
+              $empty={count === 0}
+              title={`${count} commit${count !== 1 ? 's' : ''}`}
+            />
+          </BarSlot>
+        ))}
+      </BarChart>
     </Section>
   );
 }
+
+/* ── Animations ───────────────────────────────────────── */
+
+const fadeSlideUp = keyframes`
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0);
+  }
+`;
+
+const blink = keyframes`
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+`;
+
+const FadeIn = styled.div`
+  opacity: 0;
+  animation: ${fadeSlideUp} 1.2s forwards;
+  animation-delay: ${p => p.$delay || 0}ms;
+`;
+
+/* ── Layout ───────────────────────────────────────────── */
 
 const Section = styled.section`
   display: flex;
   flex-direction: column;
 `;
 
-const Header = styled.div`
-  padding: 0 0 12px;
+const SectionHeader = styled.div`
+  padding-top: 32px;
+  border-top: 1px dotted ${p => p.$theme.border};
+`;
+
+const LabelRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 2px;
 `;
 
 const Label = styled.h2`
@@ -139,125 +135,63 @@ const Label = styled.h2`
   color: ${p => p.$theme.muted};
 `;
 
-const Card = styled.div`
-  background: ${p => p.$theme.surface};
-  border: 1px solid ${p => p.$theme.border};
-  border-radius: 10px;
-  padding: 16px 20px;
+const BlinkCursor = styled.span`
+  display: inline-block;
+  width: 7px;
+  height: 11px;
+  border-radius: 1px;
+  background: ${p => p.$theme.muted};
+  animation: ${blink} 1s step-end infinite;
 `;
 
-const GridRow = styled.div`
-  margin-bottom: 16px;
-`;
-
-const Grid = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: ${CELL_GAP}px;
-`;
-
-const levelColors = (theme, level) => {
-  const light = [
-    theme.border,         // 0 - empty
-    `${theme.green}40`,   // 1 - low
-    `${theme.green}80`,   // 2 - med
-    `${theme.green}b3`,   // 3 - high
-    theme.green,          // 4 - max
-  ];
-  return light[level] || light[0];
-};
-
-const Cell = styled.div`
-  width: ${CELL_SIZE}px;
-  height: ${CELL_SIZE}px;
-  border-radius: 2px;
-  background: ${p => levelColors(p.$theme, p.$level)};
-  transition: background 0.15s ease;
-`;
-
-const Stats = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-top: 4px;
-  border-top: 1px dotted ${p => p.$theme?.border || '#e3e8ee'};
-  padding-top: 12px;
-`;
-
-const StatRow = styled.div`
+const StatsRow = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  margin-top: 16px;
 `;
 
 const StatLabel = styled.span`
   font-family: ${FONT.mono};
-  font-size: 11px;
+  font-size: 12px;
   line-height: 16px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   color: ${p => p.$theme.muted};
-`;
-
-const StatValue = styled.span`
-  font-family: ${FONT.mono};
-  font-size: 13px;
-  line-height: 18px;
-  font-weight: 500;
-  color: ${p => p.$theme.heading};
-  letter-spacing: -0.02em;
-`;
-
-const StatUnit = styled.span`
-  font-weight: 400;
-  color: ${p => p.$theme.muted};
-  font-size: 11px;
-`;
-
-const RecentList = styled.div`
-  padding-top: 12px;
-  margin-top: 12px;
-  border-top: 1px dotted ${p => p.$theme?.border || '#e3e8ee'};
-  display: flex;
-  flex-direction: column;
-`;
-
-const PushEntry = styled.div`
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 4px 0;
-  min-width: 0;
-`;
-
-const PushRepo = styled.span`
-  font-family: ${FONT.mono};
-  font-size: 12px;
-  line-height: 18px;
-  color: ${p => p.$theme.heading};
-  font-weight: 500;
-  text-decoration: none;
-  white-space: nowrap;
   flex-shrink: 0;
-
-  &:hover {
-    color: ${p => p.$theme.blue};
-  }
 `;
 
-const PushMessage = styled.span`
-  font-family: ${FONT.sans};
-  font-size: 12px;
-  line-height: 18px;
-  color: ${p => p.$theme.muted};
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
+const DottedFill = styled.span`
+  flex: 1;
+  height: 0;
+  margin: 0 12px;
+  border-bottom: 1px dotted ${p => p.$theme.border};
 `;
 
-const ErrorText = styled.p`
-  font-family: ${FONT.mono};
-  font-size: 11px;
-  color: ${p => p.$theme.muted};
-  margin: 8px 0 0;
+const BarChart = styled.div`
+  display: flex;
+  gap: 3px;
+  width: 100%;
+  margin-top: 10px;
+`;
+
+const BarSlot = styled.div`
+  flex: 1;
+  position: relative;
+`;
+
+const Bar = styled.div`
+  width: 100%;
+  height: 24px;
+  border-radius: 4px;
+  transition: background-color 0.15s, box-shadow 0.15s;
+  background-color: ${p => {
+    if (p.$empty) return p.$theme.barEmpty;
+    const g = p.$theme.green;
+    // Parse hex green to rgba
+    const r = parseInt(g.slice(1, 3), 16);
+    const gr = parseInt(g.slice(3, 5), 16);
+    const b = parseInt(g.slice(5, 7), 16);
+    if (p.$opacity >= 1) return g;
+    return `rgba(${r}, ${gr}, ${b}, ${p.$opacity})`;
+  }};
 `;

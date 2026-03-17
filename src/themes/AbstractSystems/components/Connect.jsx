@@ -2,8 +2,9 @@ import React from 'react';
 import styled from 'styled-components';
 import { FONT } from '../utils/tokens';
 import { getSocialDisplayName, getSocialUsername } from '../utils/helpers';
+import { FadeIn, SectionHeader, LabelRow, Label, BlinkCursor, DottedFill } from './SectionShared';
 
-export default function Connect({ cv, theme }) {
+export default function Connect({ cv, theme, baseDelay = 840 }) {
   const links = [];
 
   if (cv.socialRaw) {
@@ -30,30 +31,37 @@ export default function Connect({ cv, theme }) {
 
   return (
     <Section id="as-connect">
-      <Header>
-        <Label $theme={theme}>Connect</Label>
-      </Header>
+      <FadeIn $delay={baseDelay}>
+        <SectionHeader $theme={theme}>
+          <LabelRow>
+            <Label $theme={theme}>Connect</Label>
+            <BlinkCursor $theme={theme} />
+          </LabelRow>
+        </SectionHeader>
+      </FadeIn>
 
       <List className="blur-hover-group">
         {links.map((link, i) => (
-          <LinkRow
-            key={i}
-            className="blur-hover"
-            $theme={theme}
-            href={link.href}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <LinkLabel $theme={theme}>{link.label}</LinkLabel>
-            <LinkValue $theme={theme}>
-              {link.username}
-              <ArrowIcon $theme={theme}>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <path d="M2.5 9.5L9.5 2.5M9.5 2.5H4.5M9.5 2.5V7.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </ArrowIcon>
-            </LinkValue>
-          </LinkRow>
+          <FadeIn key={i} $delay={baseDelay + 50 + i * 40}>
+            <LinkRow
+              className="blur-hover"
+              $theme={theme}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <LinkLabel $theme={theme}>{link.label}</LinkLabel>
+              <DottedFill $theme={theme} />
+              <LinkValue $theme={theme}>
+                {link.username}
+                <ArrowIcon $theme={theme}>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2.5 9.5L9.5 2.5M9.5 2.5H4.5M9.5 2.5V7.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </ArrowIcon>
+              </LinkValue>
+            </LinkRow>
+          </FadeIn>
         ))}
       </List>
     </Section>
@@ -65,33 +73,20 @@ const Section = styled.section`
   flex-direction: column;
 `;
 
-const Header = styled.div`
-  padding: 0 0 12px;
-`;
-
-const Label = styled.h2`
-  font-family: ${FONT.sans};
-  font-size: 11px;
-  line-height: 14px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 500;
-  color: ${p => p.$theme.muted};
-`;
-
 const List = styled.div`
   display: flex;
   flex-direction: column;
+  margin-top: 16px;
 `;
 
 const LinkRow = styled.a`
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 10px 0;
   border-top: 1px dotted ${p => p.$theme.border};
   text-decoration: none;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity 0.15s cubic-bezier(0.215, 0.61, 0.355, 1),
+              transform 0.15s cubic-bezier(0.215, 0.61, 0.355, 1);
   cursor: pointer;
 
   @media (hover: hover) {
@@ -107,6 +102,7 @@ const LinkLabel = styled.span`
   line-height: 20px;
   font-weight: 500;
   color: ${p => p.$theme.heading};
+  flex-shrink: 0;
 `;
 
 const LinkValue = styled.span`
@@ -117,6 +113,7 @@ const LinkValue = styled.span`
   font-size: 12px;
   line-height: 16px;
   color: ${p => p.$theme.muted};
+  flex-shrink: 0;
 `;
 
 const ArrowIcon = styled.span`

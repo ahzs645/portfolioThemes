@@ -11,8 +11,22 @@ import Awards from './components/Awards';
 import Activity from './components/Activity';
 import Connect from './components/Connect';
 
-const FontLoader = createGlobalStyle`
+const GlobalStyles = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+  /* blur-hover interaction — siblings dim when one is hovered */
+  .blur-hover {
+    transition: opacity 0.15s cubic-bezier(0.215, 0.61, 0.355, 1),
+                transform 0.15s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  @media (hover: hover) {
+    .blur-hover-group:hover .blur-hover:not(:hover) {
+      opacity: 0.4;
+    }
+    .blur-hover:hover {
+      transform: translateX(2px);
+    }
+  }
 `;
 
 export function AbstractSystemsTheme({ darkMode }) {
@@ -23,22 +37,16 @@ export function AbstractSystemsTheme({ darkMode }) {
 
   return (
     <Page $theme={theme}>
-      <FontLoader />
+      <GlobalStyles />
       <Nav theme={theme} />
       <ScrollContainer id="as-scroll-container">
         <Content>
           <Hero cv={cv} theme={theme} />
-          <Spacer />
           <Experience cv={cv} theme={theme} />
-          <Spacer />
           <Activity theme={theme} />
-          <Spacer />
           <Education cv={cv} theme={theme} />
-          <Spacer />
           <Projects cv={cv} theme={theme} />
-          <Spacer />
           <Awards cv={cv} theme={theme} />
-          <Spacer />
           <Connect cv={cv} theme={theme} />
           <Footer $theme={theme}>
             <FooterDate $theme={theme}>
@@ -79,10 +87,6 @@ const Content = styled.main`
   @media (max-width: ${BREAKPOINT}px) {
     padding: 130px 20px 60px;
   }
-`;
-
-const Spacer = styled.div`
-  height: 40px;
 `;
 
 const TopMask = styled.div`

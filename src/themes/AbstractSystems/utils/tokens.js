@@ -19,6 +19,12 @@ export const light = {
   surfaceGlass: 'rgba(246, 249, 252, 0.8)',
   shadowRing: 'rgba(0, 0, 0, 0.06)',
   shadowSm: 'rgba(0, 0, 0, 0.04)',
+  barEmpty: '#d0d6dd',
+  // Nav always uses a dark pill
+  navBg: 'rgba(10, 37, 64, 0.9)',
+  navBgMobile: 'rgba(10, 37, 64, 0.7)',
+  navActiveBg: '#ffffff',
+  navActiveText: '#0a2540',
 };
 
 export const dark = {
@@ -35,4 +41,10 @@ export const dark = {
   surfaceGlass: 'rgba(22, 22, 29, 0.8)',
   shadowRing: 'rgba(0, 0, 0, 0.3)',
   shadowSm: 'rgba(0, 0, 0, 0.2)',
+  barEmpty: '#28282f',
+  // Nav always uses a dark pill
+  navBg: 'rgba(10, 10, 10, 0.85)',
+  navBgMobile: 'rgba(10, 10, 10, 0.85)',
+  navActiveBg: '#23232b',
+  navActiveText: '#e8e8ec',
 };

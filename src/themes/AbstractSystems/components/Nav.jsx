@@ -71,7 +71,7 @@ const Bar = styled.nav`
   gap: 4px;
   padding: 5px;
   border-radius: 999px;
-  background: ${p => p.$theme.heading}e6;
+  background: ${p => p.$theme.navBg};
   border: 1px solid rgba(255, 255, 255, 0.04);
   box-shadow: 0 9px 27px ${p => p.$theme.shadowRing};
   backdrop-filter: blur(12px);
@@ -80,7 +80,7 @@ const Bar = styled.nav`
     top: 45px;
     left: 24px;
     transform: none;
-    background: ${p => p.$theme.heading}b3;
+    background: ${p => p.$theme.navBgMobile};
   }
 `;
 
@@ -114,11 +114,11 @@ const NavButton = styled.button`
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
-  color: ${p => p.$active ? p.$theme.heading : 'rgba(255, 255, 255, 0.5)'};
-  background: ${p => p.$active ? p.$theme.surface : 'transparent'};
+  color: ${p => p.$active ? p.$theme.navActiveText : 'rgba(255, 255, 255, 0.5)'};
+  background: ${p => p.$active ? p.$theme.navActiveBg : 'transparent'};
 
   &:hover {
-    color: ${p => p.$active ? p.$theme.heading : 'rgba(255, 255, 255, 0.7)'};
+    color: ${p => p.$active ? p.$theme.navActiveText : 'rgba(255, 255, 255, 0.7)'};
   }
 
   &:active {

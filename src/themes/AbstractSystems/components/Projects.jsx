@@ -1,19 +1,25 @@
 import React from 'react';
 import styled from 'styled-components';
-import { FONT, BREAKPOINT } from '../utils/tokens';
+import { FONT } from '../utils/tokens';
 import { trimText } from '../utils/helpers';
 import { filterActive } from '../../../utils/cvHelpers';
+import { FadeIn, SectionHeader, LabelRow, Label, BlinkCursor } from './SectionShared';
 
-export default function Projects({ cv, theme }) {
+export default function Projects({ cv, theme, baseDelay = 640 }) {
   const projects = filterActive(cv.projects || []).slice(0, 6);
 
   if (projects.length === 0) return null;
 
   return (
     <Section id="as-projects">
-      <Header>
-        <Label $theme={theme}>Projects</Label>
-      </Header>
+      <FadeIn $delay={baseDelay}>
+        <SectionHeader $theme={theme}>
+          <LabelRow>
+            <Label $theme={theme}>Projects</Label>
+            <BlinkCursor $theme={theme} />
+          </LabelRow>
+        </SectionHeader>
+      </FadeIn>
 
       <List>
         {projects.map((project, i) => {
@@ -23,36 +29,38 @@ export default function Projects({ cv, theme }) {
             .filter(Boolean)[0];
 
           return (
-            <Entry key={i} $theme={theme}>
-              <EntryNum $theme={theme}>{num}</EntryNum>
-              <EntryContent>
-                <EntryHeader>
-                  <EntryTitle
-                    $theme={theme}
-                    as={project.url ? 'a' : 'span'}
-                    href={project.url || undefined}
-                    target={project.url ? '_blank' : undefined}
-                    rel={project.url ? 'noopener noreferrer' : undefined}
-                  >
-                    {project.name || 'Project'}
-                    {project.url && <Arrow $theme={theme}> ↗</Arrow>}
-                  </EntryTitle>
-                  {project.date && (
-                    <Badge $theme={theme}>
-                      {project.date}
-                    </Badge>
+            <FadeIn key={i} $delay={baseDelay + 50 + i * 50}>
+              <Entry $theme={theme}>
+                <EntryNum $theme={theme}>{num}</EntryNum>
+                <EntryContent>
+                  <EntryHeader>
+                    <EntryTitle
+                      $theme={theme}
+                      as={project.url ? 'a' : 'span'}
+                      href={project.url || undefined}
+                      target={project.url ? '_blank' : undefined}
+                      rel={project.url ? 'noopener noreferrer' : undefined}
+                    >
+                      {project.name || 'Project'}
+                      {project.url && <Arrow $theme={theme}> ↗</Arrow>}
+                    </EntryTitle>
+                    {project.date && (
+                      <Badge $theme={theme}>
+                        {project.date}
+                      </Badge>
+                    )}
+                  </EntryHeader>
+                  {project.summary && (
+                    <EntryBody $theme={theme}>
+                      {trimText(project.summary, 140)}
+                    </EntryBody>
                   )}
-                </EntryHeader>
-                {project.summary && (
-                  <EntryBody $theme={theme}>
-                    {trimText(project.summary, 140)}
-                  </EntryBody>
-                )}
-                {tech && (
-                  <TechLine $theme={theme}>{tech}</TechLine>
-                )}
-              </EntryContent>
-            </Entry>
+                  {tech && (
+                    <TechLine $theme={theme}>{tech}</TechLine>
+                  )}
+                </EntryContent>
+              </Entry>
+            </FadeIn>
           );
         })}
       </List>
@@ -65,26 +73,10 @@ const Section = styled.section`
   flex-direction: column;
 `;
 
-const Header = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 0 12px;
-`;
-
-const Label = styled.h2`
-  font-family: ${FONT.sans};
-  font-size: 11px;
-  line-height: 14px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 500;
-  color: ${p => p.$theme.muted};
-`;
-
 const List = styled.div`
   display: flex;
   flex-direction: column;
+  margin-top: 16px;
 `;
 
 const Entry = styled.div`

@@ -3,42 +3,50 @@ import styled from 'styled-components';
 import { FONT } from '../utils/tokens';
 import { trimText, formatYear } from '../utils/helpers';
 import { filterActive } from '../../../utils/cvHelpers';
+import { FadeIn, SectionHeader, LabelRow, Label, BlinkCursor } from './SectionShared';
 
-export default function Awards({ cv, theme }) {
+export default function Awards({ cv, theme, baseDelay = 740 }) {
   const awards = filterActive(cv.awards || []).slice(0, 5);
 
   if (awards.length === 0) return null;
 
   return (
     <Section>
-      <Header>
-        <Label $theme={theme}>Awards</Label>
-      </Header>
+      <FadeIn $delay={baseDelay}>
+        <SectionHeader $theme={theme}>
+          <LabelRow>
+            <Label $theme={theme}>Awards</Label>
+            <BlinkCursor $theme={theme} />
+          </LabelRow>
+        </SectionHeader>
+      </FadeIn>
 
       <List>
         {awards.map((award, i) => {
           const num = String(i + 1).padStart(2, '0');
           return (
-            <Entry key={i} $theme={theme}>
-              <EntryNum $theme={theme}>{num}</EntryNum>
-              <EntryContent>
-                <EntryHeader>
-                  <EntryTitle $theme={theme}>
-                    {award.name || 'Award'}
-                  </EntryTitle>
-                  {award.date && (
-                    <DateBadge $theme={theme}>
-                      {formatYear(award.date)}
-                    </DateBadge>
+            <FadeIn key={i} $delay={baseDelay + 50 + i * 50}>
+              <Entry $theme={theme}>
+                <EntryNum $theme={theme}>{num}</EntryNum>
+                <EntryContent>
+                  <EntryHeader>
+                    <EntryTitle $theme={theme}>
+                      {award.name || 'Award'}
+                    </EntryTitle>
+                    {award.date && (
+                      <DateBadge $theme={theme}>
+                        {formatYear(award.date)}
+                      </DateBadge>
+                    )}
+                  </EntryHeader>
+                  {award.summary && (
+                    <EntryBody $theme={theme}>
+                      {trimText(award.summary, 100)}
+                    </EntryBody>
                   )}
-                </EntryHeader>
-                {award.summary && (
-                  <EntryBody $theme={theme}>
-                    {trimText(award.summary, 100)}
-                  </EntryBody>
-                )}
-              </EntryContent>
-            </Entry>
+                </EntryContent>
+              </Entry>
+            </FadeIn>
           );
         })}
       </List>
@@ -51,23 +59,10 @@ const Section = styled.section`
   flex-direction: column;
 `;
 
-const Header = styled.div`
-  padding: 0 0 12px;
-`;
-
-const Label = styled.h2`
-  font-family: ${FONT.sans};
-  font-size: 11px;
-  line-height: 14px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 500;
-  color: ${p => p.$theme.muted};
-`;
-
 const List = styled.div`
   display: flex;
   flex-direction: column;
+  margin-top: 16px;
 `;
 
 const Entry = styled.div`

@@ -14,33 +14,54 @@ export function formatRange(startDate, endDate) {
   return start || end || '';
 }
 
-export function getCompanyExperience(experience = []) {
-  const seen = new Set();
+/**
+ * Build a timeline-style experience list.
+ * Companies with nested positions produce one "company" row
+ * followed by sub-position rows.
+ */
+export function getTimelineExperience(experience = []) {
   const result = [];
 
   for (const entry of experience) {
     if (!entry || isArchived(entry)) continue;
     const company = entry.company || '';
-    if (!company || seen.has(company)) continue;
-    seen.add(company);
-
-    let title = entry.position;
-    let startDate = entry.start_date;
-    let endDate = entry.end_date;
 
     if (Array.isArray(entry.positions) && entry.positions.length > 0) {
-      title = entry.positions[0].title || entry.position;
-      startDate = entry.positions[entry.positions.length - 1].start_date || startDate;
-      endDate = entry.positions[0].end_date || endDate;
+      // Company header = first (most recent) position
+      const first = entry.positions[0];
+      result.push({
+        type: 'company',
+        company,
+        title: first.title || entry.position,
+        startDate: entry.positions[entry.positions.length - 1].start_date || entry.start_date,
+        endDate: first.end_date || entry.end_date,
+        isCurrent: isPresent(first.end_date || entry.end_date),
+        hasChildren: entry.positions.length > 1,
+      });
+      // Sub-positions (skip the first, already shown)
+      for (let i = 1; i < entry.positions.length; i++) {
+        const pos = entry.positions[i];
+        result.push({
+          type: 'sub',
+          company,
+          title: pos.title || entry.position,
+          startDate: pos.start_date,
+          endDate: pos.end_date,
+          isCurrent: isPresent(pos.end_date),
+          isLast: i === entry.positions.length - 1,
+        });
+      }
+    } else {
+      result.push({
+        type: 'company',
+        company,
+        title: entry.position,
+        startDate: entry.start_date,
+        endDate: entry.end_date,
+        isCurrent: isPresent(entry.end_date),
+        hasChildren: false,
+      });
     }
-
-    result.push({
-      company,
-      title,
-      startDate,
-      endDate,
-      isCurrent: isPresent(endDate),
-    });
   }
 
   return result;
