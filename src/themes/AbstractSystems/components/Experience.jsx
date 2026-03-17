@@ -11,21 +11,23 @@ export default function Experience({ cv, theme, baseDelay = 340 }) {
   const [expanded, setExpanded] = useState(false);
 
   // Group entries by company so we can collapse by group
-  const { groups, totalGroups } = useMemo(() => {
+  const { groups, totalGroups, hasSubs } = useMemo(() => {
     const g = [];
+    let anySubs = false;
     for (const entry of entries) {
       if (entry.type === 'company') {
         g.push({ company: entry, subs: [] });
       } else if (g.length > 0) {
         g[g.length - 1].subs.push(entry);
+        anySubs = true;
       }
     }
-    return { groups: g, totalGroups: g.length };
+    return { groups: g, totalGroups: g.length, hasSubs: anySubs };
   }, [entries]);
 
   if (groups.length === 0) return null;
 
-  const canExpand = totalGroups > DEFAULT_VISIBLE;
+  const canExpand = totalGroups > DEFAULT_VISIBLE || hasSubs;
   const visibleGroups = expanded ? groups : groups.slice(0, DEFAULT_VISIBLE);
 
   let companyIndex = 0;
