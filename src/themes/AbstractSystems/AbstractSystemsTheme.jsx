@@ -9,6 +9,11 @@ import Education from './components/Education';
 import Projects from './components/Projects';
 import Awards from './components/Awards';
 import Activity from './components/Activity';
+import Volunteer from './components/Volunteer';
+import Publications from './components/Publications';
+import Presentations from './components/Presentations';
+import ProfDev from './components/ProfDev';
+import CertsSkills from './components/CertsSkills';
 import Connect from './components/Connect';
 
 const GlobalStyles = createGlobalStyle`
@@ -47,6 +52,11 @@ export function AbstractSystemsTheme({ darkMode }) {
           <Education cv={cv} theme={theme} />
           <Projects cv={cv} theme={theme} />
           <Awards cv={cv} theme={theme} />
+          <Publications cv={cv} theme={theme} />
+          <Presentations cv={cv} theme={theme} />
+          <Volunteer cv={cv} theme={theme} />
+          <ProfDev cv={cv} theme={theme} />
+          <CertsSkills cv={cv} theme={theme} />
           <Connect cv={cv} theme={theme} />
           <Footer $theme={theme}>
             <FooterDate $theme={theme}>

@@ -322,7 +322,9 @@ const CompanyName = styled.span`
   font-weight: 500;
   color: ${p => p.$theme.heading};
   white-space: nowrap;
-  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 `;
 
 const InlineDetail = styled.div`
@@ -337,7 +339,10 @@ const RoleText = styled.span`
   font-size: 14px;
   line-height: 20px;
   color: ${p => p.$theme.muted};
-  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
   padding-left: 0;
 
   @media (min-width: ${BREAKPOINT}px) {
@@ -350,7 +355,7 @@ const DottedFill = styled.span`
   height: 0;
   margin: 0 12px;
   border-bottom: 1px dotted ${p => p.$theme.border};
-  min-width: 16px;
+  min-width: 8px;
 `;
 
 const DateText = styled.span`
@@ -392,5 +397,8 @@ const SubTitle = styled.span`
   font-size: 14px;
   line-height: 20px;
   color: ${p => p.$theme.muted};
-  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 `;

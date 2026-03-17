@@ -1,12 +1,12 @@
 import React from 'react';
 import styled from 'styled-components';
 import { FONT, BREAKPOINT } from '../utils/tokens';
-import { formatRange } from '../utils/helpers';
+import { formatYear } from '../utils/helpers';
 import { filterActive } from '../../../utils/cvHelpers';
 import { FadeIn, SectionHeader, LabelRow, Label, BlinkCursor, DottedFill } from './SectionShared';
 
-export default function Education({ cv, theme, baseDelay = 560 }) {
-  const items = filterActive(cv.education || []).slice(0, 4);
+export default function ProfDev({ cv, theme, baseDelay = 1100 }) {
+  const items = filterActive(cv.professionalDevelopment || []);
 
   if (items.length === 0) return null;
 
@@ -15,25 +15,25 @@ export default function Education({ cv, theme, baseDelay = 560 }) {
       <FadeIn $delay={baseDelay}>
         <SectionHeader $theme={theme}>
           <LabelRow>
-            <Label $theme={theme}>Education</Label>
+            <Label $theme={theme}>Professional Development</Label>
             <BlinkCursor $theme={theme} />
           </LabelRow>
         </SectionHeader>
       </FadeIn>
 
       <List className="blur-hover-group">
-        {items.map((entry, i) => (
+        {items.map((item, i) => (
           <FadeIn key={i} $delay={baseDelay + 50 + i * 50}>
             <Entry className="blur-hover" $theme={theme}>
               <EntryContent>
-                <Institution $theme={theme}>{entry.institution}</Institution>
+                <EntryName $theme={theme}>{item.name}</EntryName>
                 <InlineDetail>
-                  <Degree $theme={theme}>
-                    {[entry.degree, entry.area].filter(Boolean).join(' — ')}
-                  </Degree>
+                  <Institution $theme={theme}>
+                    {[item.summary, item.location].filter(Boolean).join(' · ')}
+                  </Institution>
                   <DottedFill $theme={theme} />
                   <DateText $theme={theme}>
-                    {formatRange(entry.start_date, entry.end_date)}
+                    {formatYear(item.date)}
                   </DateText>
                 </InlineDetail>
               </EntryContent>
@@ -64,9 +64,7 @@ const Entry = styled.div`
               transform 0.15s cubic-bezier(0.215, 0.61, 0.355, 1);
 
   @media (hover: hover) {
-    &:hover {
-      transform: translateX(2px);
-    }
+    &:hover { transform: translateX(2px); }
   }
 `;
 
@@ -85,7 +83,7 @@ const EntryContent = styled.div`
   }
 `;
 
-const Institution = styled.span`
+const EntryName = styled.span`
   font-family: ${FONT.sans};
   font-size: 14px;
   line-height: 20px;
@@ -104,7 +102,7 @@ const InlineDetail = styled.div`
   min-width: 0;
 `;
 
-const Degree = styled.span`
+const Institution = styled.span`
   font-family: ${FONT.sans};
   font-size: 14px;
   line-height: 20px;
