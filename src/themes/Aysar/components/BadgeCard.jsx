@@ -140,9 +140,9 @@ const Content = styled.div`
   background: ${p => p.$theme.cardBg};
   border-radius: 36px;
   box-shadow: 0 7px 26.5px rgba(0, 0, 0, 0.03);
-  padding: 30px 40px 40px;
+  padding: 30px 50px 50px;
 
   @media (max-width: ${BREAKPOINT}px) {
-    padding: 20px 24px 30px;
+    padding: 20px 24px 36px;
   }
 `;

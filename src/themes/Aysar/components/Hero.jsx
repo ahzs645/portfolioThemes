@@ -35,6 +35,12 @@ const WebIcon = () => (
   </svg>
 );
 
+const LocationIcon = () => (
+  <svg width="13" height="14" viewBox="0 0 13 14" fill="currentColor" style={{ flexShrink: 0 }}>
+    <path d="M6.5 0C3.46 0 1 2.46 1 5.5 1 9.63 6.05 13.68 6.27 13.85a.5.5 0 0 0 .46 0C6.95 13.68 12 9.63 12 5.5 12 2.46 9.54 0 6.5 0Zm0 8a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5Z" />
+  </svg>
+);
+
 function getSocialIcon(label) {
   const l = label.toLowerCase();
   if (l === 'x' || l.includes('twitter')) return <XIcon />;
@@ -47,10 +53,13 @@ export default function Hero({ cv, theme }) {
   const heroCopy = useMemo(() => buildHeroCopy(cv), [cv]);
   const contactLinks = useMemo(() => buildContactLinks(cv), [cv]);
   const initials = getInitials(cv.name);
-  const headline = cv.currentJobTitle || 'Portfolio';
-  const description = getFirstSentence(cv.about) || heroCopy || 'Building things that matter.';
+  const headline = getFirstSentence(cv.about) || `${cv.currentJobTitle || 'Portfolio'}.`;
+  const skills = (cv.skills || []).slice(0, 3).map(s => typeof s === 'string' ? s : s?.name || '').filter(Boolean);
+  const topicLine = skills.length > 0 ? skills.join('   +   ') : '';
+  const description = heroCopy || 'Building things that matter.';
   const primaryLink = cv.website || cv.socialLinks?.linkedin || cv.socialLinks?.github;
   const badgeSocials = contactLinks.filter(l => l.label !== 'Email').slice(0, 3);
+  const contactHref = cv.email ? `mailto:${cv.email}` : (primaryLink || '#');
 
   return (
     <Section>
@@ -62,12 +71,14 @@ export default function Hero({ cv, theme }) {
           <Dot $theme={theme} />
         </ProgressDots>
 
-        {/* Identity row */}
-        <IdentityRow>
+        {/* Top: Avatar + Name/Title + Socials */}
+        <TopSection>
           <Avatar $theme={theme}>{initials}</Avatar>
-          <IdentityInfo>
-            <IdentityName $theme={theme}>{cv.name || 'Your Name'}</IdentityName>
-            <IdentityTitle $theme={theme}>{cv.currentJobTitle || 'Portfolio'}</IdentityTitle>
+          <ContentCol>
+            <TextCol>
+              <NameText $theme={theme}>{cv.name || 'Your Name'}</NameText>
+              <TitleText $theme={theme}>{cv.currentJobTitle || 'Portfolio'}</TitleText>
+            </TextCol>
             {badgeSocials.length > 0 && (
               <SocialIcons>
                 {badgeSocials.map(link => (
@@ -84,40 +95,66 @@ export default function Hero({ cv, theme }) {
                 ))}
               </SocialIcons>
             )}
-          </IdentityInfo>
-        </IdentityRow>
+          </ContentCol>
+        </TopSection>
 
-        {/* Availability */}
-        <AvailabilityRow>
-          <AvailDot $theme={theme} />
-          <AvailText $theme={theme}>
-            {cv.location ? `Based in ${cv.location}` : 'Available for new opportunities'}
-          </AvailText>
-        </AvailabilityRow>
-      </BadgeCard>
+        {/* Available */}
+        <AvailRow>
+          <AvailDotWrap>
+            <AvailDot $theme={theme} />
+          </AvailDotWrap>
+          <AvailLabel $theme={theme}>
+            {cv.location ? `Based in ${cv.location}` : 'Available for opportunities'}
+          </AvailLabel>
+        </AvailRow>
 
-      {/* Hero text below badge */}
-      <HeroText>
-        <Headline $theme={theme}>{headline}</Headline>
-        <Description $theme={theme}>{description}</Description>
-        <Buttons>
-          <PrimaryBtn $theme={theme} href={cv.email ? `mailto:${cv.email}` : '#work'}>
-            Get in touch
-          </PrimaryBtn>
-          {primaryLink && (
-            <SecondaryBtn $theme={theme} href={primaryLink} target="_blank" rel="noreferrer">
-              {getDisplayUrl(primaryLink) || 'View work'}
-            </SecondaryBtn>
+        {/* Headline */}
+        <HeadlineWrap>
+          <Headline $theme={theme}>{headline}</Headline>
+        </HeadlineWrap>
+
+        {/* Topic + description */}
+        <DescBlock>
+          {topicLine && (
+            <TopicBadge $theme={theme}>
+              <TopicText $theme={theme}>{topicLine}</TopicText>
+            </TopicBadge>
           )}
-        </Buttons>
-      </HeroText>
+          <BodyText $theme={theme}>{description}</BodyText>
+        </DescBlock>
+
+        {/* Button */}
+        <ButtonRow>
+          <ContactBtn $theme={theme} href={contactHref}>
+            <BtnLabel>Contact</BtnLabel>
+            <BtnIcon $theme={theme}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="1" y1="13" x2="13" y2="1" />
+                <polyline points="4 1 13 1 13 10" />
+              </svg>
+            </BtnIcon>
+          </ContactBtn>
+        </ButtonRow>
+
+        {/* Bottom location */}
+        <BottomRow>
+          <LocationRow $theme={theme}>
+            <LocationIcon />
+            <LocationText $theme={theme}>
+              <LocationMuted>Currently based in </LocationMuted>
+              {cv.location || 'Remote'}
+              <LocationMuted>, available worldwide.</LocationMuted>
+            </LocationText>
+          </LocationRow>
+        </BottomRow>
+      </BadgeCard>
     </Section>
   );
 }
 
 /* ── Keyframes ── */
 
-const fadeUpContent = keyframes`
+const fadeUp = keyframes`
   from { opacity: 0.001; transform: translateY(30px); }
   to   { opacity: 1;     transform: translateY(0); }
 `;
@@ -133,33 +170,35 @@ const Section = styled.section`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 80px 0 60px;
+  padding: 80px 0 40px;
 
   @media (max-width: ${BREAKPOINT}px) {
-    padding: 70px 0 40px;
+    padding: 70px 0 30px;
   }
 `;
 
-/* Badge inner content */
+/* Progress dots */
 const ProgressDots = styled.div`
   display: flex;
   gap: 6px;
   justify-content: center;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
 `;
 
 const Dot = styled.div`
   width: 40px;
   height: 4px;
-  border-radius: 4px;
-  background: ${p => p.$active ? p.$theme.lime : p.$theme.border};
+  border-radius: 50px;
+  background: ${p => p.$active ? 'rgb(158, 243, 74)' : 'rgb(239, 239, 239)'};
 `;
 
-const IdentityRow = styled.div`
+/* Top section */
+const TopSection = styled.div`
   display: flex;
   align-items: center;
   gap: 16px;
-  animation: ${fadeUpContent} 1.3s cubic-bezier(0.68, 0, 0.31, 0.91) 0s both;
+  margin-bottom: 20px;
+  animation: ${fadeUp} 1.3s cubic-bezier(0.68, 0, 0.31, 0.91) 0s both;
 `;
 
 const Avatar = styled.div`
@@ -177,12 +216,17 @@ const Avatar = styled.div`
   flex-shrink: 0;
 `;
 
-const IdentityInfo = styled.div`
+const ContentCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   flex: 1;
   min-width: 0;
 `;
 
-const IdentityName = styled.div`
+const TextCol = styled.div``;
+
+const NameText = styled.div`
   color: ${p => p.$theme.text};
   font-family: ${FONT.family};
   font-size: 18px;
@@ -191,8 +235,7 @@ const IdentityName = styled.div`
   line-height: 1.2;
 `;
 
-const IdentityTitle = styled.div`
-  margin-top: 2px;
+const TitleText = styled.div`
   color: ${p => p.$theme.textSecondary};
   font-family: ${FONT.family};
   font-size: 14px;
@@ -203,7 +246,6 @@ const IdentityTitle = styled.div`
 const SocialIcons = styled.div`
   display: flex;
   gap: 10px;
-  margin-top: 6px;
 `;
 
 const SocialLink = styled.a`
@@ -218,11 +260,17 @@ const SocialLink = styled.a`
   &:hover { opacity: 1; }
 `;
 
-const AvailabilityRow = styled.div`
+/* Available */
+const AvailRow = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 4px;
+  margin-bottom: 24px;
+`;
+
+const AvailDotWrap = styled.div`
+  display: flex;
+  align-items: center;
 `;
 
 const AvailDot = styled.div`
@@ -230,11 +278,10 @@ const AvailDot = styled.div`
   height: 8px;
   border-radius: 50%;
   background: ${p => p.$theme.lime};
-  flex-shrink: 0;
   animation: ${pulseDot} 0.6s cubic-bezier(0.68, 0, 0.31, 0.91) infinite alternate;
 `;
 
-const AvailText = styled.span`
+const AvailLabel = styled.span`
   color: ${p => p.$theme.textSecondary};
   font-family: ${FONT.family};
   font-size: 14px;
@@ -242,82 +289,118 @@ const AvailText = styled.span`
   letter-spacing: -0.03em;
 `;
 
-/* Hero text below badge */
-const HeroText = styled.div`
-  max-width: 550px;
-  width: 100%;
-  text-align: center;
-  margin-top: 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
+/* Headline */
+const HeadlineWrap = styled.div`
+  margin-bottom: 20px;
+  animation: ${fadeUp} 1.3s cubic-bezier(0.68, 0, 0.31, 0.91) 0.1s both;
 `;
 
 const Headline = styled.h1`
   margin: 0;
   color: ${p => p.$theme.text};
   font-family: ${FONT.family};
-  font-size: clamp(34px, 6vw, 50px);
+  font-size: clamp(30px, 5vw, 42px);
   font-weight: ${FONT.semibold};
   letter-spacing: -0.05em;
   line-height: 110%;
-  animation: ${fadeUpContent} 1.3s cubic-bezier(0.68, 0, 0.31, 0.91) 0.1s both;
 `;
 
-const Description = styled.p`
+/* Description block */
+const DescBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+  animation: ${fadeUp} 1.3s cubic-bezier(0.68, 0, 0.31, 0.91) 0.2s both;
+`;
+
+const TopicBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 50px;
+  background: ${p => p.$theme.formBg};
+  align-self: flex-start;
+`;
+
+const TopicText = styled.span`
+  color: ${p => p.$theme.textSecondary};
+  font-family: ${FONT.family};
+  font-size: 13px;
+  font-weight: ${FONT.semibold};
+  letter-spacing: -0.02em;
+  text-transform: lowercase;
+`;
+
+const BodyText = styled.p`
   margin: 0;
-  max-width: 440px;
   color: ${p => p.$theme.text};
   opacity: 0.6;
   font-family: ${FONT.family};
   font-size: 16px;
   font-weight: ${FONT.semibold};
   letter-spacing: -0.03em;
-  line-height: 1.5;
-  animation: ${fadeUpContent} 1.3s cubic-bezier(0.68, 0, 0.31, 0.91) 0.2s both;
+  line-height: 1.55;
 `;
 
-const Buttons = styled.div`
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-top: 8px;
-  animation: ${fadeUpContent} 1.3s cubic-bezier(0.68, 0, 0.31, 0.91) 0.25s both;
+/* Button */
+const ButtonRow = styled.div`
+  margin-bottom: 24px;
+  animation: ${fadeUp} 1.3s cubic-bezier(0.68, 0, 0.31, 0.91) 0.25s both;
 `;
 
-const PrimaryBtn = styled.a`
+const ContactBtn = styled.a`
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  height: 58px;
-  padding: 0 28px;
+  gap: 10px;
+  height: 56px;
+  padding: 0 8px 0 24px;
   border-radius: 100px;
   background: ${p => p.$theme.accent};
   color: #ffffff;
   text-decoration: none;
   font-family: ${FONT.family};
-  font-size: 17px;
+  font-size: 16px;
   font-weight: ${FONT.semibold};
   letter-spacing: -0.04em;
-  transition: background 0.2s;
-  &:hover { background: ${p => p.$theme.accentHover}; }
+  transition: opacity 0.2s;
+  position: relative;
+  overflow: hidden;
+
+  &:hover { opacity: 0.9; }
 `;
 
-const SecondaryBtn = styled.a`
-  display: inline-flex;
+const BtnLabel = styled.span``;
+
+const BtnIcon = styled.span`
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  color: ${p => p.$theme.white};
+`;
+
+/* Bottom location */
+const BottomRow = styled.div``;
+
+const LocationRow = styled.div`
+  display: flex;
   align-items: center;
-  justify-content: center;
-  height: 58px;
-  padding: 0 28px;
-  border-radius: 100px;
-  background: ${p => p.$theme.cardBg};
-  border: 1px solid ${p => p.$theme.border};
+  gap: 6px;
   color: ${p => p.$theme.text};
-  text-decoration: none;
+  opacity: 0.7;
+`;
+
+const LocationText = styled.span`
   font-family: ${FONT.family};
-  font-size: 17px;
+  font-size: 14px;
   font-weight: ${FONT.semibold};
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
+  color: ${p => p.$theme.text};
+`;
+
+const LocationMuted = styled.span`
+  opacity: 0.6;
 `;
