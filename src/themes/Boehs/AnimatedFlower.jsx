@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
 // Starry night ASCII animation data - encoded with the original format:
 // Numbers 0-9 represent (digit+2) spaces, '!' means repeat previous line
@@ -104,6 +104,7 @@ export function AnimatedFlower({ placement = 'footer' }) {
   const isHovered = useRef(false);
   const state = useRef(false); // false = base, true = animated
   const timeLeft = useRef(FRAMES.length);
+  const autoPlayTimer = useRef(null);
 
   const doAnimation = useCallback((shouldReverse) => {
     let frames = JSON.parse(JSON.stringify(FRAMES));
@@ -138,6 +139,16 @@ export function AnimatedFlower({ placement = 'footer' }) {
       }
     }, 200);
   }, []);
+
+  // Auto-play: start animation after a short delay on mount
+  useEffect(() => {
+    autoPlayTimer.current = setTimeout(() => {
+      if (!isAnimating.current && !state.current) {
+        doAnimation(false);
+      }
+    }, 600);
+    return () => clearTimeout(autoPlayTimer.current);
+  }, [doAnimation]);
 
   const handleMouseEnter = useCallback(() => {
     isHovered.current = true;

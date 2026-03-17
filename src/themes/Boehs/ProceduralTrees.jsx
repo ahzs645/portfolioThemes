@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
 const SHADES_OF_GREEN = [
   ['#ec275f', '#f25477', '#ffa7a6', '#ffdcdc', '#d4e0ee'],
@@ -157,46 +157,60 @@ class Branch {
 }
 
 export function ProceduralTrees() {
-  const containerRef = useRef(null);
+  const leftRef = useRef(null);
+  const rightRef = useRef(null);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container || window.innerWidth < 900) return;
+    // Only render on wide viewports where trees have room beside the 600px content
+    if (window.innerWidth < 1100) return;
 
-    const MAX = (window.innerWidth / 2) * SCALE_FACTOR;
+    const MAX = 250 * SCALE_FACTOR;
 
-    const branches = [new Branch(MAX, 0, 200, MAX), new Branch(0, 0, 20, MAX)];
-
-    branches.forEach((branch) => {
-      const canvas = document.createElement('canvas');
-      const { cssWidth, cssHeight, side } = branch.render(canvas);
+    // Left tree: starts at x=0, grows rightward/downward
+    const leftBranch = new Branch(0, 0, 20, MAX);
+    if (leftRef.current) {
+      const canvas = leftRef.current;
+      const { cssWidth, cssHeight } = leftBranch.render(canvas);
       canvas.style.width = `${cssWidth}px`;
       canvas.style.height = `${cssHeight}px`;
-      canvas.style.position = 'absolute';
-      canvas.style.top = '0';
-      canvas.style.pointerEvents = 'none';
-      canvas.style.opacity = '0.7';
-      canvas.style[side] = '0px';
-      container.appendChild(canvas);
-    });
+    }
 
-    return () => {
-      while (container.firstChild) {
-        container.removeChild(container.firstChild);
-      }
-    };
+    // Right tree: starts at x=MAX, grows leftward/downward
+    const rightBranch = new Branch(MAX, 0, 200, MAX);
+    if (rightRef.current) {
+      const canvas = rightRef.current;
+      const { cssWidth, cssHeight } = rightBranch.render(canvas);
+      canvas.style.width = `${cssWidth}px`;
+      canvas.style.height = `${cssHeight}px`;
+    }
   }, []);
 
-  return <TreeContainer ref={containerRef} />;
+  return (
+    <>
+      <TreeLeft ref={leftRef} />
+      <TreeRight ref={rightRef} />
+    </>
+  );
 }
 
-const TreeContainer = styled.div`
-  position: absolute;
+const treeBase = css`
+  position: fixed;
   top: 0;
-  left: 0;
-  right: 0;
   pointer-events: none;
   z-index: 0;
-  overflow: hidden;
-  height: 100%;
+  opacity: 0.5;
+
+  @media (max-width: 1100px) {
+    display: none;
+  }
+`;
+
+const TreeLeft = styled.canvas`
+  ${treeBase};
+  left: 0;
+`;
+
+const TreeRight = styled.canvas`
+  ${treeBase};
+  right: 0;
 `;
