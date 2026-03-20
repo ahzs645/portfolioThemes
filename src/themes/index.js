@@ -29,6 +29,9 @@ import { U11gTheme } from './U11g/U11gTheme';
 import { ShubhamTheme } from './Shubham/ShubhamTheme';
 import { PalmesTheme } from './Palmes/PalmesTheme';
 import { AbstractSystemsTheme } from './AbstractSystems/AbstractSystemsTheme';
+import { RashadWikiTheme } from './RashadWiki/RashadWikiTheme';
+import { AliciaPageTheme } from './AliciaPage/AliciaPageTheme';
+import { EdHendersonTheme } from './EdHenderson/EdHendersonTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -278,6 +281,30 @@ export const PORTFOLIO_THEMES = [
     description: 'Minimal blue-gray portfolio with floating pill nav, staggered fade-in animations, dotted section dividers, and monospace accents.',
     source: 'https://www.abstract.systems',
     Component: AbstractSystemsTheme,
+  },
+  {
+    id: 'rashad-wiki',
+    slug: 'wikipedia',
+    name: 'Wikipedia',
+    description: 'Wikipedia-inspired portfolio with serif headings, infobox sidebar, blue links, and encyclopedia-style biography sections.',
+    source: 'https://rashad.wiki',
+    Component: RashadWikiTheme,
+  },
+  {
+    id: 'alicia-page',
+    slug: 'lime-grid',
+    name: 'Lime Grid',
+    description: 'Minimalist portfolio with lime green accents, 12-column grid layout, ASCII art header, animated link underlines, and dark/light mode.',
+    source: 'https://alicias.page',
+    Component: AliciaPageTheme,
+  },
+  {
+    id: 'ed-henderson',
+    slug: 'monotype',
+    name: 'Monotype',
+    description: 'Minimalist monospace portfolio with Roboto Mono, 600px content width, dropdown nav with dividers, bullet-point sections, and copy-to-clipboard email.',
+    source: 'https://ed-henderson.com',
+    Component: EdHendersonTheme,
   },
 ];
 
