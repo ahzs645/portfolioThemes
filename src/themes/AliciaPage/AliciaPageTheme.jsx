@@ -1,9 +1,8 @@
-import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
-import { Canvas, useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
 import { useCV } from '../../contexts/ConfigContext';
 import { light, dark, FONT } from './utils/tokens';
+import ShaderBackground from './components/ShaderBackground';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import Experience from './components/Experience';
@@ -16,58 +15,9 @@ const GlobalStyles = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 `;
 
-/* ── Three.js particle background ── */
-function Particles({ isDark }) {
-  const meshRef = useRef(null);
-  const positions = useMemo(() => {
-    const count = 2000;
-    const arr = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      arr[i * 3] = (Math.random() - 0.5) * 20;
-      arr[i * 3 + 1] = (Math.random() - 0.5) * 20;
-      arr[i * 3 + 2] = (Math.random() - 0.5) * 20;
-    }
-    return arr;
-  }, []);
-
-  useFrame((state) => {
-    if (!meshRef.current) return;
-    meshRef.current.rotation.y = state.clock.elapsedTime * 0.02;
-    meshRef.current.rotation.x = state.clock.elapsedTime * 0.01;
-  });
-
-  const color = isDark ? '#a5ff3f' : '#333333';
-
-  return (
-    <points ref={meshRef}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          count={2000}
-          array={positions}
-          itemSize={3}
-        />
-      </bufferGeometry>
-      <pointsMaterial size={0.03} color={color} sizeAttenuation transparent opacity={0.6} />
-    </points>
-  );
-}
-
-function ThreeBackground({ isDark }) {
-  return (
-    <BgCanvas>
-      <Canvas camera={{ position: [0, 0, 5], fov: 60 }}>
-        <Particles isDark={isDark} />
-      </Canvas>
-    </BgCanvas>
-  );
-}
-
-/* ── Main Theme ── */
 export function AliciaPageTheme({ darkMode }) {
   const cv = useCV();
   const theme = darkMode ? dark : light;
-  // Pages: 'home', 'projects', 'experience', 'education', 'about'
   const [page, setPage] = useState('home');
   const [activeSection, setActiveSection] = useState(null);
 
@@ -75,113 +25,106 @@ export function AliciaPageTheme({ darkMode }) {
     if (id === 'top' || id === 'home') {
       setPage('home');
       setActiveSection(null);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    // Navigate to sub-page
     setPage(id);
     setActiveSection(id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
   if (!cv) return null;
 
   return (
-    <Page $theme={theme}>
-      <GlobalStyles />
-      <ThreeBackground isDark={darkMode} />
-      <Header theme={theme} activeSection={activeSection} onNavigate={handleNavigate} />
-      <Main>
-        <Container>
-          {page === 'home' && (
-            <>
-              <Hero cv={cv} theme={theme} onNavigate={handleNavigate} />
-              <RecentSection>
-                <ListContainer>
-                  <ListTitle $theme={theme}>
-                    <SectionHeader>
-                      <SectionLabel>recent projects</SectionLabel>
-                      <ViewAll onClick={() => handleNavigate('projects')} $theme={theme}>
-                        View all
-                      </ViewAll>
-                    </SectionHeader>
-                  </ListTitle>
-                  <ListContent $theme={theme}>
-                    <ListWrapper>
-                      {(cv?.projects || []).slice(0, 4).map((project, i) => (
-                        <ProjectRow key={i} $theme={theme}>
-                          <ProjectGrid>
-                            <ProjectName
-                              href={project.url || project.link || '#'}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              $theme={theme}
-                            >
-                              {project.name || project.title}
-                            </ProjectName>
-                            <ProjectDate $theme={theme}>
-                              {project.startDate || ''}
-                            </ProjectDate>
-                          </ProjectGrid>
-                        </ProjectRow>
-                      ))}
-                    </ListWrapper>
-                  </ListContent>
-                </ListContainer>
-              </RecentSection>
-            </>
-          )}
-          {page === 'projects' && (
-            <SubPage>
-              <SubPageTitle $theme={theme}>Stuff I've Built</SubPageTitle>
-              <Projects cv={cv} theme={theme} />
-            </SubPage>
-          )}
-          {page === 'experience' && (
-            <SubPage>
-              <SubPageTitle $theme={theme}>Experience</SubPageTitle>
-              <Experience cv={cv} theme={theme} />
-            </SubPage>
-          )}
-          {page === 'education' && (
-            <SubPage>
-              <SubPageTitle $theme={theme}>Education</SubPageTitle>
-              <Education cv={cv} theme={theme} />
-            </SubPage>
-          )}
-          {page === 'about' && (
-            <SubPage>
-              <SubPageTitle $theme={theme}>More About Me</SubPageTitle>
-              <Skills cv={cv} theme={theme} />
-            </SubPage>
-          )}
-        </Container>
-      </Main>
-      <Footer cv={cv} theme={theme} />
-    </Page>
+    <>
+      <ShaderBackground isDark={darkMode} />
+      <Page $theme={theme}>
+        <GlobalStyles />
+        <Header theme={theme} activeSection={activeSection} onNavigate={handleNavigate} />
+        <Main>
+          <Container>
+            {page === 'home' && (
+              <>
+                <Hero cv={cv} theme={theme} onNavigate={handleNavigate} />
+                <RecentSection>
+                  <ListContainer>
+                    <ListTitle $theme={theme}>
+                      <SectionHeader>
+                        <SectionLabel>recent projects</SectionLabel>
+                        <ViewAll onClick={() => handleNavigate('projects')} $theme={theme}>
+                          View all
+                        </ViewAll>
+                      </SectionHeader>
+                    </ListTitle>
+                    <ListContent $theme={theme}>
+                      <ListWrapper>
+                        {(cv?.projects || []).slice(0, 4).map((project, i) => (
+                          <ProjectRow key={i} $theme={theme}>
+                            <ProjectGrid>
+                              <ProjectName
+                                href={project.url || project.link || '#'}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                $theme={theme}
+                              >
+                                {project.name || project.title}
+                              </ProjectName>
+                              <ProjectDate $theme={theme}>
+                                {project.startDate || ''}
+                              </ProjectDate>
+                            </ProjectGrid>
+                          </ProjectRow>
+                        ))}
+                      </ListWrapper>
+                    </ListContent>
+                  </ListContainer>
+                </RecentSection>
+              </>
+            )}
+            {page === 'projects' && (
+              <SubPage>
+                <SubPageTitle $theme={theme}>Stuff I've Built</SubPageTitle>
+                <Projects cv={cv} theme={theme} />
+              </SubPage>
+            )}
+            {page === 'experience' && (
+              <SubPage>
+                <SubPageTitle $theme={theme}>Experience</SubPageTitle>
+                <Experience cv={cv} theme={theme} />
+              </SubPage>
+            )}
+            {page === 'education' && (
+              <SubPage>
+                <SubPageTitle $theme={theme}>Education</SubPageTitle>
+                <Education cv={cv} theme={theme} />
+              </SubPage>
+            )}
+            {page === 'about' && (
+              <SubPage>
+                <SubPageTitle $theme={theme}>More About Me</SubPageTitle>
+                <Skills cv={cv} theme={theme} />
+              </SubPage>
+            )}
+          </Container>
+        </Main>
+        <Footer cv={cv} theme={theme} />
+      </Page>
+    </>
   );
 }
 
 /* ── Styled Components ── */
-
-const BgCanvas = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 0;
-  pointer-events: none;
-`;
 
 const Page = styled.div`
   position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: ${p => p.$theme.bg};
+  background: transparent;
   color: ${p => p.$theme.primary};
   font-family: ${FONT.sans};
   -webkit-font-smoothing: antialiased;
-  transition: background 0.3s, color 0.3s;
+  transition: color 0.3s;
   z-index: 1;
 `;
 
@@ -190,7 +133,6 @@ const Main = styled.main`
   display: flex;
   justify-content: center;
   position: relative;
-  z-index: 1;
 `;
 
 const Container = styled.div`
