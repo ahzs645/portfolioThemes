@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { FONT } from '../utils/tokens';
+import { ShuffleSectionLabel } from './Hero';
 
 export default function Projects({ cv, theme }) {
   const projects = cv?.projects || [];
@@ -10,7 +11,7 @@ export default function Projects({ cv, theme }) {
     <Section id="projects">
       <ListContainer>
         <ListTitle $theme={theme}>
-          <SectionLabel>projects</SectionLabel>
+          <ShuffleSectionLabel theme={theme}>projects</ShuffleSectionLabel>
         </ListTitle>
         <ListContent $theme={theme}>
           <TableHeader $theme={theme}>

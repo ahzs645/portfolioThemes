@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { FONT } from '../utils/tokens';
+import { ShuffleSectionLabel } from './Hero';
 
 export default function Skills({ cv, theme }) {
   const skills = cv?.skills || [];
@@ -11,7 +12,7 @@ export default function Skills({ cv, theme }) {
     <Section id="about">
       <ListContainer>
         <ListTitle $theme={theme}>
-          <SectionLabel>skills & more</SectionLabel>
+          <ShuffleSectionLabel theme={theme}>skills & more</ShuffleSectionLabel>
         </ListTitle>
         <ListContent $theme={theme}>
           {skills.map((skill, i) => (

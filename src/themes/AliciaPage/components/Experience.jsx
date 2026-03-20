@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { FONT } from '../utils/tokens';
+import { ShuffleSectionLabel } from './Hero';
 
 export default function Experience({ cv, theme }) {
   const experience = cv?.experience || [];
@@ -10,7 +11,7 @@ export default function Experience({ cv, theme }) {
     <Section id="experience">
       <ListContainer>
         <ListTitle $theme={theme}>
-          <SectionLabel>experience</SectionLabel>
+          <ShuffleSectionLabel theme={theme}>experience</ShuffleSectionLabel>
         </ListTitle>
         <ListContent $theme={theme}>
           <ListWrapper className="group-list-wrapper">

@@ -1,132 +1,222 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { FONT } from '../utils/tokens';
 
-/* ── Shuffle text animation ──
-   Splits text into individual char spans, shows random glyphs that
-   "decrypt" into the real character one-by-one with staggered timing. */
+/* ── Shuffle-on-hover text effect ──
+   On hover: scrambles to random glyphs, then resolves back char-by-char.
+   On mount: runs once to reveal the text initially. */
 
-const GLYPHS = '!@#$%^&*()_+-=[]{}|;:,.<>?/~`0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz▓░▒█▀▄▌▐■□▪▫';
+const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*▓░▒█▀▄▌▐';
+const randomGlyph = () => GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
 
-function ShuffleText({ children, delay = 0, scrambleDuration = 40, holdFrames = 3 }) {
-  const ref = useRef(null);
-  const [ready, setReady] = useState(false);
-  const textRef = useRef(typeof children === 'string' ? children : '');
+function useTextShuffle(ref, text, { charDelay = 30, scrambleFrames = 6, frameInterval = 40, initialDelay = 0 } = {}) {
+  const charsRef = useRef([]);
+  const animatingRef = useRef(false);
+  const timeoutsRef = useRef([]);
 
+  const clearTimeouts = useCallback(() => {
+    timeoutsRef.current.forEach(clearTimeout);
+    timeoutsRef.current = [];
+  }, []);
+
+  // Build char spans on mount
   useEffect(() => {
-    const text = textRef.current;
     if (!ref.current || !text) return;
-
     const el = ref.current;
-    el.textContent = '';
-
+    el.innerHTML = '';
     const chars = [];
+
     for (let i = 0; i < text.length; i++) {
       const span = document.createElement('span');
       span.style.display = 'inline-block';
-      span.style.opacity = '0';
       if (text[i] === ' ') {
         span.innerHTML = '&nbsp;';
         span.style.width = '0.25em';
       } else {
-        span.textContent = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+        span.textContent = text[i];
+        span.style.opacity = '0';
       }
       el.appendChild(span);
       chars.push({ span, target: text[i], isSpace: text[i] === ' ' });
     }
+    charsRef.current = chars;
 
-    const timeout = setTimeout(() => {
-      // Phase 1: fade in all chars showing random glyphs
-      chars.forEach((c, i) => {
-        setTimeout(() => {
-          c.span.style.transition = 'opacity 0.15s ease';
+    // Initial reveal animation
+    const t = setTimeout(() => runShuffle(chars, true), initialDelay);
+    return () => { clearTimeout(t); clearTimeouts(); };
+  }, [text]);
+
+  const runShuffle = useCallback((chars, isInitial = false) => {
+    if (animatingRef.current) return;
+    animatingRef.current = true;
+    clearTimeouts();
+
+    chars.forEach((c, i) => {
+      if (c.isSpace) return;
+
+      // Immediately show scrambled glyph
+      if (!isInitial) {
+        c.span.textContent = randomGlyph();
+      }
+
+      // Stagger: each char starts resolving after i * charDelay ms
+      const startTime = i * charDelay;
+
+      // During scramble phase, cycle through random glyphs
+      for (let f = 0; f < scrambleFrames; f++) {
+        const tid = setTimeout(() => {
           c.span.style.opacity = '1';
-        }, i * 15);
-      });
+          c.span.textContent = randomGlyph();
+        }, startTime + f * frameInterval);
+        timeoutsRef.current.push(tid);
+      }
 
-      // Phase 2: scramble then resolve each char
-      chars.forEach((c, i) => {
-        if (c.isSpace) return;
-        const charDelay = i * scrambleDuration;
-        let frame = 0;
+      // Final resolve to correct character
+      const resolveTid = setTimeout(() => {
+        c.span.textContent = c.target;
+      }, startTime + scrambleFrames * frameInterval);
+      timeoutsRef.current.push(resolveTid);
+    });
 
-        const scrambleInterval = setInterval(() => {
-          frame++;
-          if (frame < holdFrames) {
-            c.span.textContent = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
-          } else {
-            c.span.textContent = c.target;
-            c.span.style.color = '';
-            clearInterval(scrambleInterval);
-          }
-        }, 30);
+    // Mark animation complete
+    const totalDuration = (chars.length - 1) * charDelay + scrambleFrames * frameInterval + 50;
+    const doneTid = setTimeout(() => { animatingRef.current = false; }, totalDuration);
+    timeoutsRef.current.push(doneTid);
+  }, [charDelay, scrambleFrames, frameInterval, clearTimeouts]);
 
-        setTimeout(() => {
-          // Start scrambling for this char
-        }, charDelay);
+  const triggerShuffle = useCallback(() => {
+    runShuffle(charsRef.current, false);
+  }, [runShuffle]);
 
-        // Set a hard resolve time
-        setTimeout(() => {
-          c.span.textContent = c.target;
-        }, charDelay + holdFrames * 30 + 60);
-      });
-    }, delay);
-
-    return () => clearTimeout(timeout);
-  }, [delay, scrambleDuration, holdFrames]);
-
-  return <span ref={ref}>{children}</span>;
+  return triggerShuffle;
 }
 
-/* ── ASCII art shuffle — same effect but for multi-line pre blocks ── */
+function ShuffleText({ children, delay = 0, charDelay = 30, scrambleFrames = 6, frameInterval = 40, style }) {
+  const ref = useRef(null);
+  const text = typeof children === 'string' ? children : '';
+  const triggerShuffle = useTextShuffle(ref, text, { charDelay, scrambleFrames, frameInterval, initialDelay: delay });
+
+  return (
+    <span
+      ref={ref}
+      style={{ cursor: 'default', ...style }}
+      onMouseEnter={triggerShuffle}
+    >
+      {children}
+    </span>
+  );
+}
+
+/* ── ASCII art shuffle — same hover-triggered effect for multi-line blocks ── */
 function ShuffleAscii({ lines, theme, delay = 300 }) {
   const ref = useRef(null);
+  const allCharsRef = useRef([]);
+  const animatingRef = useRef(false);
+  const timeoutsRef = useRef([]);
+
+  const clearTimeouts = useCallback(() => {
+    timeoutsRef.current.forEach(clearTimeout);
+    timeoutsRef.current = [];
+  }, []);
 
   useEffect(() => {
     if (!ref.current) return;
     const el = ref.current;
     el.innerHTML = '';
-
     const allChars = [];
 
-    lines.forEach((line, li) => {
+    lines.forEach((line) => {
       const lineDiv = document.createElement('div');
       line.text.split('').forEach((ch, ci) => {
         const span = document.createElement('span');
-        span.style.opacity = '0';
         span.style.display = 'inline';
-        span.dataset.char = ch;
+        span.style.opacity = '0';
         if (line.highlights.includes(ci)) {
-          span.style.color = theme.blue;
+          span.dataset.highlight = '1';
         }
-        span.textContent = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+        span.textContent = ch;
         lineDiv.appendChild(span);
         allChars.push({ span, target: ch, highlighted: line.highlights.includes(ci) });
       });
       el.appendChild(lineDiv);
     });
 
-    const timeout = setTimeout(() => {
-      // Fade in
-      allChars.forEach((c, i) => {
-        setTimeout(() => {
-          c.span.style.transition = 'opacity 0.12s ease';
-          c.span.style.opacity = '1';
-        }, i * 8);
-      });
+    allCharsRef.current = allChars;
 
-      // Resolve
-      allChars.forEach((c, i) => {
-        setTimeout(() => {
-          c.span.textContent = c.target;
-        }, i * 12 + 100);
-      });
-    }, delay);
-
-    return () => clearTimeout(timeout);
+    // Initial reveal
+    const t = setTimeout(() => runAsciiShuffle(allChars, true), delay);
+    return () => { clearTimeout(t); clearTimeouts(); };
   }, [lines, theme, delay]);
 
-  return <AsciiPre ref={ref} $theme={theme} />;
+  const runAsciiShuffle = useCallback((chars, isInitial = false) => {
+    if (animatingRef.current) return;
+    animatingRef.current = true;
+    clearTimeouts();
+
+    chars.forEach((c, i) => {
+      const startTime = i * 10;
+
+      if (!isInitial) {
+        c.span.textContent = randomGlyph();
+      }
+
+      // Scramble frames
+      for (let f = 0; f < 4; f++) {
+        const tid = setTimeout(() => {
+          c.span.style.opacity = '1';
+          c.span.textContent = randomGlyph();
+        }, startTime + f * 25);
+        timeoutsRef.current.push(tid);
+      }
+
+      // Resolve
+      const tid = setTimeout(() => {
+        c.span.textContent = c.target;
+        if (c.highlighted) {
+          c.span.style.color = theme.blue;
+        }
+      }, startTime + 4 * 25);
+      timeoutsRef.current.push(tid);
+    });
+
+    const total = (chars.length - 1) * 10 + 4 * 25 + 50;
+    const doneTid = setTimeout(() => { animatingRef.current = false; }, total);
+    timeoutsRef.current.push(doneTid);
+  }, [theme, clearTimeouts]);
+
+  const triggerShuffle = useCallback(() => {
+    runAsciiShuffle(allCharsRef.current, false);
+  }, [runAsciiShuffle]);
+
+  return (
+    <AsciiPre
+      ref={ref}
+      $theme={theme}
+      onMouseEnter={triggerShuffle}
+    />
+  );
+}
+
+/* ── Section label shuffle (for "recent projects" etc.) ── */
+export function ShuffleSectionLabel({ children, theme }) {
+  const ref = useRef(null);
+  const text = typeof children === 'string' ? children : '';
+  const triggerShuffle = useTextShuffle(ref, text, {
+    charDelay: 25,
+    scrambleFrames: 5,
+    frameInterval: 35,
+    initialDelay: 600,
+  });
+
+  return (
+    <SectionLabelText
+      ref={ref}
+      $theme={theme}
+      onMouseEnter={triggerShuffle}
+    >
+      {children}
+    </SectionLabelText>
+  );
 }
 
 export default function Hero({ cv, theme, onNavigate }) {
@@ -151,7 +241,12 @@ export default function Hero({ cv, theme, onNavigate }) {
       <ListContainer>
         <ListTitle $theme={theme}>
           <NameWrap $theme={theme}>
-            <ShuffleText delay={100} scrambleDuration={35} holdFrames={4}>
+            <ShuffleText
+              delay={100}
+              charDelay={40}
+              scrambleFrames={8}
+              frameInterval={45}
+            >
               {name.toLowerCase()}
             </ShuffleText>
           </NameWrap>
@@ -258,6 +353,15 @@ const AsciiPre = styled.pre`
   color: ${p => p.$theme.silverDark};
   white-space: pre;
   margin: 0;
+  cursor: default;
+`;
+
+const SectionLabelText = styled.h2`
+  font-weight: 700;
+  font-size: 1rem;
+  margin: 0;
+  color: ${p => p.$theme.primary};
+  cursor: default;
 `;
 
 const Greeting = styled.p`

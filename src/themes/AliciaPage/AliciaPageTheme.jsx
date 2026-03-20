@@ -4,7 +4,7 @@ import { useCV } from '../../contexts/ConfigContext';
 import { light, dark, FONT } from './utils/tokens';
 import ShaderBackground from './components/ShaderBackground';
 import Header from './components/Header';
-import Hero from './components/Hero';
+import Hero, { ShuffleSectionLabel } from './components/Hero';
 import Experience from './components/Experience';
 import Projects from './components/Projects';
 import Education from './components/Education';
@@ -50,7 +50,7 @@ export function AliciaPageTheme({ darkMode }) {
                   <ListContainer>
                     <ListTitle $theme={theme}>
                       <SectionHeader>
-                        <SectionLabel>recent projects</SectionLabel>
+                        <ShuffleSectionLabel theme={theme}>recent projects</ShuffleSectionLabel>
                         <ViewAll onClick={() => handleNavigate('projects')} $theme={theme}>
                           View all
                         </ViewAll>

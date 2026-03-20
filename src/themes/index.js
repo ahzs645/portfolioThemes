@@ -32,6 +32,7 @@ import { AbstractSystemsTheme } from './AbstractSystems/AbstractSystemsTheme';
 import { RashadWikiTheme } from './RashadWiki/RashadWikiTheme';
 import { AliciaPageTheme } from './AliciaPage/AliciaPageTheme';
 import { EdHendersonTheme } from './EdHenderson/EdHendersonTheme';
+import { HenryLangTheme } from './HenryLang/HenryLangTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -305,6 +306,14 @@ export const PORTFOLIO_THEMES = [
     description: 'Minimalist monospace portfolio with Roboto Mono, 600px content width, dropdown nav with dividers, bullet-point sections, and copy-to-clipboard email.',
     source: 'https://ed-henderson.com',
     Component: EdHendersonTheme,
+  },
+  {
+    id: 'henrylang',
+    slug: 'retro-os',
+    name: 'Retro OS',
+    description: 'WebGL desktop portfolio with draggable windows, browser-style markdown pages, paint app, and CV-backed text files.',
+    source: 'https://henrylang.net',
+    Component: HenryLangTheme,
   },
 ];
 
