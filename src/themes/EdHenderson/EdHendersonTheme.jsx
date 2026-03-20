@@ -320,7 +320,9 @@ export default EdHendersonTheme;
 // ── Styled Components ──
 
 const PageContainer = styled.div`
-  min-height: 100vh;
+  min-height: 100%;
+  flex: 1;
+  overflow: auto;
   font-family: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
   background-color: ${({ $dm }) => ($dm ? '#0a0a0a' : '#ffffff')};
   color: ${({ $dm }) => ($dm ? '#e5e5e5' : '#000000')};
