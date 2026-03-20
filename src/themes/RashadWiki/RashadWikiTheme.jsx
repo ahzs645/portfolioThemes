@@ -2,6 +2,23 @@ import React from 'react';
 import styled from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 
+const WikiLogo = () => (
+  <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="48" stroke="currentColor" strokeWidth="2" fill="none"/>
+    <path d="M50 6C25.7 6 6 25.7 6 50s19.7 44 44 44 44-19.7 44-44S74.3 6 50 6z" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+    {/* Globe grid lines */}
+    <ellipse cx="50" cy="50" rx="20" ry="44" stroke="currentColor" strokeWidth="1.2" fill="none"/>
+    <ellipse cx="50" cy="50" rx="35" ry="44" stroke="currentColor" strokeWidth="1.2" fill="none"/>
+    <line x1="6" y1="50" x2="94" y2="50" stroke="currentColor" strokeWidth="1.2"/>
+    <line x1="50" y1="6" x2="50" y2="94" stroke="currentColor" strokeWidth="1.2"/>
+    <ellipse cx="50" cy="30" rx="42" ry="0" stroke="currentColor" strokeWidth="1"/>
+    <path d="M12 35 Q50 28 88 35" stroke="currentColor" strokeWidth="1" fill="none"/>
+    <path d="M12 65 Q50 72 88 65" stroke="currentColor" strokeWidth="1" fill="none"/>
+    {/* Puzzle piece jigsaw top */}
+    <text x="50" y="56" textAnchor="middle" fontSize="28" fontFamily="serif" fontWeight="bold" fill="currentColor">W</text>
+  </svg>
+);
+
 const Wrapper = styled.div`
   @import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap');
 
@@ -10,7 +27,7 @@ const Wrapper = styled.div`
   line-height: 1.6;
   color: ${p => p.$dark ? '#e0e0e0' : '#202122'};
   background: ${p => p.$dark ? '#1a1a1a' : '#ffffff'};
-  min-height: 100vh;
+  flex: 1;
 
   a {
     color: ${p => p.$dark ? '#6b9eff' : '#0645ad'};
@@ -37,7 +54,7 @@ const Banner = styled.div`
 
 const Header = styled.header`
   width: 100%;
-  padding: 12px 20px;
+  padding: 16px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -45,19 +62,38 @@ const Header = styled.header`
   font-size: 13px;
 `;
 
+const HeaderLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
+
+const LogoWrap = styled.div`
+  color: ${p => p.$dark ? '#e0e0e0' : '#202122'};
+  display: flex;
+  align-items: center;
+`;
+
 const HeaderName = styled.a`
   font-family: 'Nanum Myeongjo', serif;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: ${p => p.$dark ? '#e0e0e0' : '#202122'} !important;
   text-decoration: none !important;
+`;
+
+const HeaderSubtitle = styled.div`
+  font-family: 'Nanum Myeongjo', serif;
+  font-size: 11px;
+  color: ${p => p.$dark ? '#888' : '#72777d'};
+  margin-top: -2px;
 `;
 
 const MainLayout = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding: 0 20px;
+  padding: 0 24px;
 
   @media (min-width: 768px) {
     flex-direction: row;
@@ -167,6 +203,33 @@ const Paragraph = styled.p`
   line-height: 1.6;
 `;
 
+const TOCBox = styled.div`
+  background: ${p => p.$dark ? '#252525' : '#f8f9fa'};
+  border: 1px solid ${p => p.$dark ? '#444' : '#bababa'};
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  display: inline-block;
+  font-size: 13px;
+
+  .toc-title {
+    font-weight: bold;
+    margin-bottom: 6px;
+  }
+
+  ol {
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  li {
+    margin-bottom: 2px;
+  }
+
+  a {
+    color: ${p => p.$dark ? '#6b9eff' : '#0645ad'};
+  }
+`;
+
 function formatDateRange(start, end) {
   const fmt = d => {
     if (!d) return '';
@@ -197,12 +260,28 @@ export function RashadWikiTheme({ darkMode }) {
 
   const currentTitle = cv.currentJobTitle || (experience[0]?.title) || '';
 
+  const sections = [];
+  if (education.length > 0) sections.push({ id: 'education', label: 'Early Life and Education' });
+  if (experience.length > 0) sections.push({ id: 'career', label: 'Career' });
+  if (projects.length > 0) sections.push({ id: 'projects', label: 'Projects' });
+  if (volunteer.length > 0) sections.push({ id: 'volunteer', label: 'Volunteer Work' });
+  if (publications.length > 0) sections.push({ id: 'publications', label: 'Publications' });
+  sections.push({ id: 'personal', label: 'Personal Life' });
+
   return (
     <Wrapper $dark={darkMode}>
       <Banner />
       <Container>
         <Header $dark={darkMode}>
-          <HeaderName $dark={darkMode} href="#">{cv.name}</HeaderName>
+          <HeaderLeft>
+            <LogoWrap $dark={darkMode}>
+              <WikiLogo />
+            </LogoWrap>
+            <div>
+              <HeaderName $dark={darkMode} href="#">{cv.name}</HeaderName>
+              <HeaderSubtitle $dark={darkMode}>The Free Encyclopedia</HeaderSubtitle>
+            </div>
+          </HeaderLeft>
           <div>
             {cv.email && <a href={`mailto:${cv.email}`}>{cv.email}</a>}
             {cv.location && <span style={{ marginLeft: 16, color: darkMode ? '#999' : '#666' }}>{cv.location}</span>}
@@ -231,9 +310,18 @@ export function RashadWikiTheme({ darkMode }) {
               </Paragraph>
             )}
 
+            <TOCBox $dark={darkMode}>
+              <div className="toc-title">Contents</div>
+              <ol>
+                {sections.map((s, i) => (
+                  <li key={s.id}><a href={`#wiki-${s.id}`}>{s.label}</a></li>
+                ))}
+              </ol>
+            </TOCBox>
+
             {education.length > 0 && (
               <>
-                <SectionTitle>Early Life and Education</SectionTitle>
+                <SectionTitle id="wiki-education">Early Life and Education</SectionTitle>
                 <Divider $dark={darkMode} />
                 {education.map((edu, i) => (
                   <Paragraph key={i}>
@@ -252,7 +340,7 @@ export function RashadWikiTheme({ darkMode }) {
 
             {experience.length > 0 && (
               <>
-                <SectionTitle>Career</SectionTitle>
+                <SectionTitle id="wiki-career">Career</SectionTitle>
                 <Divider $dark={darkMode} />
                 {experience.map((job, i) => (
                   <Paragraph key={i}>
@@ -272,7 +360,7 @@ export function RashadWikiTheme({ darkMode }) {
 
             {projects.length > 0 && (
               <>
-                <SectionTitle>Projects</SectionTitle>
+                <SectionTitle id="wiki-projects">Projects</SectionTitle>
                 <Divider $dark={darkMode} />
                 {projects.map((p, i) => (
                   <Paragraph key={i}>
@@ -285,7 +373,7 @@ export function RashadWikiTheme({ darkMode }) {
 
             {volunteer.length > 0 && (
               <>
-                <SectionTitle>Volunteer Work</SectionTitle>
+                <SectionTitle id="wiki-volunteer">Volunteer Work</SectionTitle>
                 <Divider $dark={darkMode} />
                 {volunteer.map((v, i) => (
                   <Paragraph key={i}>
@@ -299,7 +387,7 @@ export function RashadWikiTheme({ darkMode }) {
 
             {publications.length > 0 && (
               <>
-                <SectionTitle>Publications</SectionTitle>
+                <SectionTitle id="wiki-publications">Publications</SectionTitle>
                 <Divider $dark={darkMode} />
                 {publications.map((pub, i) => (
                   <Paragraph key={i}>
@@ -314,7 +402,7 @@ export function RashadWikiTheme({ darkMode }) {
 
             {cv.about && (
               <>
-                <SectionTitle>Personal Life</SectionTitle>
+                <SectionTitle id="wiki-personal">Personal Life</SectionTitle>
                 <Divider $dark={darkMode} />
                 <Paragraph>
                   {cv.location && <>{cv.name?.split(' ')[0]} is currently based in {cv.location}. </>}

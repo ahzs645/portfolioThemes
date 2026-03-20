@@ -39,21 +39,21 @@ export function EdHendersonTheme({ darkMode }) {
 
   if (!cv) return null;
 
-  const socials = cv.social || [];
+  const socials = cv.socialRaw || [];
   const githubUrl = pickSocialUrl(socials, ['github']);
   const twitterUrl = pickSocialUrl(socials, ['twitter', 'x']);
   const linkedinUrl = pickSocialUrl(socials, ['linkedin']);
 
-  const experience = (cv.sections?.experience || []).filter((e) => !isArchived(e));
-  const projects = (cv.sections?.projects || []).filter((p) => !isArchived(p));
-  const education = (cv.sections?.education || []).filter((e) => !isArchived(e));
-  const skills = cv.sections?.skills || [];
-  const volunteer = (cv.sections?.volunteer || []).filter((v) => !isArchived(v));
-  const publications = cv.sections?.publications || [];
-  const awards = cv.sections?.awards || [];
+  const experience = cv.experience || [];
+  const projects = cv.projects || [];
+  const education = cv.education || [];
+  const skills = cv.skills || [];
+  const volunteer = cv.volunteer || [];
+  const publications = cv.publications || [];
+  const awards = cv.awards || [];
 
   const navSections = [
-    { id: 'about', label: 'About', show: !!cv.sections?.about },
+    { id: 'about', label: 'About', show: !!cv.about },
     { id: 'experience', label: 'Work', show: experience.length > 0 },
     { id: 'projects', label: 'Projects', show: projects.length > 0 },
     { id: 'education', label: 'Education', show: education.length > 0 },
@@ -128,7 +128,7 @@ export function EdHendersonTheme({ darkMode }) {
 
         <ContentContainer>
           {/* About */}
-          {cv.sections?.about && (
+          {cv.about && (
             <section id="about">
               <IntroText $dm={dm}>{parseMarkdown(cv.sections.about)}</IntroText>
             </section>

@@ -21,7 +21,9 @@ export default function App() {
   const [currentThemeId, setCurrentThemeId] = useState(getInitialThemeId);
   const [showCatalog, setShowCatalog] = useState(false);
   const [darkMode, setDarkMode] = useState(getInitialDarkMode);
+  const [searchQuery, setSearchQuery] = useState('');
   const fileInputRef = useRef(null);
+  const searchInputRef = useRef(null);
 
   useEffect(() => {
     try {
@@ -100,6 +102,15 @@ export default function App() {
     processFile(file);
   };
 
+  const filteredThemes = useMemo(() => {
+    if (!searchQuery.trim()) return PORTFOLIO_THEMES;
+    const q = searchQuery.toLowerCase();
+    return PORTFOLIO_THEMES.filter(t =>
+      t.name.toLowerCase().includes(q) ||
+      (t.description && t.description.toLowerCase().includes(q))
+    );
+  }, [searchQuery]);
+
   const currentTheme = useMemo(() => getPortfolioTheme(currentThemeId), [currentThemeId]);
 
   const currentThemeIndex = useMemo(() =>
@@ -160,8 +171,31 @@ export default function App() {
             <CloseButton $darkMode={darkMode} onClick={() => setShowCatalog(false)}>Close</CloseButton>
           </HeaderActions>
         </CatalogHeader>
+        <SearchBar $darkMode={darkMode}>
+          <SearchIcon width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="M21 21l-4.35-4.35"/>
+          </SearchIcon>
+          <SearchInput
+            ref={searchInputRef}
+            $darkMode={darkMode}
+            type="text"
+            placeholder="Search themes..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            autoFocus
+          />
+          {searchQuery && (
+            <SearchClear $darkMode={darkMode} onClick={() => setSearchQuery('')}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </SearchClear>
+          )}
+        </SearchBar>
         <ThemeGrid>
-          {PORTFOLIO_THEMES.map((theme) => (
+          {filteredThemes.map((theme) => (
             <ThemeCard
               key={theme.id}
               $active={theme.id === currentThemeId}
@@ -250,7 +284,7 @@ export default function App() {
             </NavArrowButton>
           </ThemeNavGroup>
           <Separator $darkMode={darkMode} />
-          <SwitcherButton $darkMode={darkMode} onClick={() => setShowCatalog(true)}>
+          <SwitcherButton $darkMode={darkMode} onClick={() => { setSearchQuery(''); setShowCatalog(true); }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="3" width="7" height="7" rx="1"/>
               <rect x="14" y="3" width="7" height="7" rx="1"/>
@@ -511,6 +545,7 @@ const ThemeContainer = styled.div`
   position: relative;
   display: flex;
   flex-direction: column;
+  overflow: auto;
 `;
 
 const CatalogView = styled.div`
@@ -569,6 +604,58 @@ const CloseButton = styled.button`
 
   &:hover {
     background: ${({ $darkMode }) => ($darkMode ? '#374151' : '#f3f4f6')};
+  }
+`;
+
+const SearchBar = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+`;
+
+const SearchIcon = styled.svg`
+  position: absolute;
+  left: 12px;
+  color: ${({ stroke }) => stroke};
+  opacity: 0.4;
+  pointer-events: none;
+`;
+
+const SearchInput = styled.input`
+  width: 100%;
+  padding: 10px 36px;
+  border-radius: 10px;
+  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#374151' : '#d1d5db')};
+  background: ${({ $darkMode }) => ($darkMode ? '#111827' : '#ffffff')};
+  color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#111827')};
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+
+  &::placeholder {
+    color: ${({ $darkMode }) => ($darkMode ? '#6b7280' : '#9ca3af')};
+  }
+
+  &:focus {
+    border-color: ${({ $darkMode }) => ($darkMode ? '#3b82f6' : '#3b82f6')};
+  }
+`;
+
+const SearchClear = styled.button`
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: ${({ $darkMode }) => ($darkMode ? '#9ca3af' : '#6b7280')};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 4px;
+
+  &:hover {
+    color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#111827')};
   }
 `;
 
