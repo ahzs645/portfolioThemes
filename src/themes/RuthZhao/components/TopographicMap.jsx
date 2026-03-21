@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { MAP_BACKGROUND_IMAGE } from '../themeData';
 
 function Coordinates() {
   const topTicks = Array.from({ length: 10 }, (_, index) => index * 100);
@@ -29,11 +30,24 @@ function PlusMarker({ x, y, active, onClick }) {
   );
 }
 
-export function TopographicMap({ regions, activeId, onSelect }) {
+export function TopographicMap({
+  regions,
+  activeId,
+  onSelect,
+  onHoverRegion,
+  onLeaveRegion,
+  mapRef,
+  caseStudyProjects = [],
+  activeProjectId,
+  onHoverProject,
+  onLeaveProject,
+  onSelectProject,
+}) {
   return (
-    <MapWrap>
+    <MapWrap ref={mapRef}>
       <Coordinates />
       <MapFrame>
+        <BackgroundImage src={MAP_BACKGROUND_IMAGE} alt="" aria-hidden="true" />
         <GridSvg viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
           <defs>
             <pattern id="tickPattern" width="60" height="60" patternUnits="userSpaceOnUse">
@@ -62,6 +76,8 @@ export function TopographicMap({ regions, activeId, onSelect }) {
                 $tone={region.tone}
                 $active={region.id === activeId}
                 onClick={() => onSelect(region.id)}
+                onMouseEnter={() => onHoverRegion?.(region.id)}
+                onMouseLeave={() => onLeaveRegion?.()}
               />
               <InnerPath
                 d={region.innerShape}
@@ -90,7 +106,24 @@ export function TopographicMap({ regions, activeId, onSelect }) {
             y={region.y - 6}
             active={region.id === activeId}
             onClick={() => onSelect(region.id)}
+            onMouseEnter={() => onHoverRegion?.(region.id)}
+            onMouseLeave={() => onLeaveRegion?.()}
           />
+        ))}
+
+        {caseStudyProjects.map((project) => (
+          <ProjectLock
+            key={project.id}
+            style={{ left: `${project.anchor.x}%`, top: `${project.anchor.y}%` }}
+            $active={project.id === activeProjectId}
+            type="button"
+            onMouseEnter={() => onHoverProject?.(project.id)}
+            onMouseLeave={() => onLeaveProject?.()}
+            onClick={() => onSelectProject?.(project.id)}
+            title={project.previewTitle}
+          >
+            <span />
+          </ProjectLock>
         ))}
       </MapFrame>
     </MapWrap>
@@ -147,6 +180,16 @@ const MapFrame = styled.div`
   min-height: 520px;
 `;
 
+const BackgroundImage = styled.img`
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.92;
+  pointer-events: none;
+`;
+
 const GridSvg = styled.svg`
   width: 100%;
   height: 100%;
@@ -185,4 +228,25 @@ const MarkerButton = styled.button`
   font-size: 1.1rem;
   line-height: 1;
   cursor: pointer;
+`;
+
+const ProjectLock = styled.button`
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border: 1px solid ${(p) => (p.$active ? '#f77c11' : '#9aa0a4')};
+  background: rgba(255, 255, 255, 0.95);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 3;
+
+  span {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: ${(p) => (p.$active ? '#f77c11' : '#9aa0a4')};
+  }
 `;

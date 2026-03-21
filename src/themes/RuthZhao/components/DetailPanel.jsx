@@ -24,14 +24,20 @@ function formatRange(start, end) {
   return `${left} - ${right}`;
 }
 
-export function DetailPanel({ region, entries }) {
+export function DetailPanel({ region, entries, activeEntryId, onHoverEntry, onLeaveEntry, onSelectEntry }) {
   return (
     <Panel>
       <Category $accent={region.tone === 'accent'}>{region.category}</Category>
       <Title>{region.label}</Title>
       <List>
         {entries.map((entry, index) => (
-          <Item key={`${entry.title}-${index}`}>
+          <Item
+            key={`${entry.title}-${index}`}
+            $active={entry.id === activeEntryId}
+            onMouseEnter={() => onHoverEntry?.(entry.id)}
+            onMouseLeave={() => onLeaveEntry?.()}
+            onClick={() => onSelectEntry?.(entry.id)}
+          >
             {entry.href ? (
               <ItemTitle href={entry.href} target="_blank" rel="noreferrer">
                 {entry.title}
@@ -117,8 +123,10 @@ const List = styled.div`
 
 const Item = styled.article`
   padding: 14px 16px;
-  border: 1px solid #d5dfeb;
-  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid ${(p) => (p.$active ? '#f77c11' : '#d5dfeb')};
+  background: ${(p) => (p.$active ? 'rgba(247, 124, 17, 0.05)' : 'rgba(255, 255, 255, 0.72)')};
+  cursor: pointer;
+  transition: border-color 140ms ease, background-color 140ms ease;
 `;
 
 const ItemTitle = styled.a`

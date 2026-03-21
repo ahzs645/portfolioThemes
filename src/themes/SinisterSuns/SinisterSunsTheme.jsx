@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useConfig } from '../../contexts/ConfigContext';
 import {
@@ -39,6 +39,7 @@ function getHighlights(item) {
 export function SinisterSunsTheme() {
   const { cvData } = useConfig();
   const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const [hasEntered, setHasEntered] = useState(false);
 
   const experienceItems = useMemo(
     () => flattenExperience(cv?.sections?.experience || [], { excludeArchived: true }),
@@ -68,179 +69,196 @@ export function SinisterSunsTheme() {
   return (
     <>
       <GlobalStyle />
-      <Scene>
-        <AmbientOverlay />
+      <Scene $entered={hasEntered}>
+        <AmbientOverlay $entered={hasEntered} />
         <ScreenLines />
-        <BorderTop aria-hidden="true">
-          <img src={`${ASSET_BASE}/backgrounds/mushrooms.png`} alt="" />
-          <img src={`${ASSET_BASE}/backgrounds/mushrooms.png`} alt="" />
-          <img src={`${ASSET_BASE}/backgrounds/mushrooms.png`} alt="" />
-        </BorderTop>
-        <BorderBottom aria-hidden="true">
-          <img src={`${ASSET_BASE}/backgrounds/mushrooms.png`} alt="" />
-          <img src={`${ASSET_BASE}/backgrounds/mushrooms.png`} alt="" />
-          <img src={`${ASSET_BASE}/backgrounds/mushrooms.png`} alt="" />
-        </BorderBottom>
-        <CornerVines $flip={false} aria-hidden="true" />
-        <CornerVines $flip aria-hidden="true" />
+        {hasEntered ? (
+          <>
+            <BorderTop aria-hidden="true">
+              <img src={`${ASSET_BASE}/backgrounds/mushrooms.png`} alt="" />
+              <img src={`${ASSET_BASE}/backgrounds/mushrooms.png`} alt="" />
+              <img src={`${ASSET_BASE}/backgrounds/mushrooms.png`} alt="" />
+            </BorderTop>
+            <BorderBottom aria-hidden="true">
+              <img src={`${ASSET_BASE}/backgrounds/mushrooms.png`} alt="" />
+              <img src={`${ASSET_BASE}/backgrounds/mushrooms.png`} alt="" />
+              <img src={`${ASSET_BASE}/backgrounds/mushrooms.png`} alt="" />
+            </BorderBottom>
+            <CornerVines $flip={false} aria-hidden="true" />
+            <CornerVines $flip aria-hidden="true" />
 
-        <Page>
-          <Banner>
-            <BannerShade>
-              <BannerArt src={`${ASSET_BASE.replace('/images', '')}/images/moonrest2.png`} alt="Moonrest" />
-            </BannerShade>
-          </Banner>
+            <Page>
+              <Banner>
+                <BannerShade>
+                  <BannerArt src={`${ASSET_BASE.replace('/images', '')}/images/moonrest2.png`} alt="Moonrest" />
+                </BannerShade>
+              </Banner>
 
-          <MainFrame>
-            <Sidebar>
-              <NavSection>
-                <NavTitle>The Halls</NavTitle>
-                <NavLink href="#tavern">Tavern</NavLink>
-                <NavLink href="#records">Records</NavLink>
-                <NavLink href="#workshop">Workshop</NavLink>
-                <NavLink href="#sanctum">Sanctum</NavLink>
-              </NavSection>
+              <MainFrame>
+                <Sidebar>
+                  <NavSection>
+                    <NavTitle>The Halls</NavTitle>
+                    <NavLink href="#tavern">Tavern</NavLink>
+                    <NavLink href="#records">Records</NavLink>
+                    <NavLink href="#workshop">Workshop</NavLink>
+                    <NavLink href="#sanctum">Sanctum</NavLink>
+                  </NavSection>
 
-              <PortraitCard>
-                <Portrait src={`${ASSET_BASE}/assets/tavern.gif`} alt="" />
-                <PortraitCaption>Moonrest ledger for {cv?.name || 'the resident scholar'}</PortraitCaption>
-              </PortraitCard>
+                  <PortraitCard>
+                    <Portrait src={`${ASSET_BASE}/assets/tavern.gif`} alt="" />
+                    <PortraitCaption>Moonrest ledger for {cv?.name || 'the resident scholar'}</PortraitCaption>
+                  </PortraitCard>
 
-              <NavSection>
-                <NavTitle>Waystones</NavTitle>
-                {cv?.website && <ExternalLink href={cv.website}>Website</ExternalLink>}
-                {socialLinks.github && <ExternalLink href={socialLinks.github}>GitHub</ExternalLink>}
-                {socialLinks.linkedin && <ExternalLink href={socialLinks.linkedin}>LinkedIn</ExternalLink>}
-                {socialLinks.email && <ExternalLink href={`mailto:${socialLinks.email}`}>Send Word</ExternalLink>}
-              </NavSection>
-            </Sidebar>
+                  <NavSection>
+                    <NavTitle>Waystones</NavTitle>
+                    {cv?.website && <ExternalLink href={cv.website}>Website</ExternalLink>}
+                    {socialLinks.github && <ExternalLink href={socialLinks.github}>GitHub</ExternalLink>}
+                    {socialLinks.linkedin && <ExternalLink href={socialLinks.linkedin}>LinkedIn</ExternalLink>}
+                    {socialLinks.email && <ExternalLink href={`mailto:${socialLinks.email}`}>Send Word</ExternalLink>}
+                  </NavSection>
+                </Sidebar>
 
-            <ContentColumn>
-              <Panel id="tavern">
-                <Divider src={`${ASSET_BASE}/assets/div6.png`} alt="" />
-                <PanelTitle>Moonrest Tavern</PanelTitle>
-                <Lead>
-                  {cv?.name || 'Unnamed traveler'}
-                  {cv?.location ? ` of ${cv.location}` : ''}
-                </Lead>
-                <BodyText>
-                  This chamber remakes the original Sinister Suns site as a resume theme: the same
-                  candlelit fantasy mood, but driven by structured CV data instead of handwritten lore.
-                </BodyText>
-                <MetaGrid>
-                  {cv?.email && <MetaItem><span>Email</span><a href={`mailto:${cv.email}`}>{cv.email}</a></MetaItem>}
-                  {cv?.phone && <MetaItem><span>Phone</span><strong>{cv.phone}</strong></MetaItem>}
-                  {cv?.website && <MetaItem><span>Website</span><a href={cv.website}>{cv.website}</a></MetaItem>}
-                </MetaGrid>
-              </Panel>
+                <ContentColumn>
+                  <Panel id="tavern">
+                    <Divider src={`${ASSET_BASE}/assets/div6.png`} alt="" />
+                    <PanelTitle>Moonrest Tavern</PanelTitle>
+                    <Lead>
+                      {cv?.name || 'Unnamed traveler'}
+                      {cv?.location ? ` of ${cv.location}` : ''}
+                    </Lead>
+                    <MetaGrid>
+                      {cv?.email && <MetaItem><span>Email</span><a href={`mailto:${cv.email}`}>{cv.email}</a></MetaItem>}
+                      {cv?.phone && <MetaItem><span>Phone</span><strong>{cv.phone}</strong></MetaItem>}
+                      {cv?.website && <MetaItem><span>Website</span><a href={cv.website}>{cv.website}</a></MetaItem>}
+                    </MetaGrid>
+                  </Panel>
 
-              <Panel id="records">
-                <Divider src={`${ASSET_BASE}/assets/div6.png`} alt="" />
-                <PanelTitle>Library Records</PanelTitle>
-                <SectionBlock>
-                  <SectionHeading>Experience</SectionHeading>
-                  <EntryList>
-                    {experienceItems.map((item, index) => (
-                      <EntryCard key={`${item.company}-${item.title}-${index}`}>
-                        <EntryHeader>
-                          <div>
-                            <EntryTitle>{item.title}</EntryTitle>
-                            <EntryMeta>{item.company}</EntryMeta>
-                          </div>
-                          <EntryDate>{formatRange(item.startDate, item.endDate)}</EntryDate>
-                        </EntryHeader>
-                        <BulletList>
-                          {getHighlights(item).slice(0, 4).map((highlight, highlightIndex) => (
-                            <li key={highlightIndex}>{highlight}</li>
-                          ))}
-                        </BulletList>
-                      </EntryCard>
-                    ))}
-                  </EntryList>
-                </SectionBlock>
+                  <Panel id="records">
+                    <Divider src={`${ASSET_BASE}/assets/div6.png`} alt="" />
+                    <PanelTitle>Library Records</PanelTitle>
+                    <SectionBlock>
+                      <SectionHeading>Experience</SectionHeading>
+                      <EntryList>
+                        {experienceItems.map((item, index) => (
+                          <EntryCard key={`${item.company}-${item.title}-${index}`}>
+                            <EntryHeader>
+                              <div>
+                                <EntryTitle>{item.title}</EntryTitle>
+                                <EntryMeta>{item.company}</EntryMeta>
+                              </div>
+                              <EntryDate>{formatRange(item.startDate, item.endDate)}</EntryDate>
+                            </EntryHeader>
+                            <BulletList>
+                              {getHighlights(item).slice(0, 4).map((highlight, highlightIndex) => (
+                                <li key={highlightIndex}>{highlight}</li>
+                              ))}
+                            </BulletList>
+                          </EntryCard>
+                        ))}
+                      </EntryList>
+                    </SectionBlock>
 
-                <SectionBlock>
-                  <SectionHeading>Education</SectionHeading>
-                  <EntryList>
-                    {educationItems.map((item, index) => (
-                      <EntryCard key={`${item.institution}-${index}`}>
-                        <EntryHeader>
-                          <div>
-                            <EntryTitle>{item.degree} in {item.area}</EntryTitle>
-                            <EntryMeta>{item.institution}</EntryMeta>
-                          </div>
-                          <EntryDate>{formatRange(item.start_date, item.end_date)}</EntryDate>
-                        </EntryHeader>
-                        {item.highlights?.length > 0 && (
-                          <BulletList>
-                            {item.highlights.slice(0, 3).map((highlight, highlightIndex) => (
-                              <li key={highlightIndex}>{highlight}</li>
-                            ))}
-                          </BulletList>
-                        )}
-                      </EntryCard>
-                    ))}
-                  </EntryList>
-                </SectionBlock>
-              </Panel>
+                    <SectionBlock>
+                      <SectionHeading>Education</SectionHeading>
+                      <EntryList>
+                        {educationItems.map((item, index) => (
+                          <EntryCard key={`${item.institution}-${index}`}>
+                            <EntryHeader>
+                              <div>
+                                <EntryTitle>{item.degree} in {item.area}</EntryTitle>
+                                <EntryMeta>{item.institution}</EntryMeta>
+                              </div>
+                              <EntryDate>{formatRange(item.start_date, item.end_date)}</EntryDate>
+                            </EntryHeader>
+                            {item.highlights?.length > 0 && (
+                              <BulletList>
+                                {item.highlights.slice(0, 3).map((highlight, highlightIndex) => (
+                                  <li key={highlightIndex}>{highlight}</li>
+                                ))}
+                              </BulletList>
+                            )}
+                          </EntryCard>
+                        ))}
+                      </EntryList>
+                    </SectionBlock>
+                  </Panel>
 
-              <Panel id="workshop">
-                <Divider src={`${ASSET_BASE}/assets/div6.png`} alt="" />
-                <PanelTitle>Workshop Ledger</PanelTitle>
-                <CardGrid>
-                  {projectItems.map((project, index) => (
-                    <SmallCard key={`${project.name}-${index}`}>
-                      <SmallTitle>
-                        {project.url ? <a href={project.url}>{project.name}</a> : project.name}
-                      </SmallTitle>
-                      {project.date && <SmallMeta>{project.date}</SmallMeta>}
-                      {project.summary && <BodyText>{project.summary}</BodyText>}
-                      {project.highlights?.length > 0 && (
-                        <BulletList>
-                          {project.highlights.slice(0, 2).map((highlight, highlightIndex) => (
-                            <li key={highlightIndex}>{highlight}</li>
-                          ))}
-                        </BulletList>
-                      )}
-                    </SmallCard>
-                  ))}
-                </CardGrid>
-              </Panel>
-
-              <Panel id="sanctum">
-                <Divider src={`${ASSET_BASE}/assets/div6.png`} alt="" />
-                <PanelTitle>Sanctum Annex</PanelTitle>
-                <TwoColumnGrid>
-                  <SectionBlock>
-                    <SectionHeading>Volunteer</SectionHeading>
-                    <EntryList>
-                      {volunteerItems.map((item, index) => (
-                        <EntryCard key={`${item.company}-${item.position}-${index}`}>
-                          <EntryTitle>{item.position}</EntryTitle>
-                          <EntryMeta>{item.company}</EntryMeta>
-                          <EntryDate>{formatRange(item.start_date, item.end_date)}</EntryDate>
-                        </EntryCard>
+                  <Panel id="workshop">
+                    <Divider src={`${ASSET_BASE}/assets/div6.png`} alt="" />
+                    <PanelTitle>Workshop Ledger</PanelTitle>
+                    <CardGrid>
+                      {projectItems.map((project, index) => (
+                        <SmallCard key={`${project.name}-${index}`}>
+                          <SmallTitle>
+                            {project.url ? <a href={project.url}>{project.name}</a> : project.name}
+                          </SmallTitle>
+                          {project.date && <SmallMeta>{project.date}</SmallMeta>}
+                          {project.summary && <BodyText>{project.summary}</BodyText>}
+                          {project.highlights?.length > 0 && (
+                            <BulletList>
+                              {project.highlights.slice(0, 2).map((highlight, highlightIndex) => (
+                                <li key={highlightIndex}>{highlight}</li>
+                              ))}
+                            </BulletList>
+                          )}
+                        </SmallCard>
                       ))}
-                    </EntryList>
-                  </SectionBlock>
+                    </CardGrid>
+                  </Panel>
 
-                  <SectionBlock>
-                    <SectionHeading>Professional Development</SectionHeading>
-                    <EntryList>
-                      {professionalDevelopmentItems.map((item, index) => (
-                        <EntryCard key={`${item.name}-${index}`}>
-                          <EntryTitle>{item.name}</EntryTitle>
-                          <EntryMeta>{item.summary || item.location}</EntryMeta>
-                          <EntryDate>{formatMonthYear(item.date)}</EntryDate>
-                        </EntryCard>
-                      ))}
-                    </EntryList>
-                  </SectionBlock>
-                </TwoColumnGrid>
-              </Panel>
-            </ContentColumn>
-          </MainFrame>
-        </Page>
+                  <Panel id="sanctum">
+                    <Divider src={`${ASSET_BASE}/assets/div6.png`} alt="" />
+                    <PanelTitle>Sanctum Annex</PanelTitle>
+                    <TwoColumnGrid>
+                      <SectionBlock>
+                        <SectionHeading>Volunteer</SectionHeading>
+                        <EntryList>
+                          {volunteerItems.map((item, index) => (
+                            <EntryCard key={`${item.company}-${item.position}-${index}`}>
+                              <EntryTitle>{item.position}</EntryTitle>
+                              <EntryMeta>{item.company}</EntryMeta>
+                              <EntryDate>{formatRange(item.start_date, item.end_date)}</EntryDate>
+                            </EntryCard>
+                          ))}
+                        </EntryList>
+                      </SectionBlock>
+
+                      <SectionBlock>
+                        <SectionHeading>Professional Development</SectionHeading>
+                        <EntryList>
+                          {professionalDevelopmentItems.map((item, index) => (
+                            <EntryCard key={`${item.name}-${index}`}>
+                              <EntryTitle>{item.name}</EntryTitle>
+                              <EntryMeta>{item.summary || item.location}</EntryMeta>
+                              <EntryDate>{formatMonthYear(item.date)}</EntryDate>
+                            </EntryCard>
+                          ))}
+                        </EntryList>
+                      </SectionBlock>
+                    </TwoColumnGrid>
+                  </Panel>
+                </ContentColumn>
+              </MainFrame>
+            </Page>
+          </>
+        ) : (
+          <>
+            <LandingBorder src={`${ASSET_BASE}/backgrounds/leafborder.png`} alt="" aria-hidden="true" />
+            <ForestFrame>
+              <LandingScene>
+                <LandingLink type="button" onClick={() => setHasEntered(true)} aria-label="Enter Moonrest">
+                  <LandingArt src={`${ASSET_BASE.replace('/images', '')}/images/moonrest.png`} alt="Moonrest" className="default" />
+                  <LandingArt src={`${ASSET_BASE.replace('/images', '')}/images/moonrestd2.png`} alt="" aria-hidden="true" className="hover" />
+                </LandingLink>
+                <ForestBackground src={`${ASSET_BASE}/backgrounds/forest6.jpg`} alt="" aria-hidden="true" />
+                <ForestPath src={`${ASSET_BASE}/backgrounds/path.png`} alt="" aria-hidden="true" />
+                <Fireflies src={`${ASSET_BASE}/assets/fireflies.gif`} alt="" aria-hidden="true" $variant="left" />
+                <Fireflies src={`${ASSET_BASE}/assets/fireflies.gif`} alt="" aria-hidden="true" $variant="right" />
+                <LandingPrompt>Enter the tavern</LandingPrompt>
+              </LandingScene>
+            </ForestFrame>
+          </>
+        )}
       </Scene>
     </>
   );
@@ -250,9 +268,11 @@ const Scene = styled.div`
   position: relative;
   min-height: 100%;
   overflow-x: hidden;
-  background:
-    linear-gradient(rgba(5, 8, 9, 0.3), rgba(5, 8, 9, 0.7)),
-    url('${ASSET_BASE}/backgrounds/interior.jpg') center / cover fixed no-repeat;
+  overflow-y: ${({ $entered }) => ($entered ? 'auto' : 'hidden')};
+  background: ${({ $entered }) => ($entered
+    ? `linear-gradient(rgba(5, 8, 9, 0.3), rgba(5, 8, 9, 0.7)),
+    url('${ASSET_BASE}/backgrounds/interior.jpg') center / cover fixed no-repeat`
+    : '#0e1a1e')};
   color: #bab7a6;
   font-family: 'WashingtonText', Georgia, serif;
 
@@ -271,10 +291,11 @@ const AmbientOverlay = styled.div`
   position: fixed;
   inset: 0;
   z-index: 0;
-  background:
-    radial-gradient(circle at center, transparent 45%, rgba(0, 0, 0, 0.68) 100%),
-    url('${ASSET_BASE}/backgrounds/poster3.jpg') center / cover no-repeat;
-  opacity: 0.22;
+  background: ${({ $entered }) => ($entered
+    ? `radial-gradient(circle at center, transparent 45%, rgba(0, 0, 0, 0.68) 100%),
+    url('${ASSET_BASE}/backgrounds/poster3.jpg') center / cover no-repeat`
+    : 'radial-gradient(circle at center, transparent 38%, rgba(0, 0, 0, 0.5) 100%)')};
+  opacity: ${({ $entered }) => ($entered ? 0.22 : 1)};
 `;
 
 const ScreenLines = styled.div`
@@ -330,6 +351,178 @@ const Page = styled.div`
   position: relative;
   z-index: 2;
   padding: 28px 20px 96px;
+`;
+
+const LandingBorder = styled.img`
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 2;
+  pointer-events: none;
+`;
+
+const ForestFrame = styled.div`
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+`;
+
+const LandingScene = styled.main`
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+`;
+
+const ForestBackground = styled.img`
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -10;
+  object-fit: cover;
+  object-position: center center;
+  filter: opacity(0.75);
+  background-color: black;
+`;
+
+const ForestPath = styled.img`
+  position: absolute;
+  width: clamp(180px, 18vw, 360px);
+  bottom: 0;
+  left: 40%;
+  z-index: -5;
+
+  @media (max-width: 900px) {
+    width: clamp(150px, 24vw, 280px);
+    left: 36%;
+  }
+
+  @media (max-width: 640px) {
+    width: clamp(140px, 30vw, 220px);
+    left: 30%;
+  }
+`;
+
+const LandingLink = styled.button`
+  position: absolute;
+  bottom: clamp(170px, 20vh, 280px);
+  left: 50%;
+  display: block;
+  width: clamp(360px, 48vw, 760px);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  filter: drop-shadow(-10px 10px 10px black);
+  clip-path: polygon(0% 45.88%, 22% 0%, 49.88% 0%, 60.71% 23.82%, 100% 21.36%, 100% 100%, 0% 100%);
+  transform: translateX(-38%);
+  transition: transform 180ms ease;
+
+  &:hover,
+  &:focus-visible {
+    transform: translateX(-38%) translateY(-4px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #d9cfa5;
+    outline-offset: 8px;
+  }
+
+  .default {
+    opacity: 1;
+  }
+
+  .hover {
+    opacity: 0;
+  }
+
+  &:hover .default,
+  &:focus-visible .default {
+    opacity: 0;
+  }
+
+  &:hover .hover,
+  &:focus-visible .hover {
+    opacity: 1;
+  }
+
+  @media (max-width: 900px) {
+    width: clamp(300px, 60vw, 560px);
+    bottom: clamp(160px, 22vh, 230px);
+    transform: translateX(-42%);
+
+    &:hover,
+    &:focus-visible {
+      transform: translateX(-42%) translateY(-4px);
+    }
+  }
+
+  @media (max-width: 640px) {
+    width: min(86vw, 460px);
+    bottom: clamp(180px, 24vh, 240px);
+    transform: translateX(-46%);
+
+    &:hover,
+    &:focus-visible {
+      transform: translateX(-46%) translateY(-4px);
+    }
+  }
+`;
+
+const LandingArt = styled.img`
+  display: block;
+  width: 100%;
+  transition: opacity 140ms ease;
+
+  &.hover {
+    position: absolute;
+    inset: 0;
+  }
+`;
+
+const Fireflies = styled.img`
+  position: absolute;
+  ${({ $variant }) => ($variant === 'left'
+    ? 'left: 19%; bottom: 58%; width: clamp(140px, 20vw, 280px);'
+    : 'right: 20%; bottom: 18%; width: clamp(140px, 18vw, 260px); z-index: 10;')}
+  pointer-events: none;
+
+  @media (max-width: 900px) {
+    ${({ $variant }) => ($variant === 'left'
+      ? 'left: 10%; bottom: 60%; width: clamp(120px, 24vw, 220px);'
+      : 'right: 10%; bottom: 24%; width: clamp(120px, 22vw, 220px);')}
+  }
+
+  @media (max-width: 640px) {
+    ${({ $variant }) => ($variant === 'left'
+      ? 'left: 4%; bottom: 64%; width: clamp(110px, 28vw, 180px);'
+      : 'right: 4%; bottom: 28%; width: clamp(110px, 26vw, 180px);')}
+  }
+`;
+
+const LandingPrompt = styled.p`
+  position: absolute;
+  left: 50%;
+  bottom: clamp(92px, 11vh, 150px);
+  margin: 0;
+  z-index: 1;
+  color: #ddd4aa;
+  font-size: clamp(1.05rem, 2vw, 1.55rem);
+  letter-spacing: 0.08em;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
+  transform: translateX(-92%);
+
+  @media (max-width: 900px) {
+    transform: translateX(-86%);
+  }
+
+  @media (max-width: 640px) {
+    bottom: clamp(110px, 13vh, 150px);
+    transform: translateX(-82%);
+  }
 `;
 
 const Banner = styled.header`

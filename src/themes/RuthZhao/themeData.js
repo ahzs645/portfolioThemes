@@ -1,8 +1,41 @@
+export const MAP_BACKGROUND_IMAGE =
+  'https://framerusercontent.com/images/WvIbjPAZpzrGMVRZ7ysIs37qQ4.png?width=3288&height=2502';
+
+export const CASE_STUDY_SLOTS = [
+  {
+    x: 43,
+    y: 50,
+    previewImage: 'https://framerusercontent.com/images/5m0Rrs5PcowPvOiQ4GXelx76K8g.png?width=3336&height=1626',
+    previewMeta: 'Case Study - 2025',
+  },
+  {
+    x: 54,
+    y: 58,
+    previewImage: 'https://framerusercontent.com/images/XtcBUeLaaInR0xZ9qSp63NdVK84.png?width=3336&height=1626',
+    previewMeta: 'Case Study - 2025',
+  },
+  {
+    x: 50,
+    y: 43,
+    previewImage: 'https://framerusercontent.com/images/QhojHBORZzqHmMSXAi6wxo9rks.png?width=2086&height=1346',
+    previewMeta: 'Art - 2024',
+  },
+  {
+    x: 56,
+    y: 41,
+    previewImage: 'https://framerusercontent.com/images/Zn0taxu0HlzHCXMPYoq30JNLz0.png?width=2210&height=442',
+    previewMeta: 'Research Archive',
+  },
+];
+
 export const MAP_REGIONS = [
   {
     id: 'research',
     label: 'Research',
     category: 'Research',
+    previewTitle: 'PENN LABS',
+    previewMeta: 'Case Study - 2025',
+    previewImage: 'https://framerusercontent.com/images/XtcBUeLaaInR0xZ9qSp63NdVK84.png?width=3336&height=1626',
     x: 55,
     y: 18,
     tone: 'muted',
@@ -13,6 +46,9 @@ export const MAP_REGIONS = [
     id: 'case-studies',
     label: 'Case Studies',
     category: 'Case Studies',
+    previewTitle: 'RAMP',
+    previewMeta: 'Case Study - 2025',
+    previewImage: 'https://framerusercontent.com/images/5m0Rrs5PcowPvOiQ4GXelx76K8g.png?width=3336&height=1626',
     x: 50,
     y: 54,
     tone: 'accent',
@@ -23,6 +59,9 @@ export const MAP_REGIONS = [
     id: 'art',
     label: 'Art',
     category: 'Art',
+    previewTitle: 'ILLUSTRATED POETRY',
+    previewMeta: 'Art - 2024',
+    previewImage: 'https://framerusercontent.com/images/QhojHBORZzqHmMSXAi6wxo9rks.png?width=2086&height=1346',
     x: 27,
     y: 72,
     tone: 'muted',
@@ -33,6 +72,9 @@ export const MAP_REGIONS = [
     id: 'archive',
     label: 'Archive',
     category: 'Archive',
+    previewTitle: 'LIVING-LOOM',
+    previewMeta: 'Research Archive',
+    previewImage: 'https://framerusercontent.com/images/Zn0taxu0HlzHCXMPYoq30JNLz0.png?width=2210&height=442',
     x: 82,
     y: 60,
     tone: 'muted',

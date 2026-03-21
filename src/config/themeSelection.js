@@ -5,6 +5,13 @@ const THEME_SELECTION_MODES = {
   RANDOM: 'random',
 };
 
+function normalizeShowThemeBar(value) {
+  if (value === 'false' || value === '0') return false;
+  if (value === 'true' || value === '1') return true;
+  // Default: show bar unless explicitly hidden
+  return true;
+}
+
 function normalizeThemeSelectionMode(value) {
   return value === THEME_SELECTION_MODES.RANDOM
     ? THEME_SELECTION_MODES.RANDOM
@@ -21,6 +28,8 @@ export const themeSelectionMode = normalizeThemeSelectionMode(
 );
 
 export const defaultThemeId = getPortfolioTheme(import.meta.env.VITE_DEFAULT_THEME_ID).id;
+
+export const showThemeBar = normalizeShowThemeBar(import.meta.env.VITE_SHOW_THEME_BAR);
 
 export function pickRandomThemeId() {
   const randomIndex = Math.floor(Math.random() * PORTFOLIO_THEMES.length);

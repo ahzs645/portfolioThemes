@@ -5,9 +5,13 @@
   "scripts": {
     "dev": "vite",
     "dev:random": "vite --mode random",
+    "dev:static": "vite --mode static",
+    "dev:random-static": "vite --mode random-static",
     "prefetch": "node scripts/fetch-contributions.js",
     "build": "node scripts/fetch-contributions.js && vite build",
     "build:random": "node scripts/fetch-contributions.js && vite build --mode random",
+    "build:static": "node scripts/fetch-contributions.js && vite build --mode static",
+    "build:random-static": "node scripts/fetch-contributions.js && vite build --mode random-static",
     "preview": "vite preview"
   },
   "dependencies": {
