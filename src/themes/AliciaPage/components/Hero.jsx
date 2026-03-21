@@ -1,168 +1,172 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { FONT } from '../utils/tokens';
 
-const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*▓░▒█▀▄▌▐←→↑↓◆◇○●';
-const randomGlyph = () => GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+/* ── Character pool (matches Alicia's source) ── */
+const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$&*()-_+=/[]{};<>0123456789░▒'.split('');
+const getRandomChar = () => CHARS[Math.floor(Math.random() * CHARS.length)];
 
-/* ── Core scramble engine ──
-   All animation is JS-driven via setTimeout. No CSS keyframes fighting. */
-function scrambleAndResolve(chars, { perCharDelay = 30, frames = 6, frameMs = 40 } = {}) {
+/* ── Core scramble: recursive setTimeout at 15ms, 44 frames per char ── */
+function runScramble(charSpans, originals, { stagger = 30, totalFrames = 44, frameMs = 15 } = {}) {
   const timeouts = [];
 
-  chars.forEach((c, i) => {
-    if (c.isSpace) return;
-    const span = c.span;
-
-    // Immediately show a random glyph
-    span.textContent = randomGlyph();
-    span.style.opacity = '1';
-
-    const base = i * perCharDelay;
-
-    // Cycle through random glyphs
-    for (let f = 0; f < frames; f++) {
-      timeouts.push(setTimeout(() => {
-        span.textContent = randomGlyph();
-      }, base + f * frameMs));
-    }
-
-    // Resolve to correct char
-    timeouts.push(setTimeout(() => {
-      span.textContent = c.target;
-    }, base + frames * frameMs));
+  charSpans.forEach((span, i) => {
+    const tid = setTimeout(() => {
+      let frame = 0;
+      const tick = () => {
+        if (frame === totalFrames) {
+          span.textContent = originals[i]; // resolve to correct char
+        } else {
+          span.textContent = getRandomChar(); // scramble
+        }
+        if (++frame <= totalFrames) {
+          timeouts.push(setTimeout(tick, frameMs));
+        }
+      };
+      tick();
+    }, i * stagger);
+    timeouts.push(tid);
   });
 
   return () => timeouts.forEach(clearTimeout);
 }
 
-/* ── ShuffleText: splits text into char spans, scrambles on mount + hover ── */
-function ShuffleText({ text, delay = 0, perCharDelay = 35, frames = 8, frameMs = 40 }) {
-  const containerRef = useRef(null);
-  const charsRef = useRef([]);
+/* ── Build char spans from text, attach to a DOM element ── */
+function buildCharSpans(el, text) {
+  el.innerHTML = '';
+  const spans = [];
+  const originals = [];
+
+  for (let i = 0; i < text.length; i++) {
+    const span = document.createElement('span');
+    span.className = 'char';
+    span.setAttribute('data-char', text[i]);
+    span.style.cssText = `--char-index:${i};display:inline-block;`;
+
+    if (text[i] === ' ') {
+      span.innerHTML = '&nbsp;';
+      span.style.width = '0.25em';
+    } else {
+      span.textContent = text[i];
+    }
+
+    el.appendChild(span);
+    spans.push(span);
+    originals.push(text[i] === ' ' ? '\u00A0' : text[i]);
+  }
+
+  return { spans, originals };
+}
+
+/* ── ShuffleText component ── */
+function ShuffleText({ text, delay = 0, stagger = 30 }) {
+  const elRef = useRef(null);
+  const dataRef = useRef({ spans: [], originals: [] });
   const cleanupRef = useRef(null);
-  const busyRef = useRef(false);
 
   useEffect(() => {
-    const el = containerRef.current;
+    const el = elRef.current;
     if (!el || !text) return;
 
-    // Build char spans
-    el.innerHTML = '';
-    const chars = [];
-    for (let i = 0; i < text.length; i++) {
-      const span = document.createElement('span');
-      span.setAttribute('data-char', text[i]);
-      span.style.setProperty('--char-index', String(i));
-      span.style.display = 'inline-block';
+    const { spans, originals } = buildCharSpans(el, text);
+    dataRef.current = { spans, originals };
 
-      if (text[i] === ' ') {
-        span.innerHTML = '&nbsp;';
-        span.style.width = '0.25em';
-        span.style.opacity = '1';
-      } else {
-        span.textContent = randomGlyph();
-        span.style.opacity = '0'; // Hidden until initial scramble
-      }
-      el.appendChild(span);
-      chars.push({ span, target: text[i], isSpace: text[i] === ' ' });
-    }
-    charsRef.current = chars;
-
-    // Initial reveal after delay
-    const initTimeout = setTimeout(() => {
-      cleanupRef.current = scrambleAndResolve(chars, { perCharDelay, frames, frameMs });
-      const totalMs = (chars.length - 1) * perCharDelay + frames * frameMs + 100;
-      setTimeout(() => { busyRef.current = false; }, totalMs);
+    // Initial mount animation after delay
+    const tid = setTimeout(() => {
+      cleanupRef.current = runScramble(spans, originals, { stagger, totalFrames: 44, frameMs: 15 });
     }, delay);
 
     return () => {
-      clearTimeout(initTimeout);
+      clearTimeout(tid);
       if (cleanupRef.current) cleanupRef.current();
     };
-  }, [text]);
+  }, [text, delay, stagger]);
 
-  const handleHover = useCallback(() => {
-    if (charsRef.current.length === 0) return;
+  const handleMouseEnter = useCallback(() => {
+    const { spans, originals } = dataRef.current;
+    if (!spans.length) return;
     if (cleanupRef.current) cleanupRef.current();
-    cleanupRef.current = scrambleAndResolve(charsRef.current, { perCharDelay, frames, frameMs });
-  }, [perCharDelay, frames, frameMs]);
+    cleanupRef.current = runScramble(spans, originals, { stagger, totalFrames: 44, frameMs: 15 });
+  }, [stagger]);
 
-  return <ShuffleSpan ref={containerRef} onMouseEnter={handleHover} />;
+  return <ShuffleSpan ref={elRef} onMouseEnter={handleMouseEnter} />;
 }
 
-/* ── ShuffleAscii: same but for multi-line ASCII art ── */
-function ShuffleAscii({ lines, theme, delay = 300 }) {
-  const containerRef = useRef(null);
-  const charsRef = useRef([]);
+/* ── ShuffleAscii component ── */
+function ShuffleAscii({ lines, theme, delay = 300, stagger = 5 }) {
+  const elRef = useRef(null);
+  const dataRef = useRef({ spans: [], originals: [], highlightIndices: [] });
   const cleanupRef = useRef(null);
 
   useEffect(() => {
-    const el = containerRef.current;
+    const el = elRef.current;
     if (!el) return;
 
     el.innerHTML = '';
-    const allChars = [];
+    const spans = [];
+    const originals = [];
+    const highlightIndices = [];
     let globalIdx = 0;
 
     lines.forEach((line) => {
       const div = document.createElement('div');
       line.text.split('').forEach((ch, ci) => {
         const span = document.createElement('span');
+        span.className = 'char';
         span.setAttribute('data-char', ch);
-        span.style.setProperty('--char-index', String(globalIdx));
-        span.style.display = 'inline';
-        span.style.opacity = '0';
-        span.textContent = randomGlyph();
-        if (line.highlights.includes(ci)) span.dataset.highlight = '1';
+        span.style.cssText = `--char-index:${globalIdx};display:inline;`;
+        span.textContent = ch;
+        if (line.highlights.includes(ci)) highlightIndices.push(globalIdx);
         div.appendChild(span);
-        allChars.push({ span, target: ch, highlighted: line.highlights.includes(ci), isSpace: false });
+        spans.push(span);
+        originals.push(ch);
         globalIdx++;
       });
       el.appendChild(div);
     });
-    charsRef.current = allChars;
 
-    const initTimeout = setTimeout(() => {
-      cleanupRef.current = scrambleAndResolve(allChars, { perCharDelay: 8, frames: 4, frameMs: 20 });
-      // Apply highlight colors after all chars resolve
-      const totalMs = (allChars.length - 1) * 8 + 4 * 20 + 100;
-      setTimeout(() => {
-        allChars.forEach(c => {
-          if (c.highlighted) c.span.style.color = theme.blue;
-        });
-      }, totalMs);
+    dataRef.current = { spans, originals, highlightIndices };
+
+    // Initial scramble
+    const tid = setTimeout(() => {
+      cleanupRef.current = runScramble(spans, originals, { stagger, totalFrames: 30, frameMs: 15 });
+      // Apply highlights after animation completes
+      const totalMs = (spans.length - 1) * stagger + 30 * 15 + 100;
+      setTimeout(() => applyHighlights(spans, highlightIndices, theme), totalMs);
     }, delay);
 
     return () => {
-      clearTimeout(initTimeout);
+      clearTimeout(tid);
       if (cleanupRef.current) cleanupRef.current();
     };
-  }, [lines, theme, delay]);
+  }, [lines, theme, delay, stagger]);
 
-  const handleHover = useCallback(() => {
-    if (charsRef.current.length === 0) return;
+  const handleMouseEnter = useCallback(() => {
+    const { spans, originals, highlightIndices } = dataRef.current;
+    if (!spans.length) return;
     if (cleanupRef.current) cleanupRef.current();
     // Clear highlights during scramble
-    charsRef.current.forEach(c => { if (c.highlighted) c.span.style.color = ''; });
-    cleanupRef.current = scrambleAndResolve(charsRef.current, { perCharDelay: 8, frames: 4, frameMs: 20 });
-    const totalMs = (charsRef.current.length - 1) * 8 + 4 * 20 + 100;
-    setTimeout(() => {
-      charsRef.current.forEach(c => {
-        if (c.highlighted) c.span.style.color = theme.blue;
-      });
-    }, totalMs);
-  }, [theme]);
+    highlightIndices.forEach(idx => { spans[idx].style.color = ''; });
+    cleanupRef.current = runScramble(spans, originals, { stagger, totalFrames: 30, frameMs: 15 });
+    const totalMs = (spans.length - 1) * stagger + 30 * 15 + 100;
+    setTimeout(() => applyHighlights(spans, highlightIndices, theme), totalMs);
+  }, [theme, stagger]);
 
-  return <AsciiPre ref={containerRef} $theme={theme} onMouseEnter={handleHover} />;
+  return <AsciiPre ref={elRef} $theme={theme} onMouseEnter={handleMouseEnter} />;
 }
 
-/* ── Section label with shuffle ── */
+function applyHighlights(spans, indices, theme) {
+  indices.forEach(idx => {
+    if (spans[idx]) spans[idx].style.color = theme.blue;
+  });
+}
+
+/* ── Section label with shuffle on hover ── */
 export function ShuffleSectionLabel({ children, theme }) {
   const text = typeof children === 'string' ? children : '';
   return (
-    <SectionLabelWrap $theme={theme}>
-      <ShuffleText text={text} delay={500} perCharDelay={25} frames={5} frameMs={30} />
+    <SectionLabelWrap>
+      <ShuffleText text={text} delay={500} stagger={25} />
     </SectionLabelWrap>
   );
 }
@@ -188,15 +192,15 @@ export default function Hero({ cv, theme }) {
   return (
     <Section>
       <ListContainer>
-        <ListTitle $theme={theme}>
+        <ListTitle>
           <NameWrap $theme={theme}>
-            <ShuffleText text={name.toLowerCase()} delay={100} perCharDelay={40} frames={8} frameMs={45} />
+            <ShuffleText text={name.toLowerCase()} delay={100} stagger={30} />
           </NameWrap>
           <AsciiWrap>
-            <ShuffleAscii lines={asciiLines} theme={theme} delay={400} />
+            <ShuffleAscii lines={asciiLines} theme={theme} delay={400} stagger={5} />
           </AsciiWrap>
         </ListTitle>
-        <ListContent $theme={theme}>
+        <ListContent>
           <FadeIn delay={300}><Greeting>Hi!</Greeting></FadeIn>
           <FadeIn delay={500}>
             {summary ? (
@@ -221,7 +225,6 @@ export default function Hero({ cv, theme }) {
 }
 
 /* ── Styled Components ── */
-
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
@@ -233,8 +236,7 @@ const FadeIn = styled.div`
 `;
 const Section = styled.section`padding-top: 120px;`;
 const ListContainer = styled.dl`
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 1rem; row-gap: 0.5rem; margin-bottom: 3rem;
   @media (min-width: 768px) { margin-bottom: 4rem; row-gap: 1rem; }
 `;
@@ -243,8 +245,7 @@ const ListTitle = styled.dt`
   @media (min-width: 768px) { grid-column: span 4; }
 `;
 const ListContent = styled.dd`
-  grid-column: span 12;
-  border-top: 1px solid rgba(115,115,115,0.1);
+  grid-column: span 12; border-top: 1px solid rgba(115,115,115,0.1);
   padding: 16px 8px 0; display: flex; flex-direction: column; gap: 16px; font-size: 15px;
   @media (min-width: 768px) { grid-column: span 8; }
 `;
@@ -259,8 +260,7 @@ const AsciiPre = styled.pre`
   color: ${p => p.$theme.silverDark}; white-space: pre; margin: 0; cursor: default;
 `;
 const SectionLabelWrap = styled.h2`
-  font-weight: 700; font-size: 1rem; margin: 0;
-  color: ${p => p.$theme.primary}; cursor: default;
+  font-weight: 700; font-size: 1rem; margin: 0; cursor: default;
 `;
 const Greeting = styled.p`margin: 0;`;
 const Bio = styled.p`margin: 0; line-height: 1.6;`;

@@ -35,6 +35,7 @@ import { EdHendersonTheme } from './EdHenderson/EdHendersonTheme';
 import { HenryLangTheme } from './HenryLang/HenryLangTheme';
 import { LiamMattesonTheme } from './LiamMatteson/LiamMattesonTheme';
 import { SinisterSunsTheme } from './SinisterSuns/SinisterSunsTheme';
+import { SaintAngelsTheme } from './SaintAngels/SaintAngelsTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -332,6 +333,14 @@ export const PORTFOLIO_THEMES = [
     description: 'Dark fantasy resume theme with ivy corners, ornamental borders, parchment-toned type, and a tavern-inspired information architecture remade from the Sinister Suns site.',
     source: null,
     Component: SinisterSunsTheme,
+  },
+  {
+    id: 'saint-angels',
+    slug: 'with-teeth',
+    name: 'With Teeth',
+    description: 'Minimal retro panel layout with a left nav, bordered content cards, and a rotating wireframe header adapted from saint-angels.github.io.',
+    source: 'https://saint-angels.github.io',
+    Component: SaintAngelsTheme,
   },
 ];
 
