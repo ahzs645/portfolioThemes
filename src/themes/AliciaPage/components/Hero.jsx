@@ -4,7 +4,11 @@ import { FONT } from '../utils/tokens';
 
 /* ── Shuffle-on-hover text effect ──
    On hover: scrambles to random glyphs, then resolves back char-by-char.
-   On mount: runs once to reveal the text initially. */
+   On mount: runs once to reveal the text initially.
+
+   IMPORTANT: The ref'd element must NOT have React children — we manage
+   the DOM imperatively with char <span>s. Rendering {children} as React
+   text would cause reconciliation to overwrite our spans. */
 
 const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*▓░▒█▀▄▌▐';
 const randomGlyph = () => GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
@@ -29,11 +33,12 @@ function useTextShuffle(ref, text, { charDelay = 30, scrambleFrames = 6, frameIn
     for (let i = 0; i < text.length; i++) {
       const span = document.createElement('span');
       span.style.display = 'inline-block';
+      span.className = 'char';
       if (text[i] === ' ') {
         span.innerHTML = '&nbsp;';
         span.style.width = '0.25em';
       } else {
-        span.textContent = text[i];
+        span.textContent = randomGlyph(); // Start with random glyph
         span.style.opacity = '0';
       }
       el.appendChild(span);
@@ -54,9 +59,10 @@ function useTextShuffle(ref, text, { charDelay = 30, scrambleFrames = 6, frameIn
     chars.forEach((c, i) => {
       if (c.isSpace) return;
 
-      // Immediately show scrambled glyph
+      // Immediately show scrambled glyph (for hover re-trigger)
       if (!isInitial) {
         c.span.textContent = randomGlyph();
+        c.span.style.opacity = '1';
       }
 
       // Stagger: each char starts resolving after i * charDelay ms
@@ -91,19 +97,17 @@ function useTextShuffle(ref, text, { charDelay = 30, scrambleFrames = 6, frameIn
   return triggerShuffle;
 }
 
-function ShuffleText({ children, delay = 0, charDelay = 30, scrambleFrames = 6, frameInterval = 40, style }) {
+function ShuffleText({ text, delay = 0, charDelay = 30, scrambleFrames = 6, frameInterval = 40, style }) {
   const ref = useRef(null);
-  const text = typeof children === 'string' ? children : '';
   const triggerShuffle = useTextShuffle(ref, text, { charDelay, scrambleFrames, frameInterval, initialDelay: delay });
 
+  // Render an empty span — useEffect fills it with char spans imperatively
   return (
     <span
       ref={ref}
       style={{ cursor: 'default', ...style }}
       onMouseEnter={triggerShuffle}
-    >
-      {children}
-    </span>
+    />
   );
 }
 
@@ -131,10 +135,11 @@ function ShuffleAscii({ lines, theme, delay = 300 }) {
         const span = document.createElement('span');
         span.style.display = 'inline';
         span.style.opacity = '0';
+        span.className = 'char';
         if (line.highlights.includes(ci)) {
           span.dataset.highlight = '1';
         }
-        span.textContent = ch;
+        span.textContent = randomGlyph(); // Start scrambled
         lineDiv.appendChild(span);
         allChars.push({ span, target: ch, highlighted: line.highlights.includes(ci) });
       });
@@ -158,6 +163,7 @@ function ShuffleAscii({ lines, theme, delay = 300 }) {
 
       if (!isInitial) {
         c.span.textContent = randomGlyph();
+        c.span.style.opacity = '1';
       }
 
       // Scramble frames
@@ -188,6 +194,7 @@ function ShuffleAscii({ lines, theme, delay = 300 }) {
     runAsciiShuffle(allCharsRef.current, false);
   }, [runAsciiShuffle]);
 
+  // Empty element — filled imperatively
   return (
     <AsciiPre
       ref={ref}
@@ -208,14 +215,13 @@ export function ShuffleSectionLabel({ children, theme }) {
     initialDelay: 600,
   });
 
+  // Empty element — filled imperatively
   return (
     <SectionLabelText
       ref={ref}
       $theme={theme}
       onMouseEnter={triggerShuffle}
-    >
-      {children}
-    </SectionLabelText>
+    />
   );
 }
 
@@ -242,13 +248,12 @@ export default function Hero({ cv, theme, onNavigate }) {
         <ListTitle $theme={theme}>
           <NameWrap $theme={theme}>
             <ShuffleText
+              text={name.toLowerCase()}
               delay={100}
               charDelay={40}
               scrambleFrames={8}
               frameInterval={45}
-            >
-              {name.toLowerCase()}
-            </ShuffleText>
+            />
           </NameWrap>
           <AsciiWrap>
             <ShuffleAscii lines={asciiLines} theme={theme} delay={400} />

@@ -287,6 +287,7 @@ export function HenryLangTheme() {
     gl.uniform4fv(uniforms.strokeEnabled, palette.stroke.enabled);
     gl.uniform4fv(uniforms.strokeDisabled, palette.stroke.disabled);
     gl.uniform1i(uniforms.screenTex, 0);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
     let animationFrame = 0;
     let mouseX = null;
