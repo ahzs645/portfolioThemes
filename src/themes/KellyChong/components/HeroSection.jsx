@@ -10,13 +10,13 @@ export default function HeroSection({ name, title, company, summary, email, loca
     const els = sectionRef.current.querySelectorAll('[data-animate]');
     gsap.fromTo(
       els,
-      { y: 30, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.9, stagger: 0.15, ease: 'power3.out', delay: 0.4 }
+      { y: 20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.7, stagger: 0.1, ease: 'power3.out', delay: 0.1 }
     );
   }, []);
 
   return (
-    <Section id="home" ref={sectionRef}>
+    <Section ref={sectionRef}>
       <HeroContent>
         <TaglineCol data-animate>
           <Tagline>
@@ -36,7 +36,7 @@ export default function HeroSection({ name, title, company, summary, email, loca
             </InfoLine>
             {company && (
               <InfoLine>
-                <InfoLink href={website || '#'} target="_blank" rel="noreferrer">
+                <InfoLink href={website || '#'} target="_blank" rel="noreferrer" data-cursor-hover>
                   {company}.
                 </InfoLink>
               </InfoLine>
@@ -46,7 +46,7 @@ export default function HeroSection({ name, title, company, summary, email, loca
                 <InfoMuted>Living, laughing, loving in {location}.</InfoMuted>
               </InfoLine>
             )}
-            {summary && (
+            {!company && summary && (
               <InfoLine>
                 <InfoMuted>{summary}</InfoMuted>
               </InfoLine>
@@ -54,7 +54,7 @@ export default function HeroSection({ name, title, company, summary, email, loca
           </InfoBlock>
 
           <ActionBlock>
-            <ActionLink href="#info">Reach out</ActionLink>
+            <ActionLink href="#" data-cursor-hover>Reach out</ActionLink>
             <InfoMuted> for questions or collaborations.</InfoMuted>
           </ActionBlock>
         </InfoCol>
@@ -63,12 +63,11 @@ export default function HeroSection({ name, title, company, summary, email, loca
   );
 }
 
-const Section = styled.section`
-  position: relative;
-  height: 100vh;
+const Section = styled.div`
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: flex-end;
-  overflow: hidden;
 `;
 
 const HeroContent = styled.div`
@@ -144,9 +143,7 @@ const InfoBlock = styled.div`
   max-width: 542px;
 `;
 
-const InfoLine = styled.div`
-  white-space: pre;
-`;
+const InfoLine = styled.div``;
 
 const InfoMuted = styled.span`
   font-family: 'Cormorant Garamond', Georgia, serif;
@@ -186,7 +183,6 @@ const ActionLink = styled.a`
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.15em;
-  cursor: none;
 
   &:hover {
     color: rgb(41, 72, 110);

@@ -1,0 +1,69 @@
+/**
+ * Generates the ASCII art banner and greeting text from CV data.
+ * Uses the same jquery.terminal markup format as the original.
+ */
+
+// Simple block-letter generator for the name
+const LETTERS = {
+  A: ['  █  ', ' █ █ ', '█████', '█   █', '█   █'],
+  B: ['████ ', '█   █', '████ ', '█   █', '████ '],
+  C: [' ████', '█    ', '█    ', '█    ', ' ████'],
+  D: ['████ ', '█   █', '█   █', '█   █', '████ '],
+  E: ['█████', '█    ', '████ ', '█    ', '█████'],
+  F: ['█████', '█    ', '████ ', '█    ', '█    '],
+  G: [' ████', '█    ', '█  ██', '█   █', ' ████'],
+  H: ['█   █', '█   █', '█████', '█   █', '█   █'],
+  I: ['█████', '  █  ', '  █  ', '  █  ', '█████'],
+  J: ['█████', '   █ ', '   █ ', '█  █ ', ' ██  '],
+  K: ['█   █', '█  █ ', '███  ', '█  █ ', '█   █'],
+  L: ['█    ', '█    ', '█    ', '█    ', '█████'],
+  M: ['█   █', '██ ██', '█ █ █', '█   █', '█   █'],
+  N: ['█   █', '██  █', '█ █ █', '█  ██', '█   █'],
+  O: [' ███ ', '█   █', '█   █', '█   █', ' ███ '],
+  P: ['████ ', '█   █', '████ ', '█    ', '█    '],
+  Q: [' ███ ', '█   █', '█ █ █', '█  █ ', ' ██ █'],
+  R: ['████ ', '█   █', '████ ', '█  █ ', '█   █'],
+  S: [' ████', '█    ', ' ███ ', '    █', '████ '],
+  T: ['█████', '  █  ', '  █  ', '  █  ', '  █  '],
+  U: ['█   █', '█   █', '█   █', '█   █', ' ███ '],
+  V: ['█   █', '█   █', '█   █', ' █ █ ', '  █  '],
+  W: ['█   █', '█   █', '█ █ █', '██ ██', '█   █'],
+  X: ['█   █', ' █ █ ', '  █  ', ' █ █ ', '█   █'],
+  Y: ['█   █', ' █ █ ', '  █  ', '  █  ', '  █  '],
+  Z: ['█████', '   █ ', '  █  ', ' █   ', '█████'],
+  ' ': ['     ', '     ', '     ', '     ', '     '],
+};
+
+function renderAsciiName(name) {
+  const upper = name.toUpperCase();
+  const lines = ['', '', '', '', ''];
+  for (const ch of upper) {
+    const letter = LETTERS[ch] || LETTERS[' '];
+    for (let i = 0; i < 5; i++) {
+      lines[i] += letter[i] + '  ';
+    }
+  }
+  return lines.join('\n');
+}
+
+export function generateBanner(cv) {
+  const name = cv.name || 'Portfolio';
+  const ascii = renderAsciiName(name);
+
+  const fish = `
+                _,           _,                                                                _,           _,
+              .' (        .-'./                                                              .' (        .-'./
+            _/..._'.    .'.-'/                                                             _/..._'.    .'.-'/
+        .-'\`      \` '-./.'_.'                                                          .-'\`      \` '-./.'_.'
+       ( o)   ))      ;= <_        ~~  Welcome to my terminal-like website!  ~~       ( o)   ))      ;= <_
+        '-.,\\\\__ __.-;\`\\'. '.                                                          '-.,\\\\__ __.-;\`\\'. '.
+             \\) |\`\\ \\)  '.'-.\\.                                                              \\) |\`\\ \\)  '.'-.\\
+                \\_/       '-._\\                                                                \\_/       '-._\\`;
+
+  const title = cv.currentJobTitle ? `\n${cv.currentJobTitle}` : '';
+
+  let banner = ascii + '\n' + fish + title + '\n\n';
+  banner += `Type [[;rgba(245, 40, 145, 0.99);;]"help"] to see available commands.\n`;
+
+  return banner;
+}

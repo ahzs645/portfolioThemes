@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useCV } from '../../contexts/ConfigContext';
 import NoiseCanvas from './components/NoiseCanvas';
 import DitherOverlay from './components/DitherOverlay';
@@ -14,49 +13,83 @@ import LogsSection from './components/LogsSection';
 import CreditsSection from './components/CreditsSection';
 import BottomBar from './components/BottomBar';
 
-gsap.registerPlugin(ScrollTrigger);
-
 const GlobalStyles = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=IBM+Plex+Mono:wght@400;500&display=swap');
-
-  html {
-    scroll-behavior: smooth;
-  }
 `;
 
 export function KellyChongTheme() {
   const cv = useCV();
-  const [activeSection, setActiveSection] = useState('home');
+  const [activeTab, setActiveTab] = useState('home');
+  const contentRef = useRef(null);
 
-  useEffect(() => {
-    if (!cv) return;
+  const handleTabChange = useCallback((tab) => {
+    if (tab === activeTab) return;
 
-    const sections = ['home', 'info', 'projects', 'logs', 'credits'];
-    const triggers = sections.map((id) => {
-      const el = document.getElementById(id);
-      if (!el) return null;
-      return ScrollTrigger.create({
-        trigger: el,
-        start: 'top center',
-        end: 'bottom center',
-        onEnter: () => setActiveSection(id),
-        onEnterBack: () => setActiveSection(id),
-      });
+    const content = contentRef.current;
+    if (!content) {
+      setActiveTab(tab);
+      return;
+    }
+
+    // Animate out current content
+    gsap.to(content, {
+      opacity: 0,
+      y: -12,
+      duration: 0.2,
+      ease: 'power2.in',
+      onComplete: () => {
+        setActiveTab(tab);
+        // Animate in new content
+        gsap.fromTo(
+          content,
+          { opacity: 0, y: 12 },
+          { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }
+        );
+      },
     });
+  }, [activeTab]);
 
-    return () => triggers.forEach((t) => t?.kill());
-  }, [cv]);
-
-  const handleNavigate = useCallback((id) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Animate first load
+  useEffect(() => {
+    if (contentRef.current) {
+      gsap.fromTo(
+        contentRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', delay: 0.2 }
+      );
     }
   }, []);
 
   if (!cv) return null;
 
   const currentRole = cv.experience[0];
+
+  const renderTab = () => {
+    switch (activeTab) {
+      case 'home':
+        return (
+          <HeroSection
+            name={cv.name}
+            title={currentRole?.title}
+            company={currentRole?.company}
+            summary={cv.about}
+            email={cv.email}
+            location={cv.location}
+            website={cv.website}
+          />
+        );
+      case 'info':
+        return <InfoSection cv={cv} />;
+      case 'projects':
+        return <ProjectsSection cv={cv} />;
+      case 'logs':
+        return <LogsSection cv={cv} />;
+      case 'credits':
+        return <CreditsSection cv={cv} />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <>
@@ -70,24 +103,12 @@ export function KellyChongTheme() {
         <CustomCursor />
 
         {/* Fixed UI */}
-        <TopBar activeSection={activeSection} onNavigate={handleNavigate} />
+        <TopBar activeTab={activeTab} onTabChange={handleTabChange} />
         <BottomBar location={cv.location} />
 
-        {/* Content */}
-        <ContentLayer>
-          <HeroSection
-            name={cv.name}
-            title={currentRole?.title}
-            company={currentRole?.company}
-            summary={cv.about}
-            email={cv.email}
-            location={cv.location}
-            website={cv.website}
-          />
-          <InfoSection cv={cv} />
-          <ProjectsSection cv={cv} />
-          <LogsSection cv={cv} />
-          <CreditsSection cv={cv} />
+        {/* Tab content - single viewport, no scroll */}
+        <ContentLayer ref={contentRef}>
+          {renderTab()}
         </ContentLayer>
       </Page>
     </>
@@ -96,7 +117,9 @@ export function KellyChongTheme() {
 
 const Page = styled.main`
   position: relative;
-  min-height: 100vh;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
   background: linear-gradient(
     180deg,
     rgb(93, 95, 207) -6%,
@@ -104,10 +127,11 @@ const Page = styled.main`
     rgb(242, 246, 250) 36%,
     rgb(242, 246, 250) 100%
   );
-  overflow-x: hidden;
 `;
 
 const ContentLayer = styled.div`
   position: relative;
   z-index: 3;
+  width: 100%;
+  height: 100%;
 `;

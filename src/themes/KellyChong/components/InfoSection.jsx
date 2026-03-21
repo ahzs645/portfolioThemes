@@ -1,9 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
 
 export default function InfoSection({ cv }) {
   const ref = useRef(null);
@@ -11,12 +8,11 @@ export default function InfoSection({ cv }) {
   useEffect(() => {
     if (!ref.current) return;
     const els = ref.current.querySelectorAll('[data-fade]');
-    els.forEach((el) => {
-      gsap.fromTo(el, { y: 24, opacity: 0 }, {
-        y: 0, opacity: 1, duration: 0.7, ease: 'power2.out',
-        scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none none' },
-      });
-    });
+    gsap.fromTo(
+      els,
+      { y: 20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.6, stagger: 0.08, ease: 'power2.out', delay: 0.1 }
+    );
   }, []);
 
   const about = cv.about || `${cv.name} builds thoughtful, playful digital experiences.`;
@@ -38,61 +34,65 @@ export default function InfoSection({ cv }) {
   ].filter(Boolean);
 
   return (
-    <Section id="info" ref={ref}>
-      <SectionHeader data-fade>
-        <SectionLabel>INFO</SectionLabel>
-      </SectionHeader>
+    <TabPage ref={ref}>
+      <Inner>
+        <SectionLabel data-fade>INFO</SectionLabel>
 
-      <Grid>
-        <Column data-fade>
-          <AboutText>{about}</AboutText>
+        <Grid>
+          <Column data-fade>
+            <AboutText>{about}</AboutText>
+            {info.length > 0 && (
+              <Block>
+                <BlockLabel>Outside the main thread</BlockLabel>
+                <BulletList>
+                  {info.map((item) => <li key={item}>{item}</li>)}
+                </BulletList>
+              </Block>
+            )}
+          </Column>
 
-          {info.length > 0 && (
-            <Block>
-              <BlockLabel>Outside the main thread</BlockLabel>
-              <BulletList>
-                {info.map((item) => <li key={item}>{item}</li>)}
-              </BulletList>
-            </Block>
-          )}
-        </Column>
-
-        <Column data-fade>
-          {elsewhere.length > 0 && (
-            <Block>
-              <BlockLabel>Elsewhere on the web...</BlockLabel>
-              <LinkList>
-                {elsewhere.map((item) => (
-                  <LinkRow key={`${item.label}-${item.href}`}>
-                    <ExtLink href={item.href} target={item.href?.startsWith('mailto:') ? undefined : '_blank'} rel="noreferrer">
-                      {item.label}
-                    </ExtLink>
-                    {item.detail && <LinkDetail>{item.detail}</LinkDetail>}
-                  </LinkRow>
-                ))}
-              </LinkList>
-            </Block>
-          )}
-        </Column>
-      </Grid>
-    </Section>
+          <Column data-fade>
+            {elsewhere.length > 0 && (
+              <Block>
+                <BlockLabel>Elsewhere on the web...</BlockLabel>
+                <LinkList>
+                  {elsewhere.map((item) => (
+                    <LinkRow key={`${item.label}-${item.href}`}>
+                      <ExtLink href={item.href} target={item.href?.startsWith('mailto:') ? undefined : '_blank'} rel="noreferrer" data-cursor-hover>
+                        {item.label}
+                      </ExtLink>
+                      {item.detail && <LinkDetail>{item.detail}</LinkDetail>}
+                    </LinkRow>
+                  ))}
+                </LinkList>
+              </Block>
+            )}
+          </Column>
+        </Grid>
+      </Inner>
+    </TabPage>
   );
 }
 
-const Section = styled.section`
-  padding: 80px 64px 60px;
+const TabPage = styled.div`
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+`;
+
+const Inner = styled.div`
+  padding: 80px 64px 120px;
+  min-height: 100%;
 
   @media (max-width: 809px) {
-    padding: 60px 24px 40px;
+    padding: 70px 24px 120px;
   }
 `;
 
-const SectionHeader = styled.div`
-  margin-bottom: 32px;
-`;
-
 const SectionLabel = styled.h2`
-  margin: 0;
+  margin: 0 0 32px;
   font-family: 'Server Mono', 'IBM Plex Mono', monospace;
   font-size: 13px;
   font-weight: 400;
@@ -120,7 +120,7 @@ const Column = styled.div`
 
 const AboutText = styled.p`
   margin: 0;
-  font-family: 'HAL Timezone', 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 18px;
   line-height: 1.7;
   color: rgb(41, 72, 110);
@@ -143,7 +143,7 @@ const BlockLabel = styled.div`
 const BulletList = styled.ul`
   margin: 0;
   padding-left: 1.2rem;
-  font-family: 'HAL Timezone', 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 16px;
   line-height: 1.8;
   color: rgb(115, 131, 153);
@@ -162,7 +162,7 @@ const LinkRow = styled.div`
 `;
 
 const ExtLink = styled.a`
-  font-family: 'HAL Timezone', 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 16px;
   color: rgb(41, 72, 110);
   text-decoration: underline;

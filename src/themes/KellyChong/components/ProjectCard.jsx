@@ -1,36 +1,11 @@
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import styled from 'styled-components';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
 
 export default function ProjectCard({ title, role, description, href, index = 0 }) {
-  const ref = useRef(null);
-
-  useEffect(() => {
-    if (!ref.current) return;
-    gsap.fromTo(
-      ref.current,
-      { y: 40, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 0.7,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: ref.current,
-          start: 'top 85%',
-          toggleActions: 'play none none none',
-        },
-      }
-    );
-  }, []);
-
   const Tag = href ? CardLink : Card;
 
   return (
-    <Tag ref={ref} href={href} target={href ? '_blank' : undefined} rel={href ? 'noreferrer' : undefined}>
+    <Tag href={href} target={href ? '_blank' : undefined} rel={href ? 'noreferrer' : undefined} data-cursor-hover>
       <CardIndex>{String(index + 1).padStart(2, '0')}</CardIndex>
       <CardTitle>{title}</CardTitle>
       {role && <CardRole>{role}</CardRole>}
@@ -74,7 +49,7 @@ const CardIndex = styled.span`
 
 const CardTitle = styled.span`
   grid-column: 2;
-  font-family: 'HAL Timezone', 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
   font-size: 20px;
   letter-spacing: -0.02em;
@@ -92,7 +67,7 @@ const CardRole = styled.span`
 
 const CardDesc = styled.span`
   grid-column: 2;
-  font-family: 'HAL Timezone', 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 14px;
   color: rgb(146, 159, 176);
   line-height: 1.5;

@@ -31,7 +31,7 @@ export function ProjectMarker({ label, accent = false, style, href, onHover, onL
 
 const Wrapper = styled.div`
   position: absolute;
-  transform: translate(-50%, -50%);
+  transform: translate(-10px, -10px);
   z-index: 1;
 
   &:hover {

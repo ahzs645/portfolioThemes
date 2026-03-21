@@ -1,23 +1,18 @@
 import React, { useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import ProjectCard from './ProjectCard';
-
-gsap.registerPlugin(ScrollTrigger);
 
 export default function ProjectsSection({ cv }) {
   const ref = useRef(null);
 
   useEffect(() => {
     if (!ref.current) return;
+    const cards = ref.current.querySelectorAll('[data-card]');
     gsap.fromTo(
-      ref.current.querySelector('[data-label]'),
-      { y: 20, opacity: 0 },
-      {
-        y: 0, opacity: 1, duration: 0.6, ease: 'power2.out',
-        scrollTrigger: { trigger: ref.current, start: 'top 85%' },
-      }
+      cards,
+      { y: 24, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.5, stagger: 0.06, ease: 'power2.out', delay: 0.1 }
     );
   }, []);
 
@@ -38,39 +33,54 @@ export default function ProjectsSection({ cv }) {
   }));
 
   return (
-    <Section id="projects" ref={ref}>
-      <SectionLabel data-label>PROJECTS</SectionLabel>
+    <TabPage ref={ref}>
+      <Inner>
+        <SectionLabel>PROJECTS</SectionLabel>
 
-      {experience.length > 0 && (
-        <Group>
-          <GroupLabel>Select Clients</GroupLabel>
-          <CardGrid>
-            {experience.map((item, i) => (
-              <ProjectCard key={`exp-${i}`} {...item} />
-            ))}
-          </CardGrid>
-        </Group>
-      )}
+        {experience.length > 0 && (
+          <Group>
+            <GroupLabel>Select Clients</GroupLabel>
+            <CardGrid>
+              {experience.map((item, i) => (
+                <div key={`exp-${i}`} data-card>
+                  <ProjectCard {...item} />
+                </div>
+              ))}
+            </CardGrid>
+          </Group>
+        )}
 
-      {projects.length > 0 && (
-        <Group>
-          <GroupLabel>Featured Work</GroupLabel>
-          <CardGrid>
-            {projects.map((item, i) => (
-              <ProjectCard key={`proj-${i}`} {...item} />
-            ))}
-          </CardGrid>
-        </Group>
-      )}
-    </Section>
+        {projects.length > 0 && (
+          <Group>
+            <GroupLabel>Featured Work</GroupLabel>
+            <CardGrid>
+              {projects.map((item, i) => (
+                <div key={`proj-${i}`} data-card>
+                  <ProjectCard {...item} />
+                </div>
+              ))}
+            </CardGrid>
+          </Group>
+        )}
+      </Inner>
+    </TabPage>
   );
 }
 
-const Section = styled.section`
-  padding: 60px 64px 80px;
+const TabPage = styled.div`
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+`;
+
+const Inner = styled.div`
+  padding: 80px 64px 120px;
+  min-height: 100%;
 
   @media (max-width: 809px) {
-    padding: 40px 24px 60px;
+    padding: 70px 24px 120px;
   }
 `;
 
@@ -90,7 +100,7 @@ const Group = styled.div`
 
 const GroupLabel = styled.h3`
   margin: 0 0 20px;
-  font-family: 'HAL Timezone', 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
   font-size: 22px;
   color: rgb(41, 72, 110);

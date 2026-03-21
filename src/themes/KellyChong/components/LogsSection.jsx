@@ -1,10 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { formatDateRange, formatMonthYear } from '../../../utils/cvHelpers';
-
-gsap.registerPlugin(ScrollTrigger);
 
 export default function LogsSection({ cv }) {
   const ref = useRef(null);
@@ -12,67 +9,77 @@ export default function LogsSection({ cv }) {
   useEffect(() => {
     if (!ref.current) return;
     const items = ref.current.querySelectorAll('[data-log]');
-    items.forEach((el) => {
-      gsap.fromTo(el, { y: 20, opacity: 0 }, {
-        y: 0, opacity: 1, duration: 0.6, ease: 'power2.out',
-        scrollTrigger: { trigger: el, start: 'top 90%' },
-      });
-    });
+    gsap.fromTo(
+      items,
+      { y: 16, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.5, stagger: 0.05, ease: 'power2.out', delay: 0.1 }
+    );
   }, []);
 
   return (
-    <Section id="logs" ref={ref}>
-      <SectionLabel data-log>LOGS</SectionLabel>
-      <Subtitle data-log>Field notes, diaries, and other documentation.</Subtitle>
+    <TabPage ref={ref}>
+      <Inner>
+        <SectionLabel data-log>LOGS</SectionLabel>
+        <Subtitle data-log>Field notes, diaries, and other documentation.</Subtitle>
 
-      <Grid>
-        {cv.education.length > 0 && (
-          <Column>
-            <GroupLabel data-log>PERSONAL</GroupLabel>
-            <LogList>
-              {cv.education.slice(0, 4).map((item, i) => (
-                <LogItem key={i} data-log>
-                  <LogTitle>{item.institution}</LogTitle>
-                  <LogMeta>
-                    {item.degree} {item.area ? `in ${item.area}` : ''}
-                    {(item.start_date || item.end_date) && ` \u00B7 ${formatDateRange(item.start_date, item.end_date)}`}
-                  </LogMeta>
-                </LogItem>
-              ))}
-            </LogList>
-          </Column>
-        )}
+        <Grid>
+          {cv.education.length > 0 && (
+            <Column>
+              <GroupLabel data-log>PERSONAL</GroupLabel>
+              <LogList>
+                {cv.education.slice(0, 4).map((item, i) => (
+                  <LogItem key={i} data-log>
+                    <LogTitle>{item.institution}</LogTitle>
+                    <LogMeta>
+                      {item.degree} {item.area ? `in ${item.area}` : ''}
+                      {(item.start_date || item.end_date) && ` \u00B7 ${formatDateRange(item.start_date, item.end_date)}`}
+                    </LogMeta>
+                  </LogItem>
+                ))}
+              </LogList>
+            </Column>
+          )}
 
-        {cv.projects.length > 0 && (
-          <Column>
-            <GroupLabel data-log>SELECT WRITING</GroupLabel>
-            <LogList>
-              {cv.projects.slice(0, 6).map((item, i) => (
-                <LogItem key={i} data-log>
-                  {item.url ? (
-                    <LogLink href={item.url} target="_blank" rel="noreferrer">{item.name}</LogLink>
-                  ) : (
-                    <LogTitle>{item.name}</LogTitle>
-                  )}
-                  <LogMeta>
-                    {item.summary}
-                    {item.date && ` \u00B7 ${formatMonthYear(String(item.date).includes('-') ? item.date : `${item.date}-01`)}`}
-                  </LogMeta>
-                </LogItem>
-              ))}
-            </LogList>
-          </Column>
-        )}
-      </Grid>
-    </Section>
+          {cv.projects.length > 0 && (
+            <Column>
+              <GroupLabel data-log>SELECT WRITING</GroupLabel>
+              <LogList>
+                {cv.projects.slice(0, 6).map((item, i) => (
+                  <LogItem key={i} data-log>
+                    {item.url ? (
+                      <LogLink href={item.url} target="_blank" rel="noreferrer" data-cursor-hover>{item.name}</LogLink>
+                    ) : (
+                      <LogTitle>{item.name}</LogTitle>
+                    )}
+                    <LogMeta>
+                      {item.summary}
+                      {item.date && ` \u00B7 ${formatMonthYear(String(item.date).includes('-') ? item.date : `${item.date}-01`)}`}
+                    </LogMeta>
+                  </LogItem>
+                ))}
+              </LogList>
+            </Column>
+          )}
+        </Grid>
+      </Inner>
+    </TabPage>
   );
 }
 
-const Section = styled.section`
-  padding: 60px 64px 80px;
+const TabPage = styled.div`
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+`;
+
+const Inner = styled.div`
+  padding: 80px 64px 120px;
+  min-height: 100%;
 
   @media (max-width: 809px) {
-    padding: 40px 24px 60px;
+    padding: 70px 24px 120px;
   }
 `;
 
@@ -88,7 +95,7 @@ const SectionLabel = styled.h2`
 
 const Subtitle = styled.p`
   margin: 0 0 40px;
-  font-family: 'HAL Timezone', 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
   font-size: 28px;
   color: rgb(41, 72, 110);
@@ -138,14 +145,14 @@ const LogItem = styled.div`
 `;
 
 const LogTitle = styled.strong`
-  font-family: 'HAL Timezone', 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 17px;
   font-weight: 500;
   color: rgb(41, 72, 110);
 `;
 
 const LogLink = styled.a`
-  font-family: 'HAL Timezone', 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 17px;
   font-weight: 500;
   color: rgb(41, 72, 110);
@@ -159,7 +166,7 @@ const LogLink = styled.a`
 `;
 
 const LogMeta = styled.span`
-  font-family: 'HAL Timezone', 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 15px;
   color: rgb(146, 159, 176);
   line-height: 1.6;

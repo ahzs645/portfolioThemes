@@ -1,7 +1,20 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import styled from 'styled-components';
+import gsap from 'gsap';
 
 export default function CreditsSection({ cv }) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    const els = ref.current.querySelectorAll('[data-fade]');
+    gsap.fromTo(
+      els,
+      { y: 16, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.5, stagger: 0.06, ease: 'power2.out', delay: 0.1 }
+    );
+  }, []);
+
   const credits = [
     cv.website && { label: 'website', href: cv.website, meta: 'main link' },
     cv.email && { label: cv.email, href: `mailto:${cv.email}`, meta: 'email' },
@@ -13,41 +26,53 @@ export default function CreditsSection({ cv }) {
   ].filter(Boolean);
 
   return (
-    <Section id="credits">
-      <SectionLabel>CREDITS</SectionLabel>
+    <TabPage ref={ref}>
+      <Inner>
+        <SectionLabel data-fade>CREDITS</SectionLabel>
 
-      <CreditText>
-        Built from CV.yaml data and restyled after kellychong.ca&apos;s
-        paper-texture Framer portfolio.
-      </CreditText>
+        <CreditText data-fade>
+          Built from CV.yaml data and restyled after kellychong.ca&apos;s
+          paper-texture Framer portfolio.
+        </CreditText>
 
-      <CreditList>
-        {credits.map((item) => (
-          <CreditItem key={`${item.label}-${item.meta}`}>
-            {item.href ? (
-              <CreditLink
-                href={item.href}
-                target={item.href.startsWith('mailto:') ? undefined : '_blank'}
-                rel="noreferrer"
-              >
-                {item.label}
-              </CreditLink>
-            ) : (
-              <span>{item.label}</span>
-            )}
-            <CreditMeta>{item.meta}</CreditMeta>
-          </CreditItem>
-        ))}
-      </CreditList>
-    </Section>
+        <CreditList>
+          {credits.map((item) => (
+            <CreditItem key={`${item.label}-${item.meta}`} data-fade>
+              {item.href ? (
+                <CreditLink
+                  href={item.href}
+                  target={item.href.startsWith('mailto:') ? undefined : '_blank'}
+                  rel="noreferrer"
+                  data-cursor-hover
+                >
+                  {item.label}
+                </CreditLink>
+              ) : (
+                <span>{item.label}</span>
+              )}
+              <CreditMeta>{item.meta}</CreditMeta>
+            </CreditItem>
+          ))}
+        </CreditList>
+      </Inner>
+    </TabPage>
   );
 }
 
-const Section = styled.section`
-  padding: 60px 64px 160px;
+const TabPage = styled.div`
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+`;
+
+const Inner = styled.div`
+  padding: 80px 64px 120px;
+  min-height: 100%;
 
   @media (max-width: 809px) {
-    padding: 40px 24px 140px;
+    padding: 70px 24px 120px;
   }
 `;
 
@@ -64,7 +89,7 @@ const SectionLabel = styled.h2`
 const CreditText = styled.p`
   margin: 0 0 24px;
   max-width: 540px;
-  font-family: 'HAL Timezone', 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 17px;
   line-height: 1.7;
   color: rgb(115, 131, 153);
@@ -84,7 +109,7 @@ const CreditItem = styled.li`
   flex-wrap: wrap;
   gap: 10px;
   align-items: baseline;
-  font-family: 'HAL Timezone', 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 16px;
   color: rgb(41, 72, 110);
 `;

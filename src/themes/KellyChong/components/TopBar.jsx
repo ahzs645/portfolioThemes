@@ -1,15 +1,14 @@
 import React from 'react';
 import styled from 'styled-components';
-import { HomeIcon, InfoIcon, ProjectsIcon, LogsIcon, CreditsIcon } from './NavIcons';
 
 const navItems = [
-  { id: 'home', label: 'HOME', icon: HomeIcon },
-  { id: 'info', label: 'INFO', icon: InfoIcon },
-  { id: 'projects', label: 'PROJECTS', icon: ProjectsIcon },
-  { id: 'logs', label: 'LOGS', icon: LogsIcon },
+  { id: 'home', label: 'HOME', emoji: '\u{1F3E0}' },
+  { id: 'info', label: 'INFO', emoji: '\u{1F48C}' },
+  { id: 'projects', label: 'PROJECTS', emoji: '\u{1F4BB}' },
+  { id: 'logs', label: 'LOGS', emoji: '\u{1F340}' },
 ];
 
-export default function TopBar({ activeSection, onNavigate }) {
+export default function TopBar({ activeTab, onTabChange }) {
   return (
     <>
       <Bar>
@@ -19,28 +18,22 @@ export default function TopBar({ activeSection, onNavigate }) {
             {navItems.map((item) => (
               <NavLink
                 key={item.id}
-                href={`#${item.id}`}
-                $active={activeSection === item.id}
-                onClick={(e) => {
-                  e.preventDefault();
-                  onNavigate(item.id);
-                }}
+                $active={activeTab === item.id}
+                onClick={() => onTabChange(item.id)}
+                data-cursor-hover
               >
-                <item.icon active={activeSection === item.id} />
-                <NavLabel $active={activeSection === item.id}>{item.label}</NavLabel>
+                <NavEmoji>{item.emoji}</NavEmoji>
+                <NavLabel $active={activeTab === item.id}>{item.label}</NavLabel>
               </NavLink>
             ))}
           </NavLinks>
           <NavLink
-            href="#credits"
-            $active={activeSection === 'credits'}
-            onClick={(e) => {
-              e.preventDefault();
-              onNavigate('credits');
-            }}
+            $active={activeTab === 'credits'}
+            onClick={() => onTabChange('credits')}
+            data-cursor-hover
           >
-            <CreditsIcon active={activeSection === 'credits'} />
-            <NavLabel $active={activeSection === 'credits'}>CREDITS</NavLabel>
+            <NavEmoji>{'\u{1F39E}'}</NavEmoji>
+            <NavLabel $active={activeTab === 'credits'}>CREDITS</NavLabel>
           </NavLink>
         </NavContent>
       </Bar>
@@ -49,23 +42,17 @@ export default function TopBar({ activeSection, onNavigate }) {
         {navItems.map((item) => (
           <MobileNavItem
             key={item.id}
-            href={`#${item.id}`}
-            onClick={(e) => {
-              e.preventDefault();
-              onNavigate(item.id);
-            }}
+            $active={activeTab === item.id}
+            onClick={() => onTabChange(item.id)}
           >
-            <item.icon active={activeSection === item.id} />
+            <MobileEmoji>{item.emoji}</MobileEmoji>
           </MobileNavItem>
         ))}
         <MobileNavItem
-          href="#credits"
-          onClick={(e) => {
-            e.preventDefault();
-            onNavigate('credits');
-          }}
+          $active={activeTab === 'credits'}
+          onClick={() => onTabChange('credits')}
         >
-          <CreditsIcon active={activeSection === 'credits'} />
+          <MobileEmoji>{'\u{1F39E}'}</MobileEmoji>
         </MobileNavItem>
       </MobileNav>
     </>
@@ -109,39 +96,41 @@ const NavContent = styled.nav`
 
 const NavLinks = styled.div`
   display: flex;
-  gap: 28px;
+  gap: 24px;
   align-items: center;
 `;
 
-const NavLink = styled.a`
+const NavLink = styled.button`
   display: flex;
   align-items: center;
-  gap: 6px;
-  text-decoration: none;
-  cursor: pointer;
+  gap: 5px;
+  background: none;
+  border: none;
   padding: 4px 0;
-
-  svg path {
-    transition: fill 0.2s;
-  }
-
-  &:hover svg path {
-    fill: rgb(194, 255, 97);
-  }
+  cursor: none;
 
   &:hover span {
     color: rgb(194, 255, 97);
   }
 `;
 
+const NavEmoji = styled.span`
+  font-family: 'Noto Emoji', sans-serif;
+  font-size: 14px;
+  letter-spacing: -0.03em;
+  color: rgb(255, 255, 255);
+  transition: color 0.2s;
+`;
+
 const NavLabel = styled.span`
   font-family: 'Server Mono', 'IBM Plex Mono', monospace;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   letter-spacing: -0.03em;
-  color: ${(p) => (p.$active ? 'rgb(255, 255, 255)' : 'rgb(255, 255, 255)')};
+  color: ${(p) => (p.$active ? 'rgb(194, 255, 97)' : 'rgb(255, 255, 255)')};
   text-decoration: ${(p) => (p.$active ? 'underline' : 'none')};
-  text-underline-offset: 3px;
+  text-decoration-style: ${(p) => (p.$active ? 'wavy' : 'none')};
+  text-underline-offset: 2px;
   transition: color 0.2s;
 `;
 
@@ -165,10 +154,16 @@ const MobileNav = styled.nav`
   }
 `;
 
-const MobileNavItem = styled.a`
+const MobileNavItem = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  text-decoration: none;
+  background: none;
+  border: none;
   padding: 2px;
+  cursor: none;
+`;
+
+const MobileEmoji = styled.span`
+  font-size: 18px;
 `;
