@@ -350,7 +350,7 @@ export const PORTFOLIO_THEMES = [
     slug: 'moonrest',
     name: 'Moonrest',
     description: 'Dark fantasy resume theme with ivy corners, ornamental borders, parchment-toned type, and a tavern-inspired information architecture remade from the Sinister Suns site.',
-    source: null,
+    source: 'https://sinistersuns.neocities.org',
     Component: SinisterSunsTheme,
   },
   {

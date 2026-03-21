@@ -1,85 +1,102 @@
 export const MAP_BACKGROUND_IMAGE =
   'https://framerusercontent.com/images/WvIbjPAZpzrGMVRZ7ysIs37qQ4.png?width=3288&height=2502';
 
-export const CASE_STUDY_SLOTS = [
+// Project marker positions from source CSS (transform: translate(-50%, -50%))
+// These are positioned absolutely on the map image
+export const PROJECT_MARKERS = [
   {
-    x: 43,
-    y: 50,
-    previewImage: 'https://framerusercontent.com/images/5m0Rrs5PcowPvOiQ4GXelx76K8g.png?width=3336&height=1626',
-    previewMeta: 'Case Study - 2025',
-  },
-  {
-    x: 54,
-    y: 58,
-    previewImage: 'https://framerusercontent.com/images/XtcBUeLaaInR0xZ9qSp63NdVK84.png?width=3336&height=1626',
-    previewMeta: 'Case Study - 2025',
-  },
-  {
+    id: 'ramp',
+    label: 'RAMP',
+    meta: 'Case Study - 2025',
     x: 50,
-    y: 43,
-    previewImage: 'https://framerusercontent.com/images/QhojHBORZzqHmMSXAi6wxo9rks.png?width=2086&height=1346',
-    previewMeta: 'Art - 2024',
+    y: 53,
+    accent: true,
+    previewImage:
+      'https://framerusercontent.com/images/FV9dozqCTlpdjFhJi2U4VO88Y.png?scale-down-to=2048&width=3046&height=1670',
   },
   {
-    x: 56,
-    y: 41,
-    previewImage: 'https://framerusercontent.com/images/Zn0taxu0HlzHCXMPYoq30JNLz0.png?width=2210&height=442',
-    previewMeta: 'Research Archive',
+    id: 'penn-labs',
+    label: 'PENN LABS',
+    meta: 'Case Study - 2025',
+    x: 61,
+    y: 57,
+    accent: false,
+    previewImage:
+      'https://framerusercontent.com/images/XtcBUeLaaInR0xZ9qSp63NdVK84.png?scale-down-to=2048&width=3336&height=1626',
+  },
+  {
+    id: 'illustrated-poetry',
+    label: 'ILLUSTRATED POETRY',
+    meta: 'Art - 2024',
+    x: 30,
+    y: 73,
+    accent: false,
+    previewImage:
+      'https://framerusercontent.com/images/QhojHBORZzqHmMSXAi6wxo9rks.png?width=2086&height=1346',
+  },
+  {
+    id: 'living-loom',
+    label: 'LIVING-LOOM',
+    meta: 'Research - 2024',
+    x: 69,
+    y: 29,
+    accent: false,
+    previewImage:
+      'https://framerusercontent.com/images/Zn0taxu0HlzHCXMPYoq30JNLz0.png?width=2210&height=442',
+  },
+  {
+    id: 'tarot-cards',
+    label: 'TAROT CARDS',
+    meta: 'Art - 2024',
+    x: 34,
+    y: 64,
+    accent: false,
+    previewImage:
+      'https://framerusercontent.com/images/ClLzqFRgwibJGY1NNonufZuvk.png?width=3456&height=1130',
+  },
+  {
+    id: 'e-textiles',
+    label: 'E-TEXTILES',
+    meta: 'Research - 2024',
+    x: 59,
+    y: 23,
+    accent: false,
+    previewImage:
+      'https://framerusercontent.com/images/H5YJ94U1oCxdo9rzBnqShupWwi0.jpg?scale-down-to=2048&width=4096&height=2731',
   },
 ];
 
-export const MAP_REGIONS = [
+// Mobile project cards (shown on phone breakpoint instead of the map)
+export const MOBILE_PROJECTS = [
   {
-    id: 'research',
-    label: 'Research',
-    category: 'Research',
-    previewTitle: 'PENN LABS',
-    previewMeta: 'Case Study - 2025',
-    previewImage: 'https://framerusercontent.com/images/XtcBUeLaaInR0xZ9qSp63NdVK84.png?width=3336&height=1626',
-    x: 55,
-    y: 18,
-    tone: 'muted',
-    shape: 'M 522 80 L 575 42 L 630 58 L 650 110 L 630 175 L 570 188 L 528 150 L 512 100 Z',
-    innerShape: 'M 548 78 L 582 58 L 614 68 L 630 112 L 614 162 L 572 152 L 542 126 L 538 92 Z',
+    id: 'ramp',
+    label: 'RAMP',
+    meta: 'Case Study - 2025',
+    image: 'https://framerusercontent.com/images/5m0Rrs5PcowPvOiQ4GXelx76K8g.png?scale-down-to=2048&width=3336&height=1626',
   },
   {
-    id: 'case-studies',
-    label: 'Case Studies',
-    category: 'Case Studies',
-    previewTitle: 'RAMP',
-    previewMeta: 'Case Study - 2025',
-    previewImage: 'https://framerusercontent.com/images/5m0Rrs5PcowPvOiQ4GXelx76K8g.png?width=3336&height=1626',
-    x: 50,
-    y: 54,
-    tone: 'accent',
-    shape: 'M 465 312 L 482 254 L 532 252 L 584 252 L 621 308 L 628 408 L 586 485 L 530 472 L 485 435 L 470 355 Z',
-    innerShape: 'M 498 316 L 524 304 L 562 307 L 589 336 L 594 388 L 566 420 L 525 432 L 497 416 L 483 376 Z',
+    id: 'penn-labs',
+    label: 'PENN LABS',
+    meta: 'Case Study - 2025',
+    image: 'https://framerusercontent.com/images/XtcBUeLaaInR0xZ9qSp63NdVK84.png?width=3336&height=1626',
   },
   {
-    id: 'art',
-    label: 'Art',
-    category: 'Art',
-    previewTitle: 'ILLUSTRATED POETRY',
-    previewMeta: 'Art - 2024',
-    previewImage: 'https://framerusercontent.com/images/QhojHBORZzqHmMSXAi6wxo9rks.png?width=2086&height=1346',
-    x: 27,
-    y: 72,
-    tone: 'muted',
-    shape: 'M 164 516 L 210 470 L 248 462 L 286 486 L 300 536 L 300 598 L 270 622 L 228 602 L 180 616 L 150 574 Z',
-    innerShape: 'M 195 548 L 226 526 L 252 534 L 265 560 L 252 590 L 216 588 L 190 574 Z',
+    id: 'illustrated-poetry',
+    label: 'ILLUSTRATED POETRY',
+    meta: 'Art - 2024',
+    image: 'https://framerusercontent.com/images/QhojHBORZzqHmMSXAi6wxo9rks.png?width=2086&height=1346',
   },
   {
-    id: 'archive',
-    label: 'Archive',
-    category: 'Archive',
-    previewTitle: 'LIVING-LOOM',
-    previewMeta: 'Research Archive',
-    previewImage: 'https://framerusercontent.com/images/Zn0taxu0HlzHCXMPYoq30JNLz0.png?width=2210&height=442',
-    x: 82,
-    y: 60,
-    tone: 'muted',
-    shape: 'M 760 344 L 815 278 L 872 260 L 926 292 L 952 356 L 942 436 L 900 504 L 835 520 L 792 480 L 776 402 Z',
-    innerShape: 'M 820 354 L 848 332 L 892 338 L 908 376 L 894 418 L 850 422 L 822 402 L 810 372 Z',
+    id: 'living-loom',
+    label: 'LIVING-LOOM',
+    meta: 'Research - 2024',
+    image: 'https://framerusercontent.com/images/Zn0taxu0HlzHCXMPYoq30JNLz0.png?width=2210&height=442',
+  },
+  {
+    id: 'e-textiles',
+    label: 'E-TEXTILES',
+    meta: 'Research - 2024',
+    image: 'https://framerusercontent.com/images/H5YJ94U1oCxdo9rzBnqShupWwi0.jpg?scale-down-to=2048&width=4096&height=2731',
   },
 ];
 
