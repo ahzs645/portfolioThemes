@@ -2,10 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import gsap from 'gsap';
 
-// Default cursor: pink pixel hand
-const DEFAULT_SRC = 'https://framerusercontent.com/images/eMcf8jlNZzRPxuNCIbULaSNyBI.png?width=128&height=128';
-// Hover cursor: pink pixel hand (hover variant)
-const HOVER_SRC = 'https://framerusercontent.com/images/RkorN6pnBDkNk8cBbzefZs93GfM.png?width=128&height=128';
+const DEFAULT_SRC = '/kelly-chong/cursor-default.png';
+const HOVER_SRC = '/kelly-chong/cursor-hover.png';
 
 export default function CustomCursor() {
   const cursorRef = useRef(null);

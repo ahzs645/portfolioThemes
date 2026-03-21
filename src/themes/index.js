@@ -39,6 +39,7 @@ import { KellyChongTheme } from './KellyChong/KellyChongTheme';
 import { SinisterSunsTheme } from './SinisterSuns/SinisterSunsTheme';
 import { SaintAngelsTheme } from './SaintAngels/SaintAngelsTheme';
 import { RuthZhaoTheme } from './RuthZhao/RuthZhaoTheme';
+import { TahaHossainTheme } from './TahaHossain/TahaHossainTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -368,6 +369,14 @@ export const PORTFOLIO_THEMES = [
     description: 'Soft editorial portfolio with IBM Plex Mono details, orange feature cards, airy panels, and a research-forward layout adapted from ruth-zhao.com.',
     source: 'https://www.ruth-zhao.com',
     Component: RuthZhaoTheme,
+  },
+  {
+    id: 'taha-hossain',
+    slug: 'daybreak',
+    name: 'Daybreak',
+    description: 'Warm beige two-column portfolio with colored border lines, EB Garamond serif body, monospace technical details, and numbered resume items inspired by tahahossain.com.',
+    source: 'https://tahahossain.com',
+    Component: TahaHossainTheme,
   },
 ];
 
