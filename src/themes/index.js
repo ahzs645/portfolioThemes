@@ -33,6 +33,8 @@ import { RashadWikiTheme } from './RashadWiki/RashadWikiTheme';
 import { AliciaPageTheme } from './AliciaPage/AliciaPageTheme';
 import { EdHendersonTheme } from './EdHenderson/EdHendersonTheme';
 import { HenryLangTheme } from './HenryLang/HenryLangTheme';
+import { LiamMattesonTheme } from './LiamMatteson/LiamMattesonTheme';
+import { SinisterSunsTheme } from './SinisterSuns/SinisterSunsTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -314,6 +316,22 @@ export const PORTFOLIO_THEMES = [
     description: 'WebGL desktop portfolio with draggable windows, browser-style markdown pages, paint app, and CV-backed text files.',
     source: 'https://henrylang.net',
     Component: HenryLangTheme,
+  },
+  {
+    id: 'liam-matteson',
+    slug: 'liam-cv',
+    name: 'Liam CV',
+    description: 'Editorial white portfolio with muted green-gray typography, oversized serif statement, underlined nav, and image-led project cards.',
+    source: 'https://www.liam.cv',
+    Component: LiamMattesonTheme,
+  },
+  {
+    id: 'sinister-suns',
+    slug: 'moonrest',
+    name: 'Moonrest',
+    description: 'Dark fantasy resume theme with ivy corners, ornamental borders, parchment-toned type, and a tavern-inspired information architecture remade from the Sinister Suns site.',
+    source: null,
+    Component: SinisterSunsTheme,
   },
 ];
 
