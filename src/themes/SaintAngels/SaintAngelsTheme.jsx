@@ -2,6 +2,32 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 
+const lightPalette = {
+  bodyBackground: '#f6f3ee',
+  bodyGlow: 'rgba(255, 216, 222, 0.28)',
+  text: '#111',
+  panelBackground: 'rgba(255, 255, 255, 0.82)',
+  panelBorder: 'rgba(0, 0, 0, 0.2)',
+  link: '#0047ff',
+  linkHover: '#dcdcdc',
+  muted: '#666',
+  subtle: '#999',
+  cube: '#ff9baa',
+};
+
+const darkPalette = {
+  bodyBackground: '#111216',
+  bodyGlow: 'rgba(255, 153, 170, 0.14)',
+  text: '#f4efe8',
+  panelBackground: 'rgba(26, 27, 33, 0.9)',
+  panelBorder: 'rgba(255, 255, 255, 0.18)',
+  link: '#9ec0ff',
+  linkHover: 'rgba(255, 255, 255, 0.14)',
+  muted: '#c8c0b9',
+  subtle: '#9f9993',
+  cube: '#ff9baa',
+};
+
 const GlobalStyle = createGlobalStyle`
   * {
     box-sizing: border-box;
@@ -10,20 +36,20 @@ const GlobalStyle = createGlobalStyle`
   body {
     margin: 0;
     background:
-      radial-gradient(circle at top, rgba(255, 216, 222, 0.28), transparent 32%),
-      #f6f3ee;
-    color: #111;
+      radial-gradient(circle at top, ${(props) => props.$palette.bodyGlow}, transparent 32%),
+      ${(props) => props.$palette.bodyBackground};
+    color: ${(props) => props.$palette.text};
     font-family: Verdana, Geneva, sans-serif;
   }
 
   a {
-    color: #0047ff;
+    color: ${(props) => props.$palette.link};
     text-decoration: underline;
     text-underline-offset: 2px;
   }
 
   a:hover {
-    background: #dcdcdc;
+    background: ${(props) => props.$palette.linkHover};
   }
 `;
 
@@ -68,7 +94,7 @@ function makeHomeBlurb(cv) {
   return `I'm ${cv.name || 'a builder'}, ${parts.join(' ')}.`;
 }
 
-function useWireCube(canvasRef) {
+function useWireCube(canvasRef, palette) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return undefined;
@@ -78,6 +104,8 @@ function useWireCube(canvasRef) {
 
     let frameId = 0;
     let angle = 0;
+    const duck = new window.Image();
+    let duckReady = false;
 
     const vertices = [
       [-1, -1, -1],
@@ -119,39 +147,17 @@ function useWireCube(canvasRef) {
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
     };
 
-    const drawDuck = (cx, cy, scale) => {
-      context.save();
-      context.translate(cx, cy);
-      context.scale(scale, scale);
-      context.lineWidth = 2;
-      context.strokeStyle = '#111';
-      context.fillStyle = '#fffdf7';
+    const drawDuck = (width, height) => {
+      if (!duckReady) return;
 
-      context.beginPath();
-      context.ellipse(0, 12, 34, 24, 0, 0, Math.PI * 2);
-      context.fill();
-      context.stroke();
+      const maxWidth = Math.min(width * 0.18, 92);
+      const scale = maxWidth / duck.width;
+      const drawWidth = duck.width * scale;
+      const drawHeight = duck.height * scale;
+      const x = (width - drawWidth) / 2;
+      const y = (height - drawHeight) / 2 - 4;
 
-      context.beginPath();
-      context.arc(18, -6, 16, 0, Math.PI * 2);
-      context.fill();
-      context.stroke();
-
-      context.beginPath();
-      context.moveTo(30, -5);
-      context.lineTo(52, 2);
-      context.lineTo(30, 9);
-      context.closePath();
-      context.fillStyle = '#ffb480';
-      context.fill();
-      context.stroke();
-
-      context.fillStyle = '#111';
-      context.beginPath();
-      context.arc(23, -9, 2.5, 0, Math.PI * 2);
-      context.fill();
-
-      context.restore();
+      context.drawImage(duck, x, y, drawWidth, drawHeight);
     };
 
     const render = () => {
@@ -162,14 +168,14 @@ function useWireCube(canvasRef) {
       const projected = vertices.map((vertex) => {
         const [x, y, z] = rotate(vertex, angle * 0.8, angle);
         const depth = z + 4;
-        const scale = 110 / depth;
+        const scale = 150 / depth;
         return {
           x: x * scale + width / 2,
           y: y * scale + height / 2,
         };
       });
 
-      context.strokeStyle = '#ff9baa';
+      context.strokeStyle = palette.cube;
       context.lineWidth = 1.2;
       edges.forEach(([from, to]) => {
         context.beginPath();
@@ -178,10 +184,15 @@ function useWireCube(canvasRef) {
         context.stroke();
       });
 
-      drawDuck(width / 2, height / 2 + 4, Math.min(width / 600, 1));
+      drawDuck(width, height);
       angle += 0.01;
       frameId = window.requestAnimationFrame(render);
     };
+
+    duck.onload = () => {
+      duckReady = true;
+    };
+    duck.src = '/saint-angels/home_duck.png';
 
     resize();
     render();
@@ -190,11 +201,12 @@ function useWireCube(canvasRef) {
     return () => {
       window.cancelAnimationFrame(frameId);
       window.removeEventListener('resize', resize);
+      duck.onload = null;
     };
-  }, [canvasRef]);
+  }, [canvasRef, palette]);
 }
 
-function HomeSection({ cv, featuredProject, socialLinks }) {
+function HomeSection({ cv, featuredProject, socialLinks, palette, onToggleTheme, darkMode }) {
   const infoLines = [
     cv.about,
     makeHomeBlurb(cv),
@@ -204,14 +216,19 @@ function HomeSection({ cv, featuredProject, socialLinks }) {
   return (
     <>
       <CanvasWrap>
-        <WireCubeCanvas />
+        <WireCubeCanvas palette={palette} />
       </CanvasWrap>
+      <ThemeToggleRow>
+        <ThemeToggle type="button" onClick={onToggleTheme}>
+          {darkMode ? 'Switch to light' : 'Switch to dark'}
+        </ThemeToggle>
+      </ThemeToggleRow>
       {infoLines.map((line) => (
         <Paragraph key={line}>{line}</Paragraph>
       ))}
       {featuredProject && (
         <FeatureCard>
-          <FeatureLabel>Latest project</FeatureLabel>
+          <FeatureLabel $palette={palette}>Latest project</FeatureLabel>
           <FeatureTitle>
             {featuredProject.url ? (
               <a href={featuredProject.url} target="_blank" rel="noopener noreferrer">
@@ -222,7 +239,7 @@ function HomeSection({ cv, featuredProject, socialLinks }) {
             )}
           </FeatureTitle>
           {featuredProject.summary && <Paragraph>{featuredProject.summary}</Paragraph>}
-          <Muted>{featuredProject.date || 'Recent work'}</Muted>
+          <Muted $palette={palette}>{featuredProject.date || 'Recent work'}</Muted>
         </FeatureCard>
       )}
       {socialLinks.length > 0 && (
@@ -238,7 +255,7 @@ function HomeSection({ cv, featuredProject, socialLinks }) {
   );
 }
 
-function WritingSection({ items }) {
+function WritingSection({ items, palette }) {
   return (
     <>
       <PageTitle>Notes</PageTitle>
@@ -256,7 +273,7 @@ function WritingSection({ items }) {
             ) : (
               item.title
             )}
-            {item.date && <MutedInline>, {item.date}</MutedInline>}
+            {item.date && <MutedInline $palette={palette}>, {item.date}</MutedInline>}
             {item.meta && <MetaBlock>{item.meta}</MetaBlock>}
           </li>
         ))}
@@ -265,7 +282,7 @@ function WritingSection({ items }) {
   );
 }
 
-function ProjectsSection({ items }) {
+function ProjectsSection({ items, palette }) {
   return (
     <>
       <PageTitle>Projects</PageTitle>
@@ -279,7 +296,7 @@ function ProjectsSection({ items }) {
             ) : (
               project.name
             )}
-            {project.date && <MutedInline>, {project.date}</MutedInline>}
+            {project.date && <MutedInline $palette={palette}>, {project.date}</MutedInline>}
             {project.summary && <MetaBlock>{project.summary}</MetaBlock>}
           </li>
         ))}
@@ -288,7 +305,7 @@ function ProjectsSection({ items }) {
   );
 }
 
-function ExperienceSection({ experience, volunteer }) {
+function ExperienceSection({ experience, volunteer, palette }) {
   return (
     <>
       <PageTitle>Experience</PageTitle>
@@ -296,7 +313,7 @@ function ExperienceSection({ experience, volunteer }) {
         {experience.map((item) => (
           <Entry key={`${item.company}-${item.title}-${item.startDate || ''}`}>
             <EntryTitle>{item.title}</EntryTitle>
-            <EntryMeta>
+            <EntryMeta $palette={palette}>
               {item.company}
               {itemRange(item) ? `, ${itemRange(item)}` : ''}
             </EntryMeta>
@@ -314,7 +331,7 @@ function ExperienceSection({ experience, volunteer }) {
             {volunteer.map((item) => (
               <Entry key={`${item.company}-${item.title}-${item.startDate || ''}`}>
                 <EntryTitle>{item.title}</EntryTitle>
-                <EntryMeta>
+                <EntryMeta $palette={palette}>
                   {item.company}
                   {itemRange(item) ? `, ${itemRange(item)}` : ''}
                 </EntryMeta>
@@ -331,7 +348,7 @@ function itemRange(item) {
   return formatRange(item.startDate, item.endDate);
 }
 
-function EducationSection({ education, skills, contact }) {
+function EducationSection({ education, skills, contact, palette }) {
   return (
     <>
       <PageTitle>Education</PageTitle>
@@ -339,7 +356,7 @@ function EducationSection({ education, skills, contact }) {
         {education.map((item) => (
           <Entry key={`${item.institution}-${item.degree}-${item.startDate || ''}`}>
             <EntryTitle>{item.degree}{item.area ? `, ${item.area}` : ''}</EntryTitle>
-            <EntryMeta>
+            <EntryMeta $palette={palette}>
               {item.institution}
               {itemRange(item) ? `, ${itemRange(item)}` : ''}
             </EntryMeta>
@@ -373,15 +390,22 @@ function EducationSection({ education, skills, contact }) {
   );
 }
 
-function WireCubeCanvas() {
+function WireCubeCanvas({ palette }) {
   const canvasRef = useRef(null);
-  useWireCube(canvasRef);
-  return <Canvas ref={canvasRef} aria-hidden="true" />;
+  useWireCube(canvasRef, palette);
+  return <Canvas id="cube-bg" ref={canvasRef} aria-hidden="true" />;
 }
 
-export function SaintAngelsTheme() {
+export function SaintAngelsTheme({ darkMode = false }) {
   const cv = useCV();
   const [page, setPage] = useState('home');
+  const [isDark, setIsDark] = useState(darkMode);
+
+  useEffect(() => {
+    setIsDark(darkMode);
+  }, [darkMode]);
+
+  const palette = isDark ? darkPalette : lightPalette;
 
   const pages = useMemo(() => ([
     { id: 'home', label: 'Home' },
@@ -445,15 +469,16 @@ export function SaintAngelsTheme() {
 
   return (
     <>
-      <GlobalStyle />
-      <PageShell>
+      <GlobalStyle $palette={palette} />
+      <PageShell $palette={palette}>
         <Layout>
-          <SideNav aria-label="Theme navigation">
+          <SideNav aria-label="Theme navigation" $palette={palette}>
             {pages.map((item) => (
               <NavLink
                 key={item.id}
                 type="button"
                 $active={page === item.id}
+                $palette={palette}
                 onClick={() => setPage(item.id)}
               >
                 {item.label}
@@ -462,16 +487,24 @@ export function SaintAngelsTheme() {
           </SideNav>
 
           <ContentWrap>
-            <MainPanel>
+            <MainPanel $palette={palette}>
               {page === 'home' && (
-                <HomeSection cv={cv} featuredProject={featuredProject} socialLinks={socialLinks} />
+                <HomeSection
+                  cv={cv}
+                  featuredProject={featuredProject}
+                  socialLinks={socialLinks}
+                  palette={palette}
+                  darkMode={isDark}
+                  onToggleTheme={() => setIsDark((current) => !current)}
+                />
               )}
-              {page === 'writing' && <WritingSection items={noteItems} />}
-              {page === 'projects' && <ProjectsSection items={cv.projects || []} />}
+              {page === 'writing' && <WritingSection items={noteItems} palette={palette} />}
+              {page === 'projects' && <ProjectsSection items={cv.projects || []} palette={palette} />}
               {page === 'experience' && (
                 <ExperienceSection
                   experience={cv.experience || []}
                   volunteer={cv.volunteer || []}
+                  palette={palette}
                 />
               )}
               {page === 'education' && (
@@ -479,11 +512,12 @@ export function SaintAngelsTheme() {
                   education={cv.education || []}
                   skills={cv.skills || []}
                   contact={socialLinks}
+                  palette={palette}
                 />
               )}
             </MainPanel>
 
-            <FooterPanel>
+            <FooterPanel $palette={palette}>
               <span>{cv.name}</span>
               {cv.currentJobTitle && <span>{cv.currentJobTitle}</span>}
             </FooterPanel>
@@ -499,6 +533,7 @@ const PageShell = styled.div`
   display: flex;
   justify-content: center;
   padding: 20px 16px;
+  color: ${(props) => props.$palette.text};
 `;
 
 const Layout = styled.div`
@@ -512,18 +547,16 @@ const Layout = styled.div`
   }
 `;
 
-const panelBorder = '1px solid rgba(0, 0, 0, 0.2)';
-
 const SideNav = styled.nav`
   width: 112px;
-  border: ${panelBorder};
+  border: 1px solid ${(props) => props.$palette.panelBorder};
   border-right: none;
   padding: 10px 0;
-  background: rgba(255, 255, 255, 0.78);
+  background: ${(props) => props.$palette.panelBackground};
 
   @media (max-width: 768px) {
     width: 100%;
-    border-right: ${panelBorder};
+    border-right: 1px solid ${(props) => props.$palette.panelBorder};
     border-bottom: none;
     display: flex;
     flex-wrap: wrap;
@@ -536,8 +569,8 @@ const NavLink = styled.button`
   display: block;
   width: 100%;
   border: none;
-  background: ${(props) => (props.$active ? '#dcdcdc' : 'transparent')};
-  color: #0047ff;
+  background: ${(props) => (props.$active ? props.$palette.linkHover : 'transparent')};
+  color: ${(props) => props.$palette.link};
   text-align: left;
   font: inherit;
   font-family: Tahoma, Geneva, sans-serif;
@@ -547,7 +580,7 @@ const NavLink = styled.button`
   cursor: pointer;
 
   &:hover {
-    background: #dcdcdc;
+    background: ${(props) => props.$palette.linkHover};
   }
 
   @media (max-width: 768px) {
@@ -563,9 +596,9 @@ const ContentWrap = styled.div`
 
 const MainPanel = styled.main`
   min-height: 600px;
-  border: ${panelBorder};
+  border: 1px solid ${(props) => props.$palette.panelBorder};
   padding: 0 10px 40px;
-  background: rgba(255, 255, 255, 0.82);
+  background: ${(props) => props.$palette.panelBackground};
 
   @media (max-width: 768px) {
     min-height: auto;
@@ -575,12 +608,12 @@ const MainPanel = styled.main`
 
 const FooterPanel = styled.footer`
   margin-top: 10px;
-  border: ${panelBorder};
+  border: 1px solid ${(props) => props.$palette.panelBorder};
   padding: 10px;
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
-  background: rgba(255, 255, 255, 0.82);
+  background: ${(props) => props.$palette.panelBackground};
 `;
 
 const CanvasWrap = styled.div`
@@ -616,11 +649,11 @@ const Paragraph = styled.p`
 `;
 
 const Muted = styled.div`
-  color: #999;
+  color: ${(props) => props.$palette.subtle};
 `;
 
 const MutedInline = styled.span`
-  color: #999;
+  color: ${(props) => props.$palette.subtle};
 `;
 
 const SquareList = styled.ul`
@@ -635,7 +668,7 @@ const SquareList = styled.ul`
 
 const MetaBlock = styled.div`
   margin-top: 4px;
-  color: #333;
+  color: inherit;
 `;
 
 const EntryList = styled.div`
@@ -653,7 +686,7 @@ const EntryTitle = styled.h3`
 
 const EntryMeta = styled.div`
   margin-bottom: 8px;
-  color: #666;
+  color: ${(props) => props.$palette.muted};
 `;
 
 const FeatureCard = styled.section`
@@ -663,7 +696,7 @@ const FeatureCard = styled.section`
 
 const FeatureLabel = styled.div`
   margin-bottom: 6px;
-  color: #666;
+  color: ${(props) => props.$palette.muted};
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 11px;
@@ -681,4 +714,23 @@ const FooterLinks = styled.div`
   flex-wrap: wrap;
   gap: 12px;
   margin-top: 12px;
+`;
+
+const ThemeToggleRow = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  margin: 8px 0 16px;
+`;
+
+const ThemeToggle = styled.button`
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 4px 10px;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(127, 127, 127, 0.12);
+  }
 `;

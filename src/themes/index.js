@@ -16,6 +16,7 @@ import { AmirmxtTheme } from './Amirmxt/AmirmxtTheme';
 import { FelixDornerTheme } from './FelixDorner/FelixDornerTheme';
 import { JamiePatesTheme } from './JamiePates/JamiePatesTheme';
 import { TerminalTheme } from './Terminal/TerminalTheme';
+import { TerminalMasterTheme } from './TerminalMaster/TerminalMasterTheme';
 import { StammyTheme } from './Stammy/StammyTheme';
 import { StefanFiskTheme } from './StefanFisk/StefanFiskTheme';
 import { StefanZweifelTheme } from './StefanZweifel/StefanZweifelTheme';
@@ -34,8 +35,10 @@ import { AliciaPageTheme } from './AliciaPage/AliciaPageTheme';
 import { EdHendersonTheme } from './EdHenderson/EdHendersonTheme';
 import { HenryLangTheme } from './HenryLang/HenryLangTheme';
 import { LiamMattesonTheme } from './LiamMatteson/LiamMattesonTheme';
+import { KellyChongTheme } from './KellyChong/KellyChongTheme';
 import { SinisterSunsTheme } from './SinisterSuns/SinisterSunsTheme';
 import { SaintAngelsTheme } from './SaintAngels/SaintAngelsTheme';
+import { RuthZhaoTheme } from './RuthZhao/RuthZhaoTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -173,6 +176,14 @@ export const PORTFOLIO_THEMES = [
     description: 'Hacker-style black terminal with Geist Mono font, ALL CAPS text, blinking cursor, and animated link underlines.',
     source: 'https://ragojose.com',
     Component: TerminalTheme,
+  },
+  {
+    id: 'terminal-master',
+    slug: 'terminal-master',
+    name: 'Terminal Master',
+    description: 'Interactive green-screen shell adapted from a standalone jQuery terminal portfolio, rebuilt as a CV-driven command interface.',
+    source: null,
+    Component: TerminalMasterTheme,
   },
   {
     id: 'jamie-pates',
@@ -327,6 +338,14 @@ export const PORTFOLIO_THEMES = [
     Component: LiamMattesonTheme,
   },
   {
+    id: 'kelly-chong',
+    slug: 'paper-notes',
+    name: 'Paper Notes',
+    description: 'Soft paper-texture portfolio with a sticky pixel-nav, editorial serif headings, footer clock, and section blocks adapted from kellychong.ca.',
+    source: 'https://kellychong.ca',
+    Component: KellyChongTheme,
+  },
+  {
     id: 'sinister-suns',
     slug: 'moonrest',
     name: 'Moonrest',
@@ -341,6 +360,14 @@ export const PORTFOLIO_THEMES = [
     description: 'Minimal retro panel layout with a left nav, bordered content cards, and a rotating wireframe header adapted from saint-angels.github.io.',
     source: 'https://saint-angels.github.io',
     Component: SaintAngelsTheme,
+  },
+  {
+    id: 'ruth-zhao',
+    slug: 'ruth-zhao',
+    name: 'Ruth Zhao',
+    description: 'Soft editorial portfolio with IBM Plex Mono details, orange feature cards, airy panels, and a research-forward layout adapted from ruth-zhao.com.',
+    source: 'https://www.ruth-zhao.com',
+    Component: RuthZhaoTheme,
   },
 ];
 
