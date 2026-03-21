@@ -27,6 +27,7 @@ export function normalizeMarkdownInObject(obj) {
   if (!obj) return obj;
   if (typeof obj === 'string') return stripMarkdown(obj);
   if (Array.isArray(obj)) return obj.map(normalizeMarkdownInObject);
+  if (obj instanceof Date) return obj;
   if (typeof obj === 'object') {
     const result = {};
     for (const [key, value] of Object.entries(obj)) {
