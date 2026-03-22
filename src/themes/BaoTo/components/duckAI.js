@@ -195,9 +195,9 @@ export function updateDucks(ducks, time, dt, foodItems) {
 
     clampToEdge(duck);
 
-    // Waddle rotation
+    // Waddle rotation — SVG points up (beak at top = -90°), so offset by +90 to align with heading
     const waddle = duck.action === 'paddle' ? Math.sin(time * 6 + duck.phase) * 4 * duck.speed : 0;
-    duck.rotation = lerpAngle(duck.rotation, duck.heading + waddle, Math.min(1, dt * 5));
+    duck.rotation = lerpAngle(duck.rotation, duck.heading + 90 + waddle, Math.min(1, dt * 5));
 
     // Ripple spawning
     if (duck.speed > 0.15 && time - duck.lastRipple > 0.4) {

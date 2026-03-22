@@ -23,10 +23,16 @@ export function renderPlants(canvas, time) {
   ctx.clearRect(0, 0, w, h);
   ctx.lineCap = 'round';
 
+  // The plant canvas extends 200px (CSS) beyond the pond on each side.
+  // So pond area in canvas coords = (inset, inset) to (w - inset, h - inset)
+  const inset = 200 * dpr;
+  const pondW = w - inset * 2;
+  const pondH = h - inset * 2;
+
   const rng = seededRng(42);
   const clusters = [];
 
-  // 28 clusters matching source PLANT_CLUSTERS
+  // 28 clusters — positions are relative to the POND area, offset by inset
   for (let i = 0; i < 12; i++) clusters.push({ edge: 'bottom', along: 0.06 + (i / 12) * 0.88, blades: 3 + Math.floor(rng() * 8), spread: 0.02 + rng() * 0.02, hMin: 40, hMax: 150, cattail: rng() > 0.55 });
   for (let i = 0; i < 6; i++) clusters.push({ edge: 'top', along: 0.08 + (i / 6) * 0.84, blades: 2 + Math.floor(rng() * 5), spread: 0.02, hMin: 30, hMax: 100, cattail: rng() > 0.6 });
   for (let i = 0; i < 5; i++) clusters.push({ edge: 'left', along: 0.2 + (i / 5) * 0.6, blades: 2 + Math.floor(rng() * 4), spread: 0.02, hMin: 30, hMax: 90, cattail: rng() > 0.5 });
@@ -34,14 +40,15 @@ export function renderPlants(canvas, time) {
 
   clusters.forEach((cl, ci) => {
     for (let b = 0; b < cl.blades; b++) {
-      const spread = cl.spread * Math.min(w, h);
+      const spread = cl.spread * Math.min(pondW, pondH);
       const offset = (rng() - 0.5) * spread;
       let bx, by, growDir;
 
-      if (cl.edge === 'bottom') { bx = cl.along * w + offset; by = h; growDir = -1; }
-      else if (cl.edge === 'top') { bx = cl.along * w + offset; by = 0; growDir = 1; }
-      else if (cl.edge === 'left') { bx = 0; by = cl.along * h + offset; growDir = 1; }
-      else { bx = w; by = cl.along * h + offset; growDir = -1; }
+      // Position plants at pond edges (offset by inset into the extended canvas)
+      if (cl.edge === 'bottom') { bx = inset + cl.along * pondW + offset; by = inset + pondH; growDir = -1; }
+      else if (cl.edge === 'top') { bx = inset + cl.along * pondW + offset; by = inset; growDir = 1; }
+      else if (cl.edge === 'left') { bx = inset; by = inset + cl.along * pondH + offset; growDir = 1; }
+      else { bx = inset + pondW; by = inset + cl.along * pondH + offset; growDir = -1; }
 
       const height = cl.hMin + rng() * (cl.hMax - cl.hMin);
       const lean = (rng() - 0.5) * 0.4;
