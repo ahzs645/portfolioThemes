@@ -40,6 +40,7 @@ import { SinisterSunsTheme } from './SinisterSuns/SinisterSunsTheme';
 import { SaintAngelsTheme } from './SaintAngels/SaintAngelsTheme';
 import { RuthZhaoTheme } from './RuthZhao/RuthZhaoTheme';
 import { TahaHossainTheme } from './TahaHossain/TahaHossainTheme';
+import { BaoToTheme } from './BaoTo/BaoToTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -377,6 +378,14 @@ export const PORTFOLIO_THEMES = [
     description: 'Warm beige two-column portfolio with colored border lines, EB Garamond serif body, monospace technical details, and numbered resume items inspired by tahahossain.com.',
     source: 'https://tahahossain.com',
     Component: TahaHossainTheme,
+  },
+  {
+    id: 'bao-to',
+    slug: 'design-engineer',
+    name: 'Design Engineer',
+    description: 'Warm cream portfolio with glitch text hero, uppercase tab nav, monospace accents, and staggered project cards inspired by baothiento.com.',
+    source: 'https://www.baothiento.com',
+    Component: BaoToTheme,
   },
 ];
 
