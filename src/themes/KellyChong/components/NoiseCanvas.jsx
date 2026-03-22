@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react';
 import styled from 'styled-components';
 
-export default function NoiseCanvas({ opacity = 40, blendMode = 'multiply' }) {
+export default function NoiseCanvas({ opacity = 15, blendMode = 'multiply' }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -10,7 +10,7 @@ export default function NoiseCanvas({ opacity = 40, blendMode = 'multiply' }) {
     const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
-    const size = 512;
+    const size = 1024;
     canvas.width = size;
     canvas.height = size;
 
@@ -26,7 +26,7 @@ export default function NoiseCanvas({ opacity = 40, blendMode = 'multiply' }) {
         d[i + 3] = opacity;
       }
       ctx.putImageData(imageData, 0, 0);
-      timeoutId = setTimeout(draw, 120);
+      timeoutId = setTimeout(draw, 150);
     };
     draw();
     return () => clearTimeout(timeoutId);
@@ -41,7 +41,7 @@ const Canvas = styled.canvas`
   width: 100%;
   height: 100%;
   pointer-events: none;
-  image-rendering: pixelated;
   mix-blend-mode: ${(p) => p.$blendMode};
   z-index: 2;
+  opacity: 0.5;
 `;

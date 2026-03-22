@@ -11,7 +11,6 @@ const crosshairSvg = (
 export function MobileProjectCard({ project, onClick }) {
   return (
     <CardDiv onClick={onClick}>
-      <CardImage src={project.image} alt={project.label} />
       <CardBar>
         <CardInfo>
           <CardLabel>{project.label}</CardLabel>
@@ -49,13 +48,6 @@ const cardBase = `
 `;
 
 const CardDiv = styled.div`${cardBase}`;
-
-const CardImage = styled.img`
-  width: 100%;
-  aspect-ratio: 2.4167 / 1;
-  object-fit: fill;
-  display: block;
-`;
 
 const CardBar = styled.div`
   display: flex;
