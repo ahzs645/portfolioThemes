@@ -42,13 +42,17 @@ export function renderPlants(canvas, time) {
     for (let b = 0; b < cl.blades; b++) {
       const spread = cl.spread * Math.min(pondW, pondH);
       const offset = (rng() - 0.5) * spread;
-      let bx, by, growDir;
+      let bx, by;
 
-      // Position plants at pond edges (offset by inset into the extended canvas)
-      if (cl.edge === 'bottom') { bx = inset + cl.along * pondW + offset; by = inset + pondH; growDir = -1; }
-      else if (cl.edge === 'top') { bx = inset + cl.along * pondW + offset; by = inset; growDir = 1; }
-      else if (cl.edge === 'left') { bx = inset; by = inset + cl.along * pondH + offset; growDir = 1; }
-      else { bx = inset + pondW; by = inset + cl.along * pondH + offset; growDir = -1; }
+      // Plants grow FROM outside the pond edge INWARD over the water
+      // Bottom: base below pond, grows UP into pond
+      // Top: base above pond, grows DOWN into pond
+      // Left: base left of pond, grows RIGHT into pond
+      // Right: base right of pond, grows LEFT into pond
+      if (cl.edge === 'bottom') { bx = inset + cl.along * pondW + offset; by = inset + pondH + 10; }
+      else if (cl.edge === 'top') { bx = inset + cl.along * pondW + offset; by = inset - 10; }
+      else if (cl.edge === 'left') { bx = inset - 10; by = inset + cl.along * pondH + offset; }
+      else { bx = inset + pondW + 10; by = inset + cl.along * pondH + offset; }
 
       const height = cl.hMin + rng() * (cl.hMax - cl.hMin);
       const lean = (rng() - 0.5) * 0.4;
@@ -63,15 +67,29 @@ export function renderPlants(canvas, time) {
       const sway = lean + (wind / height) * 0.5;
 
       let tipX, tipY, midX, midY;
-      if (cl.edge === 'bottom' || cl.edge === 'top') {
+      if (cl.edge === 'bottom') {
+        // Base at bottom, grow upward into pond
         tipX = bx + Math.sin(sway) * height + wind * curve;
-        tipY = by + growDir * Math.cos(sway) * height;
+        tipY = by - Math.cos(sway) * height;
         midX = bx + Math.sin(sway * 0.4) * height * 0.55 + wind * curve * 0.3;
-        midY = by + growDir * Math.cos(sway * 0.4) * height * 0.55;
-      } else {
-        tipX = bx + growDir * Math.cos(sway) * height;
+        midY = by - Math.cos(sway * 0.4) * height * 0.55;
+      } else if (cl.edge === 'top') {
+        // Base at top, grow downward into pond
+        tipX = bx + Math.sin(sway) * height + wind * curve;
+        tipY = by + Math.cos(sway) * height;
+        midX = bx + Math.sin(sway * 0.4) * height * 0.55 + wind * curve * 0.3;
+        midY = by + Math.cos(sway * 0.4) * height * 0.55;
+      } else if (cl.edge === 'left') {
+        // Base at left, grow rightward into pond
+        tipX = bx + Math.cos(sway) * height;
         tipY = by + Math.sin(sway) * height + wind * curve;
-        midX = bx + growDir * Math.cos(sway * 0.4) * height * 0.55;
+        midX = bx + Math.cos(sway * 0.4) * height * 0.55;
+        midY = by + Math.sin(sway * 0.4) * height * 0.55 + wind * curve * 0.3;
+      } else {
+        // Base at right, grow leftward into pond
+        tipX = bx - Math.cos(sway) * height;
+        tipY = by + Math.sin(sway) * height + wind * curve;
+        midX = bx - Math.cos(sway * 0.4) * height * 0.55;
         midY = by + Math.sin(sway * 0.4) * height * 0.55 + wind * curve * 0.3;
       }
 
@@ -84,14 +102,9 @@ export function renderPlants(canvas, time) {
 
       if (isCattail) {
         const pct = 0.72;
-        let hx, hy;
-        if (cl.edge === 'bottom' || cl.edge === 'top') {
-          hx = bx + Math.sin(sway * pct) * height * pct + wind * curve * pct * 0.5;
-          hy = by + growDir * Math.cos(sway * pct) * height * pct;
-        } else {
-          hx = bx + growDir * Math.cos(sway * pct) * height * pct;
-          hy = by + Math.sin(sway * pct) * height * pct + wind * curve * pct * 0.5;
-        }
+        // Cattail head at 72% of blade path (interpolate base→tip)
+        const hx = bx + (tipX - bx) * pct;
+        const hy = by + (tipY - by) * pct;
         const headLen = 8 + rng() * 6;
         const headW = 2.5 + rng();
         const headAngle = Math.atan2(tipY - midY, tipX - midX);

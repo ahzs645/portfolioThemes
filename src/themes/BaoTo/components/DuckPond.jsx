@@ -121,6 +121,7 @@ export function DuckPond() {
   const simRef = useRef(null);
   const [paddleX, setPaddleX] = useState(21.5);
   const [speechBubble, setSpeechBubble] = useState(null);
+  const speechRef = useRef(null);
   const [, forceUpdate] = useState(0);
   const lastQuoteRef = useRef('');
 
@@ -187,6 +188,15 @@ export function DuckPond() {
         }
       }
 
+      // Speech bubble tracking
+      if (speechRef.current && speechRef.current._duckId) {
+        const sd = ducksRef.current.find(d => d.id === speechRef.current._duckId);
+        if (sd) {
+          speechRef.current.style.left = `${sd.nx * 100}%`;
+          speechRef.current.style.top = `${sd.ny * 100}%`;
+        }
+      }
+
       // Food divs
       for (const food of foodRef.current) {
         const el = foodDivsRef.current[food.id];
@@ -227,12 +237,13 @@ export function DuckPond() {
     ducksRef.current = [...ducksRef.current, duck];
     forceUpdate(n => n + 1);
 
-    // Speech bubble
+    // Speech bubble — attach to the new duck
     let quote;
     do { quote = DUCK_QUOTES[Math.floor(Math.random() * DUCK_QUOTES.length)]; } while (quote === lastQuoteRef.current && DUCK_QUOTES.length > 1);
     lastQuoteRef.current = quote;
-    setSpeechBubble({ text: quote, nx, ny, id: Date.now() });
-    setTimeout(() => setSpeechBubble(prev => prev?.id === Date.now() ? null : prev), 4000 + Math.random() * 1500);
+    const bubbleId = duck.id;
+    setSpeechBubble({ text: quote, duckId: bubbleId, id: bubbleId });
+    setTimeout(() => setSpeechBubble(prev => prev?.id === bubbleId ? null : prev), 4000 + Math.random() * 1500);
   }, []);
 
   // Feed button drops food
@@ -292,11 +303,16 @@ export function DuckPond() {
             </DuckDiv>
           ))}
 
-          {/* Speech bubble */}
+          {/* Speech bubble — follows duck via direct DOM update in sim loop */}
           {speechBubble && (
             <SpeechBubble
               $visible={true}
-              style={{ left: `${speechBubble.nx * 100}%`, top: `${speechBubble.ny * 100}%` }}
+              ref={el => {
+                speechRef.current = el;
+                if (el) el._duckId = speechBubble.duckId;
+              }}
+              style={{ left: `${(ducksRef.current.find(d => d.id === speechBubble.duckId)?.nx || 0.5) * 100}%`,
+                       top: `${(ducksRef.current.find(d => d.id === speechBubble.duckId)?.ny || 0.5) * 100}%` }}
             >
               {speechBubble.text}
             </SpeechBubble>
