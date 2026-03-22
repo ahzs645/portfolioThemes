@@ -30,28 +30,33 @@ export function KellyChongTheme() {
   const cv = useCV();
   const [activeTab, setActiveTab] = useState('home');
   const contentRef = useRef(null);
-  const bgRef = useRef(null);
+  const bgFrontRef = useRef(null);
+  const bgBackRef = useRef(null);
 
   const handleTabChange = useCallback((tab) => {
     if (tab === activeTab) return;
 
     const content = contentRef.current;
-    const bg = bgRef.current;
+    const front = bgFrontRef.current;
+    const back = bgBackRef.current;
 
     if (!content) {
       setActiveTab(tab);
       return;
     }
 
-    // Animate background color transition
-    if (bg) {
-      gsap.to(bg, {
-        opacity: 0,
-        duration: 0.25,
-        ease: 'power2.in',
+    // Crossfade: set new gradient on the front layer (currently invisible),
+    // then fade it in over the old one
+    if (front && back) {
+      front.style.background = TAB_BACKGROUNDS[tab];
+      gsap.fromTo(front, { opacity: 0 }, {
+        opacity: 1,
+        duration: 0.5,
+        ease: 'power2.inOut',
         onComplete: () => {
-          bg.style.background = TAB_BACKGROUNDS[tab];
-          gsap.to(bg, { opacity: 1, duration: 0.35, ease: 'power2.out' });
+          // Once visible, copy to back layer and reset front
+          back.style.background = TAB_BACKGROUNDS[tab];
+          front.style.opacity = 0;
         },
       });
     }
@@ -118,8 +123,9 @@ export function KellyChongTheme() {
     <>
       <GlobalStyles />
       <Page>
-        {/* Animated background */}
-        <BgLayer ref={bgRef} style={{ background: TAB_BACKGROUNDS[activeTab] }} />
+        {/* Crossfade background: back = current, front = incoming */}
+        <BgLayer ref={bgBackRef} style={{ background: TAB_BACKGROUNDS[activeTab] }} />
+        <BgLayer ref={bgFrontRef} style={{ opacity: 0 }} />
 
         {/* Texture layers */}
         <DitherOverlay />
