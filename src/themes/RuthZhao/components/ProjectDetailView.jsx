@@ -286,11 +286,15 @@ const NavItem = styled.button`
 
 const Content = styled.main`
   flex: 1;
-  max-width: 800px;
-  padding: 80px 60px 80px 60px;
+  max-width: 900px;
+  padding: 80px 100px 80px 120px;
   display: flex;
   flex-direction: column;
   gap: 40px;
+
+  @media (max-width: 1200px) {
+    padding: 60px 40px 60px 60px;
+  }
 
   @media (max-width: 768px) {
     padding: 24px 20px;
