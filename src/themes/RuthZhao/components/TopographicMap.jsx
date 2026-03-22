@@ -30,7 +30,7 @@ function CoordinateScale({ axis }) {
   );
 }
 
-export function TopographicMap({ projects = [], mapRef }) {
+export function TopographicMap({ projects = [], mapRef, onSelectProject }) {
   const [lockedPos, setLockedPos] = useState(null);
 
   return (
@@ -51,10 +51,10 @@ export function TopographicMap({ projects = [], mapRef }) {
               key={project.id}
               label={project.label}
               accent={project.accent}
-              href={project.href}
               style={{ left: `${project.x}%`, top: `${project.y}%` }}
               onHover={() => setLockedPos({ x: project.x, y: project.y })}
               onLeave={() => setLockedPos(null)}
+              onClick={() => onSelectProject?.(project)}
             />
           ))}
         </MapContainer>

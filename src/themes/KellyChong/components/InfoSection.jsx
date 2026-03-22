@@ -87,7 +87,7 @@ const Inner = styled.div`
   min-height: 100%;
 
   @media (max-width: 809px) {
-    padding: 70px 24px 120px;
+    padding: 60px 24px 120px;
   }
 `;
 

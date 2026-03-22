@@ -8,7 +8,7 @@ const crosshairSvg = (
   </svg>
 );
 
-export function ProjectMarker({ label, accent = false, style, href, onHover, onLeave }) {
+export function ProjectMarker({ label, accent = false, style, onHover, onLeave, onClick }) {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -17,7 +17,7 @@ export function ProjectMarker({ label, accent = false, style, href, onHover, onL
       onMouseEnter={() => { setHovered(true); onHover?.(); }}
       onMouseLeave={() => { setHovered(false); onLeave?.(); }}
     >
-      <MarkerRow as={href ? 'a' : 'div'} href={href || undefined} target={href ? '_blank' : undefined} rel={href ? 'noreferrer' : undefined}>
+      <MarkerRow onClick={() => onClick?.()}>
         <IconBox $accent={accent} $hovered={hovered}>
           {crosshairSvg}
         </IconBox>

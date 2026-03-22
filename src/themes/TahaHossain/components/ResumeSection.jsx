@@ -23,8 +23,8 @@ const Container = styled.div`
 
 export default function ResumeSection({ cv }) {
   const experience = cv.experience || [];
-  const current = experience.filter(e => !e.endDate || e.endDate === 'Present');
-  const past = experience.filter(e => e.endDate && e.endDate !== 'Present');
+  const current = experience.filter(e => e.isCurrent);
+  const past = experience.filter(e => !e.isCurrent);
 
   const education = cv.education || [];
   const presentations = cv.presentations || [];

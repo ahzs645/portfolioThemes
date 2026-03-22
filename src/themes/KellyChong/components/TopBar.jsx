@@ -1,11 +1,12 @@
 import React from 'react';
 import styled from 'styled-components';
+import { HomeIcon, InfoIcon, ProjectsIcon, LogsIcon, CreditsIcon } from './NavIcons';
 
 const navItems = [
-  { id: 'home', label: 'HOME', emoji: '\u{1F3E0}' },
-  { id: 'info', label: 'INFO', emoji: '\u{1F48C}' },
-  { id: 'projects', label: 'PROJECTS', emoji: '\u{1F4BB}' },
-  { id: 'logs', label: 'LOGS', emoji: '\u{1F340}' },
+  { id: 'home', label: 'HOME', Icon: HomeIcon },
+  { id: 'info', label: 'INFO', Icon: InfoIcon },
+  { id: 'projects', label: 'PROJECTS', Icon: ProjectsIcon },
+  { id: 'logs', label: 'LOGS', Icon: LogsIcon },
 ];
 
 export default function TopBar({ activeTab, onTabChange }) {
@@ -15,44 +16,53 @@ export default function TopBar({ activeTab, onTabChange }) {
         <GradientBg />
         <NavContent>
           <NavLinks>
-            {navItems.map((item) => (
-              <NavLink
-                key={item.id}
-                $active={activeTab === item.id}
-                onClick={() => onTabChange(item.id)}
-                data-cursor-hover
-              >
-                <NavEmoji>{item.emoji}</NavEmoji>
-                <NavLabel $active={activeTab === item.id}>{item.label}</NavLabel>
-              </NavLink>
-            ))}
+            {navItems.map((item) => {
+              const isActive = activeTab === item.id;
+              const iconColor = isActive ? 'rgb(194, 255, 97)' : 'rgb(255, 255, 255)';
+              return (
+                <NavLink
+                  key={item.id}
+                  $active={isActive}
+                  onClick={() => onTabChange(item.id)}
+                  data-cursor-hover
+                >
+                  <item.Icon color={iconColor} size={16} />
+                  <NavLabel $active={isActive}>{item.label}</NavLabel>
+                </NavLink>
+              );
+            })}
           </NavLinks>
           <NavLink
             $active={activeTab === 'credits'}
             onClick={() => onTabChange('credits')}
             data-cursor-hover
           >
-            <NavEmoji>{'\u{1F39E}'}</NavEmoji>
+            <CreditsIcon
+              color={activeTab === 'credits' ? 'rgb(194, 255, 97)' : 'rgb(255, 255, 255)'}
+              size={16}
+            />
             <NavLabel $active={activeTab === 'credits'}>CREDITS</NavLabel>
           </NavLink>
         </NavContent>
       </Bar>
 
       <MobileNav>
-        {navItems.map((item) => (
-          <MobileNavItem
-            key={item.id}
-            $active={activeTab === item.id}
-            onClick={() => onTabChange(item.id)}
-          >
-            <MobileEmoji>{item.emoji}</MobileEmoji>
-          </MobileNavItem>
-        ))}
-        <MobileNavItem
-          $active={activeTab === 'credits'}
-          onClick={() => onTabChange('credits')}
-        >
-          <MobileEmoji>{'\u{1F39E}'}</MobileEmoji>
+        {navItems.map((item) => {
+          const isActive = activeTab === item.id;
+          return (
+            <MobileNavItem
+              key={item.id}
+              onClick={() => onTabChange(item.id)}
+            >
+              <item.Icon color={isActive ? 'rgb(41, 73, 111)' : 'rgb(175, 184, 196)'} size={20} />
+            </MobileNavItem>
+          );
+        })}
+        <MobileNavItem onClick={() => onTabChange('credits')}>
+          <CreditsIcon
+            color={activeTab === 'credits' ? 'rgb(41, 73, 111)' : 'rgb(175, 184, 196)'}
+            size={20}
+          />
         </MobileNavItem>
       </MobileNav>
     </>
@@ -60,7 +70,7 @@ export default function TopBar({ activeTab, onTabChange }) {
 }
 
 const Bar = styled.div`
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
@@ -103,7 +113,7 @@ const NavLinks = styled.div`
 const NavLink = styled.button`
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   background: none;
   border: none;
   padding: 4px 0;
@@ -112,14 +122,14 @@ const NavLink = styled.button`
   &:hover span {
     color: rgb(194, 255, 97);
   }
-`;
 
-const NavEmoji = styled.span`
-  font-family: 'Noto Emoji', sans-serif;
-  font-size: 14px;
-  letter-spacing: -0.03em;
-  color: rgb(255, 255, 255);
-  transition: color 0.2s;
+  &:hover svg path,
+  &:hover svg rect,
+  &:hover svg circle,
+  &:hover svg line {
+    stroke: rgb(194, 255, 97);
+    fill: rgb(194, 255, 97);
+  }
 `;
 
 const NavLabel = styled.span`
@@ -129,14 +139,14 @@ const NavLabel = styled.span`
   letter-spacing: -0.03em;
   color: ${(p) => (p.$active ? 'rgb(194, 255, 97)' : 'rgb(255, 255, 255)')};
   text-decoration: ${(p) => (p.$active ? 'underline' : 'none')};
-  text-decoration-style: ${(p) => (p.$active ? 'wavy' : 'none')};
+  text-decoration-style: ${(p) => (p.$active ? 'wavy' : 'solid')};
   text-underline-offset: 2px;
   transition: color 0.2s;
 `;
 
 const MobileNav = styled.nav`
   display: none;
-  position: fixed;
+  position: absolute;
   top: 9px;
   left: 50%;
   transform: translateX(-50%);
@@ -162,8 +172,4 @@ const MobileNavItem = styled.button`
   border: none;
   padding: 2px;
   cursor: none;
-`;
-
-const MobileEmoji = styled.span`
-  font-size: 18px;
 `;

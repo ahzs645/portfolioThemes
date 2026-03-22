@@ -106,10 +106,22 @@ const ItemBody = styled.div`
 `;
 
 function formatDate(item) {
-  const start = item.startDate || item.date || '';
-  const end = item.endDate || '';
+  const start = item.startDate || item.start_date || item.date || '';
+  const end = item.endDate || item.end_date || '';
   if (start && end) return `${start} — ${end}`;
   return start || '';
+}
+
+function getItemName(item) {
+  return item.company || item.name || item.organization || item.institution || '';
+}
+
+function getItemRole(item) {
+  return item.title || item.position || item.role || item.degree || '';
+}
+
+function getItemDescription(item) {
+  return item.summary || item.description || '';
 }
 
 function Block({ title, items, contentIndex, contentLabel, numbered, wide }) {
@@ -123,18 +135,18 @@ function Block({ title, items, contentIndex, contentLabel, numbered, wide }) {
               <NumberBubble>{i + 1}</NumberBubble>
             )}
             {wide && (
-              <DateLabel>{formatDate(item)}</DateLabel>
+              <DateLabel>{item.date || formatDate(item)}</DateLabel>
             )}
             <ItemInfo>
               <ItemTitle>
-                {item.company || item.organization || item.title || item.institution}
+                {getItemName(item)}
                 {!wide && formatDate(item) ? `   ,   ${formatDate(item)}` : ''}
               </ItemTitle>
-              {(item.position || item.role || item.degree) && (
-                <ItemSubtitle>{item.position || item.role || item.degree}</ItemSubtitle>
+              {getItemRole(item) && (
+                <ItemSubtitle>{getItemRole(item)}</ItemSubtitle>
               )}
-              {(item.summary || item.description) && (
-                <ItemBody>{item.summary || item.description}</ItemBody>
+              {getItemDescription(item) && (
+                <ItemBody>{getItemDescription(item)}</ItemBody>
               )}
             </ItemInfo>
           </ItemRow>

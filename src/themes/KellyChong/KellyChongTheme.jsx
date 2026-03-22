@@ -17,18 +17,43 @@ const GlobalStyles = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 `;
 
+// Each tab has its own background gradient, inspired by Kelly Chong's page transitions
+const TAB_BACKGROUNDS = {
+  home: 'linear-gradient(180deg, rgb(93, 95, 207) -6%, rgb(180, 217, 250) 15%, rgb(242, 246, 250) 36%, rgb(242, 246, 250) 100%)',
+  info: 'linear-gradient(180deg, rgb(207, 147, 93) -6%, rgb(250, 225, 180) 15%, rgb(250, 246, 242) 36%, rgb(250, 246, 242) 100%)',
+  projects: 'linear-gradient(180deg, rgb(95, 160, 207) -6%, rgb(180, 220, 250) 15%, rgb(242, 248, 250) 36%, rgb(242, 248, 250) 100%)',
+  logs: 'linear-gradient(180deg, rgb(120, 180, 130) -6%, rgb(200, 235, 210) 15%, rgb(244, 250, 245) 36%, rgb(244, 250, 245) 100%)',
+  credits: 'linear-gradient(180deg, rgb(160, 120, 190) -6%, rgb(215, 195, 240) 15%, rgb(248, 244, 250) 36%, rgb(248, 244, 250) 100%)',
+};
+
 export function KellyChongTheme() {
   const cv = useCV();
   const [activeTab, setActiveTab] = useState('home');
   const contentRef = useRef(null);
+  const bgRef = useRef(null);
 
   const handleTabChange = useCallback((tab) => {
     if (tab === activeTab) return;
 
     const content = contentRef.current;
+    const bg = bgRef.current;
+
     if (!content) {
       setActiveTab(tab);
       return;
+    }
+
+    // Animate background color transition
+    if (bg) {
+      gsap.to(bg, {
+        opacity: 0,
+        duration: 0.25,
+        ease: 'power2.in',
+        onComplete: () => {
+          bg.style.background = TAB_BACKGROUNDS[tab];
+          gsap.to(bg, { opacity: 1, duration: 0.35, ease: 'power2.out' });
+        },
+      });
     }
 
     // Animate out current content
@@ -39,7 +64,6 @@ export function KellyChongTheme() {
       ease: 'power2.in',
       onComplete: () => {
         setActiveTab(tab);
-        // Animate in new content
         gsap.fromTo(
           content,
           { opacity: 0, y: 12 },
@@ -49,7 +73,6 @@ export function KellyChongTheme() {
     });
   }, [activeTab]);
 
-  // Animate first load
   useEffect(() => {
     if (contentRef.current) {
       gsap.fromTo(
@@ -95,7 +118,10 @@ export function KellyChongTheme() {
     <>
       <GlobalStyles />
       <Page>
-        {/* Background layers */}
+        {/* Animated background */}
+        <BgLayer ref={bgRef} style={{ background: TAB_BACKGROUNDS[activeTab] }} />
+
+        {/* Texture layers */}
         <DitherOverlay />
         <NoiseCanvas opacity={40} blendMode="multiply" />
 
@@ -106,7 +132,7 @@ export function KellyChongTheme() {
         <TopBar activeTab={activeTab} onTabChange={handleTabChange} />
         <BottomBar location={cv.location} />
 
-        {/* Tab content - single viewport, no scroll */}
+        {/* Tab content */}
         <ContentLayer ref={contentRef}>
           {renderTab()}
         </ContentLayer>
@@ -120,18 +146,23 @@ const Page = styled.main`
   width: 100%;
   height: 100vh;
   overflow: hidden;
-  background: linear-gradient(
-    180deg,
-    rgb(93, 95, 207) -6%,
-    rgb(180, 217, 250) 15%,
-    rgb(242, 246, 250) 36%,
-    rgb(242, 246, 250) 100%
-  );
+`;
+
+const BgLayer = styled.div`
+  position: absolute;
+  inset: 0;
+  z-index: 0;
 `;
 
 const ContentLayer = styled.div`
-  position: relative;
+  position: absolute;
+  top: 52px;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 3;
-  width: 100%;
-  height: 100%;
+
+  @media (max-width: 809px) {
+    top: 0;
+  }
 `;

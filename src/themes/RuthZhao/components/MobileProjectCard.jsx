@@ -8,15 +8,9 @@ const crosshairSvg = (
   </svg>
 );
 
-export function MobileProjectCard({ project }) {
-  const Tag = project.href ? CardLink : CardDiv;
-
+export function MobileProjectCard({ project, onClick }) {
   return (
-    <Tag
-      href={project.href || undefined}
-      target={project.href ? '_blank' : undefined}
-      rel={project.href ? 'noreferrer' : undefined}
-    >
+    <CardDiv onClick={onClick}>
       <CardImage src={project.image} alt={project.label} />
       <CardBar>
         <CardInfo>
@@ -27,7 +21,7 @@ export function MobileProjectCard({ project }) {
           {crosshairSvg}
         </IconBox>
       </CardBar>
-    </Tag>
+    </CardDiv>
   );
 }
 
@@ -54,7 +48,6 @@ const cardBase = `
   }
 `;
 
-const CardLink = styled.a`${cardBase}`;
 const CardDiv = styled.div`${cardBase}`;
 
 const CardImage = styled.img`

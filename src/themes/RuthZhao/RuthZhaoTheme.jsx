@@ -1,13 +1,14 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { IntroPanel } from './components/IntroPanel';
 import { TopographicMap } from './components/TopographicMap';
 import { MobileProjectCard } from './components/MobileProjectCard';
+import { ProjectDetailView } from './components/ProjectDetailView';
 import { PROJECT_MARKERS, MOBILE_PROJECTS } from './themeData';
 
 const FontLoader = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&family=Instrument+Serif&family=Geist:wght@400;500&display=swap');
 `;
 
 function getSocialEntries(cv) {
@@ -36,12 +37,12 @@ function getSocialEntries(cv) {
 
 export function RuthZhaoTheme() {
   const cv = useCV();
+  const [selectedProject, setSelectedProject] = useState(null);
 
   if (!cv) return null;
 
   const socialEntries = useMemo(() => getSocialEntries(cv), [cv]);
 
-  // Map CV projects to markers, falling back to hardcoded positions
   const projects = useMemo(() => {
     const cvProjects = cv.projects || [];
     return PROJECT_MARKERS.map((marker, i) => ({
@@ -62,6 +63,20 @@ export function RuthZhaoTheme() {
     }));
   }, [cv.projects]);
 
+  // Show project detail view
+  if (selectedProject) {
+    return (
+      <>
+        <FontLoader />
+        <ProjectDetailView
+          project={selectedProject}
+          cv={cv}
+          onBack={() => setSelectedProject(null)}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       <FontLoader />
@@ -72,7 +87,10 @@ export function RuthZhaoTheme() {
             <IntroPanel cv={cv} />
           </LeftColumn>
           <MapColumn>
-            <TopographicMap projects={projects} />
+            <TopographicMap
+              projects={projects}
+              onSelectProject={(project) => setSelectedProject(project)}
+            />
           </MapColumn>
         </DesktopLayout>
 
@@ -81,7 +99,11 @@ export function RuthZhaoTheme() {
           <IntroPanel cv={cv} />
           <MobileCards>
             {mobileProjects.map((project) => (
-              <MobileProjectCard key={project.id} project={project} />
+              <MobileProjectCard
+                key={project.id}
+                project={project}
+                onClick={() => setSelectedProject(project)}
+              />
             ))}
           </MobileCards>
           <MobileFooter>
