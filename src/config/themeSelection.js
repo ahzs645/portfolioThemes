@@ -51,14 +51,6 @@ export function resolveThemePath(themeId, pathname) {
   const normalizedPath = normalizePath(pathname);
   const themeIdFromPath = getThemeIdFromPath(pathname);
 
-  if (
-    themeSelectionMode === THEME_SELECTION_MODES.RANDOM &&
-    normalizedPath === '/' &&
-    !themeIdFromPath
-  ) {
-    return '/';
-  }
-
   if (themeIdFromPath === themeId) {
     return normalizedPath;
   }
