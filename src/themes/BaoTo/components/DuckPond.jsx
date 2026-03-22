@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { DuckSvg } from './DuckSvg';
 import { createDuck, updateDucks, createFoodPellets, DUCK_QUOTES } from './duckAI';
 import { initWaterGL } from './waterGL';
-import { renderPlants } from './plantCanvas';
+import { generatePlantData, renderPlants } from './plantCanvas';
 
 /* ═══ Duck Pond — Full simulation ═══ */
 
@@ -47,9 +47,9 @@ const OverlayCanvas = styled.canvas`
 
 const PlantLayer = styled.canvas`
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  inset: -200px;
+  width: calc(100% + 400px);
+  height: calc(100% + 400px);
   pointer-events: none;
   z-index: 7;
 `;
@@ -116,6 +116,7 @@ export function DuckPond() {
   const plantRef = useRef(null);
   const wrapRef = useRef(null);
   const glCtx = useRef(null);
+  const plantDataRef = useRef(null);
   const ducksRef = useRef([]);
   const foodRef = useRef([]);
   const duckDivsRef = useRef({});
@@ -142,6 +143,22 @@ export function DuckPond() {
     const ctx = initWaterGL(glCanvas, ovCanvas);
     if (!ctx) return;
     glCtx.current = ctx;
+
+    // Generate plant data
+    if (plantRef.current) {
+      const pCanvas = plantRef.current;
+      const pRect = wrapRef.current?.getBoundingClientRect();
+      if (pRect) {
+        const pondW = Math.round(pRect.width);
+        const pondH = Math.round(pRect.height);
+        pCanvas.width = pondW + 400;
+        pCanvas.height = pondH + 400;
+        const data = generatePlantData(pondW, pondH);
+        data._pondW = pondW;
+        data._pondH = pondH;
+        plantDataRef.current = data;
+      }
+    }
 
     // Initial 2 ducks
     const t0 = ctx.timeRef.current;
@@ -208,7 +225,12 @@ export function DuckPond() {
       }
 
       // Plants
-      if (plantRef.current) renderPlants(plantRef.current, time);
+      if (plantRef.current && plantDataRef.current) {
+        const pCtx = plantRef.current.getContext('2d');
+        if (pCtx) {
+          renderPlants(pCtx, plantDataRef.current, plantDataRef.current._pondW, plantDataRef.current._pondH, time);
+        }
+      }
 
       simRef.current = requestAnimationFrame(sim);
     };
@@ -321,8 +343,8 @@ export function DuckPond() {
           )}
 
           <OverlayCanvas ref={overlayRef} />
-          <PlantLayer ref={plantRef} />
         </InnerClip>
+        <PlantLayer ref={plantRef} />
       </Wrapper>
 
       <FeedBtn onClick={handleFeed} aria-label="Feed the ducks" title="Feed the ducks">
