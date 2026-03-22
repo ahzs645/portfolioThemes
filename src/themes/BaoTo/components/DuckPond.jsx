@@ -26,6 +26,8 @@ const InnerClip = styled.div`
   height: 100%;
   border-radius: 2px;
   overflow: hidden;
+  outline: none;
+  border: 0;
 `;
 
 const WaterCanvas = styled.canvas`
@@ -45,9 +47,9 @@ const OverlayCanvas = styled.canvas`
 
 const PlantLayer = styled.canvas`
   position: absolute;
-  inset: -200px;
-  width: calc(100% + 400px);
-  height: calc(100% + 400px);
+  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
   z-index: 7;
 `;
@@ -319,8 +321,8 @@ export function DuckPond() {
           )}
 
           <OverlayCanvas ref={overlayRef} />
+          <PlantLayer ref={plantRef} />
         </InnerClip>
-        <PlantLayer ref={plantRef} />
       </Wrapper>
 
       <FeedBtn onClick={handleFeed} aria-label="Feed the ducks" title="Feed the ducks">

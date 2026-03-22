@@ -1,6 +1,6 @@
 /**
  * Plant/cattail renderer — from baothiento.com source (module 17938)
- * Wind-animated reeds and cattails around pond edges
+ * Plants grow FROM the pond edges INWARD over the water surface
  */
 
 const GREENS = [
@@ -23,76 +23,95 @@ export function renderPlants(canvas, time) {
   ctx.clearRect(0, 0, w, h);
   ctx.lineCap = 'round';
 
-  // The plant canvas extends 200px (CSS) beyond the pond on each side.
-  // So pond area in canvas coords = (inset, inset) to (w - inset, h - inset)
-  const inset = 200 * dpr;
-  const pondW = w - inset * 2;
-  const pondH = h - inset * 2;
-
   const rng = seededRng(42);
+
+  // Plant clusters at each edge of the pond
+  // Plants grow FROM the edge INWARD over the water
   const clusters = [];
 
-  // 28 clusters — positions are relative to the POND area, offset by inset
-  for (let i = 0; i < 12; i++) clusters.push({ edge: 'bottom', along: 0.06 + (i / 12) * 0.88, blades: 3 + Math.floor(rng() * 8), spread: 0.02 + rng() * 0.02, hMin: 40, hMax: 150, cattail: rng() > 0.55 });
-  for (let i = 0; i < 6; i++) clusters.push({ edge: 'top', along: 0.08 + (i / 6) * 0.84, blades: 2 + Math.floor(rng() * 5), spread: 0.02, hMin: 30, hMax: 100, cattail: rng() > 0.6 });
-  for (let i = 0; i < 5; i++) clusters.push({ edge: 'left', along: 0.2 + (i / 5) * 0.6, blades: 2 + Math.floor(rng() * 4), spread: 0.02, hMin: 30, hMax: 90, cattail: rng() > 0.5 });
-  for (let i = 0; i < 5; i++) clusters.push({ edge: 'right', along: 0.2 + (i / 5) * 0.6, blades: 2 + Math.floor(rng() * 4), spread: 0.02, hMin: 30, hMax: 90, cattail: rng() > 0.5 });
+  // Bottom edge — 12 clusters, tall grass growing UP into pond
+  for (let i = 0; i < 12; i++) {
+    clusters.push({
+      edge: 'bottom', along: 0.04 + (i / 12) * 0.92,
+      blades: 4 + Math.floor(rng() * 9), spread: 0.015 + rng() * 0.02,
+      hMin: 60, hMax: 160, cattail: rng() > 0.5,
+    });
+  }
+  // Top edge — 8 clusters
+  for (let i = 0; i < 8; i++) {
+    clusters.push({
+      edge: 'top', along: 0.06 + (i / 8) * 0.88,
+      blades: 3 + Math.floor(rng() * 6), spread: 0.015 + rng() * 0.015,
+      hMin: 50, hMax: 130, cattail: rng() > 0.55,
+    });
+  }
+  // Left edge — 6 clusters
+  for (let i = 0; i < 6; i++) {
+    clusters.push({
+      edge: 'left', along: 0.1 + (i / 6) * 0.8,
+      blades: 2 + Math.floor(rng() * 5), spread: 0.02,
+      hMin: 40, hMax: 110, cattail: rng() > 0.5,
+    });
+  }
+  // Right edge — 6 clusters
+  for (let i = 0; i < 6; i++) {
+    clusters.push({
+      edge: 'right', along: 0.1 + (i / 6) * 0.8,
+      blades: 2 + Math.floor(rng() * 5), spread: 0.02,
+      hMin: 40, hMax: 110, cattail: rng() > 0.5,
+    });
+  }
 
   clusters.forEach((cl, ci) => {
     for (let b = 0; b < cl.blades; b++) {
-      const spread = cl.spread * Math.min(pondW, pondH);
+      const spread = cl.spread * Math.min(w, h);
       const offset = (rng() - 0.5) * spread;
       let bx, by;
 
-      // Plants grow FROM outside the pond edge INWARD over the water
-      // Bottom: base below pond, grows UP into pond
-      // Top: base above pond, grows DOWN into pond
-      // Left: base left of pond, grows RIGHT into pond
-      // Right: base right of pond, grows LEFT into pond
-      if (cl.edge === 'bottom') { bx = inset + cl.along * pondW + offset; by = inset + pondH + 10; }
-      else if (cl.edge === 'top') { bx = inset + cl.along * pondW + offset; by = inset - 10; }
-      else if (cl.edge === 'left') { bx = inset - 10; by = inset + cl.along * pondH + offset; }
-      else { bx = inset + pondW + 10; by = inset + cl.along * pondH + offset; }
+      // Base at the very edge of the canvas
+      if (cl.edge === 'bottom') { bx = cl.along * w + offset; by = h; }
+      else if (cl.edge === 'top') { bx = cl.along * w + offset; by = 0; }
+      else if (cl.edge === 'left') { bx = 0; by = cl.along * h + offset; }
+      else { bx = w; by = cl.along * h + offset; }
 
       const height = cl.hMin + rng() * (cl.hMax - cl.hMin);
-      const lean = (rng() - 0.5) * 0.4;
-      const curve = 0.15 + rng() * 0.3;
+      const lean = (rng() - 0.5) * 0.35;
+      const curve = 0.15 + rng() * 0.25;
       const windPhase = ci * 1.3 + b * 0.7;
       const windFlex = 0.4 + rng() * 0.6;
-      const bladeW = 0.6 + rng() * 1.0;
+      const bladeW = 0.7 + rng() * 1.2;
       const isCattail = cl.cattail && b === 0;
 
+      // Wind animation (dual sine from source)
       const wind = Math.sin(time * 0.8 + windPhase) * 8 * windFlex
                   + Math.sin(time * 0.3 + windPhase * 0.7 + bx * 0.01) * 3 * windFlex;
       const sway = lean + (wind / height) * 0.5;
 
+      // Tip grows INWARD: bottom→up, top→down, left→right, right→left
       let tipX, tipY, midX, midY;
       if (cl.edge === 'bottom') {
-        // Base at bottom, grow upward into pond
-        tipX = bx + Math.sin(sway) * height + wind * curve;
-        tipY = by - Math.cos(sway) * height;
-        midX = bx + Math.sin(sway * 0.4) * height * 0.55 + wind * curve * 0.3;
-        midY = by - Math.cos(sway * 0.4) * height * 0.55;
+        tipX = bx + Math.sin(sway) * height * 0.3 + wind * curve;
+        tipY = by - height; // grow UP
+        midX = bx + Math.sin(sway * 0.4) * height * 0.15 + wind * curve * 0.3;
+        midY = by - height * 0.55;
       } else if (cl.edge === 'top') {
-        // Base at top, grow downward into pond
-        tipX = bx + Math.sin(sway) * height + wind * curve;
-        tipY = by + Math.cos(sway) * height;
-        midX = bx + Math.sin(sway * 0.4) * height * 0.55 + wind * curve * 0.3;
-        midY = by + Math.cos(sway * 0.4) * height * 0.55;
+        tipX = bx + Math.sin(sway) * height * 0.3 + wind * curve;
+        tipY = by + height; // grow DOWN
+        midX = bx + Math.sin(sway * 0.4) * height * 0.15 + wind * curve * 0.3;
+        midY = by + height * 0.55;
       } else if (cl.edge === 'left') {
-        // Base at left, grow rightward into pond
-        tipX = bx + Math.cos(sway) * height;
-        tipY = by + Math.sin(sway) * height + wind * curve;
-        midX = bx + Math.cos(sway * 0.4) * height * 0.55;
-        midY = by + Math.sin(sway * 0.4) * height * 0.55 + wind * curve * 0.3;
+        tipX = bx + height; // grow RIGHT
+        tipY = by + Math.sin(sway) * height * 0.3 + wind * curve;
+        midX = bx + height * 0.55;
+        midY = by + Math.sin(sway * 0.4) * height * 0.15 + wind * curve * 0.3;
       } else {
-        // Base at right, grow leftward into pond
-        tipX = bx - Math.cos(sway) * height;
-        tipY = by + Math.sin(sway) * height + wind * curve;
-        midX = bx - Math.cos(sway * 0.4) * height * 0.55;
-        midY = by + Math.sin(sway * 0.4) * height * 0.55 + wind * curve * 0.3;
+        tipX = bx - height; // grow LEFT
+        tipY = by + Math.sin(sway) * height * 0.3 + wind * curve;
+        midX = bx - height * 0.55;
+        midY = by + Math.sin(sway * 0.4) * height * 0.15 + wind * curve * 0.3;
       }
 
+      // Draw blade
       ctx.beginPath();
       ctx.moveTo(bx, by);
       ctx.quadraticCurveTo(midX, midY, tipX, tipY);
@@ -100,24 +119,25 @@ export function renderPlants(canvas, time) {
       ctx.lineWidth = bladeW;
       ctx.stroke();
 
+      // Cattail head at ~72% along the blade
       if (isCattail) {
-        const pct = 0.72;
-        // Cattail head at 72% of blade path (interpolate base→tip)
-        const hx = bx + (tipX - bx) * pct;
-        const hy = by + (tipY - by) * pct;
-        const headLen = 8 + rng() * 6;
-        const headW = 2.5 + rng();
+        const hx = bx + (tipX - bx) * 0.72;
+        const hy = by + (tipY - by) * 0.72;
+        const headLen = 8 + rng() * 7;
+        const headW = 2.5 + rng() * 1.2;
         const headAngle = Math.atan2(tipY - midY, tipX - midX);
 
         ctx.save();
         ctx.translate(hx, hy);
         ctx.rotate(headAngle);
 
+        // Shadow
         ctx.beginPath();
-        ctx.ellipse(0, 0, headLen / 2 + 1.2, headW + 1.5, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, headLen / 2 + 1, headW + 1.5, 0, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(140,118,98,0.25)';
         ctx.fill();
 
+        // Head with gradient
         const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, Math.max(headLen / 2, headW));
         grad.addColorStop(0, 'rgba(95,68,52,0.75)');
         grad.addColorStop(0.6, 'rgba(120,92,72,0.55)');
@@ -127,22 +147,25 @@ export function renderPlants(canvas, time) {
         ctx.fillStyle = grad;
         ctx.fill();
 
+        // Grain lines on head
         ctx.strokeStyle = 'rgba(80,55,40,0.12)';
         ctx.lineWidth = 0.4;
-        for (let t = -(headW * 0.6); t < headW * 0.6; t += 3.5) {
-          const lw = (headLen / 2) * Math.sqrt(1 - (t / headW) * (t / headW)) * 0.85;
+        for (let t = -(headW * 0.6); t < headW * 0.6; t += 3) {
+          const lw = (headLen / 2) * Math.sqrt(Math.max(0, 1 - (t / headW) * (t / headW))) * 0.85;
           ctx.beginPath(); ctx.moveTo(-lw, t); ctx.lineTo(lw, t); ctx.stroke();
         }
 
-        const podH = headLen * 0.2;
+        // Seed pod spike
+        const podH = headLen * 0.22;
         ctx.beginPath();
         ctx.moveTo(0, -headW);
-        ctx.lineTo(-0.35, -headW - podH * 0.35);
+        ctx.lineTo(-0.4, -headW - podH * 0.35);
         ctx.lineTo(0, -headW - podH);
-        ctx.lineTo(0.35, -headW - podH * 0.35);
+        ctx.lineTo(0.4, -headW - podH * 0.35);
         ctx.closePath();
         ctx.fillStyle = 'rgba(125,160,108,0.6)';
         ctx.fill();
+
         ctx.restore();
       }
     }
