@@ -9,11 +9,19 @@ const navItems = [
   { id: 'logs', label: 'LOGS', Icon: LogsIcon },
 ];
 
+const BAR_GRADIENTS = {
+  home: 'linear-gradient(180deg, rgb(34, 41, 87) 0%, rgb(74, 88, 189) 49%, rgba(74, 87, 189, 0) 100%)',
+  info: 'linear-gradient(180deg, rgb(87, 55, 34) 0%, rgb(189, 140, 74) 49%, rgba(189, 140, 74, 0) 100%)',
+  projects: 'linear-gradient(180deg, rgb(34, 60, 87) 0%, rgb(74, 140, 189) 49%, rgba(74, 140, 189, 0) 100%)',
+  logs: 'linear-gradient(180deg, rgb(38, 70, 45) 0%, rgb(80, 155, 100) 49%, rgba(80, 155, 100, 0) 100%)',
+  credits: 'linear-gradient(180deg, rgb(60, 38, 80) 0%, rgb(130, 95, 170) 49%, rgba(130, 95, 170, 0) 100%)',
+};
+
 export default function TopBar({ activeTab, onTabChange }) {
   return (
     <>
       <Bar>
-        <GradientBg />
+        <GradientBg style={{ background: BAR_GRADIENTS[activeTab] || BAR_GRADIENTS.home }} />
         <NavContent>
           <NavLinks>
             {navItems.map((item) => {
@@ -85,13 +93,8 @@ const Bar = styled.div`
 const GradientBg = styled.div`
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgb(34, 41, 87) 0%,
-    rgb(74, 88, 189) 49%,
-    rgba(74, 87, 189, 0) 100%
-  );
   pointer-events: none;
+  transition: background 0.5s ease;
 `;
 
 const NavContent = styled.nav`

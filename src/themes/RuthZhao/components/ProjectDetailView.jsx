@@ -9,6 +9,23 @@ const glyphSvg = (
   </svg>
 );
 
+const triangleDiagramSvg = (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 126" width="144" height="126">
+    <path d="M 71.359 1.065 C 71.644 0.572 72.356 0.572 72.641 1.065 L 73.482 2.522 L 73.976 2.236 L 75.658 5.15 L 75.164 5.435 L 76.846 8.348 L 77.34 8.063 L 79.021 10.976 L 78.528 11.261 L 80.209 14.174 L 80.703 13.889 L 82.385 16.802 L 81.891 17.087 L 83.573 20 L 84.067 19.715 L 85.749 22.628 L 85.255 22.913 L 86.937 25.826 L 87.431 25.541 L 89.112 28.454 L 88.619 28.739 L 90.3 31.652 L 90.794 31.367 L 92.476 34.28 L 91.982 34.565 L 93.664 37.478 L 94.158 37.193 L 95.84 40.106 L 95.346 40.391 L 97.028 43.304 L 97.522 43.019 L 99.203 45.932 L 98.71 46.217 L 100.391 49.13 L 100.885 48.845 L 102.567 51.758 L 102.073 52.043 L 103.755 54.956 L 104.249 54.671 L 105.931 57.584 L 105.437 57.869 L 107.119 60.782 L 107.613 60.497 L 109.294 63.41 L 108.801 63.695 L 110.482 66.608 L 110.976 66.323 L 112.658 69.236 L 112.164 69.521 L 113.846 72.434 L 114.34 72.149 L 116.022 75.062 L 115.528 75.347 L 117.21 78.26 L 117.704 77.975 L 119.385 80.888 L 118.892 81.173 L 120.573 84.086 L 121.067 83.801 L 122.749 86.714 L 122.255 86.999 L 123.937 89.912 L 124.431 89.627 L 126.113 92.54 L 125.619 92.825 L 127.301 95.738 L 127.795 95.453 L 129.476 98.366 L 128.983 98.651 L 130.664 101.565 L 131.158 101.279 L 132.84 104.192 L 132.346 104.478 L 134.028 107.391 L 134.522 107.105 L 136.204 110.018 L 135.71 110.304 L 137.392 113.217 L 137.886 112.931 L 139.567 115.844 L 139.074 116.13 L 140.755 119.043 L 141.249 118.757 L 142.931 121.671 L 142.437 121.956 L 143.278 123.412 C 143.563 123.906 143.207 124.523 142.637 124.523 L 1.363 124.523 C 0.793 124.523 0.437 123.906 0.722 123.412 L 1.563 121.956 L 1.069 121.671 L 2.751 118.758 L 3.245 119.043 L 4.926 116.13 L 4.432 115.844 L 6.114 112.931 L 6.608 113.217 L 8.29 110.304 L 7.796 110.018 L 9.478 107.105 L 9.972 107.391 L 11.654 104.478 L 11.16 104.192 L 12.842 101.279 L 13.336 101.564 L 15.017 98.651 L 14.524 98.366 L 16.205 95.453 L 16.699 95.738 L 18.381 92.825 L 17.887 92.54 L 19.569 89.627 L 20.063 89.912 L 21.745 86.999 L 21.251 86.714 L 22.933 83.801 L 23.427 84.086 L 25.108 81.173 L 24.615 80.888 L 26.296 77.975 L 26.79 78.26 L 28.472 75.347 L 27.978 75.062 L 29.66 72.149 L 30.154 72.434 L 31.836 69.521 L 31.342 69.236 L 33.024 66.323 L 33.518 66.608 L 35.199 63.695 L 34.706 63.41 L 36.387 60.497 L 36.881 60.782 L 38.563 57.869 L 38.069 57.584 L 39.751 54.671 L 40.245 54.956 L 41.927 52.043 L 41.433 51.758 L 43.115 48.845 L 43.609 49.13 L 45.29 46.217 L 44.796 45.932 L 46.478 43.019 L 46.972 43.304 L 48.654 40.391 L 48.16 40.106 L 49.842 37.193 L 50.336 37.478 L 52.018 34.565 L 51.524 34.28 L 53.206 31.367 L 53.7 31.652 L 55.381 28.739 L 54.888 28.454 L 56.569 25.541 L 57.063 25.826 L 58.745 22.913 L 58.251 22.628 L 59.933 19.715 L 60.427 20 L 62.109 17.087 L 61.615 16.802 L 63.297 13.889 L 63.791 14.174 L 65.472 11.261 L 64.979 10.976 L 66.66 8.063 L 67.154 8.348 L 68.836 5.435 L 68.342 5.15 L 70.024 2.236 L 70.518 2.522 Z" fill="transparent" strokeWidth="1.14" stroke="rgba(126,138,143,0.4)" strokeMiterlimit="10" strokeDasharray="3.42,3.42" />
+    <path d="M 96.816 97.256 L 46.676 97.256 C 46.106 97.256 45.75 96.639 46.035 96.146 L 71.105 52.723 C 71.39 52.23 72.102 52.23 72.387 52.723 L 97.457 96.146 C 97.742 96.639 97.386 97.256 96.816 97.256 Z" fill="transparent" strokeWidth="1.14" stroke="rgba(126,138,143,0.2)" strokeMiterlimit="10" />
+    <path d="M 72.189 1.29 L 72.191 125.007" fill="transparent" strokeWidth="1.14" stroke="rgba(126,138,143,0.2)" strokeLinecap="round" strokeMiterlimit="10" />
+    <path d="M 2.033 122.803 L 106.993 60.269" fill="transparent" strokeWidth="1.14" stroke="rgba(126,138,143,0.2)" strokeLinecap="round" strokeMiterlimit="10" />
+    <path d="M 142.4 123.632 L 36.947 61.218" fill="transparent" strokeWidth="1.14" stroke="rgba(126,138,143,0.2)" strokeLinecap="round" strokeMiterlimit="10" />
+  </svg>
+);
+
+// Category mapping for projects
+const CATEGORIES = [
+  { id: 'case-studies', label: 'CASE STUDIES', projectIds: ['ramp', 'penn-labs'] },
+  { id: 'research', label: 'RESEARCH', projectIds: ['living-loom', 'e-textiles'] },
+  { id: 'art', label: 'ART', projectIds: ['tarot-cards', 'illustrated-poetry'] },
+];
+
 function formatDate(value) {
   if (!value) return '';
   const s = String(value).trim();
@@ -29,8 +46,7 @@ function formatRange(start, end) {
   return `${l} – ${r}`;
 }
 
-export function ProjectDetailView({ project, cv, onBack }) {
-  // Try to find matching CV project for richer data
+export function ProjectDetailView({ project, allProjects, cv, onBack, onSelectProject }) {
   const cvProject = (cv?.projects || []).find(
     (p) => p.name?.toUpperCase() === project?.label
   );
@@ -49,9 +65,40 @@ export function ProjectDetailView({ project, cv, onBack }) {
   return (
     <Page>
       <Sidebar>
-        <BackButton onClick={onBack} type="button" title="Back to map">
+        <LogoLink onClick={onBack} type="button" title="Back to map">
           {glyphSvg}
-        </BackButton>
+          <LogoName>RUTH ZHAO</LogoName>
+        </LogoLink>
+
+        <Divider />
+
+        <DiagramWrap>
+          {triangleDiagramSvg}
+          <DiagramDot />
+          <DiagramLabel style={{ top: '28%', right: '-10px' }}>RESEARCH</DiagramLabel>
+          <DiagramLabel style={{ bottom: '-4px', left: '50%', transform: 'translateX(-50%)' }}>CASE STUDY</DiagramLabel>
+          <DiagramLabel style={{ top: '28%', left: '-10px' }}>ART</DiagramLabel>
+        </DiagramWrap>
+
+        <NavSections>
+          {CATEGORIES.map((cat) => (
+            <NavSection key={cat.id}>
+              <NavCategoryLabel>{cat.label}</NavCategoryLabel>
+              {(allProjects || [])
+                .filter((p) => cat.projectIds.includes(p.id))
+                .map((p) => (
+                  <NavItem
+                    key={p.id}
+                    $active={p.id === project?.id}
+                    onClick={() => onSelectProject?.(p)}
+                    type="button"
+                  >
+                    {p.label.charAt(0) + p.label.slice(1).toLowerCase()}
+                  </NavItem>
+                ))}
+            </NavSection>
+          ))}
+        </NavSections>
       </Sidebar>
 
       <Content>
@@ -107,12 +154,6 @@ export function ProjectDetailView({ project, cv, onBack }) {
             </HighlightList>
           </Section>
         )}
-
-        {project?.previewImage && (
-          <Section>
-            <ProjectImage src={project.previewImage} alt={title} />
-          </Section>
-        )}
       </Content>
     </Page>
   );
@@ -137,43 +178,122 @@ const Page = styled.div`
 `;
 
 const Sidebar = styled.nav`
-  width: 90px;
+  width: 240px;
   flex-shrink: 0;
-  padding: 40px 20px;
+  padding: 40px 24px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 24px;
+  border-right: 1px solid rgb(223, 232, 232);
 
   @media (max-width: 768px) {
     width: 100%;
-    flex-direction: row;
+    border-right: none;
+    border-bottom: 1px solid rgb(223, 232, 232);
     padding: 20px;
   }
 `;
 
-const BackButton = styled.button`
+const LogoLink = styled.button`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 8px;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
+  padding: 0;
+  text-align: left;
+`;
+
+const LogoName = styled.span`
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 18px;
+  color: rgb(128, 140, 146);
+  letter-spacing: 0.04em;
+`;
+
+const Divider = styled.div`
+  width: 100%;
+  height: 1px;
+  background: rgb(223, 232, 232);
+`;
+
+const DiagramWrap = styled.div`
+  position: relative;
+  width: 144px;
+  align-self: center;
+`;
+
+const DiagramDot = styled.div`
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff8012;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+`;
+
+const DiagramLabel = styled.span`
+  position: absolute;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: rgb(126, 138, 143);
+  white-space: nowrap;
+`;
+
+const NavSections = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+`;
+
+const NavSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+const NavCategoryLabel = styled.span`
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: rgb(197, 207, 212);
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+`;
+
+const NavItem = styled.button`
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  color: ${(p) => (p.$active ? '#fff' : 'rgb(81, 93, 98)')};
+  background: ${(p) => (p.$active ? '#ff8012' : 'transparent')};
+  border: none;
+  border-radius: 0;
+  padding: 6px 10px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: color 0.2s ease, background-color 0.2s ease;
 
   &:hover {
-    opacity: 1;
+    color: ${(p) => (p.$active ? '#fff' : '#000')};
+    background: ${(p) => (p.$active ? '#ff8012' : 'rgba(0, 0, 0, 0.04)')};
   }
 `;
 
 const Content = styled.main`
   flex: 1;
   max-width: 800px;
-  padding: 80px 60px 80px 40px;
+  padding: 80px 60px 80px 60px;
   display: flex;
   flex-direction: column;
   gap: 40px;
 
   @media (max-width: 768px) {
-    padding: 20px;
+    padding: 24px 20px;
   }
 `;
 
@@ -270,12 +390,4 @@ const HighlightItem = styled.li`
   font-size: 14px;
   color: rgb(81, 93, 98);
   line-height: 1.55;
-`;
-
-const ProjectImage = styled.img`
-  width: 100%;
-  max-width: 600px;
-  height: auto;
-  border: 1px solid rgb(223, 232, 232);
-  display: block;
 `;

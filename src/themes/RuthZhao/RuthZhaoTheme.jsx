@@ -70,8 +70,10 @@ export function RuthZhaoTheme() {
         <FontLoader />
         <ProjectDetailView
           project={selectedProject}
+          allProjects={projects}
           cv={cv}
           onBack={() => setSelectedProject(null)}
+          onSelectProject={setSelectedProject}
         />
       </>
     );
