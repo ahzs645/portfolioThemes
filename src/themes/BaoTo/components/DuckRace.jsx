@@ -201,37 +201,44 @@ function renderTrackCanvas(canvas, track, cssW, cssH) {
       }
 
       const td = distToTrack(x, y);
-      const noiseVal = fn(x * 0.008, y * 0.012);
-      const grain = filmGrain();
 
-      // Grass color (dark muted green with noise variation)
-      const gr = 58 + noiseVal * 22 + grain;
-      const gg = 85 + noiseVal * 28 + grain;
-      const gb = 44 + noiseVal * 16 + grain;
+      // Source grass noise: 3 octaves of fractalNoise (0.035, 0.08, 0.18)
+      const j = (fn(x*0.035, y*0.035)*0.5 + fn(x*0.08+100, y*0.08+100)*0.3 + fn(x*0.18+200, y*0.18+200)*0.2) * 2 - 1;
 
-      // Sand/track color (warm cream, slightly darker than BG)
-      const sr = BG.r - 4 + grain;
-      const sg = BG.g - 6 + grain;
-      const sb = BG.b - 10 + grain;
+      // Blend factor: td<=0 = track(sand), td>=10 = grass
+      const M = td <= 0 ? 0 : td >= 10 ? 1 : (td/10)**2 * (3 - (td*2)/10);
 
-      // Blend: td<0 = on track (sand), td>0 = grass
-      // Source uses smoothstep 0-10 for the transition
-      const blend = ss(-2, 8, td);
-      let r = sr + (gr - sr) * blend;
-      let g = sg + (gg - sg) * blend;
-      let b = sb + (gb - sb) * blend;
+      // Interpolate sand ↔ grass
+      const sandR = BG.r - 4, sandG = BG.g - 6, sandB = BG.b - 10;
+      let r = sandR * (1-M) + (58 + j*22) * M;
+      let g = sandG * (1-M) + (85 + j*28) * M;
+      let b = sandB * (1-M) + (44 + j*16) * M;
 
-      // Shadow near track-grass boundary (darkens grass edge)
-      if (td > -5 && td < 15) {
-        const shadow = 1 - ss(-5, 15, td) * 0.12;
-        r *= shadow; g *= shadow; b *= shadow;
+      // Shadow: look at offset pixel (-4, -5) for track proximity
+      if (M < 0.5 && x >= 4 && y >= 5) {
+        const neighborTd = distToTrack(x-4, y-5);
+        if (neighborTd > 0) {
+          const sh = 1 - Math.min(neighborTd/6, 1) * 0.12 * (1-M);
+          r *= sh; g *= sh; b *= sh;
+        }
       }
 
-      // Warm tint
-      r += 5.4;
+      // Source film grain: grain=50 → amount=(50/100)*80=40, pop=7 → thresh=0.07*0.15=0.0105, scale=1.5+0.07*2.5=1.675
+      const grainAmt = 40;
+      const popThresh = 0.0105;
+      const popScale = 1.675;
+      const rr = Math.random();
+      const grain = rr < popThresh*0.6 ? popScale*(0.5+Math.random()*0.5)*grainAmt
+                  : rr < popThresh ? -(popScale*(0.3+Math.random()*0.4)*grainAmt)
+                  : ((Math.random()+Math.random()+Math.random())/3-0.5)*grainAmt*2;
 
-      // Edge fade (source uses min*0.28 for sand canvas, ~0.12 here for tighter grass)
-      const fadeR = Math.min(w,h) * 0.1;
+      // Source: bri=16 → v=(16/100)*255=40.8, warm=18 → b2=18*0.3=5.4
+      r += 5.4 + 40.8*0.12 + grain;  // warm + brightness + grain
+      g += 40.8*0.10 + grain;
+      b += -5.4 + 40.8*0.08 + grain;
+
+      // Edge fade: source fade=18 → (18/100)*min*0.45
+      const fadeR = (18/100) * Math.min(w,h) * 0.45;
       if (-edgeSdf < fadeR) {
         const f = ss(0, fadeR, -edgeSdf);
         r = BG.r + (r - BG.r) * f;
