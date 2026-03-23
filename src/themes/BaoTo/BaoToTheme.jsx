@@ -8,6 +8,7 @@ import { MetallicTag } from './components/MetallicTag';
 import { StonePond } from './components/StonePond';
 import { BeachScene } from './components/BeachScene';
 import { MiniPond } from './components/MiniPond';
+import { DuckRace } from './components/DuckRace';
 
 /* ── Constants ── */
 
@@ -1029,10 +1030,8 @@ export function BaoToTheme() {
                   <BeachScene />
                 </div>
 
-                {/* Second Mini Duck Pond */}
-                <div style={{ margin: '48px 0 0' }}>
-                  <MiniPond />
-                </div>
+                {/* Duck Race Track */}
+                <DuckRace />
               </AboutWrapper>
             )}
 
