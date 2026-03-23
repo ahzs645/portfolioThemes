@@ -7,6 +7,7 @@ import { PaperOverlay } from './components/PaperOverlay';
 import { MetallicTag } from './components/MetallicTag';
 import { StonePond } from './components/StonePond';
 import { BeachScene } from './components/BeachScene';
+import { MiniPond } from './components/MiniPond';
 
 /* ── Constants ── */
 
@@ -1018,14 +1019,19 @@ export function BaoToTheme() {
                   </>
                 )}
 
-                {/* Duck Pond */}
-                <div style={{ margin: '64px 0 0' }}>
-                  <DuckPond />
+                {/* Mini Duck Pond (footer) */}
+                <div style={{ margin: '48px 0 0' }}>
+                  <MiniPond />
                 </div>
 
                 {/* Beach Scene */}
                 <div style={{ margin: '32px 0 0' }}>
                   <BeachScene />
+                </div>
+
+                {/* Second Mini Duck Pond */}
+                <div style={{ margin: '48px 0 0' }}>
+                  <MiniPond />
                 </div>
               </AboutWrapper>
             )}
