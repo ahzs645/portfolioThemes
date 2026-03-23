@@ -40,55 +40,55 @@ function prng(s){let t=s|0;return()=>{let e=Math.imul((t=(t+1831565813)|0)^(t>>>
 /* ── Track generation ── */
 
 function generateTrack(w, h) {
-  const cy = h / 2;
-  const radius = (h - 160) / 2;
-  const straight = Math.max(0, w - 160 - radius * 2);
+  // Source: radius = (h-160)/2, straight = max(0, w-160-radius*2)
   const cx = w / 2;
-  const trackRad = 30; // path half-width
+  const cy = h / 2;
+  const radius = (h - 160) / 2; // semicircle radius at each end (80px for h=320)
+  const straight = Math.max(0, w - 160 - radius * 2); // straight segment length
+  const trackRad = 30; // path half-width for distance field
+  const totalPerimeter = straight * 2 + Math.PI * 2 * radius;
 
-  // 24 control points around stadium shape with jitter
-  const rand = prng(777);
-  const raw = [];
-  for (let i = 0; i < 24; i++) {
-    const t = i / 24;
-    let x, y;
-    // 4 segments: top straight, right arc, bottom straight, left arc
-    const topLen = straight;
-    const arcLen = Math.PI * radius;
-    const total = topLen * 2 + arcLen * 2;
-    let d = t * total;
-
-    if (d < topLen) {
-      // Top straight (left to right)
-      x = cx - straight / 2 + d;
-      y = cy - radius;
-    } else if (d < topLen + arcLen) {
-      // Right semicircle
-      const a = ((d - topLen) / arcLen) * Math.PI - Math.PI / 2;
-      x = cx + straight / 2 + Math.cos(a) * radius;
-      y = cy + Math.sin(a) * radius;
-    } else if (d < topLen * 2 + arcLen) {
-      // Bottom straight (right to left)
-      const dd = d - topLen - arcLen;
-      x = cx + straight / 2 - dd;
-      y = cy + radius;
-    } else {
-      // Left semicircle
-      const a = ((d - topLen * 2 - arcLen) / arcLen) * Math.PI + Math.PI / 2;
-      x = cx - straight / 2 + Math.cos(a) * radius;
-      y = cy + Math.sin(a) * radius;
+  // Source parametric function: walks parameter t∈[0,1) around 4 segments
+  function stadiumPoint(t) {
+    let d = (((t % 1) + 1) % 1) * totalPerimeter;
+    // Segment 1: top straight (left to right)
+    if (d < straight) {
+      return { x: cx - straight / 2 + d, y: cy - radius };
     }
-    raw.push({ x: x + (rand() - 0.5) * 6, y: y + (rand() - 0.5) * 6 });
+    d -= straight;
+    // Segment 2: right semicircle
+    if (d < Math.PI * radius) {
+      const a = -Math.PI / 2 + d / radius;
+      return { x: cx + straight / 2 + Math.cos(a) * radius, y: cy + Math.sin(a) * radius };
+    }
+    d -= Math.PI * radius;
+    // Segment 3: bottom straight (right to left)
+    if (d < straight) {
+      return { x: cx + straight / 2 - d, y: cy + radius };
+    }
+    d -= straight;
+    // Segment 4: left semicircle
+    const a = Math.PI / 2 + d / radius;
+    return { x: cx - straight / 2 + Math.cos(a) * radius, y: cy + Math.sin(a) * radius };
   }
 
-  // Catmull-Rom spline subdivision
+  // 24 control points with jitter (source: +-3px x, +-2.5px y)
+  const rand = prng(42);
+  const raw = [];
+  for (let i = 0; i < 24; i++) {
+    const p = stadiumPoint(i / 24);
+    raw.push({ x: p.x + (rand() - 0.5) * 6, y: p.y + (rand() - 0.5) * 5 });
+  }
+
+  // Catmull-Rom spline with adaptive subdivision (source: ceil(segLen/3), min 4)
   const pts = [];
-  const subdiv = 8;
   for (let i = 0; i < raw.length; i++) {
-    const p0 = raw[(i - 1 + raw.length) % raw.length];
+    const p0 = raw[(i - 1 + 24) % 24];
     const p1 = raw[i];
-    const p2 = raw[(i + 1) % raw.length];
-    const p3 = raw[(i + 2) % raw.length];
+    const p2 = raw[(i + 1) % 24];
+    const p3 = raw[(i + 2) % 24];
+    const segLen = Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
+    const subdiv = Math.max(4, Math.ceil(segLen / 3));
     for (let j = 0; j < subdiv; j++) {
       const t = j / subdiv;
       const t2 = t * t, t3 = t2 * t;
@@ -172,8 +172,11 @@ function renderTrackCanvas(canvas, track, cssW, cssH) {
         if (d < minD) minD = d;
       }
     }
-    // Subtract track radius and add noise
-    return minD - trackRad + (fn(px * 3.5, py * 3.5) * 2 - 1) * 5 + (fn(px * 9, py * 9) * 2 - 1) * 2.5 + (fn(px * 22, py * 22) * 2 - 1) * 1;
+    // Subtract track radius and add fractal noise displacement (~9px amplitude)
+    return minD - trackRad
+      + (fn(px * 3.5, py * 3.5) * 2 - 1) * 5
+      + (fn(px * 9, py * 9) * 2 - 1) * 2.5
+      + (fn(px * 22, py * 22) * 2 - 1) * 1.5;
   }
 
   // Render pixels
@@ -244,24 +247,24 @@ function renderTrackCanvas(canvas, track, cssW, cssH) {
   ctx.setTransform(1,0,0,1,0,0);
   ctx.scale(dpr, dpr);
 
-  // Grass speckles
+  // Grass speckles (only on grass area: distance > 5 from track edge)
   const rand = prng(42);
   const pixelCount = cssW * cssH;
   for (let i = 0; i < pixelCount / 500; i++) {
     const sx = rand() * cssW, sy = rand() * cssH;
     const d = distToTrack(sx * dpr, sy * dpr);
-    if (d < -5) continue; // skip track area
+    if (d < 5) continue; // skip track/sand area
     const c = SPECKLE_GRASS[Math.floor(rand()*SPECKLE_GRASS.length)];
     ctx.globalAlpha = 0.35;
     ctx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`;
     ctx.beginPath(); ctx.arc(sx, sy, 0.6 + rand() * 1.8, 0, Math.PI * 2); ctx.fill();
   }
 
-  // Flower speckles on grass
+  // Flower speckles (deeper into grass: distance > 20)
   for (let i = 0; i < pixelCount / 800; i++) {
     const sx = rand() * cssW, sy = rand() * cssH;
     const d = distToTrack(sx * dpr, sy * dpr);
-    if (d < 15) continue;
+    if (d < 20) continue;
     const c = SPECKLE_FLOWER[Math.floor(rand()*SPECKLE_FLOWER.length)];
     ctx.globalAlpha = 0.55;
     ctx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`;
