@@ -202,34 +202,36 @@ function renderTrackCanvas(canvas, track, cssW, cssH) {
 
       const td = distToTrack(x, y);
       const noiseVal = fn(x * 0.008, y * 0.012);
+      const grain = filmGrain();
 
-      // Grass color
-      const gr = 58 + noiseVal * 22 + filmGrain();
-      const gg = 85 + noiseVal * 28 + filmGrain();
-      const gb = 44 + noiseVal * 16 + filmGrain();
+      // Grass color (dark muted green with noise variation)
+      const gr = 58 + noiseVal * 22 + grain;
+      const gg = 85 + noiseVal * 28 + grain;
+      const gb = 44 + noiseVal * 16 + grain;
 
-      // Sand/track color
-      const sr = BG.r - 4 + filmGrain();
-      const sg = BG.g - 6 + filmGrain();
-      const sb = BG.b - 10 + filmGrain();
+      // Sand/track color (warm cream, slightly darker than BG)
+      const sr = BG.r - 4 + grain;
+      const sg = BG.g - 6 + grain;
+      const sb = BG.b - 10 + grain;
 
-      // Blend grass ↔ sand
-      const blend = ss(0, 10, td);
+      // Blend: td<0 = on track (sand), td>0 = grass
+      // Source uses smoothstep 0-10 for the transition
+      const blend = ss(-2, 8, td);
       let r = sr + (gr - sr) * blend;
       let g = sg + (gg - sg) * blend;
       let b = sb + (gb - sb) * blend;
 
-      // Shadow near track edge on grass side
-      if (td > 0 && td < 20) {
-        const shadow = 1 - ss(0, 20, td) * 0.12;
+      // Shadow near track-grass boundary (darkens grass edge)
+      if (td > -5 && td < 15) {
+        const shadow = 1 - ss(-5, 15, td) * 0.12;
         r *= shadow; g *= shadow; b *= shadow;
       }
 
       // Warm tint
       r += 5.4;
 
-      // Edge fade
-      const fadeR = Math.min(w,h) * 0.15;
+      // Edge fade (source uses min*0.28 for sand canvas, ~0.12 here for tighter grass)
+      const fadeR = Math.min(w,h) * 0.1;
       if (-edgeSdf < fadeR) {
         const f = ss(0, fadeR, -edgeSdf);
         r = BG.r + (r - BG.r) * f;
@@ -247,28 +249,31 @@ function renderTrackCanvas(canvas, track, cssW, cssH) {
   ctx.setTransform(1,0,0,1,0,0);
   ctx.scale(dpr, dpr);
 
-  // Grass speckles (only on grass area: distance > 5 from track edge)
+  // Grass speckles — subtle earth-tone dots on grass (source: pixelCount/500)
   const rand = prng(42);
   const pixelCount = cssW * cssH;
-  for (let i = 0; i < pixelCount / 500; i++) {
-    const sx = rand() * cssW, sy = rand() * cssH;
+  const pad = 15;
+  for (let i = 0; i < pixelCount / 600; i++) {
+    const sx = pad + rand() * (cssW - pad*2);
+    const sy = pad + rand() * (cssH - pad*2);
     const d = distToTrack(sx * dpr, sy * dpr);
-    if (d < 5) continue; // skip track/sand area
+    if (d < 8) continue; // well into grass, away from track
     const c = SPECKLE_GRASS[Math.floor(rand()*SPECKLE_GRASS.length)];
-    ctx.globalAlpha = 0.35;
+    ctx.globalAlpha = 0.3;
     ctx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`;
-    ctx.beginPath(); ctx.arc(sx, sy, 0.6 + rand() * 1.8, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx, sy, 0.5 + rand() * 1.2, 0, Math.PI * 2); ctx.fill();
   }
 
-  // Flower speckles (deeper into grass: distance > 20)
-  for (let i = 0; i < pixelCount / 800; i++) {
-    const sx = rand() * cssW, sy = rand() * cssH;
+  // Flower speckles — small pastel dots deep in grass (source: pixelCount/800)
+  for (let i = 0; i < pixelCount / 1000; i++) {
+    const sx = pad + rand() * (cssW - pad*2);
+    const sy = pad + rand() * (cssH - pad*2);
     const d = distToTrack(sx * dpr, sy * dpr);
-    if (d < 20) continue;
+    if (d < 25) continue; // deep into grass
     const c = SPECKLE_FLOWER[Math.floor(rand()*SPECKLE_FLOWER.length)];
-    ctx.globalAlpha = 0.55;
+    ctx.globalAlpha = 0.45;
     ctx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`;
-    ctx.beginPath(); ctx.arc(sx, sy, 1.5 + rand() * 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx, sy, 0.8 + rand() * 1.5, 0, Math.PI * 2); ctx.fill();
   }
 
   // Center lane dashed line
