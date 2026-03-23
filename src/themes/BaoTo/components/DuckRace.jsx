@@ -339,6 +339,7 @@ export function DuckRace() {
   const [paddleX, setPaddleX] = useState(21.5);
   const [bubble, setBubble] = useState(null);
   const bubbleRef = useRef(null);
+  const bubbleDuckIdx = useRef(-1); // tracks which duck the bubble follows
   const lastQuote = useRef('');
 
   useEffect(() => {
@@ -378,9 +379,13 @@ export function DuckRace() {
         do { q = RACE_QUOTES[Math.floor(Math.random() * RACE_QUOTES.length)]; } while (q === lastQuote.current && RACE_QUOTES.length > 1);
         lastQuote.current = q;
         const duckIdx = Math.floor(Math.random() * 3);
-        setBubble({ text: q, duckIdx, id: Date.now() });
-        const hideTimer = setTimeout(() => setBubble(prev => prev?.id === hideTimer._id ? null : prev), 3500 + Math.random() * 2000);
-        hideTimer._id = Date.now();
+        bubbleDuckIdx.current = duckIdx;
+        const bubbleId = Date.now();
+        setBubble({ text: q, duckIdx, id: bubbleId });
+        setTimeout(() => {
+          setBubble(prev => prev?.id === bubbleId ? null : prev);
+          if (bubbleDuckIdx.current === duckIdx) bubbleDuckIdx.current = -1;
+        }, 3500 + Math.random() * 2000);
         scheduleQuote();
       }, 3000 + Math.random() * 2000);
     }
@@ -426,9 +431,9 @@ export function DuckRace() {
         }
       }
 
-      // Update bubble position
-      if (bubbleRef.current && bubble) {
-        const dEl = duckDivsRef.current[bubble.duckIdx];
+      // Update bubble position via ref (not state — state is stale in this closure)
+      if (bubbleRef.current && bubbleDuckIdx.current >= 0) {
+        const dEl = duckDivsRef.current[bubbleDuckIdx.current];
         if (dEl) {
           bubbleRef.current.style.left = dEl.style.left;
           bubbleRef.current.style.top = `${parseFloat(dEl.style.top) - 32}px`;
