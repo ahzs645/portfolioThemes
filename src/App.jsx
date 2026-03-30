@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { useConfig } from './contexts/ConfigContext';
 import { PORTFOLIO_THEMES, getPortfolioTheme } from './themes';
@@ -24,6 +24,43 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const fileInputRef = useRef(null);
   const searchInputRef = useRef(null);
+  const [hoveredThemeId, setHoveredThemeId] = useState(null);
+  const [previewPos, setPreviewPos] = useState({ top: 0, left: 0 });
+  const previewTimeoutRef = useRef(null);
+  const tableContainerRef = useRef(null);
+
+  const updatePreviewPos = useCallback((clientX, clientY) => {
+    const previewW = 480;
+    const previewH = 340;
+    const gap = 16;
+    const viewportW = window.innerWidth;
+    const viewportH = window.innerHeight;
+
+    // Position to the right of cursor, flip left if no room
+    let left = clientX + gap;
+    if (left + previewW > viewportW - 12) {
+      left = clientX - previewW - gap;
+    }
+    // Position below cursor, flip up if no room
+    let top = clientY - 40;
+    top = Math.max(8, Math.min(top, viewportH - previewH - 8));
+
+    setPreviewPos({ top, left });
+  }, []);
+
+  const handleRowMouseEnter = useCallback((e, themeId) => {
+    clearTimeout(previewTimeoutRef.current);
+    updatePreviewPos(e.clientX, e.clientY);
+    setHoveredThemeId(themeId);
+  }, [updatePreviewPos]);
+
+  const handleRowMouseMove = useCallback((e) => {
+    updatePreviewPos(e.clientX, e.clientY);
+  }, [updatePreviewPos]);
+
+  const handleRowMouseLeave = useCallback(() => {
+    previewTimeoutRef.current = setTimeout(() => setHoveredThemeId(null), 80);
+  }, []);
 
   useEffect(() => {
     try {
@@ -147,11 +184,39 @@ export default function App() {
   }
 
   if (showThemeBar && showCatalog) {
+    const HoveredComponent = hoveredThemeId ? getPortfolioTheme(hoveredThemeId)?.Component : null;
+
     return (
       <CatalogView $darkMode={darkMode}>
         <CatalogHeader>
-          <h1>Resume Themes</h1>
+          <CatalogTitleRow>
+            <h1>Resume Themes</h1>
+            <ThemeCount $darkMode={darkMode}>{filteredThemes.length} themes</ThemeCount>
+          </CatalogTitleRow>
           <HeaderActions>
+            <SearchBar $darkMode={darkMode}>
+              <SearchIcon width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="M21 21l-4.35-4.35"/>
+              </SearchIcon>
+              <SearchInput
+                ref={searchInputRef}
+                $darkMode={darkMode}
+                type="text"
+                placeholder="Search themes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
+              />
+              {searchQuery && (
+                <SearchClear $darkMode={darkMode} onClick={() => setSearchQuery('')}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </SearchClear>
+              )}
+            </SearchBar>
             <ModeToggle
               $darkMode={darkMode}
               onClick={() => setDarkMode(!darkMode)}
@@ -171,56 +236,77 @@ export default function App() {
             <CloseButton $darkMode={darkMode} onClick={() => setShowCatalog(false)}>Close</CloseButton>
           </HeaderActions>
         </CatalogHeader>
-        <SearchBar $darkMode={darkMode}>
-          <SearchIcon width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="M21 21l-4.35-4.35"/>
-          </SearchIcon>
-          <SearchInput
-            ref={searchInputRef}
-            $darkMode={darkMode}
-            type="text"
-            placeholder="Search themes..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            autoFocus
-          />
-          {searchQuery && (
-            <SearchClear $darkMode={darkMode} onClick={() => setSearchQuery('')}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </SearchClear>
-          )}
-        </SearchBar>
-        <ThemeGrid>
-          {filteredThemes.map((theme) => (
-            <ThemeCard
-              key={theme.id}
-              $active={theme.id === currentThemeId}
-              $darkMode={darkMode}
-              onClick={() => {
-                setCurrentThemeId(theme.id);
-                setShowCatalog(false);
-              }}
-            >
-              <ThemeName $darkMode={darkMode}>{theme.name}</ThemeName>
-              <ThemeDescription $darkMode={darkMode}>{theme.description}</ThemeDescription>
-              {theme.source && (
-                <ThemeSource
-                  $darkMode={darkMode}
-                  href={theme.source}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  Inspired by {new URL(theme.source).hostname.replace('www.', '')}
-                </ThemeSource>
-              )}
-            </ThemeCard>
-          ))}
-        </ThemeGrid>
+        <TableContainer ref={tableContainerRef} $darkMode={darkMode}>
+          <ThemeTable $darkMode={darkMode}>
+            <thead>
+              <tr>
+                <Th $darkMode={darkMode} $width="48px">#</Th>
+                <Th $darkMode={darkMode} $width="200px">Name</Th>
+                <Th $darkMode={darkMode}>Description</Th>
+                <Th $darkMode={darkMode} $width="160px">Source</Th>
+                <Th $darkMode={darkMode} $width="80px" $align="center">Status</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredThemes.map((theme) => {
+                const globalIndex = PORTFOLIO_THEMES.indexOf(theme);
+                return (
+                  <TableRow
+                    key={theme.id}
+                    $active={theme.id === currentThemeId}
+                    $darkMode={darkMode}
+                    onClick={() => {
+                      setCurrentThemeId(theme.id);
+                      setShowCatalog(false);
+                    }}
+                    onMouseEnter={(e) => handleRowMouseEnter(e, theme.id)}
+                    onMouseMove={handleRowMouseMove}
+                    onMouseLeave={handleRowMouseLeave}
+                  >
+                    <Td $darkMode={darkMode} $muted>{globalIndex + 1}</Td>
+                    <Td $darkMode={darkMode} $bold>{theme.name}</Td>
+                    <Td $darkMode={darkMode} $muted $truncate>{theme.description}</Td>
+                    <Td $darkMode={darkMode}>
+                      {theme.source ? (
+                        <SourceLink
+                          $darkMode={darkMode}
+                          href={theme.source}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {new URL(theme.source).hostname.replace('www.', '')}
+                        </SourceLink>
+                      ) : (
+                        <MutedText $darkMode={darkMode}>Original</MutedText>
+                      )}
+                    </Td>
+                    <Td $darkMode={darkMode} $align="center">
+                      {theme.id === currentThemeId && (
+                        <ActiveBadge $darkMode={darkMode}>Active</ActiveBadge>
+                      )}
+                    </Td>
+                  </TableRow>
+                );
+              })}
+            </tbody>
+          </ThemeTable>
+        </TableContainer>
+
+        {hoveredThemeId && HoveredComponent && (
+          <PreviewFloater
+            style={{ top: previewPos.top, left: previewPos.left }}
+          >
+            <PreviewLabel $darkMode={darkMode}>
+              {getPortfolioTheme(hoveredThemeId)?.name}
+            </PreviewLabel>
+            <PreviewViewport>
+              <PreviewScaler>
+                <HoveredComponent darkMode={darkMode} />
+              </PreviewScaler>
+            </PreviewViewport>
+          </PreviewFloater>
+        )}
       </CatalogView>
     );
   }
@@ -554,8 +640,9 @@ const CatalogView = styled.div`
   height: 100%;
   background: ${({ $darkMode }) => ($darkMode ? '#0b0b0b' : '#f9fafb')};
   color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#111827')};
-  padding: 24px;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   transition: background 0.2s, color 0.2s;
 `;
 
@@ -563,49 +650,66 @@ const CatalogHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  padding: 16px 20px;
+  flex-shrink: 0;
 
   h1 {
-    font-size: 24px;
+    font-size: 18px;
     font-weight: 600;
   }
+`;
+
+const CatalogTitleRow = styled.div`
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+`;
+
+const ThemeCount = styled.span`
+  font-size: 13px;
+  color: ${({ $darkMode }) => ($darkMode ? '#6b7280' : '#9ca3af')};
+  font-weight: 400;
 `;
 
 const HeaderActions = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 `;
 
 const ModeToggle = styled.button`
-  background: ${({ $darkMode }) => ($darkMode ? '#1f2937' : '#ffffff')};
-  color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#374151')};
-  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#374151' : '#d1d5db')};
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
+  background: ${({ $darkMode }) => ($darkMode ? '#1a1a1a' : '#ffffff')};
+  color: ${({ $darkMode }) => ($darkMode ? '#a3a3a3' : '#374151')};
+  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#2a2a2a' : '#e5e7eb')};
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: all 0.15s;
+  flex-shrink: 0;
 
   &:hover {
-    background: ${({ $darkMode }) => ($darkMode ? '#374151' : '#f3f4f6')};
+    background: ${({ $darkMode }) => ($darkMode ? '#262626' : '#f3f4f6')};
   }
 `;
 
 const CloseButton = styled.button`
-  background: ${({ $darkMode }) => ($darkMode ? '#1f2937' : '#ffffff')};
-  color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#374151')};
-  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#374151' : '#d1d5db')};
-  padding: 8px 16px;
-  border-radius: 8px;
+  background: ${({ $darkMode }) => ($darkMode ? '#1a1a1a' : '#ffffff')};
+  color: ${({ $darkMode }) => ($darkMode ? '#a3a3a3' : '#374151')};
+  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#2a2a2a' : '#e5e7eb')};
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 6px;
+  font-size: 13px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
+  flex-shrink: 0;
 
   &:hover {
-    background: ${({ $darkMode }) => ($darkMode ? '#374151' : '#f3f4f6')};
+    background: ${({ $darkMode }) => ($darkMode ? '#262626' : '#f3f4f6')};
   }
 `;
 
@@ -613,12 +717,12 @@ const SearchBar = styled.div`
   position: relative;
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
+  width: 220px;
 `;
 
 const SearchIcon = styled.svg`
   position: absolute;
-  left: 12px;
+  left: 10px;
   color: ${({ stroke }) => stroke};
   opacity: 0.4;
   pointer-events: none;
@@ -626,93 +730,180 @@ const SearchIcon = styled.svg`
 
 const SearchInput = styled.input`
   width: 100%;
-  padding: 10px 36px;
-  border-radius: 10px;
-  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#374151' : '#d1d5db')};
-  background: ${({ $darkMode }) => ($darkMode ? '#111827' : '#ffffff')};
+  height: 32px;
+  padding: 0 30px 0 32px;
+  border-radius: 6px;
+  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#2a2a2a' : '#e5e7eb')};
+  background: ${({ $darkMode }) => ($darkMode ? '#141414' : '#ffffff')};
   color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#111827')};
-  font-size: 14px;
+  font-size: 13px;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.15s;
 
   &::placeholder {
-    color: ${({ $darkMode }) => ($darkMode ? '#6b7280' : '#9ca3af')};
+    color: ${({ $darkMode }) => ($darkMode ? '#525252' : '#9ca3af')};
   }
 
   &:focus {
-    border-color: ${({ $darkMode }) => ($darkMode ? '#3b82f6' : '#3b82f6')};
+    border-color: ${({ $darkMode }) => ($darkMode ? '#404040' : '#93c5fd')};
   }
 `;
 
 const SearchClear = styled.button`
   position: absolute;
-  right: 10px;
+  right: 6px;
   background: none;
   border: none;
-  color: ${({ $darkMode }) => ($darkMode ? '#9ca3af' : '#6b7280')};
+  color: ${({ $darkMode }) => ($darkMode ? '#525252' : '#9ca3af')};
   cursor: pointer;
   display: flex;
   align-items: center;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 2px;
 
   &:hover {
-    color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#111827')};
+    color: ${({ $darkMode }) => ($darkMode ? '#a3a3a3' : '#374151')};
   }
 `;
 
-const ThemeGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+const TableContainer = styled.div`
+  flex: 1;
+  overflow: auto;
+  margin: 0 20px 20px;
+  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#e5e7eb')};
+  border-radius: 8px;
 `;
 
-const ThemeCard = styled.button`
-  text-align: left;
-  background: ${({ $active, $darkMode }) => {
-    if ($darkMode) return $active ? '#1f2937' : '#111827';
-    return $active ? '#e0e7ff' : '#ffffff';
-  }};
-  border: 2px solid ${({ $active, $darkMode }) => {
-    if ($darkMode) return $active ? '#3b82f6' : '#1f2937';
-    return $active ? '#3b82f6' : '#e5e7eb';
-  }};
-  border-radius: 12px;
-  padding: 20px;
+const ThemeTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  table-layout: fixed;
+`;
+
+const Th = styled.th`
+  text-align: ${({ $align }) => $align || 'left'};
+  padding: 9px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: ${({ $darkMode }) => ($darkMode ? '#525252' : '#6b7280')};
+  border-bottom: 1px solid ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#e5e7eb')};
+  position: sticky;
+  top: 0;
+  background: ${({ $darkMode }) => ($darkMode ? '#111111' : '#f3f4f6')};
+  z-index: 2;
+  ${({ $width }) => $width && `width: ${$width};`}
+
+  &:not(:last-child) {
+    border-right: 1px solid ${({ $darkMode }) => ($darkMode ? '#1a1a1a' : '#e5e7eb')};
+  }
+`;
+
+const TableRow = styled.tr`
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.1s;
+  background: ${({ $active, $darkMode }) => {
+    if ($active) return $darkMode ? '#162032' : '#eff6ff';
+    return 'transparent';
+  }};
 
   &:hover {
-    border-color: ${({ $active, $darkMode }) => {
-      if ($darkMode) return $active ? '#3b82f6' : '#374151';
-      return $active ? '#3b82f6' : '#9ca3af';
+    background: ${({ $active, $darkMode }) => {
+      if ($darkMode) return $active ? '#1a2840' : '#161616';
+      return $active ? '#e8f1fd' : '#f8f9fa';
     }};
   }
+
+  &:not(:last-child) td {
+    border-bottom: 1px solid ${({ $darkMode }) => ($darkMode ? '#1a1a1a' : '#f0f0f0')};
+  }
 `;
 
-const ThemeName = styled.div`
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#111827')};
+const Td = styled.td`
+  padding: 9px 14px;
+  color: ${({ $darkMode, $muted }) => {
+    if ($muted) return $darkMode ? '#737373' : '#9ca3af';
+    return $darkMode ? '#e5e5e5' : '#111827';
+  }};
+  font-weight: ${({ $bold }) => ($bold ? '500' : '400')};
+  text-align: ${({ $align }) => $align || 'left'};
+  ${({ $truncate }) => $truncate && `
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  `}
+
+  &:not(:last-child) {
+    border-right: 1px solid ${({ $darkMode }) => ($darkMode ? '#131313' : '#f5f5f5')};
+  }
 `;
 
-const ThemeDescription = styled.div`
-  font-size: 13px;
-  color: ${({ $darkMode }) => ($darkMode ? '#9ca3af' : '#6b7280')};
-  line-height: 1.4;
-`;
-
-const ThemeSource = styled.a`
-  display: inline-block;
-  margin-top: 10px;
-  font-size: 11px;
+const SourceLink = styled.a`
+  font-size: 12px;
   color: ${({ $darkMode }) => ($darkMode ? '#60a5fa' : '#3b82f6')};
   text-decoration: none;
-  transition: color 0.2s;
 
   &:hover {
-    color: ${({ $darkMode }) => ($darkMode ? '#93c5fd' : '#2563eb')};
     text-decoration: underline;
   }
+`;
+
+const MutedText = styled.span`
+  font-size: 12px;
+  color: ${({ $darkMode }) => ($darkMode ? '#404040' : '#d1d5db')};
+`;
+
+const ActiveBadge = styled.span`
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 500;
+  background: ${({ $darkMode }) => ($darkMode ? '#1e3a5f' : '#dbeafe')};
+  color: ${({ $darkMode }) => ($darkMode ? '#60a5fa' : '#2563eb')};
+`;
+
+const PreviewFloater = styled.div`
+  position: fixed;
+  z-index: 9999;
+  width: 480px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
+  pointer-events: none;
+  animation: previewFadeIn 0.12s ease-out;
+
+  @keyframes previewFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+`;
+
+const PreviewLabel = styled.div`
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: ${({ $darkMode }) => ($darkMode ? '#1a1a1a' : '#f3f4f6')};
+  color: ${({ $darkMode }) => ($darkMode ? '#a3a3a3' : '#6b7280')};
+  border-bottom: 1px solid ${({ $darkMode }) => ($darkMode ? '#262626' : '#e5e7eb')};
+`;
+
+const PreviewViewport = styled.div`
+  width: 480px;
+  height: 320px;
+  overflow: hidden;
+  position: relative;
+  background: #0b0b0b;
+`;
+
+const PreviewScaler = styled.div`
+  width: 1440px;
+  height: 960px;
+  transform: scale(${480 / 1440});
+  transform-origin: top left;
+  overflow: auto;
+  pointer-events: none;
 `;
