@@ -41,6 +41,7 @@ import { SaintAngelsTheme } from './SaintAngels/SaintAngelsTheme';
 import { RuthZhaoTheme } from './RuthZhao/RuthZhaoTheme';
 import { TahaHossainTheme } from './TahaHossain/TahaHossainTheme';
 import { BaoToTheme } from './BaoTo/BaoToTheme';
+import { PCVTheme } from './PCV/PCVTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -386,6 +387,14 @@ export const PORTFOLIO_THEMES = [
     description: 'Warm cream portfolio with glitch text hero, uppercase tab nav, monospace accents, and staggered project cards inspired by baothiento.com.',
     source: 'https://www.baothiento.com',
     Component: BaoToTheme,
+  },
+  {
+    id: 'pcv',
+    slug: 'ascii-flame',
+    name: 'ASCII Flame',
+    description: 'Monospace split-screen portfolio with 7 cyclable color themes, interactive ASCII doom flame animation, and uppercase vertical rhythm inspired by p.cv.',
+    source: 'https://p.cv',
+    Component: PCVTheme,
   },
 ];
 

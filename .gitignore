@@ -36,5 +36,8 @@ pnpm-debug.log*
 .cache/
 .eslintcache
 
+# Generated data
+public/github-activity.json
+
 # Claude Code
 .claude/
