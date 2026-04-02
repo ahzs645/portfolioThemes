@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback, Component } from 'react';
-import styled from 'styled-components';
+import { createPortal } from 'react-dom';
+import styled, { StyleSheetManager } from 'styled-components';
 import { useConfig } from './contexts/ConfigContext';
 import { PORTFOLIO_THEMES, getPortfolioTheme } from './themes';
 import { resolveThemeIdForPath, resolveThemePath, showThemeBar } from './config/themeSelection';
@@ -39,6 +40,50 @@ class PreviewErrorBoundary extends Component {
   }
 }
 
+function IsolatedPreview({ children, width, height }) {
+  const iframeRef = useRef(null);
+  const [iframeState, setIframeState] = useState(null);
+
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+    const handleLoad = () => {
+      const doc = iframe.contentDocument;
+      if (!doc) return;
+      doc.body.style.margin = '0';
+      doc.body.style.overflow = 'hidden';
+      let mountEl = doc.getElementById('preview-root');
+      if (!mountEl) {
+        mountEl = doc.createElement('div');
+        mountEl.id = 'preview-root';
+        doc.body.appendChild(mountEl);
+      }
+      setIframeState({ mountEl, head: doc.head });
+    };
+    iframe.addEventListener('load', handleLoad);
+    // Trigger for srcDoc
+    if (iframe.contentDocument?.readyState === 'complete') handleLoad();
+    return () => iframe.removeEventListener('load', handleLoad);
+  }, []);
+
+  return (
+    <>
+      <iframe
+        ref={iframeRef}
+        srcDoc="<!DOCTYPE html><html><head></head><body></body></html>"
+        style={{ width, height, border: 'none', display: 'block' }}
+        title="Theme preview"
+      />
+      {iframeState && createPortal(
+        <StyleSheetManager target={iframeState.head}>
+          {children}
+        </StyleSheetManager>,
+        iframeState.mountEl
+      )}
+    </>
+  );
+}
+
 const getInitialDarkMode = () => {
   try {
     const stored = localStorage.getItem('portfolioThemes-darkMode');
@@ -67,7 +112,7 @@ export default function App() {
 
   const updatePreviewPos = useCallback((clientX, clientY) => {
     const previewW = 480;
-    const previewH = 344;
+    const previewH = 324;
     const gap = 16;
     const viewportW = window.innerWidth;
     const viewportH = window.innerHeight;
@@ -362,11 +407,11 @@ export default function App() {
               {getPortfolioTheme(hoveredThemeId)?.name}
             </PreviewLabel>
             <PreviewViewport>
-              <PreviewScaler>
+              <IsolatedPreview width="1440px" height="900px">
                 <PreviewErrorBoundary themeId={hoveredThemeId}>
                   <HoveredComponent darkMode={darkMode} />
                 </PreviewErrorBoundary>
-              </PreviewScaler>
+              </IsolatedPreview>
             </PreviewViewport>
           </PreviewFloater>
         )}
@@ -707,6 +752,11 @@ const CatalogView = styled.div`
   flex-direction: column;
   overflow: hidden;
   transition: background 0.2s, color 0.2s;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  *, *::before, *::after {
+    font-family: inherit;
+  }
 `;
 
 const CatalogHeader = styled.div`
@@ -957,17 +1007,14 @@ const PreviewLabel = styled.div`
 
 const PreviewViewport = styled.div`
   width: 480px;
-  height: 320px;
+  height: 300px;
   overflow: hidden;
   position: relative;
   background: #0b0b0b;
-`;
 
-const PreviewScaler = styled.div`
-  width: 1440px;
-  height: 960px;
-  transform: scale(${480 / 1440});
-  transform-origin: top left;
-  overflow: hidden;
-  pointer-events: none;
+  iframe {
+    transform: scale(${480 / 1440});
+    transform-origin: top left;
+    pointer-events: none;
+  }
 `;
