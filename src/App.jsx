@@ -1,8 +1,43 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback, Component } from 'react';
 import styled from 'styled-components';
 import { useConfig } from './contexts/ConfigContext';
 import { PORTFOLIO_THEMES, getPortfolioTheme } from './themes';
 import { resolveThemeIdForPath, resolveThemePath, showThemeBar } from './config/themeSelection';
+
+class PreviewErrorBoundary extends Component {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.themeId !== this.props.themeId) {
+      this.setState({ hasError: false });
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          width: '100%', height: '100%', display: 'flex',
+          alignItems: 'center', justifyContent: 'center',
+          background: '#1a1a1a', color: '#737373', fontSize: '13px',
+          flexDirection: 'column', gap: '6px',
+        }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#525252" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          Preview unavailable
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const getInitialDarkMode = () => {
   try {
@@ -28,20 +63,19 @@ export default function App() {
   const [previewPos, setPreviewPos] = useState({ top: 0, left: 0 });
   const previewTimeoutRef = useRef(null);
   const tableContainerRef = useRef(null);
+  const rafRef = useRef(null);
 
   const updatePreviewPos = useCallback((clientX, clientY) => {
     const previewW = 480;
-    const previewH = 340;
+    const previewH = 344;
     const gap = 16;
     const viewportW = window.innerWidth;
     const viewportH = window.innerHeight;
 
-    // Position to the right of cursor, flip left if no room
     let left = clientX + gap;
     if (left + previewW > viewportW - 12) {
       left = clientX - previewW - gap;
     }
-    // Position below cursor, flip up if no room
     let top = clientY - 40;
     top = Math.max(8, Math.min(top, viewportH - previewH - 8));
 
@@ -55,12 +89,38 @@ export default function App() {
   }, [updatePreviewPos]);
 
   const handleRowMouseMove = useCallback((e) => {
-    updatePreviewPos(e.clientX, e.clientY);
+    if (rafRef.current) return;
+    const { clientX, clientY } = e;
+    rafRef.current = requestAnimationFrame(() => {
+      updatePreviewPos(clientX, clientY);
+      rafRef.current = null;
+    });
   }, [updatePreviewPos]);
 
   const handleRowMouseLeave = useCallback(() => {
     previewTimeoutRef.current = setTimeout(() => setHoveredThemeId(null), 80);
   }, []);
+
+  // Cleanup timeout and rAF on unmount
+  useEffect(() => {
+    return () => {
+      clearTimeout(previewTimeoutRef.current);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  // Keyboard navigation in catalog
+  useEffect(() => {
+    if (!showCatalog) return;
+    const handleKeyDown = (e) => {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === 'Escape') {
+        setShowCatalog(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showCatalog]);
 
   useEffect(() => {
     try {
@@ -233,7 +293,7 @@ export default function App() {
                 </svg>
               )}
             </ModeToggle>
-            <CloseButton $darkMode={darkMode} onClick={() => setShowCatalog(false)}>Close</CloseButton>
+            <CloseButton $darkMode={darkMode} onClick={() => { setHoveredThemeId(null); setShowCatalog(false); }}>Close</CloseButton>
           </HeaderActions>
         </CatalogHeader>
         <TableContainer ref={tableContainerRef} $darkMode={darkMode}>
@@ -257,6 +317,7 @@ export default function App() {
                     $darkMode={darkMode}
                     onClick={() => {
                       setCurrentThemeId(theme.id);
+                      setHoveredThemeId(null);
                       setShowCatalog(false);
                     }}
                     onMouseEnter={(e) => handleRowMouseEnter(e, theme.id)}
@@ -302,7 +363,9 @@ export default function App() {
             </PreviewLabel>
             <PreviewViewport>
               <PreviewScaler>
-                <HoveredComponent darkMode={darkMode} />
+                <PreviewErrorBoundary themeId={hoveredThemeId}>
+                  <HoveredComponent darkMode={darkMode} />
+                </PreviewErrorBoundary>
               </PreviewScaler>
             </PreviewViewport>
           </PreviewFloater>
@@ -872,11 +935,12 @@ const PreviewFloater = styled.div`
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
   pointer-events: none;
-  animation: previewFadeIn 0.12s ease-out;
+  animation: previewFadeIn 0.15s ease-out;
+  will-change: top, left;
 
   @keyframes previewFadeIn {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: scale(0.96) translateY(4px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
   }
 `;
 
@@ -904,6 +968,6 @@ const PreviewScaler = styled.div`
   height: 960px;
   transform: scale(${480 / 1440});
   transform-origin: top left;
-  overflow: auto;
+  overflow: hidden;
   pointer-events: none;
 `;
