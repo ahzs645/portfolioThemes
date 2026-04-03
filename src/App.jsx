@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback, Component } from 'react';
-import styled from 'styled-components';
+import { createPortal } from 'react-dom';
+import styled, { StyleSheetManager } from 'styled-components';
 import { useConfig } from './contexts/ConfigContext';
 import { PORTFOLIO_THEMES, getPortfolioTheme } from './themes';
 import { resolveThemeIdForPath, resolveThemePath, showThemeBar } from './config/themeSelection';
@@ -39,6 +40,50 @@ class PreviewErrorBoundary extends Component {
   }
 }
 
+function IsolatedPreview({ children, width, height }) {
+  const iframeRef = useRef(null);
+  const [iframeState, setIframeState] = useState(null);
+
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+    const handleLoad = () => {
+      const doc = iframe.contentDocument;
+      if (!doc) return;
+      doc.body.style.margin = '0';
+      doc.body.style.overflow = 'hidden';
+      let mountEl = doc.getElementById('preview-root');
+      if (!mountEl) {
+        mountEl = doc.createElement('div');
+        mountEl.id = 'preview-root';
+        doc.body.appendChild(mountEl);
+      }
+      setIframeState({ mountEl, head: doc.head });
+    };
+    iframe.addEventListener('load', handleLoad);
+    // Trigger for srcDoc
+    if (iframe.contentDocument?.readyState === 'complete') handleLoad();
+    return () => iframe.removeEventListener('load', handleLoad);
+  }, []);
+
+  return (
+    <>
+      <iframe
+        ref={iframeRef}
+        srcDoc="<!DOCTYPE html><html><head></head><body></body></html>"
+        style={{ width, height, border: 'none', display: 'block' }}
+        title="Theme preview"
+      />
+      {iframeState && createPortal(
+        <StyleSheetManager target={iframeState.head}>
+          {children}
+        </StyleSheetManager>,
+        iframeState.mountEl
+      )}
+    </>
+  );
+}
+
 const getInitialDarkMode = () => {
   try {
     const stored = localStorage.getItem('portfolioThemes-darkMode');
@@ -67,7 +112,7 @@ export default function App() {
 
   const updatePreviewPos = useCallback((clientX, clientY) => {
     const previewW = 480;
-    const previewH = 344;
+    const previewH = 324;
     const gap = 16;
     const viewportW = window.innerWidth;
     const viewportH = window.innerHeight;
@@ -82,20 +127,24 @@ export default function App() {
     setPreviewPos({ top, left });
   }, []);
 
+  const canHover = window.matchMedia?.('(hover: hover) and (pointer: fine)')?.matches;
+
   const handleRowMouseEnter = useCallback((e, themeId) => {
+    if (!canHover) return;
     clearTimeout(previewTimeoutRef.current);
     updatePreviewPos(e.clientX, e.clientY);
     setHoveredThemeId(themeId);
-  }, [updatePreviewPos]);
+  }, [updatePreviewPos, canHover]);
 
   const handleRowMouseMove = useCallback((e) => {
+    if (!canHover) return;
     if (rafRef.current) return;
     const { clientX, clientY } = e;
     rafRef.current = requestAnimationFrame(() => {
       updatePreviewPos(clientX, clientY);
       rafRef.current = null;
     });
-  }, [updatePreviewPos]);
+  }, [updatePreviewPos, canHover]);
 
   const handleRowMouseLeave = useCallback(() => {
     previewTimeoutRef.current = setTimeout(() => setHoveredThemeId(null), 80);
@@ -266,7 +315,6 @@ export default function App() {
                 placeholder="Search themes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                autoFocus
               />
               {searchQuery && (
                 <SearchClear $darkMode={darkMode} onClick={() => setSearchQuery('')}>
@@ -300,11 +348,11 @@ export default function App() {
           <ThemeTable $darkMode={darkMode}>
             <thead>
               <tr>
-                <Th $darkMode={darkMode} $width="48px">#</Th>
+                <Th $darkMode={darkMode} $width="48px" $hideOnMobile>#</Th>
                 <Th $darkMode={darkMode} $width="200px">Name</Th>
                 <Th $darkMode={darkMode}>Description</Th>
-                <Th $darkMode={darkMode} $width="160px">Source</Th>
-                <Th $darkMode={darkMode} $width="80px" $align="center">Status</Th>
+                <Th $darkMode={darkMode} $width="160px" $hideOnMobile>Source</Th>
+                <Th $darkMode={darkMode} $width="80px" $align="center" $hideOnMobile>Status</Th>
               </tr>
             </thead>
             <tbody>
@@ -324,10 +372,10 @@ export default function App() {
                     onMouseMove={handleRowMouseMove}
                     onMouseLeave={handleRowMouseLeave}
                   >
-                    <Td $darkMode={darkMode} $muted>{globalIndex + 1}</Td>
+                    <Td $darkMode={darkMode} $muted $hideOnMobile>{globalIndex + 1}</Td>
                     <Td $darkMode={darkMode} $bold>{theme.name}</Td>
                     <Td $darkMode={darkMode} $muted $truncate>{theme.description}</Td>
-                    <Td $darkMode={darkMode}>
+                    <Td $darkMode={darkMode} $hideOnMobile>
                       {theme.source ? (
                         <SourceLink
                           $darkMode={darkMode}
@@ -342,7 +390,7 @@ export default function App() {
                         <MutedText $darkMode={darkMode}>Original</MutedText>
                       )}
                     </Td>
-                    <Td $darkMode={darkMode} $align="center">
+                    <Td $darkMode={darkMode} $align="center" $hideOnMobile>
                       {theme.id === currentThemeId && (
                         <ActiveBadge $darkMode={darkMode}>Active</ActiveBadge>
                       )}
@@ -362,11 +410,11 @@ export default function App() {
               {getPortfolioTheme(hoveredThemeId)?.name}
             </PreviewLabel>
             <PreviewViewport>
-              <PreviewScaler>
+              <IsolatedPreview width="1440px" height="900px">
                 <PreviewErrorBoundary themeId={hoveredThemeId}>
                   <HoveredComponent darkMode={darkMode} />
                 </PreviewErrorBoundary>
-              </PreviewScaler>
+              </IsolatedPreview>
             </PreviewViewport>
           </PreviewFloater>
         )}
@@ -707,6 +755,11 @@ const CatalogView = styled.div`
   flex-direction: column;
   overflow: hidden;
   transition: background 0.2s, color 0.2s;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  *, *::before, *::after {
+    font-family: inherit;
+  }
 `;
 
 const CatalogHeader = styled.div`
@@ -719,6 +772,12 @@ const CatalogHeader = styled.div`
   h1 {
     font-size: 18px;
     font-weight: 600;
+  }
+
+  @media (max-width: 640px) {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 14px;
   }
 `;
 
@@ -781,6 +840,10 @@ const SearchBar = styled.div`
   display: flex;
   align-items: center;
   width: 220px;
+
+  @media (max-width: 640px) {
+    width: 140px;
+  }
 `;
 
 const SearchIcon = styled.svg`
@@ -834,6 +897,10 @@ const TableContainer = styled.div`
   margin: 0 20px 20px;
   border: 1px solid ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#e5e7eb')};
   border-radius: 8px;
+
+  @media (max-width: 640px) {
+    margin: 0 10px 10px;
+  }
 `;
 
 const ThemeTable = styled.table`
@@ -841,6 +908,10 @@ const ThemeTable = styled.table`
   border-collapse: collapse;
   font-size: 13px;
   table-layout: fixed;
+
+  @media (max-width: 640px) {
+    table-layout: auto;
+  }
 `;
 
 const Th = styled.th`
@@ -860,6 +931,10 @@ const Th = styled.th`
 
   &:not(:last-child) {
     border-right: 1px solid ${({ $darkMode }) => ($darkMode ? '#1a1a1a' : '#e5e7eb')};
+  }
+
+  @media (max-width: 640px) {
+    ${({ $hideOnMobile }) => $hideOnMobile && 'display: none;'}
   }
 `;
 
@@ -899,6 +974,10 @@ const Td = styled.td`
 
   &:not(:last-child) {
     border-right: 1px solid ${({ $darkMode }) => ($darkMode ? '#131313' : '#f5f5f5')};
+  }
+
+  @media (max-width: 640px) {
+    ${({ $hideOnMobile }) => $hideOnMobile && 'display: none;'}
   }
 `;
 
@@ -957,17 +1036,14 @@ const PreviewLabel = styled.div`
 
 const PreviewViewport = styled.div`
   width: 480px;
-  height: 320px;
+  height: 300px;
   overflow: hidden;
   position: relative;
   background: #0b0b0b;
-`;
 
-const PreviewScaler = styled.div`
-  width: 1440px;
-  height: 960px;
-  transform: scale(${480 / 1440});
-  transform-origin: top left;
-  overflow: hidden;
-  pointer-events: none;
+  iframe {
+    transform: scale(${480 / 1440});
+    transform-origin: top left;
+    pointer-events: none;
+  }
 `;
