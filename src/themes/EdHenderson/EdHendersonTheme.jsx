@@ -51,6 +51,9 @@ export function EdHendersonTheme({ darkMode }) {
   const volunteer = cv.volunteer || [];
   const publications = cv.publications || [];
   const awards = cv.awards || [];
+  const presentations = cv.presentations || [];
+  const professionalDevelopment = cv.professionalDevelopment || [];
+  const certificationsSkills = cv.certificationsSkills || [];
 
   const navSections = [
     { id: 'about', label: 'About', show: !!cv.about },
@@ -296,14 +299,60 @@ export function EdHendersonTheme({ darkMode }) {
               <AboutList $dm={dm}>
                 {publications.map((p, i) => (
                   <li key={i}>
-                    {p.url ? (
-                      <AboutLink href={p.url} target="_blank" rel="noopener noreferrer" $dm={dm}>
-                        {p.name}
+                    {p.url || p.doi ? (
+                      <AboutLink href={p.url || `https://doi.org/${p.doi}`} target="_blank" rel="noopener noreferrer" $dm={dm}>
+                        {p.name || p.title}
                       </AboutLink>
                     ) : (
-                      <strong>{p.name}</strong>
+                      <strong>{p.name || p.title}</strong>
                     )}
-                    {p.publisher && <> — {p.publisher}</>}
+                    {(p.publisher || p.journal) && <> — {p.publisher || p.journal}</>}
+                  </li>
+                ))}
+              </AboutList>
+            </AboutSection>
+          )}
+
+          {/* Presentations */}
+          {presentations.length > 0 && (
+            <AboutSection>
+              <SectionTitle $dm={dm}>Presentations</SectionTitle>
+              <AboutList $dm={dm}>
+                {presentations.map((p, i) => (
+                  <li key={i}>
+                    <strong>{p.name}</strong>
+                    {p.summary && <> — {p.summary}</>}
+                    {p.location && <> ({p.location})</>}
+                  </li>
+                ))}
+              </AboutList>
+            </AboutSection>
+          )}
+
+          {/* Professional Development */}
+          {professionalDevelopment.length > 0 && (
+            <AboutSection>
+              <SectionTitle $dm={dm}>Professional Development</SectionTitle>
+              <AboutList $dm={dm}>
+                {professionalDevelopment.map((p, i) => (
+                  <li key={i}>
+                    <strong>{p.name}</strong>
+                    {p.summary && <> — {p.summary}</>}
+                    {p.location && <> ({p.location})</>}
+                  </li>
+                ))}
+              </AboutList>
+            </AboutSection>
+          )}
+
+          {/* Certifications & Skills */}
+          {certificationsSkills.length > 0 && (
+            <AboutSection>
+              <SectionTitle $dm={dm}>Certifications & Skills</SectionTitle>
+              <AboutList $dm={dm}>
+                {certificationsSkills.map((item, i) => (
+                  <li key={i}>
+                    <strong>{item.label}:</strong> {item.details}
                   </li>
                 ))}
               </AboutList>

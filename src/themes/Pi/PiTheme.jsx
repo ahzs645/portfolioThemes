@@ -219,6 +219,11 @@ export function PiTheme() {
     return cv?.sections?.skills || [];
   }, [cv]);
 
+  // Certifications & Skills items
+  const certificationsSkillsItems = useMemo(() => {
+    return cv?.sections?.certifications_skills || [];
+  }, [cv]);
+
   // Award items
   const awardItems = useMemo(() => {
     return (cv?.sections?.awards || []).filter(e => !isArchived(e));
@@ -303,6 +308,19 @@ export function PiTheme() {
             <Grid $cols={3}>
               {skillItems.map((skill, idx) => (
                 <GridItem key={`skill-${idx}`}>{skill.name}</GridItem>
+              ))}
+            </Grid>
+          </Section>
+        )}
+
+        {certificationsSkillsItems.length > 0 && (
+          <Section id="certifications-skills">
+            <SectionTitle>Certifications & Skills</SectionTitle>
+            <Grid>
+              {certificationsSkillsItems.map((item, idx) => (
+                <GridItem key={`cs-${idx}`}>
+                  <strong>{item.label}:</strong> {item.details}
+                </GridItem>
               ))}
             </Grid>
           </Section>

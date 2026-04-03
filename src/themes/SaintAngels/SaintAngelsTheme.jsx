@@ -348,7 +348,7 @@ function itemRange(item) {
   return formatRange(item.startDate, item.endDate);
 }
 
-function EducationSection({ education, skills, contact, palette }) {
+function EducationSection({ education, skills, certificationsSkills, contact, palette }) {
   return (
     <>
       <PageTitle>Education</PageTitle>
@@ -366,6 +366,19 @@ function EducationSection({ education, skills, contact, palette }) {
           </Entry>
         ))}
       </EntryList>
+
+      {certificationsSkills.length > 0 && (
+        <>
+          <Subheading>Certifications & Skills</Subheading>
+          <SquareList>
+            {certificationsSkills.map((item, idx) => (
+              <li key={idx}>
+                <strong>{item.label}:</strong> {item.details}
+              </li>
+            ))}
+          </SquareList>
+        </>
+      )}
 
       {skills.length > 0 && (
         <>
@@ -511,6 +524,7 @@ export function SaintAngelsTheme({ darkMode = false }) {
                 <EducationSection
                   education={cv.education || []}
                   skills={cv.skills || []}
+                  certificationsSkills={cv.certificationsSkills || []}
                   contact={socialLinks}
                   palette={palette}
                 />

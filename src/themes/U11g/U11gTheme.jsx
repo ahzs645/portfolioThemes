@@ -157,6 +157,11 @@ export function U11gTheme() {
     return (cv?.sections?.professional_development || []).filter(e => !isArchived(e));
   }, [cv]);
 
+  // Certifications & Skills
+  const certificationsSkillsItems = useMemo(() => {
+    return cv?.sections?.certifications_skills || [];
+  }, [cv]);
+
   // Command palette keyboard shortcut
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -353,6 +358,17 @@ export function U11gTheme() {
                         <WorkCompany>{item.date}{item.location ? ` — ${item.location}` : ''}</WorkCompany>
                         <WorkTitle>{item.name}</WorkTitle>
                         {item.summary && <WorkDesc>{item.summary}</WorkDesc>}
+                      </WorkItem>
+                    ))}
+                  </>
+                )}
+                {certificationsSkillsItems.length > 0 && (
+                  <>
+                    <SubpageSectionLabel>Certifications & Skills</SubpageSectionLabel>
+                    {certificationsSkillsItems.map((item, idx) => (
+                      <WorkItem key={`cs-${idx}`}>
+                        <WorkCompany>{item.label}</WorkCompany>
+                        <WorkDesc>{item.details}</WorkDesc>
                       </WorkItem>
                     ))}
                   </>

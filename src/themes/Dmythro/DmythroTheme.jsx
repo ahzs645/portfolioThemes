@@ -123,6 +123,11 @@ export function DmythroTheme() {
     return (cv?.sections?.skills || []).filter(e => !isArchived(e));
   }, [cv]);
 
+  // Certifications & Skills
+  const certificationsSkillsItems = useMemo(() => {
+    return cv?.sections?.certifications_skills || [];
+  }, [cv]);
+
   // Accordion state
   const [openSections, setOpenSections] = useState(['experience']);
 
@@ -287,6 +292,17 @@ export function DmythroTheme() {
                         <SkillChip key={idx}>{skill.name || skill}</SkillChip>
                       ))}
                     </SkillsGrid>
+                  </SkillsSection>
+                )}
+
+                {certificationsSkillsItems.length > 0 && (
+                  <SkillsSection>
+                    <SkillsTitle>Certifications & Skills</SkillsTitle>
+                    {certificationsSkillsItems.map((item, idx) => (
+                      <TimelineDescription key={idx}>
+                        <strong>{item.label}:</strong> {item.details}
+                      </TimelineDescription>
+                    ))}
                   </SkillsSection>
                 )}
 
