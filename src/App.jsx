@@ -127,20 +127,24 @@ export default function App() {
     setPreviewPos({ top, left });
   }, []);
 
+  const canHover = window.matchMedia?.('(hover: hover) and (pointer: fine)')?.matches;
+
   const handleRowMouseEnter = useCallback((e, themeId) => {
+    if (!canHover) return;
     clearTimeout(previewTimeoutRef.current);
     updatePreviewPos(e.clientX, e.clientY);
     setHoveredThemeId(themeId);
-  }, [updatePreviewPos]);
+  }, [updatePreviewPos, canHover]);
 
   const handleRowMouseMove = useCallback((e) => {
+    if (!canHover) return;
     if (rafRef.current) return;
     const { clientX, clientY } = e;
     rafRef.current = requestAnimationFrame(() => {
       updatePreviewPos(clientX, clientY);
       rafRef.current = null;
     });
-  }, [updatePreviewPos]);
+  }, [updatePreviewPos, canHover]);
 
   const handleRowMouseLeave = useCallback(() => {
     previewTimeoutRef.current = setTimeout(() => setHoveredThemeId(null), 80);
@@ -311,7 +315,6 @@ export default function App() {
                 placeholder="Search themes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                autoFocus
               />
               {searchQuery && (
                 <SearchClear $darkMode={darkMode} onClick={() => setSearchQuery('')}>
@@ -345,11 +348,11 @@ export default function App() {
           <ThemeTable $darkMode={darkMode}>
             <thead>
               <tr>
-                <Th $darkMode={darkMode} $width="48px">#</Th>
+                <Th $darkMode={darkMode} $width="48px" $hideOnMobile>#</Th>
                 <Th $darkMode={darkMode} $width="200px">Name</Th>
                 <Th $darkMode={darkMode}>Description</Th>
-                <Th $darkMode={darkMode} $width="160px">Source</Th>
-                <Th $darkMode={darkMode} $width="80px" $align="center">Status</Th>
+                <Th $darkMode={darkMode} $width="160px" $hideOnMobile>Source</Th>
+                <Th $darkMode={darkMode} $width="80px" $align="center" $hideOnMobile>Status</Th>
               </tr>
             </thead>
             <tbody>
@@ -369,10 +372,10 @@ export default function App() {
                     onMouseMove={handleRowMouseMove}
                     onMouseLeave={handleRowMouseLeave}
                   >
-                    <Td $darkMode={darkMode} $muted>{globalIndex + 1}</Td>
+                    <Td $darkMode={darkMode} $muted $hideOnMobile>{globalIndex + 1}</Td>
                     <Td $darkMode={darkMode} $bold>{theme.name}</Td>
                     <Td $darkMode={darkMode} $muted $truncate>{theme.description}</Td>
-                    <Td $darkMode={darkMode}>
+                    <Td $darkMode={darkMode} $hideOnMobile>
                       {theme.source ? (
                         <SourceLink
                           $darkMode={darkMode}
@@ -387,7 +390,7 @@ export default function App() {
                         <MutedText $darkMode={darkMode}>Original</MutedText>
                       )}
                     </Td>
-                    <Td $darkMode={darkMode} $align="center">
+                    <Td $darkMode={darkMode} $align="center" $hideOnMobile>
                       {theme.id === currentThemeId && (
                         <ActiveBadge $darkMode={darkMode}>Active</ActiveBadge>
                       )}
@@ -770,6 +773,12 @@ const CatalogHeader = styled.div`
     font-size: 18px;
     font-weight: 600;
   }
+
+  @media (max-width: 640px) {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 14px;
+  }
 `;
 
 const CatalogTitleRow = styled.div`
@@ -831,6 +840,10 @@ const SearchBar = styled.div`
   display: flex;
   align-items: center;
   width: 220px;
+
+  @media (max-width: 640px) {
+    width: 140px;
+  }
 `;
 
 const SearchIcon = styled.svg`
@@ -884,6 +897,10 @@ const TableContainer = styled.div`
   margin: 0 20px 20px;
   border: 1px solid ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#e5e7eb')};
   border-radius: 8px;
+
+  @media (max-width: 640px) {
+    margin: 0 10px 10px;
+  }
 `;
 
 const ThemeTable = styled.table`
@@ -891,6 +908,10 @@ const ThemeTable = styled.table`
   border-collapse: collapse;
   font-size: 13px;
   table-layout: fixed;
+
+  @media (max-width: 640px) {
+    table-layout: auto;
+  }
 `;
 
 const Th = styled.th`
@@ -910,6 +931,10 @@ const Th = styled.th`
 
   &:not(:last-child) {
     border-right: 1px solid ${({ $darkMode }) => ($darkMode ? '#1a1a1a' : '#e5e7eb')};
+  }
+
+  @media (max-width: 640px) {
+    ${({ $hideOnMobile }) => $hideOnMobile && 'display: none;'}
   }
 `;
 
@@ -949,6 +974,10 @@ const Td = styled.td`
 
   &:not(:last-child) {
     border-right: 1px solid ${({ $darkMode }) => ($darkMode ? '#131313' : '#f5f5f5')};
+  }
+
+  @media (max-width: 640px) {
+    ${({ $hideOnMobile }) => $hideOnMobile && 'display: none;'}
   }
 `;
 
