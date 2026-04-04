@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import styled, { StyleSheetManager } from 'styled-components';
 import { useConfig } from './contexts/ConfigContext';
 import { PORTFOLIO_THEMES, getPortfolioTheme } from './themes';
-import { resolveThemeIdForPath, resolveThemePath, showThemeBar } from './config/themeSelection';
+import { resolveThemeIdForPath, resolveThemePath, showThemeBar, hideInitialsSetting } from './config/themeSelection';
 
 class PreviewErrorBoundary extends Component {
   state = { hasError: false };
@@ -84,52 +84,6 @@ function IsolatedPreview({ children, width, height }) {
   );
 }
 
-function LazyCardPreview({ themeId, darkMode }) {
-  const containerRef = useRef(null);
-  const [isVisible, setIsVisible] = useState(false);
-  const [containerWidth, setContainerWidth] = useState(0);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsVisible(entry.isIntersecting);
-        if (entry.isIntersecting && !containerWidth) {
-          setContainerWidth(entry.target.clientWidth);
-        }
-      },
-      { rootMargin: '200px' }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [containerWidth]);
-
-  const theme = getPortfolioTheme(themeId);
-  const ThemeComp = theme?.Component;
-  const scale = containerWidth ? containerWidth / 1440 : 0.24;
-  const height = Math.round(900 * scale);
-
-  return (
-    <CardPreviewContainer ref={containerRef} $darkMode={darkMode} style={{ height }}>
-      {isVisible && ThemeComp && containerWidth > 0 && (
-        <div style={{
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-        }}>
-          <IsolatedPreview width="1440px" height="900px">
-            <PreviewErrorBoundary themeId={themeId}>
-              <ThemeComp darkMode={darkMode} />
-            </PreviewErrorBoundary>
-          </IsolatedPreview>
-        </div>
-      )}
-    </CardPreviewContainer>
-  );
-}
 
 const getInitialDarkMode = () => {
   try {
@@ -139,13 +93,6 @@ const getInitialDarkMode = () => {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true;
 };
 
-const getInitialHideInitials = () => {
-  try {
-    const stored = localStorage.getItem('portfolioThemes-hideInitials');
-    if (stored !== null) return stored === 'true';
-  } catch {}
-  return true;
-};
 
 const getInitialThemeId = () => {
   return resolveThemeIdForPath(window.location.pathname);
@@ -156,7 +103,7 @@ export default function App() {
   const [currentThemeId, setCurrentThemeId] = useState(getInitialThemeId);
   const [showCatalog, setShowCatalog] = useState(false);
   const [darkMode, setDarkMode] = useState(getInitialDarkMode);
-  const [hideInitials, setHideInitials] = useState(getInitialHideInitials);
+  const hideInitials = hideInitialsSetting;
   const [searchQuery, setSearchQuery] = useState('');
   const fileInputRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -233,11 +180,6 @@ export default function App() {
     } catch {}
   }, [darkMode]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem('portfolioThemes-hideInitials', hideInitials);
-    } catch {}
-  }, [hideInitials]);
 
   // Update URL when theme changes
   useEffect(() => {
@@ -465,29 +407,36 @@ export default function App() {
         </TableContainer>
 
         <MobileCardList $darkMode={darkMode}>
-          {filteredThemes.map((theme) => (
-            <MobileCard
-              key={theme.id}
-              $active={theme.id === currentThemeId}
-              $darkMode={darkMode}
-              onClick={() => {
-                setCurrentThemeId(theme.id);
-                setHoveredThemeId(null);
-                setShowCatalog(false);
-              }}
-            >
-              <CardInfo>
-                <CardHeader>
-                  <CardName $darkMode={darkMode}>{theme.name}</CardName>
-                  {theme.id === currentThemeId && (
-                    <ActiveBadge $darkMode={darkMode}>Active</ActiveBadge>
+          {filteredThemes.map((theme, index) => {
+            const globalIndex = PORTFOLIO_THEMES.indexOf(theme);
+            return (
+              <MobileCard
+                key={theme.id}
+                $active={theme.id === currentThemeId}
+                $darkMode={darkMode}
+                onClick={() => {
+                  setCurrentThemeId(theme.id);
+                  setHoveredThemeId(null);
+                  setShowCatalog(false);
+                }}
+              >
+                <CardInfo>
+                  <CardHeader>
+                    <CardNameRow>
+                      <CardIndex $darkMode={darkMode}>{globalIndex + 1}</CardIndex>
+                      <CardName $darkMode={darkMode}>{theme.name}</CardName>
+                    </CardNameRow>
+                    {theme.id === currentThemeId && (
+                      <ActiveBadge $darkMode={darkMode}>Active</ActiveBadge>
+                    )}
+                  </CardHeader>
+                  {theme.description && (
+                    <CardDescription $darkMode={darkMode}>{theme.description}</CardDescription>
                   )}
-                </CardHeader>
-                <CardDescription $darkMode={darkMode}>{theme.description}</CardDescription>
-              </CardInfo>
-              <LazyCardPreview themeId={theme.id} darkMode={darkMode} />
-            </MobileCard>
-          ))}
+                </CardInfo>
+              </MobileCard>
+            );
+          })}
         </MobileCardList>
 
         {hoveredThemeId && HoveredComponent && (
@@ -581,18 +530,6 @@ export default function App() {
             </SwitcherButton>
             <ModeToggleSmall
               $darkMode={darkMode}
-              $active={hideInitials}
-              onClick={() => setHideInitials(!hideInitials)}
-              title={hideInitials ? 'Show initial icons' : 'Hide initial icons'}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="8" height="8" rx="2"/>
-                <text x="7" y="9.5" textAnchor="middle" fill="currentColor" stroke="none" fontSize="7" fontWeight="bold">A</text>
-                {hideInitials && <line x1="2" y1="2" x2="12" y2="12" stroke="currentColor" strokeWidth="2"/>}
-              </svg>
-            </ModeToggleSmall>
-            <ModeToggleSmall
-              $darkMode={darkMode}
               onClick={() => setDarkMode(!darkMode)}
               title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             >
@@ -662,6 +599,12 @@ const TopBar = styled.div`
   border-bottom: 1px solid ${({ $darkMode }) => ($darkMode ? '#262626' : '#e5e7eb')};
   z-index: 1000;
   flex-shrink: 0;
+
+  @media (max-width: 640px) {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px;
+  }
 `;
 
 const ThemeInfo = styled.div`
@@ -711,12 +654,21 @@ const Separator = styled.div`
   height: 24px;
   background: ${({ $darkMode }) => ($darkMode ? '#333' : '#d1d5db')};
   margin: 0 4px;
+
+  @media (max-width: 640px) {
+    display: none;
+  }
 `;
 
 const TopBarActions = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+
+  @media (max-width: 640px) {
+    gap: 6px;
+  }
 `;
 
 const SwitcherButton = styled.button`
@@ -1000,7 +952,7 @@ const TableContainer = styled.div`
   border: 1px solid ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#e5e7eb')};
   border-radius: 8px;
 
-  @media (max-width: 640px) {
+  @media (max-width: 768px) {
     display: none;
   }
 `;
@@ -1153,10 +1105,10 @@ const PreviewViewport = styled.div`
 const MobileCardList = styled.div`
   display: none;
 
-  @media (max-width: 640px) {
+  @media (max-width: 768px) {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
     padding: 0 12px 12px;
     overflow: auto;
     flex: 1;
@@ -1165,7 +1117,7 @@ const MobileCardList = styled.div`
 
 const MobileCard = styled.div`
   border: 1px solid ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#e5e7eb')};
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
   cursor: pointer;
   background: ${({ $active, $darkMode }) => {
@@ -1195,6 +1147,18 @@ const CardHeader = styled.div`
   justify-content: space-between;
 `;
 
+const CardNameRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const CardIndex = styled.span`
+  font-size: 12px;
+  color: ${({ $darkMode }) => ($darkMode ? '#525252' : '#9ca3af')};
+  min-width: 20px;
+`;
+
 const CardName = styled.span`
   font-size: 15px;
   font-weight: 600;
@@ -1208,14 +1172,3 @@ const CardDescription = styled.p`
   line-height: 1.5;
 `;
 
-const CardPreviewContainer = styled.div`
-  width: 100%;
-  overflow: hidden;
-  position: relative;
-  background: ${({ $darkMode }) => ($darkMode ? '#0a0a0a' : '#f0f0f0')};
-  border-top: 1px solid ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#e5e7eb')};
-
-  iframe {
-    pointer-events: none;
-  }
-`;
