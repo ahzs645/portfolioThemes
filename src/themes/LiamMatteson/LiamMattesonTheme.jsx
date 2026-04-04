@@ -29,6 +29,40 @@ const navReveal = keyframes`
   to   { opacity: 1; filter: blur(0);   transform: translateY(0); }
 `;
 
+/* ── Drag hook ─────────────────────────────────────────── */
+function useDrag() {
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const origin = useRef({ x: 0, y: 0, startX: 0, startY: 0 });
+
+  const onPointerDown = (e) => {
+    e.preventDefault();
+    setDragging(true);
+    origin.current = { x: pos.x, y: pos.y, startX: e.clientX, startY: e.clientY };
+  };
+
+  useEffect(() => {
+    if (!dragging) return;
+    const onMove = (e) => {
+      setPos({
+        x: origin.current.x + (e.clientX - origin.current.startX),
+        y: origin.current.y + (e.clientY - origin.current.startY),
+      });
+    };
+    const onUp = () => setDragging(false);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+  }, [dragging]);
+
+  const reset = () => setPos({ x: 0, y: 0 });
+
+  return { pos, dragging, onPointerDown, reset };
+}
+
 function firstSentence(text = '') {
   const normalized = String(text || '').replace(/\s+/g, ' ').trim();
   if (!normalized) return '';
@@ -41,6 +75,8 @@ function ClockWidget({ theme }) {
   const [now, setNow] = useState(new Date());
   const [expanded, setExpanded] = useState(false);
   const ref = useRef(null);
+  const drag = useDrag();
+  const wasDragged = useRef(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -48,12 +84,23 @@ function ClockWidget({ theme }) {
   }, []);
 
   useEffect(() => {
+    if (!expanded) { drag.reset(); return; }
     const handler = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setExpanded(false);
     };
-    if (expanded) document.addEventListener('mousedown', handler);
+    document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [expanded]);
+
+  // Track whether a drag happened so click doesn't close after dragging
+  useEffect(() => {
+    if (drag.dragging) wasDragged.current = true;
+  }, [drag.dragging]);
+
+  const handleClick = () => {
+    if (wasDragged.current) { wasDragged.current = false; return; }
+    setExpanded(false);
+  };
 
   const hours = (now.getHours() % 12) * 30 + (now.getMinutes() / 60) * 30;
   const minutes = now.getMinutes() * 6 + (now.getSeconds() / 60) * 6;
@@ -67,7 +114,13 @@ function ClockWidget({ theme }) {
     <ClockContainer ref={ref}>
       {expanded && <WidgetOverlay onClick={() => setExpanded(false)} />}
       {expanded ? (
-        <ClockExpanded $theme={theme} onClick={() => setExpanded(false)}>
+        <ClockExpanded
+          $theme={theme}
+          onClick={handleClick}
+          onPointerDown={drag.onPointerDown}
+          style={{ transform: `translate(${drag.pos.x}px, ${drag.pos.y}px)`, cursor: drag.dragging ? 'grabbing' : 'grab' }}
+          $dragging={drag.dragging}
+        >
           <ClockDate $theme={theme}>{dateStr}</ClockDate>
           <ClockFace>
             <ClockRing $theme={theme} />
@@ -111,20 +164,38 @@ function ClockWidget({ theme }) {
 function StatusWidget({ theme, location, role }) {
   const [expanded, setExpanded] = useState(false);
   const ref = useRef(null);
+  const drag = useDrag();
+  const wasDragged = useRef(false);
 
   useEffect(() => {
+    if (!expanded) { drag.reset(); return; }
     const handler = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setExpanded(false);
     };
-    if (expanded) document.addEventListener('mousedown', handler);
+    document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [expanded]);
+
+  useEffect(() => {
+    if (drag.dragging) wasDragged.current = true;
+  }, [drag.dragging]);
+
+  const handleClick = () => {
+    if (wasDragged.current) { wasDragged.current = false; return; }
+    setExpanded(false);
+  };
 
   return (
     <StatusContainer ref={ref}>
       {expanded && <WidgetOverlay onClick={() => setExpanded(false)} />}
       {expanded ? (
-        <StatusExpanded $theme={theme} onClick={() => setExpanded(false)}>
+        <StatusExpanded
+          $theme={theme}
+          onClick={handleClick}
+          onPointerDown={drag.onPointerDown}
+          style={{ transform: `translate(${drag.pos.x}px, ${drag.pos.y}px)`, cursor: drag.dragging ? 'grabbing' : 'grab' }}
+          $dragging={drag.dragging}
+        >
           <StatusIcon>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
@@ -152,9 +223,79 @@ function StatusWidget({ theme, location, role }) {
   );
 }
 
+/* ── Sub-page: Work ────────────────────────────────────── */
+function WorkPage({ theme, experience }) {
+  return (
+    <SubPageContent>
+      {experience.map((item, i) => (
+        <WorkRow key={`${item.company}-${i}`} $theme={theme}>
+          <WorkCompany
+            href={item.url || '#'}
+            target="_blank"
+            rel="noreferrer"
+            $theme={theme}
+          >
+            <WorkIcon $theme={theme}>
+              {item.company?.charAt(0) || '?'}
+            </WorkIcon>
+            <WorkCompanyName $theme={theme}>{item.company}</WorkCompanyName>
+          </WorkCompany>
+          <WorkRole $theme={theme}>{item.title}</WorkRole>
+        </WorkRow>
+      ))}
+      <SubPageFooter $theme={theme}>Made with care</SubPageFooter>
+    </SubPageContent>
+  );
+}
+
+/* ── Sub-page: Connect ─────────────────────────────────── */
+function ConnectPage({ theme, cv }) {
+  return (
+    <SubPageContent>
+      {cv.email && (
+        <WorkRow $theme={theme}>
+          <WorkCompany href={`mailto:${cv.email}`} $theme={theme}>
+            <WorkIcon $theme={theme}>@</WorkIcon>
+            <WorkCompanyName $theme={theme}>{cv.email}</WorkCompanyName>
+          </WorkCompany>
+          <WorkRole $theme={theme}>Email</WorkRole>
+        </WorkRow>
+      )}
+      {cv.socialRaw?.map((entry, i) => (
+        <WorkRow key={`${entry.network}-${i}`} $theme={theme}>
+          <WorkCompany href={entry.url} target="_blank" rel="noreferrer" $theme={theme}>
+            <WorkIcon $theme={theme}>{entry.network?.charAt(0)}</WorkIcon>
+            <WorkCompanyName $theme={theme}>{entry.network}</WorkCompanyName>
+          </WorkCompany>
+          <WorkRole $theme={theme}>{entry.username || 'Profile'}</WorkRole>
+        </WorkRow>
+      ))}
+      <SubPageFooter $theme={theme}>Made with care</SubPageFooter>
+    </SubPageContent>
+  );
+}
+
+/* ── Sub-page header (shared) ──────────────────────────── */
+function PageHeader({ theme, title, subtitle, onBack }) {
+  return (
+    <SubPageHeader>
+      <SubPageBackRow>
+        <BackButton onClick={onBack} $theme={theme}>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
+          </svg>
+        </BackButton>
+      </SubPageBackRow>
+      <SubPageTitle $theme={theme}>{title}</SubPageTitle>
+      {subtitle && <SubPageSubtitle $theme={theme}>{subtitle}</SubPageSubtitle>}
+    </SubPageHeader>
+  );
+}
+
 /* ── Main Theme ────────────────────────────────────────── */
 export function LiamMattesonTheme({ darkMode }) {
   const cv = useCV();
+  const [view, setView] = useState('home');
 
   if (!cv) return null;
 
@@ -181,40 +322,156 @@ export function LiamMattesonTheme({ darkMode }) {
   const intro = firstSentence(cv.about) || 'Software designed with creativity and care through relentless iteration and meticulous detail.';
   const introWords = intro.split(' ');
   const currentRole = cv.experience[0];
-  const heroLinks = [
-    { label: 'Work', href: cv.website || '#' },
-    { label: 'Projects', href: cv.website || '#' },
-    { label: 'Connect', href: cv.email ? `mailto:${cv.email}` : '#' },
-  ];
-  if (cv.socialLinks?.linkedin) heroLinks.push({ label: 'LinkedIn', href: cv.socialLinks.linkedin });
+  const navItems = ['Work', 'Projects', 'Connect'];
 
+  const handleNav = (label) => {
+    setView(label.toLowerCase());
+  };
+
+  // Shared header for all views
+  const sharedHeader = (
+    <Header>
+      <HeaderLeft>
+        <MarkLink
+          as="button"
+          onClick={() => setView('home')}
+          aria-label={cv.name}
+          style={{ background: 'none', border: 'none', padding: 0 }}
+        >
+          <IconMark viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M19.444 14.284c.307 0 .556.249.556.556v2.936A2.222 2.222 0 0 1 17.778 20H7.699a.556.556 0 0 1-.556-.557V14.84c0-.307.249-.556.556-.556h11.745Z" fill="currentColor" />
+            <path d="M7.696 12.856a.556.556 0 0 1-.556-.555V.556C7.14.249 7.39 0 7.696 0h2.936a2.222 2.222 0 0 1 2.222 2.222V12.3a.556.556 0 0 1-.555.556H7.696Z" fill="currentColor" />
+            <path d="M14.84 12.856a.556.556 0 0 1-.556-.555V.556c0-.307.25-.556.556-.556h2.937A2.222 2.222 0 0 1 20 2.222V12.3a.556.556 0 0 1-.556.556H14.84Z" fill="currentColor" />
+            <path d="M0 2.222A2.222 2.222 0 0 1 2.222 0h2.936c.307 0 .556.249.556.556v18.887a.556.556 0 0 1-.556.557H2.222A2.222 2.222 0 0 1 0 17.776V2.222Z" fill="currentColor" />
+          </IconMark>
+        </MarkLink>
+      </HeaderLeft>
+      <HeaderCenter>
+        <StatusWidget
+          theme={theme}
+          location={cv.location}
+          role={currentRole ? `${currentRole.title} at ${currentRole.company}` : null}
+        />
+      </HeaderCenter>
+      <HeaderRight>
+        <ClockWidget theme={theme} />
+      </HeaderRight>
+    </Header>
+  );
+
+  if (view === 'work') {
+    return (
+      <Page $theme={theme}>
+        <FontLoader />
+        <SubPageWrap>
+          <ContentArea>
+            {sharedHeader}
+            <NavRow>
+              {navItems.map((label) => (
+                <NavLink
+                  key={label}
+                  as="button"
+                  onClick={() => handleNav(label)}
+                  $theme={theme}
+                  $active={view === label.toLowerCase()}
+                >
+                  {label}
+                </NavLink>
+              ))}
+            </NavRow>
+          </ContentArea>
+          <SubPageBody>
+            <PageHeader theme={theme} title="Work" subtitle="Selected experience" onBack={() => setView('home')} />
+            <WorkPage theme={theme} experience={cv.experience} />
+          </SubPageBody>
+        </SubPageWrap>
+      </Page>
+    );
+  }
+
+  if (view === 'projects') {
+    return (
+      <Page $theme={theme}>
+        <FontLoader />
+        <SubPageWrap>
+          <ContentArea>
+            {sharedHeader}
+            <NavRow>
+              {navItems.map((label) => (
+                <NavLink
+                  key={label}
+                  as="button"
+                  onClick={() => handleNav(label)}
+                  $theme={theme}
+                  $active={view === label.toLowerCase()}
+                >
+                  {label}
+                </NavLink>
+              ))}
+            </NavRow>
+          </ContentArea>
+          <SubPageBody>
+            <PageHeader theme={theme} title="Projects" subtitle="Selected projects and work" onBack={() => setView('home')} />
+            <SubPageContent>
+              {cv.projects.map((project, i) => (
+                <WorkRow key={`${project.name}-${i}`} $theme={theme}>
+                  <WorkCompany
+                    href={project.url || '#'}
+                    target="_blank"
+                    rel="noreferrer"
+                    $theme={theme}
+                  >
+                    <WorkIcon $theme={theme}>{project.name?.charAt(0)}</WorkIcon>
+                    <WorkCompanyName $theme={theme}>{project.name}</WorkCompanyName>
+                  </WorkCompany>
+                  <WorkRole $theme={theme}>{project.summary || project.date || ''}</WorkRole>
+                </WorkRow>
+              ))}
+              <SubPageFooter $theme={theme}>Made with care</SubPageFooter>
+            </SubPageContent>
+          </SubPageBody>
+        </SubPageWrap>
+      </Page>
+    );
+  }
+
+  if (view === 'connect') {
+    return (
+      <Page $theme={theme}>
+        <FontLoader />
+        <SubPageWrap>
+          <ContentArea>
+            {sharedHeader}
+            <NavRow>
+              {navItems.map((label) => (
+                <NavLink
+                  key={label}
+                  as="button"
+                  onClick={() => handleNav(label)}
+                  $theme={theme}
+                  $active={view === label.toLowerCase()}
+                >
+                  {label}
+                </NavLink>
+              ))}
+            </NavRow>
+          </ContentArea>
+          <SubPageBody>
+            <PageHeader theme={theme} title="Connect" subtitle="Get in touch" onBack={() => setView('home')} />
+            <ConnectPage theme={theme} cv={cv} />
+          </SubPageBody>
+        </SubPageWrap>
+      </Page>
+    );
+  }
+
+  // ── Home view ──
   return (
     <Page $theme={theme}>
       <FontLoader />
       <ScreenWrap>
         <ContentArea>
-          <Header>
-            <HeaderLeft>
-              <MarkLink href={cv.website || '#'} target="_blank" rel="noreferrer" aria-label={cv.name}>
-                <IconMark viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <path d="M19.444 14.284c.307 0 .556.249.556.556v2.936A2.222 2.222 0 0 1 17.778 20H7.699a.556.556 0 0 1-.556-.557V14.84c0-.307.249-.556.556-.556h11.745Z" fill="currentColor" />
-                  <path d="M7.696 12.856a.556.556 0 0 1-.556-.555V.556C7.14.249 7.39 0 7.696 0h2.936a2.222 2.222 0 0 1 2.222 2.222V12.3a.556.556 0 0 1-.555.556H7.696Z" fill="currentColor" />
-                  <path d="M14.84 12.856a.556.556 0 0 1-.556-.555V.556c0-.307.25-.556.556-.556h2.937A2.222 2.222 0 0 1 20 2.222V12.3a.556.556 0 0 1-.556.556H14.84Z" fill="currentColor" />
-                  <path d="M0 2.222A2.222 2.222 0 0 1 2.222 0h2.936c.307 0 .556.249.556.556v18.887a.556.556 0 0 1-.556.557H2.222A2.222 2.222 0 0 1 0 17.776V2.222Z" fill="currentColor" />
-                </IconMark>
-              </MarkLink>
-            </HeaderLeft>
-            <HeaderCenter>
-              <StatusWidget
-                theme={theme}
-                location={cv.location}
-                role={currentRole ? `${currentRole.title} at ${currentRole.company}` : null}
-              />
-            </HeaderCenter>
-            <HeaderRight>
-              <ClockWidget theme={theme} />
-            </HeaderRight>
-          </Header>
+          {sharedHeader}
 
           <IntroBlock>
             <NameHeading $delay={0}>{cv.name}</NameHeading>
@@ -242,9 +499,14 @@ export function LiamMattesonTheme({ darkMode }) {
             </Statement>
 
             <NavRow>
-              {heroLinks.map((link) => (
-                <NavLink key={link.label} href={link.href} target="_blank" rel="noreferrer" $theme={theme}>
-                  {link.label}
+              {navItems.map((label) => (
+                <NavLink
+                  key={label}
+                  as="button"
+                  onClick={() => handleNav(label)}
+                  $theme={theme}
+                >
+                  {label}
                 </NavLink>
               ))}
             </NavRow>
@@ -424,14 +686,17 @@ const NavLink = styled.a`
   font-size: 16px;
   font-weight: 500;
   line-height: 24px;
-  color: inherit;
+  color: ${({ $active, $theme }) => $active ? $theme.text : 'inherit'};
   white-space: nowrap;
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
   text-decoration-skip-ink: none;
   text-decoration-color: ${({ $theme }) => $theme.underline};
+  border: none;
+  background: ${({ $active }) => $active ? 'rgba(20, 27, 20, 0.08)' : 'transparent'};
   border-radius: 4px;
+  cursor: pointer;
   transition: background-color 200ms ease, opacity 200ms ease;
 
   &:hover {
@@ -463,18 +728,16 @@ const ClockExpanded = styled.div`
   padding: 24px;
   border-radius: 24px;
   background: ${({ $theme }) => $theme.surface};
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.08),
-    0px 3px 3px -1.5px rgba(0, 0, 0, 0.05),
-    0px 6px 6px -3px rgba(0, 0, 0, 0.03),
-    0px 12px 12px -6px rgba(0, 0, 0, 0.05),
-    0px 24px 24px -12px rgba(0, 0, 0, 0.05);
+  box-shadow: ${({ $dragging }) => $dragging
+    ? `0 0 0 1px rgba(0,0,0,0.1), 0px 2px 2px -0.5px rgba(0,0,0,0.07), 0px 4px 4px -1.5px rgba(0,0,0,0.07), 0px 8px 8px -3px rgba(0,0,0,0.05), 0px 16px 16px -6px rgba(0,0,0,0.07), 0px 32px 32px -12px rgba(0,0,0,0.08)`
+    : `0 0 0 1px rgba(0,0,0,0.08), 0px 3px 3px -1.5px rgba(0,0,0,0.05), 0px 6px 6px -3px rgba(0,0,0,0.03), 0px 12px 12px -6px rgba(0,0,0,0.05), 0px 24px 24px -12px rgba(0,0,0,0.05)`};
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  cursor: pointer;
-  animation: ${fadeIn} 0.25s ease forwards;
+  user-select: none;
+  touch-action: none;
+  transition: box-shadow 0.2s ease;
 `;
 
 const ClockDate = styled.span`
@@ -707,19 +970,17 @@ const StatusExpanded = styled.div`
   padding: 20px 24px;
   border-radius: 20px;
   background: ${({ $theme }) => $theme.surface};
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.08),
-    0px 3px 3px -1.5px rgba(0, 0, 0, 0.05),
-    0px 6px 6px -3px rgba(0, 0, 0, 0.03),
-    0px 12px 12px -6px rgba(0, 0, 0, 0.05),
-    0px 24px 24px -12px rgba(0, 0, 0, 0.05);
+  box-shadow: ${({ $dragging }) => $dragging
+    ? `0 0 0 1px rgba(0,0,0,0.1), 0px 2px 2px -0.5px rgba(0,0,0,0.07), 0px 4px 4px -1.5px rgba(0,0,0,0.07), 0px 8px 8px -3px rgba(0,0,0,0.05), 0px 16px 16px -6px rgba(0,0,0,0.07), 0px 32px 32px -12px rgba(0,0,0,0.08)`
+    : `0 0 0 1px rgba(0,0,0,0.08), 0px 3px 3px -1.5px rgba(0,0,0,0.05), 0px 6px 6px -3px rgba(0,0,0,0.03), 0px 12px 12px -6px rgba(0,0,0,0.05), 0px 24px 24px -12px rgba(0,0,0,0.05)`};
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 12px;
-  cursor: pointer;
   white-space: nowrap;
-  animation: ${fadeIn} 0.25s ease forwards;
+  user-select: none;
+  touch-action: none;
+  transition: box-shadow 0.2s ease;
 `;
 
 const StatusIcon = styled.div`
@@ -779,4 +1040,141 @@ const StatusTextEl = styled.span`
   font-size: 13px;
   font-weight: 500;
   color: ${({ $theme }) => $theme.muted};
+`;
+
+/* ── Sub-page Styles ───────────────────────────────────── */
+
+const SubPageWrap = styled.div`
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+`;
+
+const SubPageBody = styled.div`
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 24px;
+  width: 100%;
+`;
+
+const SubPageHeader = styled.div`
+  margin-bottom: 24px;
+`;
+
+const SubPageBackRow = styled.div`
+  margin-bottom: 16px;
+`;
+
+const BackButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  margin-left: -8px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: ${({ $theme }) => $theme.muted};
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 14px;
+  transition: background-color 200ms ease, color 200ms ease;
+
+  &:hover {
+    background-color: rgba(20, 27, 20, 0.08);
+    color: ${({ $theme }) => $theme.text};
+  }
+`;
+
+const SubPageTitle = styled.h1`
+  margin: 0;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 24px;
+  color: ${({ $theme }) => $theme.text};
+`;
+
+const SubPageSubtitle = styled.p`
+  margin: 4px 0 0;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 15px;
+  line-height: 24px;
+  color: ${({ $theme }) => $theme.muted};
+`;
+
+const SubPageContent = styled.div`
+  padding-bottom: 128px;
+`;
+
+const WorkRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+`;
+
+const WorkCompany = styled.a`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px 8px 8px;
+  margin-left: -8px;
+  border-radius: 8px;
+  color: inherit;
+  transition: background-color 200ms ease;
+
+  &:hover {
+    background-color: rgba(20, 27, 20, 0.08);
+  }
+`;
+
+const WorkIcon = styled.div`
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+  background: ${({ $theme }) => $theme.soft};
+  color: ${({ $theme }) => $theme.muted};
+  box-shadow: 0px 0px 0px 0.5px rgba(0, 0, 0, 0.16);
+`;
+
+const WorkCompanyName = styled.span`
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: ${({ $theme }) => $theme.text};
+  text-decoration: underline;
+  text-decoration-color: ${({ $theme }) => $theme.underline};
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  text-decoration-skip-ink: none;
+`;
+
+const WorkRole = styled.span`
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 15px;
+  color: ${({ $theme }) => $theme.muted};
+  flex-shrink: 0;
+  text-align: right;
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const SubPageFooter = styled.div`
+  text-align: center;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  color: ${({ $theme }) => $theme.muted};
+  margin-top: 96px;
 `;
