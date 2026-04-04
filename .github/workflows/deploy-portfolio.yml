@@ -1,0 +1,128 @@
+# Reusable workflow for deploying a portfolio page from another repository.
+#
+# Usage in your repo's .github/workflows/deploy.yml:
+#
+#   name: Deploy Portfolio
+#   on:
+#     push:
+#       branches: [main]
+#     workflow_dispatch:
+#
+#   permissions:
+#     contents: read
+#     pages: write
+#     id-token: write
+#
+#   jobs:
+#     deploy:
+#       uses: ahzs645/portfolioThemes/.github/workflows/deploy-portfolio.yml@main
+#       with:
+#         cv-file: 'CV.yaml'
+#         build-mode: 'production'
+
+name: Deploy Portfolio (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      cv-file:
+        description: 'Path to the CV.yaml file in the calling repository'
+        type: string
+        default: 'CV.yaml'
+      build-mode:
+        description: 'Build mode: production, fixed, static, random-static'
+        type: string
+        default: 'production'
+      theme-id:
+        description: 'Default theme ID (only relevant for fixed mode)'
+        type: string
+        default: ''
+      show-theme-bar:
+        description: 'Show the theme switcher bar'
+        type: string
+        default: 'true'
+      node-version:
+        description: 'Node.js version'
+        type: string
+        default: '20'
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout calling repository
+        uses: actions/checkout@v4
+
+      - name: Checkout portfolioThemes engine
+        uses: actions/checkout@v4
+        with:
+          repository: ahzs645/portfolioThemes
+          path: .portfolio-engine
+
+      - name: Copy CV file
+        run: |
+          if [ -f "${{ inputs.cv-file }}" ]; then
+            cp "${{ inputs.cv-file }}" .portfolio-engine/public/CV.yaml
+            echo "✓ Copied ${{ inputs.cv-file }}"
+          else
+            echo "::error::CV file not found at '${{ inputs.cv-file }}'"
+            exit 1
+          fi
+
+      - name: Configure theme settings
+        run: |
+          ENV_FILE=".portfolio-engine/.env.production"
+
+          case "${{ inputs.build-mode }}" in
+            static)       MODE="fixed";  BAR="false" ;;
+            random-static) MODE="random"; BAR="false" ;;
+            fixed)        MODE="fixed";  BAR="${{ inputs.show-theme-bar }}" ;;
+            *)            MODE="random"; BAR="${{ inputs.show-theme-bar }}" ;;
+          esac
+
+          echo "VITE_THEME_SELECTION_MODE=${MODE}" > "$ENV_FILE"
+          echo "VITE_SHOW_THEME_BAR=${BAR}" >> "$ENV_FILE"
+
+          if [ -n "${{ inputs.theme-id }}" ]; then
+            echo "VITE_DEFAULT_THEME_ID=${{ inputs.theme-id }}" >> "$ENV_FILE"
+          fi
+
+          echo "✓ Theme config: mode=${MODE}, bar=${BAR}"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: npm
+          cache-dependency-path: .portfolio-engine/package-lock.json
+
+      - name: Install dependencies
+        working-directory: .portfolio-engine
+        run: npm ci
+
+      - name: Build
+        working-directory: .portfolio-engine
+        run: npm run build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .portfolio-engine/dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
