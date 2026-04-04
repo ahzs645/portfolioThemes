@@ -708,7 +708,7 @@ export function HenryLangTheme() {
 const Frame = styled.div`
   position: relative;
   width: 100%;
-  min-height: 100vh;
+  min-height: 100%;
   background: #c4e0c8;
   overflow: hidden;
 `;
@@ -716,7 +716,7 @@ const Frame = styled.div`
 const Canvas = styled.canvas`
   display: block;
   width: 100%;
-  height: 100vh;
+  height: 100%;
   image-rendering: pixelated;
   cursor: none;
 `;

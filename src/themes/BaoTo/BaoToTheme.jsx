@@ -102,7 +102,7 @@ const Sidebar = styled.nav`
 const MobileSidebarToggle = styled.button`
   all: unset;
   position: fixed;
-  top: 16px;
+  top: calc(16px + var(--app-top-offset, 0px));
   left: 16px;
   z-index: 50;
   width: 32px;
@@ -138,7 +138,7 @@ const MobileOverlay = styled.div`
 const MobileSidebar = styled.nav`
   position: fixed;
   left: 0;
-  top: 0;
+  top: var(--app-top-offset, 0px);
   height: 100%;
   width: 260px;
   padding: 64px 24px 32px;

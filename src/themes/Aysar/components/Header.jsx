@@ -47,7 +47,7 @@ const Nav = styled.nav`
 
   @media (max-width: ${BREAKPOINT}px) {
     bottom: auto;
-    top: 8px;
+    top: calc(8px + var(--app-top-offset, 0px));
     background: ${p => p.$theme.headerBgMobile};
     box-shadow: ${p => p.$theme.headerShadowMobile};
   }

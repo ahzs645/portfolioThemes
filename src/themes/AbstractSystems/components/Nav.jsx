@@ -62,7 +62,7 @@ const pingRingAnim = keyframes`
 
 const Bar = styled.nav`
   position: fixed;
-  top: 45px;
+  top: calc(45px + var(--app-top-offset, 0px));
   left: 50%;
   transform: translateX(-50%);
   z-index: 50;
@@ -77,7 +77,7 @@ const Bar = styled.nav`
   backdrop-filter: blur(12px);
 
   @media (max-width: ${BREAKPOINT}px) {
-    top: 45px;
+    top: calc(45px + var(--app-top-offset, 0px));
     left: 24px;
     transform: none;
     background: ${p => p.$theme.navBgMobile};

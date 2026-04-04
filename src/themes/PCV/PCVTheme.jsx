@@ -348,7 +348,7 @@ const Outer = styled.div`
 const Inner = styled.div`
   position: relative;
   width: calc(100vw - 74px);
-  height: calc(100vh - 80px);
+  height: calc(100vh - 80px - var(--app-top-offset, 0px));
   min-height: 456px;
 
   @media (max-width: 768px) {

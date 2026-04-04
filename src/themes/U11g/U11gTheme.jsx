@@ -529,8 +529,8 @@ const pulse = keyframes`
 
 // Styled Components
 const Container = styled.div`
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
   overflow: hidden;
   background-color: ${colors.appBg};
   color: ${colors.primary};

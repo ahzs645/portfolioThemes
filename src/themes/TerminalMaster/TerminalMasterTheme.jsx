@@ -113,7 +113,7 @@ export function TerminalMasterTheme() {
   return (
     <>
       <TerminalGlobalStyles />
-      <div ref={containerRef} style={{ width: '100%', height: '100vh' }} />
+      <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
     </>
   );
 }

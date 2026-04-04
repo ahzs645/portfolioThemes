@@ -761,7 +761,6 @@ export function AlanaGoyalTheme() {
 const Container = styled.div`
   display: flex;
   height: 100%;
-  height: 100dvh;
   width: 100%;
   background-color: ${props => props.theme.background};
   color: ${props => props.theme.foreground};
@@ -778,7 +777,7 @@ const MobileOverlay = styled.div`
   @media (max-width: 768px) {
     display: block;
     position: fixed;
-    top: 0;
+    top: var(--app-top-offset, 0px);
     left: 0;
     right: 0;
     bottom: 0;
@@ -802,12 +801,12 @@ const Sidebar = styled.aside`
 
   @media (max-width: 768px) {
     position: fixed;
-    top: 0;
+    top: var(--app-top-offset, 0px);
     left: 0;
     width: 100%;
     min-width: 100%;
-    height: 100%;
-    height: 100dvh;
+    height: calc(100% - var(--app-top-offset, 0px));
+    height: calc(100dvh - var(--app-top-offset, 0px));
     z-index: 50;
     transform: translateX(${props => props.$isOpen ? '0' : '-100%'});
     transition: transform 0.3s ease;
@@ -1073,7 +1072,7 @@ const MobileBackButton = styled.button`
     align-items: center;
     gap: 4px;
     position: fixed;
-    top: 16px;
+    top: calc(16px + var(--app-top-offset, 0px));
     left: 16px;
     background: ${props => props.theme.sidebar};
     border: 1px solid ${props => props.theme.border};

@@ -122,7 +122,7 @@ export function RuthZhaoTheme() {
 }
 
 const Page = styled.div`
-  min-height: 100vh;
+  min-height: 100%;
   background: #fff;
   color: #1f2328;
   font-family: 'Inter', sans-serif;
@@ -132,7 +132,7 @@ const DesktopLayout = styled.main`
   display: flex;
   flex-direction: row;
   gap: 100px;
-  height: 100vh;
+  height: 100%;
   overflow: clip;
   padding: 100px 140px 130px 90px;
   justify-content: center;

@@ -598,7 +598,7 @@ const Layout = styled.div`
 
 const LeftColumn = styled.header`
   width: 48%;
-  max-height: 100vh;
+  max-height: calc(100vh - var(--app-top-offset, 0px));
   padding: 96px 0;
   position: sticky;
   top: 0;

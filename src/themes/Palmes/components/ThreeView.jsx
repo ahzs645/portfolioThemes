@@ -9,10 +9,10 @@ export default function ThreeView({ scrollPercent, isScrolling }) {
     <div
       style={{
         position: 'fixed',
-        top: 0,
+        top: 'var(--app-top-offset, 0px)',
         left: 0,
         width: '100%',
-        height: '100vh',
+        height: 'calc(100vh - var(--app-top-offset, 0px))',
         pointerEvents: 'none',
         zIndex: 0,
       }}

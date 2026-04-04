@@ -14,7 +14,7 @@ const EXTRA_CSS = `
 
 .jamie-host {
   position: relative;
-  min-height: calc(100vh - 56px);
+  min-height: calc(100vh - 56px - var(--app-top-offset, 0px));
   background: #000;
   display: flex;
   justify-content: center;

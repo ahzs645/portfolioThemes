@@ -507,10 +507,10 @@ const Container = styled.div`
 
 const Sidebar = styled.nav`
   position: fixed;
-  top: 0;
+  top: var(--app-top-offset, 0px);
   left: 0;
   width: 5rem;
-  height: 100vh;
+  height: calc(100vh - var(--app-top-offset, 0px));
   display: flex;
   flex-direction: column;
   align-items: center;

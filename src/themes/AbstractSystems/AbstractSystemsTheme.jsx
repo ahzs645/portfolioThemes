@@ -101,7 +101,7 @@ const Content = styled.main`
 
 const TopMask = styled.div`
   position: fixed;
-  top: 0;
+  top: var(--app-top-offset, 0px);
   left: 0;
   right: 0;
   height: 80px;

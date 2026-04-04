@@ -510,7 +510,7 @@ export default function App() {
           </TopBarActions>
         </TopBar>
       )}
-      <ThemeContainer>
+      <ThemeContainer $hasTopBar={showThemeBar}>
         {ThemeComponent ? <ThemeComponent darkMode={darkMode} /> : <div>No theme selected</div>}
       </ThemeContainer>
     </AppContainer>
@@ -745,6 +745,7 @@ const ThemeContainer = styled.div`
   display: flex;
   flex-direction: column;
   overflow: auto;
+  --app-top-offset: ${({ $hasTopBar }) => $hasTopBar ? '61px' : '0px'};
 `;
 
 const CatalogView = styled.div`
