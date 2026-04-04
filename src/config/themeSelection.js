@@ -31,6 +31,14 @@ export const defaultThemeId = getPortfolioTheme(import.meta.env.VITE_DEFAULT_THE
 
 export const showThemeBar = normalizeShowThemeBar(import.meta.env.VITE_SHOW_THEME_BAR);
 
+function normalizeHideInitials(value) {
+  if (value === 'false' || value === '0') return false;
+  if (value === 'true' || value === '1') return true;
+  return true; // hidden by default
+}
+
+export const hideInitialsSetting = normalizeHideInitials(import.meta.env.VITE_HIDE_INITIALS);
+
 export function pickRandomThemeId() {
   const randomIndex = Math.floor(Math.random() * PORTFOLIO_THEMES.length);
   return PORTFOLIO_THEMES[randomIndex].id;
