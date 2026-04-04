@@ -19,8 +19,16 @@ const ROOT = resolve(__dirname, '..');
 function getUsernameFromCV() {
   try {
     const yaml = readFileSync(resolve(ROOT, 'public/CV.yaml'), 'utf8');
-    const match = yaml.match(/github\.com\/([a-zA-Z0-9_-]+)/);
-    return match?.[1] || null;
+
+    // Match a GitHub URL like github.com/username
+    const urlMatch = yaml.match(/github\.com\/([a-zA-Z0-9._-]+)/);
+    if (urlMatch) return urlMatch[1];
+
+    // Match a social entry with network: GitHub and username: <value>
+    const socialMatch = yaml.match(/network:\s*GitHub\s*\n\s*username:\s*([a-zA-Z0-9._-]+)/i);
+    if (socialMatch) return socialMatch[1];
+
+    return null;
   } catch {
     return null;
   }
@@ -79,8 +87,8 @@ async function main() {
   const username = process.argv[2] || getUsernameFromCV();
 
   if (!username) {
-    console.error('Could not determine GitHub username. Pass it as an argument or add a GitHub URL to CV.yaml.');
-    process.exit(1);
+    console.log('Could not determine GitHub username. Pass it as an argument or add a GitHub URL to CV.yaml.');
+    process.exit(0);
   }
 
   console.log(`Fetching contributions for ${username}...`);
