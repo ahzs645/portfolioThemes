@@ -721,7 +721,7 @@ const ProfileInitials = styled.div`
   height: 100%;
   border-radius: 8px;
   background: linear-gradient(135deg, ${props => props.$dark ? '#313131' : '#d1d1d1'}, ${props => props.$dark ? '#313131' : '#d1d1d1'});
-  display: flex;
+  display: var(--initial-display, flex);
   align-items: center;
   justify-content: center;
   font-size: 32px;
@@ -937,7 +937,7 @@ const CompanyIcon = styled.div`
   border: 1px solid ${props => props.$dark ? '#313131' : '#d1d1d1'};
   padding: 2px;
   background-color: ${props => props.$dark ? '#18181b' : '#fafafa'};
-  display: flex;
+  display: var(--initial-display, flex);
   align-items: center;
   justify-content: center;
   font-size: 18px;
@@ -1053,6 +1053,7 @@ const ProjectInitial = styled.div`
   font-size: 48px;
   font-weight: 700;
   color: ${props => props.$dark ? '#313131' : '#d1d1d1'};
+  display: var(--initial-display, block);
 `;
 
 const ProjectInfo = styled.div`

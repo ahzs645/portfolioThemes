@@ -661,6 +661,7 @@ const HeroInitial = styled.span`
   font-size: 8rem;
   color: rgba(0, 0, 0, 0.3);
   font-weight: 400;
+  display: var(--initial-display, inline);
 `;
 
 const ImageCaption = styled.p`

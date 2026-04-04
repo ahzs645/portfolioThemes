@@ -13,7 +13,15 @@ export default function Nav({ theme }) {
   const [active, setActive] = useState('about');
 
   useEffect(() => {
+    const container = document.getElementById('as-scroll-container');
+    if (!container) return;
     const handleScroll = () => {
+      // If near the bottom, activate the last section
+      const atBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+      if (atBottom) {
+        setActive(sections[sections.length - 1].id);
+        return;
+      }
       const offsets = sections.map(s => {
         const el = document.getElementById(`as-${s.id}`);
         return { id: s.id, top: el ? el.getBoundingClientRect().top : Infinity };
@@ -23,11 +31,8 @@ export default function Nav({ theme }) {
       , offsets[0]);
       if (current) setActive(current.id);
     };
-    const container = document.getElementById('as-scroll-container');
-    if (container) {
-      container.addEventListener('scroll', handleScroll, { passive: true });
-      return () => container.removeEventListener('scroll', handleScroll);
-    }
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
   }, []);
 
   const scrollTo = (id) => {

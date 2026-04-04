@@ -293,6 +293,7 @@ const AvatarWrapper = styled.div`
   top: 1.5rem;
   right: 1.5rem;
   width: 8rem;
+  display: var(--initial-display, block);
   height: 8rem;
 
   @media (max-width: 640px) {

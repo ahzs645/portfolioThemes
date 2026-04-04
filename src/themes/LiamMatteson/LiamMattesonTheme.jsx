@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled, { createGlobalStyle, keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-import { formatDateRange, formatMonthYear } from '../../utils/cvHelpers';
 
 const FontLoader = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Cormorant+Garamond:wght@500;600&display=swap');
@@ -10,8 +9,8 @@ const FontLoader = createGlobalStyle`
 const revealUp = keyframes`
   from {
     opacity: 0;
-    transform: translateY(18px);
-    filter: blur(12px);
+    transform: translateY(10px);
+    filter: blur(16px);
   }
   to {
     opacity: 1;
@@ -20,14 +19,15 @@ const revealUp = keyframes`
   }
 `;
 
-const galleryImages = [
-  '/liam-matteson/home.jpg',
-  '/liam-matteson/antimetal-dashboard.jpg',
-  '/liam-matteson/copilot-intelligence.jpg',
-  '/liam-matteson/cashflow.jpg',
-  '/liam-matteson/apple-card.jpg',
-  '/liam-matteson/onboarding.jpg',
-];
+const fadeIn = keyframes`
+  from { opacity: 0; filter: blur(12px); transform: translateY(24px); }
+  to   { opacity: 1; filter: blur(0);    transform: translateY(0); }
+`;
+
+const navReveal = keyframes`
+  from { opacity: 0; filter: blur(8px); transform: translateY(20px); }
+  to   { opacity: 1; filter: blur(0);   transform: translateY(0); }
+`;
 
 function firstSentence(text = '') {
   const normalized = String(text || '').replace(/\s+/g, ' ').trim();
@@ -36,6 +36,123 @@ function firstSentence(text = '') {
   return (match ? match[0] : normalized).trim();
 }
 
+/* ── Clock Widget ──────────────────────────────────────── */
+function ClockWidget({ theme }) {
+  const [now, setNow] = useState(new Date());
+  const [expanded, setExpanded] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setExpanded(false);
+    };
+    if (expanded) document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [expanded]);
+
+  const hours = (now.getHours() % 12) * 30 + (now.getMinutes() / 60) * 30;
+  const minutes = now.getMinutes() * 6 + (now.getSeconds() / 60) * 6;
+  const seconds = now.getSeconds() * 6;
+  const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const timeParts = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).split(' ');
+  const timeStr = timeParts[0];
+  const ampm = timeParts[1];
+
+  return (
+    <ClockContainer ref={ref}>
+      {expanded && <WidgetOverlay onClick={() => setExpanded(false)} />}
+      {expanded ? (
+        <ClockExpanded $theme={theme} onClick={() => setExpanded(false)}>
+          <ClockDate $theme={theme}>{dateStr}</ClockDate>
+          <ClockFace>
+            <ClockRing $theme={theme} />
+            {Array.from({ length: 60 }).map((_, i) => {
+              const isMajor = i % 5 === 0;
+              const isQuarter = i % 15 === 0;
+              return (
+                <ClockTick
+                  key={i}
+                  $angle={i * 6}
+                  $theme={theme}
+                  $isMajor={isMajor}
+                  $isQuarter={isQuarter}
+                />
+              );
+            })}
+            <ClockHand $angle={hours - 90} $length="30px" $width="2px" $color={theme.text} />
+            <ClockHand $angle={minutes - 90} $length="42px" $width="2px" $color={theme.text} />
+            <ClockSecondHand $angle={seconds - 90} $theme={theme} />
+            <ClockCenter $theme={theme} />
+          </ClockFace>
+          <ClockTimeExpanded $theme={theme}>{timeStr}</ClockTimeExpanded>
+          <ClockAmPm $theme={theme}>{ampm}</ClockAmPm>
+        </ClockExpanded>
+      ) : (
+        <ClockCollapsed $theme={theme} onClick={() => setExpanded(true)}>
+          <ClockDateSmall $theme={theme}>{dateStr}</ClockDateSmall>
+          <ClockFaceSmall>
+            <ClockHandSmall $angle={hours - 90} $length="7px" $width="1.2px" $color={theme.muted} />
+            <ClockHandSmall $angle={minutes - 90} $length="9px" $width="1px" $color={theme.muted} />
+            <ClockSecondHandSmall $angle={seconds - 90} $color={theme.underline} />
+            <ClockCenterSmall $theme={theme} />
+          </ClockFaceSmall>
+        </ClockCollapsed>
+      )}
+    </ClockContainer>
+  );
+}
+
+/* ── Status Widget (location pill) ─────────────────────── */
+function StatusWidget({ theme, location, role }) {
+  const [expanded, setExpanded] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setExpanded(false);
+    };
+    if (expanded) document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [expanded]);
+
+  return (
+    <StatusContainer ref={ref}>
+      {expanded && <WidgetOverlay onClick={() => setExpanded(false)} />}
+      {expanded ? (
+        <StatusExpanded $theme={theme} onClick={() => setExpanded(false)}>
+          <StatusIcon>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+          </StatusIcon>
+          <StatusExpandedText>
+            <StatusLabel $theme={theme}>Location</StatusLabel>
+            <StatusValue $theme={theme}>{location}</StatusValue>
+          </StatusExpandedText>
+          {role && (
+            <StatusExpandedText>
+              <StatusLabel $theme={theme}>Role</StatusLabel>
+              <StatusValue $theme={theme}>{role}</StatusValue>
+            </StatusExpandedText>
+          )}
+        </StatusExpanded>
+      ) : (
+        <StatusCollapsed $theme={theme} onClick={() => setExpanded(true)}>
+          <StatusDot />
+          <StatusTextEl $theme={theme}>{location}</StatusTextEl>
+        </StatusCollapsed>
+      )}
+    </StatusContainer>
+  );
+}
+
+/* ── Main Theme ────────────────────────────────────────── */
 export function LiamMattesonTheme({ darkMode }) {
   const cv = useCV();
 
@@ -63,210 +180,160 @@ export function LiamMattesonTheme({ darkMode }) {
 
   const intro = firstSentence(cv.about) || 'Software designed with creativity and care through relentless iteration and meticulous detail.';
   const introWords = intro.split(' ');
-  const featuredExperience = cv.experience.slice(0, 4);
-  const featuredProjects = cv.projects.slice(0, 6);
-  const featuredEducation = cv.education.slice(0, 2);
-  const featuredVolunteer = cv.volunteer.slice(0, 3);
-  const currentRole = featuredExperience[0];
+  const currentRole = cv.experience[0];
   const heroLinks = [
-    { label: 'Work', href: '#work' },
-    { label: 'Projects', href: '#projects' },
-    { label: 'Education', href: '#education' },
-    { label: 'Connect', href: '#connect' },
+    { label: 'Work', href: cv.website || '#' },
+    { label: 'Projects', href: cv.website || '#' },
+    { label: 'Connect', href: cv.email ? `mailto:${cv.email}` : '#' },
   ];
+  if (cv.socialLinks?.linkedin) heroLinks.push({ label: 'LinkedIn', href: cv.socialLinks.linkedin });
 
   return (
     <Page $theme={theme}>
       <FontLoader />
-      <Shell>
-        <Header>
-          <MarkLink href={cv.website || '#'} target="_blank" rel="noreferrer" aria-label={cv.name}>
-            <IconMark viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M19.444 14.284c.307 0 .556.249.556.556v2.936A2.222 2.222 0 0 1 17.778 20H7.699a.556.556 0 0 1-.556-.557V14.84c0-.307.249-.556.556-.556h11.745Z" fill="currentColor" />
-              <path d="M7.696 12.856a.556.556 0 0 1-.556-.555V.556C7.14.249 7.39 0 7.696 0h2.936a2.222 2.222 0 0 1 2.222 2.222V12.3a.556.556 0 0 1-.555.556H7.696Z" fill="currentColor" />
-              <path d="M14.84 12.856a.556.556 0 0 1-.556-.555V.556c0-.307.25-.556.556-.556h2.937A2.222 2.222 0 0 1 20 2.222V12.3a.556.556 0 0 1-.556.556H14.84Z" fill="currentColor" />
-              <path d="M0 2.222A2.222 2.222 0 0 1 2.222 0h2.936c.307 0 .556.249.556.556v18.887a.556.556 0 0 1-.556.557H2.222A2.222 2.222 0 0 1 0 17.776V2.222Z" fill="currentColor" />
-            </IconMark>
-          </MarkLink>
-          <Spacer />
-          <RightMeta $theme={theme}>{cv.location}</RightMeta>
-        </Header>
+      <ScreenWrap>
+        <ContentArea>
+          <Header>
+            <HeaderLeft>
+              <MarkLink href={cv.website || '#'} target="_blank" rel="noreferrer" aria-label={cv.name}>
+                <IconMark viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path d="M19.444 14.284c.307 0 .556.249.556.556v2.936A2.222 2.222 0 0 1 17.778 20H7.699a.556.556 0 0 1-.556-.557V14.84c0-.307.249-.556.556-.556h11.745Z" fill="currentColor" />
+                  <path d="M7.696 12.856a.556.556 0 0 1-.556-.555V.556C7.14.249 7.39 0 7.696 0h2.936a2.222 2.222 0 0 1 2.222 2.222V12.3a.556.556 0 0 1-.555.556H7.696Z" fill="currentColor" />
+                  <path d="M14.84 12.856a.556.556 0 0 1-.556-.555V.556c0-.307.25-.556.556-.556h2.937A2.222 2.222 0 0 1 20 2.222V12.3a.556.556 0 0 1-.556.556H14.84Z" fill="currentColor" />
+                  <path d="M0 2.222A2.222 2.222 0 0 1 2.222 0h2.936c.307 0 .556.249.556.556v18.887a.556.556 0 0 1-.556.557H2.222A2.222 2.222 0 0 1 0 17.776V2.222Z" fill="currentColor" />
+                </IconMark>
+              </MarkLink>
+            </HeaderLeft>
+            <HeaderCenter>
+              <StatusWidget
+                theme={theme}
+                location={cv.location}
+                role={currentRole ? `${currentRole.title} at ${currentRole.company}` : null}
+              />
+            </HeaderCenter>
+            <HeaderRight>
+              <ClockWidget theme={theme} />
+            </HeaderRight>
+          </Header>
 
-        <IntroBlock>
-          <Name>{cv.name}</Name>
-          <RoleLine $theme={theme}>
-            {currentRole ? (
-              <>
-                <span>{currentRole.title}</span>
-                <span>at</span>
-                <InlineLink href={cv.website || cv.socialLinks.linkedin || '#'} target="_blank" rel="noreferrer">
-                  {currentRole.company}
-                </InlineLink>
-                <span>in {cv.location}</span>
-              </>
-            ) : (
-              <span>{cv.location}</span>
-            )}
-          </RoleLine>
+          <IntroBlock>
+            <NameHeading $delay={0}>{cv.name}</NameHeading>
+            <RoleLine $delay={100}>
+              {currentRole ? (
+                <>
+                  <span>{currentRole.title}</span>
+                  <span> at </span>
+                  <InlineLink href={cv.website || cv.socialLinks?.linkedin || '#'} target="_blank" rel="noreferrer" $theme={theme}>
+                    {currentRole.company}
+                  </InlineLink>
+                  {cv.location && <span> in {cv.location}</span>}
+                </>
+              ) : (
+                <span>{cv.location}</span>
+              )}
+            </RoleLine>
 
-          <Statement $theme={theme}>
-            {introWords.map((word, index) => (
-              <StatementWord key={`${word}-${index}`} style={{ animationDelay: `${index * 35}ms` }}>
-                {word}
-              </StatementWord>
-            ))}
-          </Statement>
-
-          <NavRow aria-label="Theme sections">
-            {heroLinks.map((link) => (
-              <NavLink key={link.href} href={link.href} $theme={theme}>
-                {link.label}
-              </NavLink>
-            ))}
-          </NavRow>
-        </IntroBlock>
-
-        <HeroImage href={featuredProjects[0]?.url || cv.website || '#'} target="_blank" rel="noreferrer">
-          <ImageFrame>
-            <img src={galleryImages[0]} alt={featuredProjects[0]?.name || `${cv.name} featured work`} />
-          </ImageFrame>
-        </HeroImage>
-
-        <Section id="work">
-          <SectionHeader>
-            <SectionTitle>Work</SectionTitle>
-            <SectionNote $theme={theme}>Selected experience</SectionNote>
-          </SectionHeader>
-          <ExperienceGrid>
-            {featuredExperience.map((item, index) => (
-              <ExperienceCard key={`${item.company}-${item.title}-${index}`} $theme={theme}>
-                <ExperienceTop>
-                  <div>
-                    <CardTitle>{item.company}</CardTitle>
-                    <CardSubtitle $theme={theme}>{item.title}</CardSubtitle>
-                  </div>
-                  <CardDate $theme={theme}>{formatDateRange(item.startDate, item.endDate)}</CardDate>
-                </ExperienceTop>
-                {item.highlights?.[0] && <CardBody>{item.highlights[0]}</CardBody>}
-              </ExperienceCard>
-            ))}
-          </ExperienceGrid>
-        </Section>
-
-        <Section id="projects">
-          <SectionHeader>
-            <SectionTitle>Projects</SectionTitle>
-            <SectionNote $theme={theme}>Image-led project panels inspired by liam.cv</SectionNote>
-          </SectionHeader>
-          <ProjectGrid>
-            {featuredProjects.map((project, index) => (
-              <ProjectCard
-                key={`${project.name}-${index}`}
-                href={project.url || cv.website || '#'}
-                target="_blank"
-                rel="noreferrer"
-                $theme={theme}
-              >
-                <ProjectImageWrap>
-                  <img src={galleryImages[index % galleryImages.length]} alt={project.name} />
-                </ProjectImageWrap>
-                <ProjectMeta>
-                  <ProjectTitle>{project.name}</ProjectTitle>
-                  <ProjectDate $theme={theme}>{project.date || 'Selected work'}</ProjectDate>
-                </ProjectMeta>
-                <ProjectSummary $theme={theme}>{project.summary}</ProjectSummary>
-              </ProjectCard>
-            ))}
-          </ProjectGrid>
-        </Section>
-
-        <Columns>
-          <Section id="education">
-            <SectionHeader>
-              <SectionTitle>Education</SectionTitle>
-            </SectionHeader>
-            <Stack>
-              {featuredEducation.map((item, index) => (
-                <CompactCard key={`${item.institution}-${index}`} $theme={theme}>
-                  <CardTitle>{item.institution}</CardTitle>
-                  <CardSubtitle $theme={theme}>{item.degree} in {item.area}</CardSubtitle>
-                  <CardDate $theme={theme}>{formatDateRange(item.start_date, item.end_date)}</CardDate>
-                </CompactCard>
+            <Statement $theme={theme}>
+              {introWords.map((word, index) => (
+                <StatementWord key={`${word}-${index}`} $delay={index}>
+                  {word}
+                </StatementWord>
               ))}
-            </Stack>
-          </Section>
+            </Statement>
 
-          <Section id="connect">
-            <SectionHeader>
-              <SectionTitle>Connect</SectionTitle>
-            </SectionHeader>
-            <ConnectCard $theme={theme}>
-              {cv.email && <ConnectLink href={`mailto:${cv.email}`} $theme={theme}>{cv.email}</ConnectLink>}
-              {cv.socialRaw?.map((entry, index) => (
-                <ConnectLink key={`${entry.network}-${index}`} href={entry.url} target="_blank" rel="noreferrer" $theme={theme}>
-                  {entry.network}
-                </ConnectLink>
+            <NavRow>
+              {heroLinks.map((link) => (
+                <NavLink key={link.label} href={link.href} target="_blank" rel="noreferrer" $theme={theme}>
+                  {link.label}
+                </NavLink>
               ))}
-            </ConnectCard>
-          </Section>
-        </Columns>
-
-        {featuredVolunteer.length > 0 && (
-          <Section>
-            <SectionHeader>
-              <SectionTitle>Community</SectionTitle>
-              <SectionNote $theme={theme}>Volunteer and leadership work</SectionNote>
-            </SectionHeader>
-            <VolunteerList>
-              {featuredVolunteer.map((item, index) => (
-                <VolunteerRow key={`${item.company}-${index}`} $theme={theme}>
-                  <div>
-                    <CardTitle>{item.company}</CardTitle>
-                    <CardSubtitle $theme={theme}>{item.title}</CardSubtitle>
-                  </div>
-                  <VolunteerDate $theme={theme}>{formatMonthYear(item.startDate)} to {String(item.endDate).toLowerCase() === 'present' ? 'Present' : formatMonthYear(item.endDate)}</VolunteerDate>
-                </VolunteerRow>
-              ))}
-            </VolunteerList>
-          </Section>
-        )}
-      </Shell>
+            </NavRow>
+          </IntroBlock>
+        </ContentArea>
+      </ScreenWrap>
     </Page>
   );
 }
 
+/* ── Styled Components ─────────────────────────────────── */
+
 const Page = styled.div`
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(142, 160, 137, 0.15), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(211, 220, 204, 0.22), transparent 32%),
-    ${({ $theme }) => $theme.bg};
+  background: ${({ $theme }) => $theme.bg};
   color: ${({ $theme }) => $theme.text};
-  transition: background-color 300ms ease, color 300ms ease;
 `;
 
-const Shell = styled.main`
-  width: min(100%, 1120px);
-  margin: 0 auto;
-  padding: 40px 24px 96px;
+const ScreenWrap = styled.div`
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+`;
 
-  @media (max-width: 700px) {
-    padding: 28px 18px 72px;
+const ContentArea = styled.div`
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 24px 0;
+  width: 100%;
+
+  @media (max-width: 640px) {
+    padding: 24px 24px 0;
   }
 `;
 
 const Header = styled.header`
   display: flex;
   align-items: center;
-  gap: 24px;
-  min-height: 56px;
-  margin-bottom: 24px;
+  justify-content: space-between;
+  height: 56px;
+  margin-bottom: 16px;
+  gap: 0;
+
+  @media (min-width: 640px) {
+    height: 80px;
+    margin-bottom: 32px;
+  }
+`;
+
+const HeaderLeft = styled.div`
+  width: 90px;
+  display: flex;
+  align-items: center;
+
+  @media (min-width: 640px) {
+    width: 120px;
+  }
+`;
+
+const HeaderCenter = styled.div`
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const HeaderRight = styled.div`
+  width: 90px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  @media (min-width: 640px) {
+    width: 120px;
+  }
 `;
 
 const MarkLink = styled.a`
   color: inherit;
   display: inline-flex;
   align-items: center;
+  opacity: 0.5;
+  transition: opacity 200ms ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
 `;
 
 const IconMark = styled.svg`
@@ -274,39 +341,31 @@ const IconMark = styled.svg`
   height: 20px;
 `;
 
-const Spacer = styled.div`
-  flex: 1;
-`;
-
-const RightMeta = styled.div`
-  font-family: 'Instrument Sans', sans-serif;
-  font-size: 14px;
-  color: ${({ $theme }) => $theme.muted};
-`;
-
 const IntroBlock = styled.section`
   max-width: 720px;
-  padding-top: 8px;
 `;
 
-const Name = styled.h1`
-  margin: 0 0 8px;
+const NameHeading = styled.h1`
+  margin: 0 0 4px;
   font-family: 'Instrument Sans', sans-serif;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 500;
-  line-height: 1.3;
+  line-height: 24px;
+  opacity: 0;
+  animation: ${fadeIn} 0.8s cubic-bezier(0.25, 0.1, 0.25, 1) ${({ $delay }) => $delay}ms forwards;
 `;
 
-const RoleLine = styled.p`
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
+const RoleLine = styled.div`
   font-family: 'Instrument Sans', sans-serif;
   font-size: 16px;
-  line-height: 1.6;
-  color: ${({ $theme }) => $theme.muted};
+  line-height: 24px;
+  letter-spacing: 0.14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 4px;
+  opacity: 0;
+  animation: ${fadeIn} 0.8s cubic-bezier(0.25, 0.1, 0.25, 1) ${({ $delay }) => $delay}ms forwards;
 `;
 
 const InlineLink = styled.a`
@@ -314,7 +373,9 @@ const InlineLink = styled.a`
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
-  text-decoration-color: currentColor;
+  text-decoration-skip-ink: none;
+  text-decoration-color: ${({ $theme }) => $theme.underline};
+  transition: text-decoration-color 1s ease-out;
 
   &:hover {
     opacity: 0.72;
@@ -322,310 +383,400 @@ const InlineLink = styled.a`
 `;
 
 const Statement = styled.p`
-  margin: 44px 0 40px;
+  margin: 48px 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 0 0.26em;
-  max-width: 620px;
+  justify-content: flex-start;
+  gap: 0 0.25em;
+  max-width: 600px;
   color: ${({ $theme }) => $theme.muted};
   font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(34px, 5vw, 54px);
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+  font-size: 24px;
+  line-height: 36px;
+  letter-spacing: -0.22px;
 `;
 
 const StatementWord = styled.span`
   display: inline-block;
   opacity: 0;
-  animation: ${revealUp} 700ms cubic-bezier(0.2, 0.65, 0.2, 1) forwards;
+  animation: ${revealUp} 0.7s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  animation-delay: ${({ $delay }) => 480 + $delay * 40}ms;
 `;
 
 const NavRow = styled.nav`
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px 14px;
-  margin-bottom: 56px;
+  gap: 16px;
+  margin-left: -8px;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  opacity: 0;
+  animation: ${navReveal} 1s cubic-bezier(0.25, 0.1, 0.25, 1) 800ms forwards;
+
+  &::-webkit-scrollbar { display: none; }
 `;
 
 const NavLink = styled.a`
   display: inline-flex;
   align-items: center;
-  min-height: 34px;
-  padding: 0 2px;
+  height: 32px;
+  padding: 0 8px;
   font-family: 'Instrument Sans', sans-serif;
   font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: inherit;
+  white-space: nowrap;
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
+  text-decoration-skip-ink: none;
   text-decoration-color: ${({ $theme }) => $theme.underline};
-  transition: opacity 180ms ease, text-decoration-color 180ms ease;
+  border-radius: 4px;
+  transition: background-color 200ms ease, opacity 200ms ease;
 
   &:hover {
-    opacity: 0.72;
+    background-color: rgba(20, 27, 20, 0.08);
   }
 `;
 
-const HeroImage = styled.a`
-  display: block;
-  margin-bottom: 88px;
-  color: inherit;
+/* ── Widget Shared ─────────────────────────────────────── */
+
+const WidgetOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
 `;
 
-const ImageFrame = styled.div`
+/* ── Clock Widget Styles ───────────────────────────────── */
+
+const ClockContainer = styled.div`
   position: relative;
-  overflow: hidden;
-  aspect-ratio: 5 / 3;
-
-  img {
-    width: 100%;
-    height: 100%;
-    display: block;
-    object-fit: cover;
-    transform: scale(1.01);
-    transition: transform 300ms ease;
-  }
-
-  ${HeroImage}:hover & img {
-    transform: scale(1.03);
-  }
-`;
-
-const Section = styled.section`
-  margin-bottom: 72px;
-  scroll-margin-top: 28px;
-`;
-
-const SectionHeader = styled.div`
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px 16px;
-  margin-bottom: 20px;
+  justify-content: flex-end;
 `;
 
-const SectionTitle = styled.h2`
-  margin: 0;
-  font-family: 'Instrument Sans', sans-serif;
-  font-size: 18px;
-  font-weight: 500;
-  line-height: 1.35;
-`;
-
-const SectionNote = styled.p`
-  margin: 0;
-  font-family: 'Instrument Sans', sans-serif;
-  font-size: 13px;
-  color: ${({ $theme }) => $theme.muted};
-`;
-
-const ExperienceGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-
-  @media (max-width: 820px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const ExperienceCard = styled.article`
-  padding: 20px;
-  border-radius: 20px;
-  background: ${({ $theme }) => $theme.surface};
-  border: 1px solid ${({ $theme }) => $theme.border};
-  box-shadow: 0 24px 60px rgba(18, 55, 39, 0.06);
-`;
-
-const ExperienceTop = styled.div`
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
-`;
-
-const CardTitle = styled.h3`
-  margin: 0;
-  font-family: 'Instrument Sans', sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 1.4;
-`;
-
-const CardSubtitle = styled.p`
-  margin: 4px 0 0;
-  font-family: 'Instrument Sans', sans-serif;
-  font-size: 14px;
-  line-height: 1.55;
-  color: ${({ $theme }) => $theme.muted};
-`;
-
-const CardDate = styled.div`
-  flex-shrink: 0;
-  font-family: 'Instrument Sans', sans-serif;
-  font-size: 13px;
-  line-height: 1.4;
-  color: ${({ $theme }) => $theme.muted};
-`;
-
-const CardBody = styled.p`
-  margin: 0;
-  font-family: 'Instrument Sans', sans-serif;
-  font-size: 14px;
-  line-height: 1.7;
-`;
-
-const ProjectGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 22px;
-
-  @media (max-width: 820px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const ProjectCard = styled.a`
-  color: inherit;
-  display: block;
-  padding: 18px;
+const ClockExpanded = styled.div`
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: 9999;
+  padding: 24px;
   border-radius: 24px;
   background: ${({ $theme }) => $theme.surface};
-  border: 1px solid ${({ $theme }) => $theme.border};
-  box-shadow: 0 24px 60px rgba(18, 55, 39, 0.06);
-  transition: transform 220ms ease, box-shadow 220ms ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 30px 70px rgba(18, 55, 39, 0.1);
-  }
-`;
-
-const ProjectImageWrap = styled.div`
-  overflow: hidden;
-  border-radius: 16px;
-  aspect-ratio: 16 / 10;
-  margin-bottom: 14px;
-  background: #eef1eb;
-
-  img {
-    width: 100%;
-    height: 100%;
-    display: block;
-    object-fit: cover;
-  }
-`;
-
-const ProjectMeta = styled.div`
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.08),
+    0px 3px 3px -1.5px rgba(0, 0, 0, 0.05),
+    0px 6px 6px -3px rgba(0, 0, 0, 0.03),
+    0px 12px 12px -6px rgba(0, 0, 0, 0.05),
+    0px 24px 24px -12px rgba(0, 0, 0, 0.05);
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: center;
   gap: 12px;
-  margin-bottom: 8px;
+  cursor: pointer;
+  animation: ${fadeIn} 0.25s ease forwards;
 `;
 
-const ProjectTitle = styled.h3`
-  margin: 0;
-  font-family: 'Instrument Sans', sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 1.35;
-`;
-
-const ProjectDate = styled.div`
-  flex-shrink: 0;
-  font-family: 'Instrument Sans', sans-serif;
-  font-size: 13px;
-  color: ${({ $theme }) => $theme.muted};
-`;
-
-const ProjectSummary = styled.p`
-  margin: 0;
-  font-family: 'Instrument Sans', sans-serif;
+const ClockDate = styled.span`
+  font-family: 'JetBrains Mono', 'Instrument Sans', monospace;
   font-size: 14px;
-  line-height: 1.65;
-  color: ${({ $theme }) => $theme.muted};
+  font-weight: 500;
+  color: ${({ $theme }) => $theme.text};
+  font-variant-numeric: tabular-nums;
 `;
 
-const Columns = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 28px;
+const ClockFace = styled.div`
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
 
-  @media (max-width: 820px) {
-    grid-template-columns: 1fr;
-    gap: 0;
+const ClockRing = styled.div`
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px ${({ $theme }) => `${$theme.text}26`};
+`;
+
+const ClockTick = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: center bottom;
+  transform: translate(-50%, -50%) rotate(${({ $angle }) => $angle}deg) translateY(-54px);
+
+  &::after {
+    content: '';
+    display: block;
+    border-radius: 999px;
+    background: ${({ $theme, $isMajor }) => $isMajor ? `${$theme.text}99` : `${$theme.text}40`};
+    width: ${({ $isQuarter, $isMajor }) => $isQuarter ? '2px' : $isMajor ? '1.5px' : '1px'};
+    height: ${({ $isQuarter, $isMajor }) => $isQuarter ? '8px' : $isMajor ? '6px' : '4px'};
   }
 `;
 
-const Stack = styled.div`
-  display: grid;
-  gap: 14px;
+const ClockHand = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  transform-origin: center center;
+  transform: rotate(${({ $angle }) => $angle}deg);
+
+  &::after {
+    content: '';
+    position: absolute;
+    width: ${({ $length }) => $length};
+    height: ${({ $width }) => $width};
+    left: calc(50% + 2px);
+    top: 50%;
+    transform: translateY(-50%);
+    border-radius: 2px;
+    background: ${({ $color }) => $color};
+  }
 `;
 
-const CompactCard = styled.article`
-  padding: 18px 20px;
-  border-radius: 18px;
-  background: ${({ $theme }) => $theme.surface};
-  border: 1px solid ${({ $theme }) => $theme.border};
+const ClockSecondHand = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 3;
+  transform-origin: center center;
+  transform: rotate(${({ $angle }) => $angle}deg);
+
+  &::before {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 1px;
+    right: calc(50% + 2px);
+    top: 50%;
+    transform: translateY(-50%);
+    border-radius: 0.5px;
+    background: ${({ $theme }) => $theme.underline};
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    width: 48px;
+    height: 1px;
+    left: calc(50% + 2px);
+    top: 50%;
+    transform: translateY(-50%);
+    border-radius: 0.5px;
+    background: ${({ $theme }) => $theme.underline};
+  }
 `;
 
-const ConnectCard = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 18px;
-  border-radius: 18px;
-  background: ${({ $theme }) => $theme.surface};
-  border: 1px solid ${({ $theme }) => $theme.border};
+const ClockCenter = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  z-index: 10;
+  background: ${({ $theme }) => $theme.underline};
+  box-shadow: 0 0 0 1.5px ${({ $theme }) => $theme.surface};
 `;
 
-const ConnectLink = styled.a`
+const ClockTimeExpanded = styled.span`
+  font-family: 'JetBrains Mono', 'Instrument Sans', monospace;
+  font-size: 24px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: ${({ $theme }) => $theme.text};
+`;
+
+const ClockAmPm = styled.span`
+  font-family: 'JetBrains Mono', 'Instrument Sans', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: ${({ $theme }) => $theme.muted};
+  margin-top: -4px;
+`;
+
+const ClockCollapsed = styled.button`
   display: inline-flex;
   align-items: center;
-  min-height: 36px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: ${({ $theme }) => $theme.soft};
-  font-family: 'Instrument Sans', sans-serif;
-  font-size: 14px;
-  line-height: 1;
+  gap: 8px;
+  padding: 4px 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
   color: inherit;
-  transition: opacity 180ms ease, transform 180ms ease;
+  transition: background-color 200ms ease;
 
   &:hover {
-    opacity: 0.8;
-    transform: translateY(-1px);
+    background-color: rgba(20, 27, 20, 0.08);
   }
 `;
 
-const VolunteerList = styled.div`
-  display: grid;
-  gap: 10px;
+const ClockDateSmall = styled.span`
+  display: none;
+  font-family: 'JetBrains Mono', 'Instrument Sans', monospace;
+  font-size: 13px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  text-decoration-skip-ink: none;
+  color: ${({ $theme }) => $theme.muted};
+  text-decoration-color: ${({ $theme }) => $theme.underline};
+
+  @media (min-width: 640px) {
+    display: inline;
+  }
 `;
 
-const VolunteerRow = styled.div`
+const ClockFaceSmall = styled.div`
+  position: relative;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 0;
-  border-top: 1px solid ${({ $theme }) => $theme.border};
+  justify-content: center;
+`;
 
-  &:last-child {
-    border-bottom: 1px solid ${({ $theme }) => $theme.border};
-  }
+const ClockHandSmall = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: 0% 50%;
+  transform: rotate(${({ $angle }) => $angle}deg);
 
-  @media (max-width: 700px) {
-    align-items: flex-start;
-    flex-direction: column;
+  &::after {
+    content: '';
+    display: block;
+    width: ${({ $length }) => $length};
+    height: ${({ $width }) => $width};
+    border-radius: 999px;
+    background: ${({ $color }) => $color};
   }
 `;
 
-const VolunteerDate = styled.div`
-  flex-shrink: 0;
+const ClockSecondHandSmall = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: 0% 50%;
+  transform: rotate(${({ $angle }) => $angle}deg);
+
+  &::after {
+    content: '';
+    display: block;
+    width: 10px;
+    height: 0.75px;
+    border-radius: 999px;
+    background: ${({ $color }) => $color};
+  }
+`;
+
+const ClockCenterSmall = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  z-index: 10;
+  background: ${({ $theme }) => $theme.underline};
+`;
+
+/* ── Status Widget Styles ──────────────────────────────── */
+
+const StatusContainer = styled.div`
+  position: relative;
+  display: flex;
+  justify-content: center;
+`;
+
+const StatusExpanded = styled.div`
+  position: absolute;
+  top: -8px;
+  z-index: 9999;
+  padding: 20px 24px;
+  border-radius: 20px;
+  background: ${({ $theme }) => $theme.surface};
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.08),
+    0px 3px 3px -1.5px rgba(0, 0, 0, 0.05),
+    0px 6px 6px -3px rgba(0, 0, 0, 0.03),
+    0px 12px 12px -6px rgba(0, 0, 0, 0.05),
+    0px 24px 24px -12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  animation: ${fadeIn} 0.25s ease forwards;
+`;
+
+const StatusIcon = styled.div`
+  color: inherit;
+  opacity: 0.5;
+`;
+
+const StatusExpandedText = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+`;
+
+const StatusLabel = styled.span`
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: ${({ $theme }) => $theme.muted};
+`;
+
+const StatusValue = styled.span`
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: ${({ $theme }) => $theme.text};
+`;
+
+const StatusCollapsed = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: ${({ $theme }) => $theme.text}0d;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  color: inherit;
+  transition: background-color 200ms ease;
+
+  &:hover {
+    background: ${({ $theme }) => $theme.text}1a;
+  }
+`;
+
+const StatusDot = styled.div`
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+`;
+
+const StatusTextEl = styled.span`
   font-family: 'Instrument Sans', sans-serif;
   font-size: 13px;
+  font-weight: 500;
   color: ${({ $theme }) => $theme.muted};
 `;

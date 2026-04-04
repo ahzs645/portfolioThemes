@@ -719,7 +719,7 @@ const ProfilePlaceholder = styled.div`
   height: 100px;
   border-radius: 50%;
   background: #1976d2;
-  display: flex;
+  display: var(--initial-display, flex);
   align-items: center;
   justify-content: center;
   font-size: 2.5rem;
@@ -862,7 +862,7 @@ const ProjectIcon = styled.div`
   width: 60px;
   height: 60px;
   margin: 0 auto 10px;
-  display: flex;
+  display: var(--initial-display, flex);
   align-items: center;
   justify-content: center;
   background: rgba(255,255,255,0.2);

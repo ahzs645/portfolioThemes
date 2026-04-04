@@ -289,7 +289,7 @@ const Avatar = styled.div`
   height: 3.5rem;
   border-radius: 50%;
   background: #6366f1;
-  display: flex;
+  display: var(--initial-display, flex);
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
@@ -426,7 +426,7 @@ const WorkIcon = styled.div`
     if ($variant === 'volunteer') return 'rgba(74, 222, 128, 0.2)';
     return $darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
   }};
-  display: flex;
+  display: var(--initial-display, flex);
   align-items: center;
   justify-content: center;
   font-size: 0.75rem;

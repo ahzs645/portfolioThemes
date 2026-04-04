@@ -491,7 +491,7 @@ const Avatar = styled.div`
   border-radius: 0.375rem;
   background: ${({ $theme }) => $theme.primaryBorder};
   color: ${({ $theme }) => $theme.primaryColor};
-  display: flex;
+  display: var(--initial-display, flex);
   align-items: center;
   justify-content: center;
   font-weight: 600;
@@ -614,7 +614,7 @@ const ProjectIcon = styled.div`
   border-radius: 0.375rem;
   background: ${({ $theme }) => $theme.bgSecondary};
   color: ${({ $theme }) => $theme.primaryColor};
-  display: flex;
+  display: var(--initial-display, flex);
   align-items: center;
   justify-content: center;
   font-weight: 600;

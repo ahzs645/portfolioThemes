@@ -202,7 +202,7 @@ const TopSection = styled.div`
 `;
 
 const Avatar = styled.div`
-  display: grid;
+  display: var(--initial-display, grid);
   place-items: center;
   width: 60px;
   height: 60px;

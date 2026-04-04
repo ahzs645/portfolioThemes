@@ -92,6 +92,14 @@ const getInitialDarkMode = () => {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true;
 };
 
+const getInitialHideInitials = () => {
+  try {
+    const stored = localStorage.getItem('portfolioThemes-hideInitials');
+    if (stored !== null) return stored === 'true';
+  } catch {}
+  return true;
+};
+
 const getInitialThemeId = () => {
   return resolveThemeIdForPath(window.location.pathname);
 };
@@ -101,6 +109,7 @@ export default function App() {
   const [currentThemeId, setCurrentThemeId] = useState(getInitialThemeId);
   const [showCatalog, setShowCatalog] = useState(false);
   const [darkMode, setDarkMode] = useState(getInitialDarkMode);
+  const [hideInitials, setHideInitials] = useState(getInitialHideInitials);
   const [searchQuery, setSearchQuery] = useState('');
   const fileInputRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -176,6 +185,12 @@ export default function App() {
       localStorage.setItem('portfolioThemes-darkMode', darkMode);
     } catch {}
   }, [darkMode]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('portfolioThemes-hideInitials', hideInitials);
+    } catch {}
+  }, [hideInitials]);
 
   // Update URL when theme changes
   useEffect(() => {
@@ -493,6 +508,18 @@ export default function App() {
             </SwitcherButton>
             <ModeToggleSmall
               $darkMode={darkMode}
+              $active={hideInitials}
+              onClick={() => setHideInitials(!hideInitials)}
+              title={hideInitials ? 'Show initial icons' : 'Hide initial icons'}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="8" height="8" rx="2"/>
+                <text x="7" y="9.5" textAnchor="middle" fill="currentColor" stroke="none" fontSize="7" fontWeight="bold">A</text>
+                {hideInitials && <line x1="2" y1="2" x2="12" y2="12" stroke="currentColor" strokeWidth="2"/>}
+              </svg>
+            </ModeToggleSmall>
+            <ModeToggleSmall
+              $darkMode={darkMode}
               onClick={() => setDarkMode(!darkMode)}
               title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             >
@@ -510,7 +537,7 @@ export default function App() {
           </TopBarActions>
         </TopBar>
       )}
-      <ThemeContainer $hasTopBar={showThemeBar}>
+      <ThemeContainer $hasTopBar={showThemeBar} $hideInitials={hideInitials}>
         {ThemeComponent ? <ThemeComponent darkMode={darkMode} /> : <div>No theme selected</div>}
       </ThemeContainer>
     </AppContainer>
@@ -746,6 +773,7 @@ const ThemeContainer = styled.div`
   flex-direction: column;
   overflow: auto;
   --app-top-offset: ${({ $hasTopBar }) => $hasTopBar ? '61px' : '0px'};
+  --initial-display: ${({ $hideInitials }) => $hideInitials ? 'none' : 'flex'};
 `;
 
 const CatalogView = styled.div`

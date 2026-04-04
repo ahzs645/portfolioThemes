@@ -953,7 +953,7 @@ const AvatarPlaceholder = styled.div`
   width: 100%;
   aspect-ratio: 1;
   background: #06b6d4;
-  display: flex;
+  display: var(--initial-display, flex);
   align-items: center;
   justify-content: center;
   font-size: 6rem;

@@ -658,6 +658,7 @@ const ProjectLogo = styled.div`
   font-family: 'Rammetto One', cursive;
   font-size: 2.5rem;
   margin-bottom: 1rem;
+  display: var(--initial-display, block);
 
   @media (min-width: 768px) {
     font-size: 3rem;
@@ -708,7 +709,7 @@ const ExperienceIcon = styled.div`
   flex-shrink: 0;
   width: 2.5rem;
   height: 2.5rem;
-  display: flex;
+  display: var(--initial-display, flex);
   align-items: center;
   justify-content: center;
   font-family: 'Rammetto One', cursive;
@@ -845,7 +846,7 @@ const EducationIcon = styled.div`
   flex-shrink: 0;
   width: 2.5rem;
   height: 2.5rem;
-  display: flex;
+  display: var(--initial-display, flex);
   align-items: center;
   justify-content: center;
   font-family: 'Rammetto One', cursive;

@@ -237,7 +237,7 @@ const TimelineCol = styled.div`
   width: 17px;
   position: relative;
   flex-shrink: 0;
-  display: flex;
+  display: var(--initial-display, flex);
   align-items: center;
   justify-content: center;
   align-self: stretch;
