@@ -84,6 +84,53 @@ function IsolatedPreview({ children, width, height }) {
   );
 }
 
+function LazyCardPreview({ themeId, darkMode }) {
+  const containerRef = useRef(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+        if (entry.isIntersecting && !containerWidth) {
+          setContainerWidth(entry.target.clientWidth);
+        }
+      },
+      { rootMargin: '200px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [containerWidth]);
+
+  const theme = getPortfolioTheme(themeId);
+  const ThemeComp = theme?.Component;
+  const scale = containerWidth ? containerWidth / 1440 : 0.24;
+  const height = Math.round(900 * scale);
+
+  return (
+    <CardPreviewContainer ref={containerRef} $darkMode={darkMode} style={{ height }}>
+      {isVisible && ThemeComp && containerWidth > 0 && (
+        <div style={{
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+        }}>
+          <IsolatedPreview width="1440px" height="900px">
+            <PreviewErrorBoundary themeId={themeId}>
+              <ThemeComp darkMode={darkMode} />
+            </PreviewErrorBoundary>
+          </IsolatedPreview>
+        </div>
+      )}
+    </CardPreviewContainer>
+  );
+}
+
 const getInitialDarkMode = () => {
   try {
     const stored = localStorage.getItem('portfolioThemes-darkMode');
@@ -416,6 +463,32 @@ export default function App() {
             </tbody>
           </ThemeTable>
         </TableContainer>
+
+        <MobileCardList $darkMode={darkMode}>
+          {filteredThemes.map((theme) => (
+            <MobileCard
+              key={theme.id}
+              $active={theme.id === currentThemeId}
+              $darkMode={darkMode}
+              onClick={() => {
+                setCurrentThemeId(theme.id);
+                setHoveredThemeId(null);
+                setShowCatalog(false);
+              }}
+            >
+              <CardInfo>
+                <CardHeader>
+                  <CardName $darkMode={darkMode}>{theme.name}</CardName>
+                  {theme.id === currentThemeId && (
+                    <ActiveBadge $darkMode={darkMode}>Active</ActiveBadge>
+                  )}
+                </CardHeader>
+                <CardDescription $darkMode={darkMode}>{theme.description}</CardDescription>
+              </CardInfo>
+              <LazyCardPreview themeId={theme.id} darkMode={darkMode} />
+            </MobileCard>
+          ))}
+        </MobileCardList>
 
         {hoveredThemeId && HoveredComponent && (
           <PreviewFloater
@@ -928,7 +1001,7 @@ const TableContainer = styled.div`
   border-radius: 8px;
 
   @media (max-width: 640px) {
-    margin: 0 10px 10px;
+    display: none;
   }
 `;
 
@@ -1073,6 +1146,76 @@ const PreviewViewport = styled.div`
   iframe {
     transform: scale(${480 / 1440});
     transform-origin: top left;
+    pointer-events: none;
+  }
+`;
+
+const MobileCardList = styled.div`
+  display: none;
+
+  @media (max-width: 640px) {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0 12px 12px;
+    overflow: auto;
+    flex: 1;
+  }
+`;
+
+const MobileCard = styled.div`
+  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#e5e7eb')};
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  background: ${({ $active, $darkMode }) => {
+    if ($active) return $darkMode ? '#162032' : '#eff6ff';
+    return $darkMode ? '#141414' : '#ffffff';
+  }};
+  transition: background 0.15s;
+
+  &:active {
+    background: ${({ $active, $darkMode }) => {
+      if ($darkMode) return $active ? '#1a2840' : '#1a1a1a';
+      return $active ? '#e8f1fd' : '#f3f4f6';
+    }};
+  }
+`;
+
+const CardInfo = styled.div`
+  padding: 14px 16px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+const CardHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const CardName = styled.span`
+  font-size: 15px;
+  font-weight: 600;
+  color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#111827')};
+`;
+
+const CardDescription = styled.p`
+  font-size: 13px;
+  color: ${({ $darkMode }) => ($darkMode ? '#737373' : '#9ca3af')};
+  margin: 0;
+  line-height: 1.5;
+`;
+
+const CardPreviewContainer = styled.div`
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  background: ${({ $darkMode }) => ($darkMode ? '#0a0a0a' : '#f0f0f0')};
+  border-top: 1px solid ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#e5e7eb')};
+
+  iframe {
     pointer-events: none;
   }
 `;

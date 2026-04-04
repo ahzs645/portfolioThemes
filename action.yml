@@ -1,0 +1,113 @@
+name: 'Deploy Portfolio'
+description: 'Build and deploy a portfolio page using portfolioThemes'
+
+inputs:
+  cv-file:
+    description: 'Path to the CV.yaml file in your repository'
+    required: false
+    default: 'CV.yaml'
+  build-mode:
+    description: 'Build mode: production (random theme + theme bar), static (fixed theme, no bar), random-static (random, no bar)'
+    required: false
+    default: 'production'
+  theme-id:
+    description: 'Default theme ID (only used with fixed mode). Leave empty for random.'
+    required: false
+    default: ''
+  show-theme-bar:
+    description: 'Show the theme switcher bar (true/false)'
+    required: false
+    default: 'true'
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '20'
+
+outputs:
+  artifact-name:
+    description: 'Name of the uploaded Pages artifact'
+    value: 'github-pages'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout portfolioThemes
+      uses: actions/checkout@v4
+      with:
+        repository: ahzs645/portfolioThemes
+        path: .portfolio-engine
+
+    - name: Copy CV file
+      shell: bash
+      run: |
+        if [ -f "${{ inputs.cv-file }}" ]; then
+          cp "${{ inputs.cv-file }}" .portfolio-engine/public/CV.yaml
+          echo "✓ Copied ${{ inputs.cv-file }} to build"
+        else
+          echo "::error::CV file not found at '${{ inputs.cv-file }}'"
+          exit 1
+        fi
+
+    - name: Configure theme settings
+      shell: bash
+      run: |
+        ENV_FILE=".portfolio-engine/.env.production"
+
+        # Determine theme selection mode from build-mode
+        case "${{ inputs.build-mode }}" in
+          static)
+            MODE="fixed"
+            BAR="false"
+            ;;
+          random-static)
+            MODE="random"
+            BAR="false"
+            ;;
+          random|production)
+            MODE="random"
+            BAR="${{ inputs.show-theme-bar }}"
+            ;;
+          fixed)
+            MODE="fixed"
+            BAR="${{ inputs.show-theme-bar }}"
+            ;;
+          *)
+            MODE="random"
+            BAR="${{ inputs.show-theme-bar }}"
+            ;;
+        esac
+
+        echo "VITE_THEME_SELECTION_MODE=${MODE}" > "$ENV_FILE"
+        echo "VITE_SHOW_THEME_BAR=${BAR}" >> "$ENV_FILE"
+
+        if [ -n "${{ inputs.theme-id }}" ]; then
+          echo "VITE_DEFAULT_THEME_ID=${{ inputs.theme-id }}" >> "$ENV_FILE"
+        fi
+
+        echo "✓ Theme config: mode=${MODE}, bar=${BAR}"
+        cat "$ENV_FILE"
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: npm
+        cache-dependency-path: .portfolio-engine/package-lock.json
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: .portfolio-engine
+      run: npm ci
+
+    - name: Build portfolio
+      shell: bash
+      working-directory: .portfolio-engine
+      run: npm run build
+
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+
+    - name: Upload Pages artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: .portfolio-engine/dist
