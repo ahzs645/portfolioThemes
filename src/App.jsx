@@ -1120,6 +1120,7 @@ const MobileCard = styled.div`
   border-radius: 10px;
   overflow: hidden;
   cursor: pointer;
+  flex-shrink: 0;
   background: ${({ $active, $darkMode }) => {
     if ($active) return $darkMode ? '#162032' : '#eff6ff';
     return $darkMode ? '#141414' : '#ffffff';
