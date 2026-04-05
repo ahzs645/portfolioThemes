@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { writeFileSync, readFileSync } from 'fs';
 
@@ -14,8 +14,22 @@ const spa404Plugin = () => ({
   }
 });
 
-export default defineConfig({
-  plugins: [react(), spa404Plugin()],
-  assetsInclude: ['**/*.yaml', '**/*.yml'],
-  base: '/',
+const normalizeBasePath = (value) => {
+  if (!value || value === '/') return '/';
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === '/') return '/';
+
+  const stripped = trimmed.replace(/^\/+|\/+$/g, '');
+  return `/${stripped}/`;
+};
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  const basePath = normalizeBasePath(env.VITE_BASE_PATH);
+
+  return {
+    plugins: [react(), spa404Plugin()],
+    assetsInclude: ['**/*.yaml', '**/*.yml'],
+    base: basePath,
+  };
 });
