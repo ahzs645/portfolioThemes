@@ -17,5 +17,5 @@ const spa404Plugin = () => ({
 export default defineConfig({
   plugins: [react(), spa404Plugin()],
   assetsInclude: ['**/*.yaml', '**/*.yml'],
-  base: '/',
+  base: process.env.VITE_BASE_PATH || '/',
 });
