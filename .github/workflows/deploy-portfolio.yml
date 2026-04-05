@@ -104,12 +104,15 @@ jobs:
         working-directory: .portfolio-engine
         run: npm ci
 
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v4
+
       - name: Build
         working-directory: .portfolio-engine
         run: npm run build
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
+        env:
+          VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
