@@ -42,6 +42,7 @@ import { RuthZhaoTheme } from './RuthZhao/RuthZhaoTheme';
 import { TahaHossainTheme } from './TahaHossain/TahaHossainTheme';
 import { BaoToTheme } from './BaoTo/BaoToTheme';
 import { PCVTheme } from './PCV/PCVTheme';
+import { WallenartTUITheme } from './WallenartTUI/WallenartTUITheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -395,6 +396,14 @@ export const PORTFOLIO_THEMES = [
     description: 'Monospace split-screen portfolio with 7 cyclable color themes, interactive ASCII doom flame animation, and uppercase vertical rhythm inspired by p.cv.',
     source: 'https://p.cv',
     Component: PCVTheme,
+  },
+  {
+    id: 'wallenart-tui',
+    slug: 'terminal-ui',
+    name: 'Terminal UI',
+    description: 'Lazygit-inspired split-pane TUI with sidebar navigation, vim keybindings, item counters, and monospace Fira Mono typography.',
+    source: 'https://wallenart.dev',
+    Component: WallenartTUITheme,
   },
 ];
 
