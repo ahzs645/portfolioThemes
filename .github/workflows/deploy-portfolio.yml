@@ -19,6 +19,7 @@
 #       with:
 #         cv-file: 'CV.yaml'
 #         build-mode: 'production'
+#         base-path: '/your-repo/' # optional, defaults to the calling repo name
 
 name: Deploy Portfolio (Reusable)
 
@@ -41,6 +42,10 @@ on:
         description: 'Show the theme switcher bar'
         type: string
         default: 'true'
+      base-path:
+        description: 'Base path for GitHub Pages (defaults to the calling repo name)'
+        type: string
+        default: ''
       node-version:
         description: 'Node.js version'
         type: string
@@ -76,6 +81,23 @@ jobs:
       - name: Configure theme settings
         run: |
           ENV_FILE=".portfolio-engine/.env.production"
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+
+          if [ -n "${{ inputs.base-path }}" ]; then
+            RAW_BASE="${{ inputs.base-path }}"
+          elif [ -n "$REPO_NAME" ]; then
+            RAW_BASE="/$REPO_NAME/"
+          else
+            RAW_BASE="/"
+          fi
+
+          if [ "$RAW_BASE" = "/" ]; then
+            BASE_PATH="/"
+          else
+            STRIPPED="${RAW_BASE#/}"
+            STRIPPED="${STRIPPED%/}"
+            BASE_PATH="/${STRIPPED}/"
+          fi
 
           case "${{ inputs.build-mode }}" in
             static)       MODE="fixed";  BAR="false" ;;
@@ -86,12 +108,13 @@ jobs:
 
           echo "VITE_THEME_SELECTION_MODE=${MODE}" > "$ENV_FILE"
           echo "VITE_SHOW_THEME_BAR=${BAR}" >> "$ENV_FILE"
+          echo "VITE_BASE_PATH=${BASE_PATH}" >> "$ENV_FILE"
 
           if [ -n "${{ inputs.theme-id }}" ]; then
             echo "VITE_DEFAULT_THEME_ID=${{ inputs.theme-id }}" >> "$ENV_FILE"
           fi
 
-          echo "✓ Theme config: mode=${MODE}, bar=${BAR}"
+          echo "✓ Theme config: mode=${MODE}, bar=${BAR}, base=${BASE_PATH}"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

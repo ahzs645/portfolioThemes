@@ -157,6 +157,8 @@ The project auto-deploys to GitHub Pages on push to `main`. The workflow:
 2. Runs `npm run build` to create production build
 3. Deploys `dist/` folder to GitHub Pages
 
+When using the reusable deploy workflow (`ahzs645/portfolioThemes/.github/workflows/deploy-portfolio.yml`), the Vite base path defaults to the calling repository name (for example `/fletch/`) so GitHub Pages asset URLs resolve correctly. Override it with the `base-path` input or by setting `VITE_BASE_PATH` (use `/` for a custom domain).
+
 For custom domains, add a `CNAME` file in the `public/` folder.
 
 ## License
