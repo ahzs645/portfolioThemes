@@ -19,6 +19,28 @@ function valMap(x, from, to) {
   return y;
 }
 
+function isScrollableElement(element) {
+  if (!element) return false;
+
+  const styles = window.getComputedStyle(element);
+  const overflowY = styles.overflowY;
+
+  if (overflowY !== 'auto' && overflowY !== 'scroll') return false;
+
+  return element.scrollHeight > element.clientHeight + 1;
+}
+
+function findScrollableAncestor(node) {
+  let current = node?.parentElement ?? null;
+
+  while (current) {
+    if (isScrollableElement(current)) return current;
+    current = current.parentElement;
+  }
+
+  return null;
+}
+
 export default function createScene(canvas, { onLoaded, onProgress, scrollContainer }) {
   let destroyed = false;
   let animId = null;
@@ -36,7 +58,10 @@ export default function createScene(canvas, { onLoaded, onProgress, scrollContai
     scrollOffset: 0,
   };
 
-  const scroller = scrollContainer || canvas.parentElement?.parentElement || window;
+  const scroller =
+    (isScrollableElement(scrollContainer) ? scrollContainer : null) ||
+    findScrollableAncestor(canvas) ||
+    window;
   let viewHeight = scroller === window ? document.documentElement.clientHeight : scroller.clientHeight;
 
   function getScroll() {

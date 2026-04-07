@@ -5,6 +5,7 @@ const C = { beige: '#f6d4b1', dark: '#525252' };
 
 const Main = styled.main`
   color: ${C.dark};
+  margin-top: 100vh;
   text-align: center;
   position: relative;
   z-index: 2;
@@ -189,8 +190,8 @@ export default function ContentSection({ cv }) {
     <>
       <Main>
         {/* About */}
-        <Section>
-          <H1 id="retro-about">Hi there</H1>
+        <Section id="retro-about">
+          <H1>Hi there</H1>
           {cv.about && <P>{cv.about}</P>}
 
           {allSkills.length > 0 && (
@@ -228,8 +229,8 @@ export default function ContentSection({ cv }) {
 
         {/* Projects */}
         {cv.projects?.length > 0 && (
-          <Section>
-            <H1 id="retro-projects">Projects</H1>
+          <Section id="retro-projects">
+            <H1>Projects</H1>
             {cv.projects.map((p, i) => (
               <div key={i}>
                 <Hr />
@@ -268,8 +269,8 @@ export default function ContentSection({ cv }) {
         )}
 
         {/* Contact */}
-        <Section>
-          <H1 id="retro-contact">Contact</H1>
+        <Section id="retro-contact">
+          <H1>Contact</H1>
           {cv.email && (
             <P style={{ textAlign: 'center' }}>
               <Btn href={`mailto:${cv.email}`}>{cv.email}</Btn>

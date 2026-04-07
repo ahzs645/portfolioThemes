@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
-import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const TEXT_COLOR = '#f99021';
 const SCREEN_WIDTH = 1.4;
@@ -156,7 +156,7 @@ export default function createTextEngine(assets, sceneRTT) {
 
     const baseGeometry = baseMesh.geometry;
     geometries.push(baseGeometry);
-    baseMesh.geometry = mergeBufferGeometries(geometries);
+    baseMesh.geometry = mergeGeometries(geometries);
     baseGeometry.dispose();
   }
 
