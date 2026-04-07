@@ -143,8 +143,8 @@ function renderMdLines(md, output) {
     if (line.startsWith('# ')) output.push({ type: 'h1', text: line.slice(2) });
     else if (line.startsWith('## ')) output.push({ type: 'h2', text: line.slice(3) });
     else if (line.startsWith('### ')) output.push({ type: 'h3', text: line.slice(4) });
-    else if (line.startsWith('- ')) output.push({ type: 'li', text: '  • ' + line.slice(2) });
-    else output.push({ type: 'text', text: line });
+    else if (line.startsWith('- ')) output.push({ type: 'li', text: `• ${line.slice(2)}` });
+    else output.push({ type: 'p', text: line });
   });
 }
 
@@ -169,15 +169,25 @@ export function useTerminal(cv) {
   // Boot sequence
   useEffect(() => {
     if (!cv) return;
-    const bootLines = [
-      { type: 'system', text: 'RETRO-SHELL v0.2.1' },
-      { type: 'system', text: `Booting ${cv.name || 'Portfolio'}...` },
-      { type: 'system', text: '' },
-      { type: 'system', text: 'Welcome! Type "help" for available commands.' },
-      { type: 'system', text: 'Type "show -all" to view full portfolio.' },
-      { type: 'system', text: '' },
-    ];
-    setLines(bootLines);
+
+    const introLines = [];
+    const name = cv.name || 'Visitor';
+    const firstName = name.split(' ')[0] || name;
+    const introRoles = [];
+
+    if (cv.currentJobTitle) introRoles.push(cv.currentJobTitle);
+    if (cv.location) introRoles.push(cv.location);
+    if (introRoles.length === 0) introRoles.push('Portfolio System');
+
+    introLines.push({ type: 'h2', text: 'Hi there,' });
+    introLines.push({ type: 'h1', text: `I\'m ${firstName}` });
+    introRoles.slice(0, 2).forEach((role) => introLines.push({ type: 'h2', text: `• ${role}` }));
+    introLines.push({ type: 'text', text: '' });
+    introLines.push({ type: 'h3', text: 'Welcome to RETRO-SHELL 1.0 LTS' });
+    introLines.push({ type: 'h3', text: '->-> Scroll or type "help" to get started' });
+    introLines.push({ type: 'text', text: '' });
+
+    setLines(introLines);
     setBooted(true);
   }, [cv]);
 
@@ -203,7 +213,7 @@ export function useTerminal(cv) {
 
       switch (cmd) {
         case 'help': {
-          output.push({ type: 'md', text: '# Help' });
+          output.push({ type: 'h1', text: 'Help' });
           output.push({ type: 'text', text: 'RETRO-SHELL is like BASH, except more limited.' });
           output.push({ type: 'text', text: '' });
           output.push({ type: 'text', text: '  ls          List directory contents' });

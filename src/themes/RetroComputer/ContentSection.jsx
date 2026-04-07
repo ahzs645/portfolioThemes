@@ -34,9 +34,9 @@ const H1 = styled.h1`
   display: inline-block;
   color: ${C.beige};
   background-color: ${C.dark};
-  font-family: 'Press Start 2P', monospace;
+  font-family: 'public-pixel', monospace;
   font-size: clamp(1em, 4vw, 2em);
-  padding: 16px 16px 8px;
+  padding: 4px 16px 8px;
   margin: 0 auto 0.3em;
 `;
 
@@ -45,15 +45,15 @@ const H2 = styled.h2`
   font-size: clamp(0.75em, 3vw, 1.2em);
   color: ${C.beige};
   background-color: ${C.dark};
-  font-family: 'Press Start 2P', monospace;
-  padding: 16px 16px 8px;
+  font-family: 'public-pixel', monospace;
+  padding: 4px 16px 8px;
   margin: 0.3em auto;
 `;
 
 const H3 = styled.h3`
   font-size: 1.2em;
   color: ${C.dark};
-  font-family: 'Press Start 2P', monospace;
+  font-family: 'public-pixel', monospace;
   padding-top: 4px;
   padding-bottom: 8px;
   margin: 0.3em auto;
@@ -62,11 +62,11 @@ const H3 = styled.h3`
 const P = styled.p`
   padding: 16px;
   text-align: left;
-  line-height: 1.6;
+  line-height: 1.5;
   width: clamp(0px, 95vw, 680px);
   margin: auto;
   box-sizing: border-box;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'chill', sans-serif;
 `;
 
 const Hr = styled.hr`
@@ -94,7 +94,7 @@ const Tag = styled.li`
   display: inline-block;
   padding: 4px 8px;
   border: dashed 1px ${C.dark};
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'chill', sans-serif;
   font-size: 0.9em;
   box-shadow: 1px 1px 0px ${C.beige}, 4px 4px 0px rgba(82, 82, 82, 0.25);
   transition: transform 0.2s;
@@ -107,7 +107,7 @@ const Link = styled.a`
   text-decoration-style: solid;
   text-decoration-thickness: 2px;
   transition: all 0.3s;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'chill', sans-serif;
   &:hover {
     transform: scale(1.05);
     box-shadow: 1px 1px 0px ${C.beige}, 4px 4px 0px rgba(82, 82, 82, 0.25);
@@ -117,7 +117,7 @@ const Link = styled.a`
 const Btn = styled.a`
   display: inline-flex;
   gap: 0.25rem;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'chill', sans-serif;
   font-size: 18px;
   box-shadow: 6px 6px 0px rgba(82, 82, 82, 0.25);
   background-color: ${C.dark};
@@ -137,14 +137,14 @@ const Card = styled.div`
   padding: 16px;
   text-align: left;
   box-sizing: border-box;
-  font-family: 'DM Sans', sans-serif;
-  line-height: 1.6;
+  font-family: 'chill', sans-serif;
+  line-height: 1.5;
 `;
 
 const CardTitle = styled.div`font-weight: 700; font-size: 1.1em;`;
 const CardSub = styled.div`color: ${C.dark}; opacity: 0.8;`;
 const CardDate = styled.div`
-  font-family: 'Press Start 2P', monospace;
+  font-family: 'public-pixel', monospace;
   font-size: 0.55em;
   color: ${C.dark};
   opacity: 0.6;
@@ -159,7 +159,7 @@ const Highlights = styled.ul`
 
 const Footer = styled.footer`
   display: flex;
-  gap: 16px;
+  gap: 32px;
   flex-direction: column;
   font-size: 12px;
   width: clamp(0px, 95vw, 680px);
@@ -167,7 +167,7 @@ const Footer = styled.footer`
   padding: 32px 0;
   text-align: center;
   color: ${C.dark};
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'chill', sans-serif;
 `;
 
 function flatSkills(skills) {

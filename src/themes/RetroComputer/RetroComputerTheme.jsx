@@ -1,31 +1,18 @@
-import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
-import styled, { keyframes } from 'styled-components';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import styled from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { useTerminal } from './useTerminal';
-import RetroScene from './Scene';
+import createScene from './createScene';
 import ContentSection from './ContentSection';
 
 const C = { beige: '#f6d4b1', dark: '#525252', orange: '#f99021' };
-
-/* ─── keyframes ─── */
-
-const fadeOut = keyframes`
-  from { opacity: 1; }
-  to { opacity: 0; }
-`;
-
-const barGrow = keyframes`
-  0% { transform: scaleX(0); }
-  80% { transform: scaleX(0.9); }
-  100% { transform: scaleX(1); }
-`;
 
 /* ─── styled components ─── */
 
 const Wrapper = styled.div`
   min-height: 100vh;
   background-color: ${C.beige};
-  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  font-family: 'chill', 'Segoe UI', sans-serif;
   font-size: 18px;
   color: ${C.dark};
   overflow-x: hidden;
@@ -47,7 +34,7 @@ const LoadingOverlay = styled.div`
   pointer-events: ${(p) => (p.$done ? 'none' : 'auto')};
 
   h2 {
-    font-family: 'Press Start 2P', monospace;
+    font-family: 'public-pixel', monospace;
     font-size: clamp(14px, 3vw, 24px);
     margin: 0;
     text-align: left;
@@ -64,33 +51,46 @@ const LoadingBar = styled.div`
 
 const LoadingProgress = styled.div`
   position: absolute;
-  top: 2px;
-  bottom: 2px;
-  left: 2px;
-  right: 2px;
+  top: 2px; bottom: 2px; left: 2px; right: 2px;
   background-color: ${C.beige};
   transform-origin: left;
-  animation: ${barGrow} 1.8s ease-out forwards;
+  transform: scaleX(${(p) => p.$progress});
+  transition: transform 0.2s ease-out;
 `;
 
 const LoadingText = styled.div`
   height: 32px;
   overflow: hidden;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'chill', sans-serif;
   font-size: 14px;
 `;
 
+const CanvasWrap = styled.div`
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 1;
+`;
+
+const WebGLCanvas = styled.canvas`
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  &:active { cursor: grabbing; }
+`;
+
 const HeroSpacer = styled.div`
-  height: 200vh;
-  position: relative;
+  height: 100vh;
+  pointer-events: none;
 `;
 
 const ScrollHint = styled.div`
-  position: fixed;
+  position: sticky;
   bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'chill', sans-serif;
   font-size: 14px;
   box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.75);
   background-color: ${C.dark};
@@ -126,7 +126,7 @@ const NavLinks = styled.div`
 `;
 
 const NavBtn = styled.button`
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'chill', sans-serif;
   font-size: 14px;
   box-shadow: 4px 4px 0px rgba(82, 82, 82, 0.25);
   background-color: ${C.dark};
@@ -147,8 +147,7 @@ const SocialNav = styled.div`
 
 const HiddenInput = styled.input`
   position: fixed;
-  top: 0;
-  right: 0;
+  top: 0; right: 0;
   opacity: 0;
   z-index: -1;
   pointer-events: none;
@@ -162,83 +161,80 @@ export function RetroComputerTheme({ darkMode }) {
 
   const [input, setInput] = useState('');
   const [loaded, setLoaded] = useState(false);
-  const [loadingDone, setLoadingDone] = useState(false);
-  const [canvasOpacity, setCanvasOpacity] = useState(1);
-  const [scrollHintVisible, setScrollHintVisible] = useState(true);
   const [terminalScrollOffset, setTerminalScrollOffset] = useState(0);
+  const [selectionPos, setSelectionPos] = useState(0);
+  const [loadProgress, setLoadProgress] = useState(0);
+  const [loadingText, setLoadingText] = useState('Loading assets...');
+
+  const canvasRef = useRef(null);
   const inputRef = useRef(null);
-  const scrollRef = useRef(0);
-  const parallaxRef = useRef({ x: 0, y: 0 });
+  const wrapperRef = useRef(null);
+  const sceneRef = useRef(null);
 
   // Inject fonts
   useEffect(() => {
     const id = 'retro-computer-fonts';
     if (!document.getElementById(id)) {
-      const link = document.createElement('link');
-      link.id = id;
-      link.rel = 'stylesheet';
-      link.href =
-        'https://fonts.googleapis.com/css2?family=Press+Start+2P&family=DM+Sans:wght@400;500;700&family=VT323&display=swap';
-      document.head.appendChild(link);
+      const style = document.createElement('style');
+      style.id = id;
+      style.textContent = `
+        @font-face {
+          font-family: 'public-pixel';
+          src: url('/retro-computer/fonts/public-pixel.woff') format('woff');
+          font-display: swap;
+        }
+
+        @font-face {
+          font-family: 'chill';
+          src: url('/retro-computer/fonts/chill.woff') format('woff');
+          font-display: swap;
+        }
+      `;
+      document.head.appendChild(style);
     }
   }, []);
 
-  // Loading sequence
+  // Create Three.js scene
   useEffect(() => {
-    const t1 = setTimeout(() => setLoaded(true), 2200);
-    const t2 = setTimeout(() => setLoadingDone(true), 2800);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, []);
+    if (!canvasRef.current || !wrapperRef.current) return;
 
-  // Scroll tracking
-  useEffect(() => {
-    const viewH = () => document.documentElement.clientHeight;
-    const onScroll = () => {
-      const s = window.scrollY / viewH();
-      scrollRef.current = s;
+    // Find the scroll container (App's ThemeContainer with overflow:auto)
+    const scrollContainer = wrapperRef.current.parentElement || window;
 
-      // Fade canvas out after hero section
-      setCanvasOpacity(s < 1.25 ? 1 : Math.max(0, 1 - (s - 1.25) / 0.5));
-      setScrollHintVisible(s < 0.1);
-    };
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+    sceneRef.current = createScene(canvasRef.current, {
+      onLoaded: () => {
+        setLoadProgress(1);
+        setLoaded(true);
+      },
+      onProgress: ({ url, itemsLoaded, itemsTotal }) => {
+        setLoadProgress(itemsTotal > 0 ? itemsLoaded / itemsTotal : 0);
+        setLoadingText(`${itemsLoaded} of ${itemsTotal} files loaded: ${url}`);
+      },
+      scrollContainer,
+    });
 
-  // Mouse parallax (drag-based like original)
-  useEffect(() => {
-    let mouseDown = null;
-
-    const onDown = (e) => {
-      if (e.pointerType !== 'mouse') return;
-      mouseDown = { x: e.clientX, y: e.clientY };
-    };
-    const onMove = (e) => {
-      if (e.pointerType !== 'mouse' || !mouseDown) return;
-      const px = parallaxRef.current;
-      px.x += (e.clientX - mouseDown.x) / (window.innerWidth * 0.5);
-      px.y += (e.clientY - mouseDown.y) / (window.innerHeight * 0.5);
-      px.x = Math.max(-1, Math.min(1, px.x));
-      px.y = Math.max(-1, Math.min(1, px.y));
-      mouseDown = { x: e.clientX, y: e.clientY };
-    };
-    const onUp = () => { mouseDown = null; };
-
-    window.addEventListener('pointerdown', onDown, { passive: true });
-    window.addEventListener('pointermove', onMove, { passive: true });
-    window.addEventListener('pointerup', onUp, { passive: true });
     return () => {
-      window.removeEventListener('pointerdown', onDown);
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
+      if (sceneRef.current) {
+        sceneRef.current.destroy();
+        sceneRef.current = null;
+      }
     };
   }, []);
 
-  // Focus hidden input to capture typing for the terminal
+  // Update terminal data in the Three.js scene
+  const promptText = booted ? getPrompt(cwd) : '';
+  useEffect(() => {
+    if (sceneRef.current) {
+      sceneRef.current.updateTerminal(lines, promptText, input, terminalScrollOffset, selectionPos);
+    }
+  }, [lines, promptText, input, terminalScrollOffset, selectionPos]);
+
+  // Focus hidden input on click when in hero area
   useEffect(() => {
     const onClick = () => {
-      if (scrollRef.current < 1) inputRef.current?.focus();
+      const s = wrapperRef.current?.parentElement;
+      if (!s) return;
+      if (s.scrollTop / s.clientHeight < 1) inputRef.current?.focus();
     };
     window.addEventListener('click', onClick);
     return () => window.removeEventListener('click', onClick);
@@ -252,6 +248,7 @@ export function RetroComputerTheme({ darkMode }) {
         execute(input);
         setInput('');
         setTerminalScrollOffset(0);
+        setSelectionPos(0);
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
         setTerminalScrollOffset((prev) => prev + 3);
@@ -263,60 +260,53 @@ export function RetroComputerTheme({ darkMode }) {
     [execute, input],
   );
 
-  const promptText = booted ? getPrompt(cwd) : '';
-
   if (!cv) return null;
 
   const sl = cv.socialLinks || {};
 
   return (
-    <Wrapper>
-      {/* Loading screen */}
-      {!loadingDone && (
-        <LoadingOverlay $done={loaded}>
+    <Wrapper ref={wrapperRef}>
+      {/* Loading screen — from original */}
+      {!loaded && (
+        <LoadingOverlay $done={false}>
           <h2>Booting...</h2>
           <LoadingBar>
-            <LoadingProgress />
+            <LoadingProgress $progress={loadProgress} />
           </LoadingBar>
-          <LoadingText>Loading assets...</LoadingText>
+          <LoadingText>{loadingText}</LoadingText>
         </LoadingOverlay>
       )}
 
-      {/* Hidden input for terminal typing */}
+      {/* Hidden input for terminal */}
       <HiddenInput
         ref={inputRef}
         type="text"
         value={input}
-        onChange={(e) => setInput(e.target.value)}
+        onChange={(e) => {
+          setInput(e.target.value);
+          setSelectionPos(e.target.selectionStart ?? e.target.value.length);
+        }}
+        onSelect={(e) => setSelectionPos(e.target.selectionStart ?? e.target.value.length)}
+        onKeyUp={(e) => setSelectionPos(e.currentTarget.selectionStart ?? e.currentTarget.value.length)}
+        onClick={(e) => setSelectionPos(e.currentTarget.selectionStart ?? e.currentTarget.value.length)}
         onKeyDown={handleKeyDown}
         autoComplete="off"
         autoCapitalize="off"
         spellCheck={false}
       />
 
-      {/* 3D Scene (fixed canvas) */}
-      <Suspense fallback={null}>
-        <RetroScene
-          terminalLines={lines}
-          promptText={promptText}
-          inputValue={input}
-          scrollRef={scrollRef}
-          parallaxRef={parallaxRef}
-          canvasOpacity={canvasOpacity}
-          terminalScrollOffset={terminalScrollOffset}
-        />
-      </Suspense>
+      {/* Three.js canvas in a sticky container so scroll works inside ThemeContainer */}
+      <CanvasWrap>
+        <WebGLCanvas ref={canvasRef} />
+      </CanvasWrap>
 
-      {/* Scroll hint */}
-      <ScrollHint $visible={scrollHintVisible}>Scroll &darr;</ScrollHint>
-
-      {/* Hero spacer (200vh of scroll before content appears) */}
+      {/* Spacer: canvas is 100vh sticky + 100vh spacer = 200vh before content */}
       <HeroSpacer />
 
-      {/* Nav bar */}
+      {/* Nav */}
       <NavBar>
         <NavLinks>
-          <NavBtn onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Home</NavBtn>
+          <NavBtn onClick={() => { const s = wrapperRef.current?.parentElement; if (s) s.scrollTo({ top: 0, behavior: 'smooth' }); }}>Home</NavBtn>
           <NavBtn onClick={() => document.getElementById('retro-about')?.scrollIntoView({ behavior: 'smooth' })}>About</NavBtn>
           <NavBtn onClick={() => document.getElementById('retro-projects')?.scrollIntoView({ behavior: 'smooth' })}>Projects</NavBtn>
           <NavBtn onClick={() => document.getElementById('retro-contact')?.scrollIntoView({ behavior: 'smooth' })}>Contact</NavBtn>

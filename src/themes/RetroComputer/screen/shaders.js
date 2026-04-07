@@ -1,6 +1,4 @@
-// CRT effect shaders adapted from edh.dev retro-computer-website
-
-export const crtVertexShader = `
+export const vertexShader = `
 varying vec2 vUv;
 void main() {
   vUv = uv;
@@ -8,9 +6,8 @@ void main() {
 }
 `;
 
-export const crtFragmentShader = `
+export const noiseFragmentShader = `
 #define PI 3.1415926538
-
 #define LINE_SIZE 288.0
 #define LINE_STRENGTH 0.05
 #define LINE_OFFSET 2.0
@@ -37,32 +34,15 @@ float squareWave(float x) {
 vec4 progress() {
   if (vUv.y < uProgress && vUv.y > uProgress - 0.2) {
     return vec4(0.1, 0.1, 0.1, 1.0) * (uProgress - vUv.y);
-  } else {
-    return vec4(0.0, 0.0, 0.0, 0.0);
   }
+  return vec4(0.0);
 }
 
 void main() {
   vec4 color = texture2D(uDiffuse, vUv);
   float r = rand(vUv * uTime);
   vec4 p = progress();
-
-  // Fake bloom: sample neighbors and add soft glow
-  float b = 0.003;
-  vec4 glow = vec4(0.0);
-  glow += texture2D(uDiffuse, vUv + vec2(-b, 0.0));
-  glow += texture2D(uDiffuse, vUv + vec2( b, 0.0));
-  glow += texture2D(uDiffuse, vUv + vec2(0.0, -b));
-  glow += texture2D(uDiffuse, vUv + vec2(0.0,  b));
-  glow += texture2D(uDiffuse, vUv + vec2(-b, -b));
-  glow += texture2D(uDiffuse, vUv + vec2( b, -b));
-  glow += texture2D(uDiffuse, vUv + vec2(-b,  b));
-  glow += texture2D(uDiffuse, vUv + vec2( b,  b));
-  glow /= 8.0;
-
-  vec4 bloomed = color + glow * 0.6;
-
-  gl_FragColor = bloomed + (vec4(r, r, r, 0.0) * (p.a + NOISE_STRENGTH)) + squareWave(vUv.y);
+  gl_FragColor = color + (vec4(r, r, r, 0.0) * (p.a + NOISE_STRENGTH)) + squareWave(vUv.y);
 }
 `;
 
@@ -78,5 +58,14 @@ void main() {
   vec4 Diffuse = texture2D(uDiffuse, vUv);
   vec4 LagTex = texture2D(uLagTex, vUv);
   gl_FragColor = (Diffuse * LAG_INVERSE) + (LagTex * LAG);
+}
+`;
+
+export const copyFragmentShader = `
+uniform sampler2D uDiffuse;
+varying vec2 vUv;
+
+void main() {
+  gl_FragColor = texture2D(uDiffuse, vUv);
 }
 `;
