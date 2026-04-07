@@ -40,6 +40,7 @@ vec4 progress() {
 
 void main() {
   vec4 color = texture2D(uDiffuse, vUv);
+  color.rgb = min(vec3(1.0), color.rgb * 1.18);
   float r = rand(vUv * uTime);
   vec4 p = progress();
   gl_FragColor = color + (vec4(r, r, r, 0.0) * (p.a + NOISE_STRENGTH)) + squareWave(vUv.y);
