@@ -20,7 +20,7 @@ export default function createRenderEngine(assets, renderer, sceneRTT) {
   const composer = new EffectComposer(renderer, rtTexture);
   composer.renderToScreen = false;
   composer.addPass(new RenderPass(sceneRTT, cameraRTT));
-  composer.addPass(new UnrealBloomPass(new THREE.Vector2(128, 128), 1.1, 0.4, 0));
+  composer.addPass(new UnrealBloomPass(new THREE.Vector2(128, 128), 0.95, 0.28, 0));
 
   const lag = new Lag(composer.readBuffer, resolution * 1.33, resolution);
 
@@ -50,12 +50,12 @@ export default function createRenderEngine(assets, renderer, sceneRTT) {
   material.roughness = 0.24;
   if (environmentMapTexture) {
     material.envMap = environmentMapTexture;
-    material.envMapIntensity = 0.28;
+    material.envMapIntensity = 0.08;
   }
   material.map = shaderToScreen.outputTexture.texture;
   material.emissive = new THREE.Color(0xffffff);
   material.emissiveMap = shaderToScreen.outputTexture.texture;
-  material.emissiveIntensity = 0.36;
+  material.emissiveIntensity = 0.16;
 
   let progress = 1.2;
 

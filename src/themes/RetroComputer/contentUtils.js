@@ -167,14 +167,7 @@ export function buildBootMarkdown(cv) {
   if (cv?.location) roles.push(cv.location);
   if (roles.length === 0) roles.push('Portfolio System');
 
-  const imageUrl = getBootImageUrl(cv);
-  const aspect = getBootImageAspect(cv);
-  const width = getBootImageWidth(aspect);
-
   return [
-    `!(${imageUrl}|aspect=${aspect}&noflow=true&width=${width})`,
-    '',
-    '',
     '##   Hi there, ',
     '',
     `#  *I'm ${escapeMarkdownText(firstName)}*`,
