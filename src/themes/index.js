@@ -43,6 +43,9 @@ import { TahaHossainTheme } from './TahaHossain/TahaHossainTheme';
 import { BaoToTheme } from './BaoTo/BaoToTheme';
 import { PCVTheme } from './PCV/PCVTheme';
 import { WallenartTUITheme } from './WallenartTUI/WallenartTUITheme';
+import { NimTheme } from './Nim/NimTheme';
+import { RetroComputerTheme } from './RetroComputer/RetroComputerTheme';
+import { VSCodePortfolioTheme } from './VSCodePortfolio/VSCodePortfolioTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -404,6 +407,30 @@ export const PORTFOLIO_THEMES = [
     description: 'Lazygit-inspired split-pane TUI with sidebar navigation, vim keybindings, item counters, and monospace Fira Mono typography.',
     source: 'https://wallenart.dev',
     Component: WallenartTUITheme,
+  },
+  {
+    id: 'nim',
+    slug: 'nim',
+    name: 'Nim',
+    description: 'Minimalist portfolio with staggered fade-in animations, spotlight hover cards, social pills, and zinc color palette inspired by nim-fawn.vercel.app.',
+    source: 'https://nim-fawn.vercel.app',
+    Component: NimTheme,
+  },
+  {
+    id: 'retro-computer',
+    slug: 'retro-computer',
+    name: 'Retro Computer',
+    description: 'Interactive CRT terminal with virtual filesystem, retro Commodore PET styling, scan-line effects, and warm beige portfolio content inspired by edh.dev.',
+    source: 'https://edh.dev',
+    Component: RetroComputerTheme,
+  },
+  {
+    id: 'vscode-portfolio',
+    slug: 'vscode',
+    name: 'VS Code',
+    description: 'IDE-themed portfolio with Atom One Dark colors, tab navigation, left activity bar, status bar, and code-file section names.',
+    source: 'https://github.com/caglarturali/vscode-portfolio',
+    Component: VSCodePortfolioTheme,
   },
 ];
 

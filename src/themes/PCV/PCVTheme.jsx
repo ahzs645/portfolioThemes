@@ -370,7 +370,7 @@ const Content = styled.div`
 `;
 
 const Row = styled.div`
-  height: 24px;
+  min-height: 24px;
   text-transform: uppercase;
   user-select: none;
   width: 100%;
@@ -380,7 +380,7 @@ const Row = styled.div`
   }
 
   @media (max-width: 768px) {
-    height: 32px;
+    min-height: 32px;
     &.desktop-only { display: none; }
   }
 `;
@@ -471,12 +471,20 @@ const Dates = styled.span`
   margin-left: auto;
   white-space: nowrap;
   padding-left: 1em;
+  flex-shrink: 0;
+  align-self: flex-start;
 `;
 
 const NoLink = styled.div`
   ${btnBase}
   display: flex;
   width: 100%;
+
+  & > span:first-child {
+    min-width: 0;
+    white-space: normal;
+    word-break: break-word;
+  }
   &:hover ${Dates}::after, &:focus-visible ${Dates}::after {
     content: "[-]";
     position: absolute;
