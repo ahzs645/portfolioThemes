@@ -10,6 +10,19 @@ import { normalizeMarkdownInObject } from '../utils/parseMarkdown';
 
 const ConfigContext = createContext(null);
 
+function pickFirstString(...values) {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+
+  return null;
+}
+
+function parsePositiveNumber(value) {
+  const parsed = Number.parseFloat(String(value ?? ''));
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
 export function ConfigProvider({ children }) {
   const [cvData, setCvData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -45,6 +58,26 @@ export function ConfigProvider({ children }) {
 
     const raw = cvData.cv;
     const sections = raw.sections || {};
+    const avatar = pickFirstString(
+      raw.avatar,
+      raw.avatar_url,
+      raw.image,
+      raw.image_url,
+      raw.photo,
+      raw.photo_url,
+      raw.portrait,
+      raw.headshot,
+      raw.hero_image,
+      raw.heroImage,
+    );
+    const avatarAspect = parsePositiveNumber(
+      raw.avatar_aspect ??
+        raw.image_aspect ??
+        raw.photo_aspect ??
+        raw.portrait_aspect ??
+        raw.hero_image_aspect ??
+        raw.heroImageAspect,
+    );
 
     return {
       // Basic info
@@ -53,6 +86,8 @@ export function ConfigProvider({ children }) {
       phone: raw.phone || null,
       location: raw.location || null,
       website: raw.website || null,
+      avatar,
+      avatarAspect,
 
       // About/summary text
       about: sections.about || '',

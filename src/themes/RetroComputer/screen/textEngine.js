@@ -279,7 +279,12 @@ export default function createTextEngine(assets, sceneRTT) {
     const urlMatch = val.match(/\(.+\)/);
     if (!urlMatch || urlMatch.length === 0) return;
 
-    const [url, rawParams] = urlMatch[0].slice(1, -1).split('?');
+    const rawValue = urlMatch[0].slice(1, -1).trim();
+    const separatorIndex = rawValue.includes('|')
+      ? rawValue.lastIndexOf('|')
+      : rawValue.lastIndexOf('?');
+    const url = separatorIndex === -1 ? rawValue : rawValue.slice(0, separatorIndex);
+    const rawParams = separatorIndex === -1 ? '' : rawValue.slice(separatorIndex + 1);
     const params = new URLSearchParams(rawParams);
 
     const aspectRatio = parseFloat(params.get('aspect') ?? '');

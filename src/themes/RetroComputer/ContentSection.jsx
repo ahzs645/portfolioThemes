@@ -1,11 +1,16 @@
 import styled from 'styled-components';
-import { formatDateRange } from '../../utils/cvHelpers';
+import {
+  formatEntryDate,
+  getProjectHighlights,
+  getProjectTechnologies,
+  valueOr,
+} from './contentUtils';
 
 const C = { beige: '#f6d4b1', dark: '#525252' };
 
 const Main = styled.main`
   color: ${C.dark};
-  margin-top: 100vh;
+  margin-top: var(--retro-view-height, 100vh);
   text-align: center;
   position: relative;
   z-index: 2;
@@ -99,7 +104,10 @@ const Tag = styled.li`
   font-size: 0.9em;
   box-shadow: 1px 1px 0px ${C.beige}, 4px 4px 0px rgba(82, 82, 82, 0.25);
   transition: transform 0.2s;
-  &:hover { transform: scale(1.05); }
+
+  &:hover {
+    transform: scale(1.05);
+  }
 `;
 
 const Link = styled.a`
@@ -109,6 +117,7 @@ const Link = styled.a`
   text-decoration-thickness: 2px;
   transition: all 0.3s;
   font-family: 'chill', sans-serif;
+
   &:hover {
     transform: scale(1.05);
     box-shadow: 1px 1px 0px ${C.beige}, 4px 4px 0px rgba(82, 82, 82, 0.25);
@@ -128,8 +137,16 @@ const Btn = styled.a`
   padding: 4px 24px;
   border: ${C.beige} solid 1px;
   text-decoration: none;
-  &:hover { transform: scale(1.1); box-shadow: 8px 8px 6px rgba(82, 82, 82, 0.25); }
-  &:active { transform: scale(0.95); box-shadow: 4px 4px 0px rgba(82, 82, 82, 0.4); }
+
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 8px 8px 6px rgba(82, 82, 82, 0.25);
+  }
+
+  &:active {
+    transform: scale(0.95);
+    box-shadow: 4px 4px 0px rgba(82, 82, 82, 0.4);
+  }
 `;
 
 const Card = styled.div`
@@ -142,14 +159,27 @@ const Card = styled.div`
   line-height: 1.5;
 `;
 
-const CardTitle = styled.div`font-weight: 700; font-size: 1.1em;`;
-const CardSub = styled.div`color: ${C.dark}; opacity: 0.8;`;
+const CardTitle = styled.div`
+  font-weight: 700;
+  font-size: 1.1em;
+`;
+
+const CardSub = styled.div`
+  color: ${C.dark};
+  opacity: 0.8;
+`;
+
 const CardDate = styled.div`
   font-family: 'public-pixel', monospace;
   font-size: 0.55em;
   color: ${C.dark};
   opacity: 0.6;
   margin-top: 4px;
+`;
+
+const CardText = styled.div`
+  margin-top: 8px;
+  font-size: 0.95em;
 `;
 
 const Highlights = styled.ul`
@@ -173,25 +203,56 @@ const Footer = styled.footer`
 
 function flatSkills(skills) {
   if (!skills) return [];
+
   const out = [];
-  skills.forEach((s) => {
-    if (typeof s === 'string') out.push(s);
-    else if (s.items) s.items.forEach((i) => out.push(i));
+  skills.forEach((skill) => {
+    if (typeof skill === 'string') out.push(skill);
+    else if (skill.items) skill.items.forEach((item) => out.push(item));
   });
+
   return out;
+}
+
+function formatLanguage(language) {
+  if (typeof language === 'string') return language;
+
+  const label = valueOr(language?.language, language?.name, language?.label);
+  const detail = valueOr(language?.fluency, language?.level, language?.details);
+
+  if (label && detail) return `${label} (${detail})`;
+  return label;
+}
+
+function displayUrl(url) {
+  return String(url || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
+}
+
+function renderHighlights(highlights) {
+  if (!highlights?.length) return null;
+
+  return (
+    <Highlights>
+      {highlights.map((highlight, index) => (
+        <li key={index}>{highlight}</li>
+      ))}
+    </Highlights>
+  );
 }
 
 export default function ContentSection({ cv }) {
   if (!cv) return null;
-  const sl = cv.socialLinks || {};
+
+  const socialLinks = cv.socialLinks || {};
   const allSkills = flatSkills(cv.skills);
+  const languages = (cv.languages || []).map(formatLanguage).filter(Boolean);
 
   return (
     <>
       <Main>
-        {/* About */}
         <Section id="retro-about">
           <H1>Hi there</H1>
+          {cv.currentJobTitle && <H2>{cv.currentJobTitle}</H2>}
+          {cv.location && <H3>{cv.location}</H3>}
           {cv.about && <P>{cv.about}</P>}
 
           {allSkills.length > 0 && (
@@ -199,76 +260,207 @@ export default function ContentSection({ cv }) {
               <Hr />
               <H2>Skills</H2>
               <Skills>
-                {allSkills.map((s, i) => (
-                  <Tag key={i}>{s}</Tag>
+                {allSkills.map((skill, index) => (
+                  <Tag key={index}>{skill}</Tag>
                 ))}
               </Skills>
             </>
           )}
         </Section>
 
-        {/* Experience */}
         {cv.experience?.length > 0 && (
-          <Section>
+          <Section id="retro-experience">
             <H1>Experience</H1>
-            {cv.experience.map((e, i) => (
-              <Card key={i}>
-                <CardTitle>{e.position || e.title}</CardTitle>
-                <CardSub>{e.company || e.organization}</CardSub>
-                <CardDate>{formatDateRange(e.startDate, e.endDate)}</CardDate>
-                {e.summary && <div style={{ marginTop: 8, fontSize: '0.95em' }}>{e.summary}</div>}
-                {e.highlights?.length > 0 && (
-                  <Highlights>
-                    {e.highlights.map((h, j) => <li key={j}>{h}</li>)}
-                  </Highlights>
-                )}
+            {cv.experience.map((entry, index) => (
+              <Card key={`${entry.company || entry.title}-${index}`}>
+                <CardTitle>{entry.position || entry.title}</CardTitle>
+                <CardSub>{entry.company || entry.organization}</CardSub>
+                <CardDate>{formatEntryDate(entry)}</CardDate>
+                {entry.summary && <CardText>{entry.summary}</CardText>}
+                {renderHighlights(entry.highlights)}
               </Card>
             ))}
           </Section>
         )}
 
-        {/* Projects */}
         {cv.projects?.length > 0 && (
           <Section id="retro-projects">
             <H1>Projects</H1>
-            {cv.projects.map((p, i) => (
-              <div key={i}>
-                <Hr />
-                <H2>{p.name || p.title}</H2>
-                {p.technologies?.length > 0 && (
-                  <Skills>
-                    {p.technologies.map((t, j) => <Tag key={j}>{t}</Tag>)}
-                  </Skills>
-                )}
-                {p.description && <P>{p.description}</P>}
-                {p.url && (
-                  <P style={{ textAlign: 'center' }}>
-                    <Link href={p.url} target="_blank" rel="noopener">
-                      <u><b>{p.url.replace(/^https?:\/\//, '')}</b></u>
-                    </Link>
-                  </P>
-                )}
-              </div>
-            ))}
+            {cv.projects.map((project, index) => {
+              const technologies = getProjectTechnologies(project);
+              const highlights = getProjectHighlights(project);
+
+              return (
+                <Card key={`${project.name || project.title}-${index}`}>
+                  <CardTitle>{project.name || project.title}</CardTitle>
+                  <CardDate>{formatEntryDate(project)}</CardDate>
+                  {technologies.length > 0 && (
+                    <Skills>
+                      {technologies.map((technology) => (
+                        <Tag key={technology}>{technology}</Tag>
+                      ))}
+                    </Skills>
+                  )}
+                  {valueOr(project.summary, project.description) && (
+                    <CardText>{valueOr(project.summary, project.description)}</CardText>
+                  )}
+                  {project.url && (
+                    <CardText>
+                      <Link href={project.url} target="_blank" rel="noopener noreferrer">
+                        <u>
+                          <b>{displayUrl(project.url)}</b>
+                        </u>
+                      </Link>
+                    </CardText>
+                  )}
+                  {renderHighlights(highlights)}
+                </Card>
+              );
+            })}
           </Section>
         )}
 
-        {/* Education */}
         {cv.education?.length > 0 && (
-          <Section>
+          <Section id="retro-education">
             <H1>Education</H1>
-            {cv.education.map((e, i) => (
-              <Card key={i}>
-                <CardTitle>{e.degree || e.studyType}</CardTitle>
-                <CardSub>{e.institution}</CardSub>
-                <CardDate>{formatDateRange(e.startDate, e.endDate)}</CardDate>
-                {e.area && <div style={{ marginTop: 4, fontSize: '0.95em', opacity: 0.8 }}>{e.area}</div>}
+            {cv.education.map((entry, index) => (
+              <Card key={`${entry.institution}-${index}`}>
+                <CardTitle>{entry.degree || entry.studyType}</CardTitle>
+                <CardSub>{entry.institution}</CardSub>
+                <CardDate>{formatEntryDate(entry)}</CardDate>
+                {entry.area && <CardText>{entry.area}</CardText>}
+                {entry.location && <CardText>{entry.location}</CardText>}
+                {renderHighlights(entry.highlights)}
               </Card>
             ))}
           </Section>
         )}
 
-        {/* Contact */}
+        {cv.volunteer?.length > 0 && (
+          <Section id="retro-volunteer">
+            <H1>Volunteer</H1>
+            {cv.volunteer.map((entry, index) => (
+              <Card key={`${entry.company || entry.title}-${index}`}>
+                <CardTitle>{entry.position || entry.title}</CardTitle>
+                <CardSub>{entry.company || entry.organization}</CardSub>
+                <CardDate>{formatEntryDate(entry)}</CardDate>
+                {entry.summary && <CardText>{entry.summary}</CardText>}
+                {renderHighlights(entry.highlights)}
+              </Card>
+            ))}
+          </Section>
+        )}
+
+        {cv.awards?.length > 0 && (
+          <Section id="retro-awards">
+            <H1>Awards</H1>
+            {cv.awards.map((entry, index) => (
+              <Card key={`${entry.name || entry.title}-${index}`}>
+                <CardTitle>{entry.name || entry.title}</CardTitle>
+                {entry.summary && <CardSub>{entry.summary}</CardSub>}
+                <CardDate>{formatEntryDate(entry)}</CardDate>
+                {entry.description && <CardText>{entry.description}</CardText>}
+                {renderHighlights(entry.highlights)}
+              </Card>
+            ))}
+          </Section>
+        )}
+
+        {cv.publications?.length > 0 && (
+          <Section id="retro-publications">
+            <H1>Publications</H1>
+            {cv.publications.map((entry, index) => (
+              <Card key={`${entry.title || entry.name}-${index}`}>
+                <CardTitle>{entry.title || entry.name}</CardTitle>
+                {entry.journal && <CardSub>{entry.journal}</CardSub>}
+                <CardDate>{formatEntryDate(entry)}</CardDate>
+                {entry.authors?.length > 0 && <CardText>{entry.authors.join(', ')}</CardText>}
+                {entry.doi && (
+                  <CardText>
+                    <Link
+                      href={`https://doi.org/${entry.doi}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <u>{entry.doi}</u>
+                    </Link>
+                  </CardText>
+                )}
+                {entry.summary && <CardText>{entry.summary}</CardText>}
+                {renderHighlights(entry.highlights)}
+              </Card>
+            ))}
+          </Section>
+        )}
+
+        {cv.presentations?.length > 0 && (
+          <Section id="retro-presentations">
+            <H1>Presentations</H1>
+            {cv.presentations.map((entry, index) => (
+              <Card key={`${entry.name || entry.title}-${index}`}>
+                <CardTitle>{entry.name || entry.title}</CardTitle>
+                {entry.summary && <CardSub>{entry.summary}</CardSub>}
+                <CardDate>{formatEntryDate(entry)}</CardDate>
+                {entry.location && <CardText>{entry.location}</CardText>}
+                {entry.description && <CardText>{entry.description}</CardText>}
+                {renderHighlights(entry.highlights)}
+              </Card>
+            ))}
+          </Section>
+        )}
+
+        {cv.professionalDevelopment?.length > 0 && (
+          <Section id="retro-professional-development">
+            <H1>Professional Development</H1>
+            {cv.professionalDevelopment.map((entry, index) => (
+              <Card key={`${entry.name || entry.title}-${index}`}>
+                <CardTitle>{entry.name || entry.title}</CardTitle>
+                {entry.summary && <CardSub>{entry.summary}</CardSub>}
+                <CardDate>{formatEntryDate(entry)}</CardDate>
+                {entry.location && <CardText>{entry.location}</CardText>}
+                {entry.description && <CardText>{entry.description}</CardText>}
+                {renderHighlights(entry.highlights)}
+              </Card>
+            ))}
+          </Section>
+        )}
+
+        {(cv.certificationsSkills?.length > 0 || cv.certifications?.length > 0 || languages.length > 0) && (
+          <Section id="retro-credentials">
+            <H1>Credentials</H1>
+
+            {cv.certificationsSkills?.map((entry, index) => (
+              <Card key={`${entry.label}-${index}`}>
+                <CardTitle>{entry.label}</CardTitle>
+                {entry.details && <CardText>{entry.details}</CardText>}
+              </Card>
+            ))}
+
+            {cv.certifications?.map((entry, index) => (
+              <Card key={`${entry.name || entry.title}-${index}`}>
+                <CardTitle>{entry.name || entry.title}</CardTitle>
+                {entry.issuer && <CardSub>{entry.issuer}</CardSub>}
+                <CardDate>{formatEntryDate(entry)}</CardDate>
+                {entry.summary && <CardText>{entry.summary}</CardText>}
+                {entry.description && <CardText>{entry.description}</CardText>}
+                {renderHighlights(entry.highlights)}
+              </Card>
+            ))}
+
+            {languages.length > 0 && (
+              <>
+                <Hr />
+                <H2>Languages</H2>
+                <Skills>
+                  {languages.map((language) => (
+                    <Tag key={language}>{language}</Tag>
+                  ))}
+                </Skills>
+              </>
+            )}
+          </Section>
+        )}
+
         <Section id="retro-contact">
           <H1>Contact</H1>
           {cv.email && (
@@ -276,18 +468,30 @@ export default function ContentSection({ cv }) {
               <Btn href={`mailto:${cv.email}`}>{cv.email}</Btn>
             </P>
           )}
-          {sl.linkedin && (
+          {socialLinks.linkedin && (
             <P style={{ textAlign: 'center' }}>
               Reach out on{' '}
-              <Link href={sl.linkedin} target="_blank" rel="noopener">
-                <u><b>LinkedIn</b></u>
+              <Link href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer">
+                <u>
+                  <b>LinkedIn</b>
+                </u>
+              </Link>
+            </P>
+          )}
+          {socialLinks.github && (
+            <P style={{ textAlign: 'center' }}>
+              Explore{' '}
+              <Link href={socialLinks.github} target="_blank" rel="noopener noreferrer">
+                <u>
+                  <b>GitHub</b>
+                </u>
               </Link>
             </P>
           )}
           {cv.website && (
             <P style={{ textAlign: 'center' }}>
-              <Link href={cv.website} target="_blank" rel="noopener">
-                <u>{cv.website.replace(/^https?:\/\//, '')}</u>
+              <Link href={cv.website} target="_blank" rel="noopener noreferrer">
+                <u>{displayUrl(cv.website)}</u>
               </Link>
             </P>
           )}

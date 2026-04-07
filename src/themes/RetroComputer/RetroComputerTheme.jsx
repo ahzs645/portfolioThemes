@@ -13,6 +13,8 @@ const Wrapper = styled.div`
   position: relative;
   height: 100%;
   min-height: 100%;
+  --retro-view-height: calc(100vh - var(--app-top-offset, 0px));
+  --retro-view-height: calc(100dvh - var(--app-top-offset, 0px));
   background-color: ${C.beige};
   font-family: 'chill', 'Segoe UI', sans-serif;
   font-size: 18px;
@@ -72,7 +74,7 @@ const LoadingText = styled.div`
 const CanvasWrap = styled.div`
   position: sticky;
   top: 0;
-  height: 100vh;
+  height: var(--retro-view-height);
   z-index: 1;
 `;
 
@@ -88,8 +90,8 @@ const NavOverlay = styled.div`
   position: sticky;
   top: 0;
   z-index: 10;
-  height: 100vh;
-  margin-top: -100vh;
+  height: var(--retro-view-height);
+  margin-top: calc(-1 * var(--retro-view-height));
   pointer-events: none;
 `;
 
@@ -159,8 +161,10 @@ const MenuPanel = styled.div`
   gap: 16px;
   padding-top: 70px;
   padding-left: 20px;
+  padding-bottom: 48px;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   transition: all 0.7s;
   pointer-events: ${(p) => (p.$open ? 'auto' : 'none')};
 
@@ -396,6 +400,19 @@ export function RetroComputerTheme({ darkMode }) {
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     setMenuOpen(false);
   };
+  const navItems = [
+    { id: 'retro-about', label: 'About' },
+    { id: 'retro-experience', label: 'Experience' },
+    { id: 'retro-projects', label: 'Projects' },
+    { id: 'retro-education', label: 'Education' },
+    { id: 'retro-volunteer', label: 'Volunteer' },
+    { id: 'retro-awards', label: 'Awards' },
+    { id: 'retro-publications', label: 'Publications' },
+    { id: 'retro-presentations', label: 'Presentations' },
+    { id: 'retro-professional-development', label: 'Development' },
+    { id: 'retro-credentials', label: 'Credentials' },
+    { id: 'retro-contact', label: 'Contact' },
+  ];
 
   return (
     <Wrapper ref={wrapperRef}>
@@ -486,15 +503,11 @@ export function RetroComputerTheme({ darkMode }) {
             <MenuLink type="button" onClick={scrollToTop}>
               Home
             </MenuLink>
-            <MenuLink type="button" onClick={() => scrollToSection('retro-about')}>
-              About
-            </MenuLink>
-            <MenuLink type="button" onClick={() => scrollToSection('retro-projects')}>
-              Projects
-            </MenuLink>
-            <MenuLink type="button" onClick={() => scrollToSection('retro-contact')}>
-              Contact
-            </MenuLink>
+            {navItems.map((item) => (
+              <MenuLink key={item.id} type="button" onClick={() => scrollToSection(item.id)}>
+                {item.label}
+              </MenuLink>
+            ))}
           </MenuPanel>
 
           <ScrollHint $visible={!navVisible}>Scroll ↓</ScrollHint>

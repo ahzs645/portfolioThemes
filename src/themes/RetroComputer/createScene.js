@@ -62,6 +62,7 @@ export default function createScene(canvas, { onLoaded, onProgress, scrollContai
     (isScrollableElement(scrollContainer) ? scrollContainer : null) ||
     findScrollableAncestor(canvas) ||
     window;
+  const measureTarget = scroller === window ? document.documentElement : scroller;
   let viewHeight = scroller === window ? document.documentElement.clientHeight : scroller.clientHeight;
 
   function getScroll() {
@@ -126,10 +127,10 @@ export default function createScene(canvas, { onLoaded, onProgress, scrollContai
   canvas.addEventListener('wheel', onWheel, { passive: true });
 
   const sizes = {
-    width: document.documentElement.clientWidth,
-    height: window.innerHeight,
+    width: measureTarget.clientWidth,
+    height: scroller === window ? window.innerHeight : scroller.clientHeight,
     portraitOffset: valMap(
-      window.innerHeight / document.documentElement.clientWidth,
+      (scroller === window ? window.innerHeight : scroller.clientHeight) / measureTarget.clientWidth,
       [0.75, 1.75],
       [0, 2],
     ),
@@ -152,8 +153,8 @@ export default function createScene(canvas, { onLoaded, onProgress, scrollContai
 
   const onResize = () => {
     viewHeight = scroller === window ? document.documentElement.clientHeight : scroller.clientHeight;
-    sizes.width = document.documentElement.clientWidth;
-    sizes.height = window.innerHeight;
+    sizes.width = measureTarget.clientWidth;
+    sizes.height = scroller === window ? window.innerHeight : scroller.clientHeight;
     sizes.portraitOffset = valMap(sizes.height / sizes.width, [0.8, 1.8], [0, 2.5]);
 
     camera.aspect = sizes.width / sizes.height;

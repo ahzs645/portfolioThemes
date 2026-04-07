@@ -47,12 +47,15 @@ export default function createRenderEngine(assets, renderer, sceneRTT) {
 
   const material = new THREE.MeshStandardMaterial();
   material.metalness = 0;
-  material.roughness = 0.125;
+  material.roughness = 0.24;
   if (environmentMapTexture) {
     material.envMap = environmentMapTexture;
-    material.envMapIntensity = 0.7;
+    material.envMapIntensity = 0.28;
   }
   material.map = shaderToScreen.outputTexture.texture;
+  material.emissive = new THREE.Color(0xffffff);
+  material.emissiveMap = shaderToScreen.outputTexture.texture;
+  material.emissiveIntensity = 0.36;
 
   let progress = 1.2;
 
