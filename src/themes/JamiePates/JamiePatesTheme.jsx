@@ -14,7 +14,7 @@ const EXTRA_CSS = `
 
 .jamie-host {
   position: relative;
-  min-height: calc(100vh - 56px - var(--app-top-offset, 0px));
+  min-height: calc(100vh - var(--app-top-offset, 0px));
   background: #000;
   display: flex;
   justify-content: center;
@@ -985,13 +985,13 @@ export function JamiePatesTheme() {
                     <p>{GlyphText({ text: selectedSkill?.description || 'No skill selected.' })}</p>
                   </WindowBox>
 
-                  <WindowBox label="skillsContentLeft" className="absolute top-[359px] bottom-0" style={windowStyle}>
-                    <div className="flex justify-between items-center">
-                      <p className="_skill_1cutj_1 flex" data-color={selectedSkill?.color}>
+                  <WindowBox label="skillsContentLeft" className="absolute top-[359px] bottom-0" style={{ ...windowStyle, overflow: 'hidden' }}>
+                    <div className="flex justify-between items-center" style={{ gap: '0.5rem' }}>
+                      <p className="_skill_1cutj_1 flex" data-color={selectedSkill?.color} style={{ overflow: 'hidden', flexShrink: 1, flexWrap: 'wrap' }}>
                         {GlyphText({ text: selectedSkill?.name || 'Unknown' })}
                       </p>
                       {!!selectedSkill && (
-                        <ul className="flex">
+                        <ul className="flex" style={{ flexShrink: 0 }}>
                           {Array.from({ length: 5 }).map((_, index) => (
                             <li
                               key={index}
@@ -1105,26 +1105,9 @@ export function JamiePatesTheme() {
                           >
                             <ContentTag {...contentProps}>
                               <WindowBox label="historySave" className="h-[235px] relative" style={windowStyle}>
-                                <div className="mr-[414px] flex gap-5">
-                                  {record.imagePath ? (
-                                    <img className="h-[11.5rem] w-auto" src={record.imagePath} alt="" />
-                                  ) : (
-                                    <div className="jp-history-thumb">{getInitials(record.name)}</div>
-                                  )}
-                                  <div className="jp-history-thumb">{getInitials(cv.name)}</div>
-                                  <div className="ml-2 mt-[1.3rem]">
-                                    <p className="mb-4">{GlyphText({ text: cv.name })}</p>
-                                    <p className="flex">
-                                      <GlyphToken sprite="lv" />
-                                      {GlyphText({ text: String(record.level), resource: true })}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <WindowBox label="historySaveMeta" className="absolute w-[27rem] h-[7rem] top-[31px] right-[-2px]" style={windowStyle}>
+                                <WindowBox label="historySaveMeta" className="absolute h-[7rem] top-[31px] left-[-2px] right-[-2px]" style={windowStyle}>
                                   <ul>
-                                    <li className="flex justify-between mb-3">
-                                      {historyMode !== 'education' && <span>{GlyphText({ text: 'Role' })}</span>}
+                                    <li className="flex mb-3">
                                       <span>{GlyphText({ text: record.role })}</span>
                                     </li>
                                     <li className="flex justify-between">
