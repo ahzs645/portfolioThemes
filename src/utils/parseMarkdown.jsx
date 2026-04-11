@@ -27,7 +27,16 @@ export function normalizeMarkdownInObject(obj) {
   if (!obj) return obj;
   if (typeof obj === 'string') return stripMarkdown(obj);
   if (Array.isArray(obj)) return obj.map(normalizeMarkdownInObject);
-  if (obj instanceof Date) return obj;
+  // js-yaml parses ISO-style dates (e.g. `2024-01-15`) into JS Date objects.
+  // Downstream helpers (cvHelpers.formatMonthYear, formatDateRange) call
+  // `.split('-')` on these values, and React errors out when a Date is
+  // rendered directly as a child. Coerce to a plain YYYY-MM-DD string so
+  // every theme receives a predictable type. Themes that need a Date can
+  // still reparse via `new Date(str)`.
+  if (obj instanceof Date) {
+    if (Number.isNaN(obj.getTime())) return '';
+    return obj.toISOString().slice(0, 10);
+  }
   if (typeof obj === 'object') {
     const result = {};
     for (const [key, value] of Object.entries(obj)) {
