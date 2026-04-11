@@ -65,7 +65,12 @@ export function DeviceSculpture({ timeLabel }) {
         </BlobField>
       </WireGlowWrap>
 
-      <Shell {...shellEnter}>
+      <Shell
+        {...shellEnter}
+        transformTemplate={(_, generated) =>
+          generated ? `translateX(-50%) ${generated}` : 'translateX(-50%)'
+        }
+      >
         <ShellInset>
           <MintCard>
             <TimeBadge>

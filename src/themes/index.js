@@ -51,6 +51,8 @@ import { SharpEye08Theme } from './SharpEye08/SharpEye08Theme';
 import { MattRothenbergTheme } from './MattRothenberg/MattRothenbergTheme';
 import { JoostDamhuisTheme } from './JoostDamhuis/JoostDamhuisTheme';
 import { ChesterHowTheme } from './ChesterHow/ChesterHowTheme';
+import { JacobLeechTheme } from './JacobLeech/JacobLeechTheme';
+import { TalkToDashaTheme } from './TalkToDasha/TalkToDashaTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -468,6 +470,22 @@ export const PORTFOLIO_THEMES = [
     description: 'A quiet masonry digital garden with Fraunces serif display type, pill nav, and color-tagged cards — inspired by chester.how.',
     source: 'https://chester.how',
     Component: ChesterHowTheme,
+  },
+  {
+    id: 'jacob-leech',
+    slug: 'digital-craftsman',
+    name: 'Digital Craftsman',
+    description: 'Warm camel-and-brown editorial layout with Cormorant Garamond body, Bluu Titling display type, boxed drop caps, "Fig." figure captions, and bordered graphic panels — inspired by jacobleech.com.',
+    source: 'https://jacobleech.com',
+    Component: JacobLeechTheme,
+  },
+  {
+    id: 'talk-to-dasha',
+    slug: 'pastel-cards',
+    name: 'Pastel Cards',
+    description: 'Cream background with pastel-colored section cards, floating pill headings, and rotated white mini-cards. Inter Tight typography and a playful, approachable mood inspired by talktodasha.com.',
+    source: 'https://www.talktodasha.com',
+    Component: TalkToDashaTheme,
   },
 ];
 

@@ -53,6 +53,7 @@ function IsolatedPreview({ children, width, height }) {
       doc.documentElement.style.height = '100%';
       doc.body.style.margin = '0';
       doc.body.style.height = '100%';
+      doc.body.style.display = 'flex';
       doc.body.style.overflow = 'hidden';
       let mountEl = doc.getElementById('preview-root');
       if (!mountEl) {
@@ -62,6 +63,9 @@ function IsolatedPreview({ children, width, height }) {
       }
       mountEl.style.width = '100%';
       mountEl.style.height = '100%';
+      mountEl.style.display = 'flex';
+      mountEl.style.flex = '1';
+      mountEl.style.flexDirection = 'column';
       setIframeState({ mountEl, head: doc.head });
     };
     iframe.addEventListener('load', handleLoad);
