@@ -12,6 +12,6 @@ export function PastCollabsSection({ jobs }) {
   }));
 
   return (
-    <FolderCard tone="lavender" label="Past collabs" items={items} />
+    <FolderCard tone="lavender" label="Past collabs" items={items} variant="past" />
   );
 }

@@ -41,8 +41,8 @@ export function ContactSection({ email }) {
 
 const Wrap = styled.div`
   position: relative;
-  width: min(100%, 248px);
-  aspect-ratio: 1 / 1;
+  width: min(230px, 100%);
+  aspect-ratio: 230 / 248;
   justify-self: center;
   border-radius: 24px;
   overflow: hidden;

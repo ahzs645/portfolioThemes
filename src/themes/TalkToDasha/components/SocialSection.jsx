@@ -10,6 +10,6 @@ export function SocialSection({ socials }) {
   }));
 
   return (
-    <FolderCard tone="sage" label="Social Media" items={items} />
+    <FolderCard tone="sage" label="Social Media" items={items} variant="social" />
   );
 }

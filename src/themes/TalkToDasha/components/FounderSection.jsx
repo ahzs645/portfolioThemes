@@ -15,5 +15,5 @@ export function FounderSection({ awards = [], certifications = [] }) {
     })),
   ].slice(0, 3);
 
-  return <FolderCard tone="mustard" label="Founder" items={items} />;
+  return <FolderCard tone="mustard" label="Founder" items={items} variant="founder" />;
 }

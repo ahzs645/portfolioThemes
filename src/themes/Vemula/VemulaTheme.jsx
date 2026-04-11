@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import styled, { createGlobalStyle } from 'styled-components';
+import React, { useMemo, useEffect, useRef, useState } from 'react';
+import styled, { createGlobalStyle, keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 
 const FontLoader = createGlobalStyle`
@@ -111,9 +111,27 @@ const Subtitle = styled.div`
   @media (min-width: 1024px) { font-size: 1.25rem; margin-top: 40px; }
 `;
 
+const riseUpMobile = keyframes`
+  0%   { transform: translateY(150px); opacity: 0; }
+  60%  { transform: translateY(-15px); opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
+`;
+
+const riseUpTablet = keyframes`
+  0%   { transform: translateY(180px); opacity: 0; }
+  60%  { transform: translateY(-18px); opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
+`;
+
+const riseUpDesktop = keyframes`
+  0%   { transform: translateY(200px); opacity: 0; }
+  60%  { transform: translateY(-20px); opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
+`;
+
 const CardsContainer = styled.div`
   position: fixed;
-  bottom: -10%;
+  bottom: -5%;
   left: 20px;
   right: 20px;
   display: flex;
@@ -121,18 +139,14 @@ const CardsContainer = styled.div`
   justify-content: center;
   z-index: 5;
   pointer-events: none;
-  --card-overlap: -70px;
 
   @media (min-width: 768px) {
     left: 30px;
     right: 30px;
-    --card-overlap: -110px;
   }
   @media (min-width: 1024px) {
     left: 47px;
     right: 47px;
-    bottom: -8%;
-    --card-overlap: -200px;
   }
 `;
 
@@ -140,44 +154,82 @@ const Card = styled.a`
   position: relative;
   border-radius: 16px;
   overflow: hidden;
-  width: 100px;
-  height: 130px;
+  width: 150px;
+  height: 200px;
   flex-shrink: 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
   cursor: pointer;
   text-decoration: none;
   background: linear-gradient(155deg, var(--card-from), var(--card-to));
   transition:
-    transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 0.3s ease;
-  will-change: transform;
+    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.3s ease,
+    opacity 0.3s ease;
+  will-change: transform, opacity;
   pointer-events: auto;
 
-  @media (min-width: 768px) { width: 160px; height: 215px; }
+  @media (min-width: 768px) { width: 180px; height: 240px; }
   @media (min-width: 1024px) { width: 300px; height: 400px; border-radius: 20px; }
 
-  &:hover {
-    transform: translateY(-32px) rotate(-1deg);
+  /* Initial hidden state — applied until JS marks ".vemula-enter" */
+  &.vemula-hidden {
+    transform: translateY(150px);
+    opacity: 0;
+    pointer-events: none;
+    @media (min-width: 768px) { transform: translateY(180px); }
+    @media (min-width: 1024px) { transform: translateY(200px); }
+  }
+
+  /* Entering: play the rise-up keyframe with stagger */
+  &.vemula-entering {
+    animation: ${riseUpMobile} 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) var(--enter-delay, 0ms) both;
+    @media (min-width: 768px) {
+      animation-name: ${riseUpTablet};
+    }
+    @media (min-width: 1024px) {
+      animation-name: ${riseUpDesktop};
+    }
+  }
+
+  /* Once entered, hover lift takes over */
+  &.vemula-entered:hover {
+    transform: translateY(-40px) rotate(-1deg);
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
   }
   @media (min-width: 768px) {
-    &:hover { transform: translateY(-56px) rotate(-1deg); }
+    &.vemula-entered:hover { transform: translateY(-60px) rotate(-1deg); }
   }
   @media (min-width: 1024px) {
-    &:hover { transform: translateY(-90px) rotate(-1deg); }
+    &.vemula-entered:hover { transform: translateY(-82px) rotate(-1deg); }
   }
 
-  ${CardsContainer.toString()}:hover &:not(:hover) {
+  /* When any sibling is hovered, sit back down */
+  ${CardsContainer.toString()}:hover &.vemula-entered:not(:hover) {
     transform: translateY(0) rotate(0);
   }
 
-  /* Wave: neighbors lift slightly when a card is hovered */
-  &:hover ~ &:first-child { transform: translateY(-14px) rotate(0.4deg); }
-  &:hover ~ &:nth-child(2) { transform: translateY(-10px) rotate(0.4deg); }
-  &:hover ~ &:nth-child(3) { transform: translateY(-6px); }
-  &:not(:first-child):hover + & { transform: translateY(-16px) rotate(0.5deg); }
-  &:not(:first-child):hover + & + & { transform: translateY(-10px) rotate(0.5deg); }
-  &:not(:first-child):hover + & + & + & { transform: translateY(-6px); }
+  /* Wave: prior siblings rise slightly when later card is hovered */
+  &.vemula-entered:not(:first-child):hover + &.vemula-entered {
+    transform: translateY(-20px) rotate(0.5deg);
+  }
+  &.vemula-entered:not(:first-child):hover + &.vemula-entered + &.vemula-entered {
+    transform: translateY(-14px);
+  }
+  &.vemula-entered:not(:first-child):hover + &.vemula-entered + &.vemula-entered + &.vemula-entered {
+    transform: translateY(-7px);
+  }
+
+  @media (min-width: 1024px) {
+    &.vemula-entered:not(:first-child):hover + &.vemula-entered {
+      transform: translateY(-40px) rotate(0.5deg);
+    }
+    &.vemula-entered:not(:first-child):hover + &.vemula-entered + &.vemula-entered {
+      transform: translateY(-25px);
+    }
+    &.vemula-entered:not(:first-child):hover + &.vemula-entered + &.vemula-entered + &.vemula-entered {
+      transform: translateY(-12px);
+    }
+  }
 `;
 
 const CardLabel = styled.div`
@@ -238,8 +290,25 @@ function Sparkle() {
   );
 }
 
+function getCardWidth(viewportWidth) {
+  if (viewportWidth < 768) return 150;
+  if (viewportWidth < 1024) return 180;
+  return 300;
+}
+
+function computeOverlap(containerWidth, cardCount, cardWidth) {
+  if (cardCount < 2) return 0;
+  const minPeek = 0.25 * cardWidth;
+  const squeeze = (cardCount * cardWidth - containerWidth) / (cardCount - 1);
+  const cap = cardWidth - minPeek;
+  return Math.max(0, Math.min(squeeze, cap));
+}
+
 export function VemulaTheme() {
   const cv = useCV();
+  const containerRef = useRef(null);
+  const [overlap, setOverlap] = useState(180);
+  const [enterState, setEnterState] = useState('hidden');
 
   const cards = useMemo(() => {
     if (!cv) return [];
@@ -308,6 +377,34 @@ export function VemulaTheme() {
       .map((c, i) => ({ ...c, palette: PALETTE[i % PALETTE.length] }));
   }, [cv]);
 
+  useEffect(() => {
+    if (!cards.length) return;
+    function recalc() {
+      const node = containerRef.current;
+      if (!node) return;
+      const cardWidth = getCardWidth(window.innerWidth);
+      const next = computeOverlap(node.offsetWidth, cards.length, cardWidth);
+      setOverlap(next);
+    }
+    recalc();
+    window.addEventListener('resize', recalc);
+    return () => window.removeEventListener('resize', recalc);
+  }, [cards.length]);
+
+  useEffect(() => {
+    if (!cards.length) return undefined;
+    setEnterState('hidden');
+    const startTimer = setTimeout(() => setEnterState('entering'), 80);
+    const perCard = 100;
+    const animDuration = 600;
+    const total = (cards.length - 1) * perCard + animDuration + 80;
+    const doneTimer = setTimeout(() => setEnterState('entered'), total);
+    return () => {
+      clearTimeout(startTimer);
+      clearTimeout(doneTimer);
+    };
+  }, [cards.length]);
+
   if (!cv) return null;
 
   const name = cv.name || 'Your Name';
@@ -356,12 +453,19 @@ export function VemulaTheme() {
           </Subtitle>
         </div>
 
-        <CardsContainer>
+        <CardsContainer ref={containerRef}>
           {cards.map((card, i) => {
             const isLast = i === cards.length - 1;
+            const stateClass =
+              enterState === 'hidden'
+                ? 'vemula-hidden'
+                : enterState === 'entering'
+                ? 'vemula-entering'
+                : 'vemula-entered';
             return (
               <Card
                 key={card.key}
+                className={stateClass}
                 href={card.url || '#'}
                 target={card.url ? '_blank' : undefined}
                 rel="noopener noreferrer"
@@ -369,8 +473,9 @@ export function VemulaTheme() {
                   '--card-from': card.palette.from,
                   '--card-to': card.palette.to,
                   '--card-label': card.palette.label,
+                  '--enter-delay': `${i * 100}ms`,
                   zIndex: 10 + i,
-                  marginRight: isLast ? 0 : 'var(--card-overlap)',
+                  marginRight: isLast ? 0 : `-${overlap}px`,
                 }}
               >
                 <CardLabel>{card.label}</CardLabel>
