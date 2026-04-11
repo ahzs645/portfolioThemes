@@ -8,16 +8,17 @@ import {
   isPresent,
   normalizeSocialLinks,
 } from '../../utils/cvHelpers';
+import { withBase } from '../../utils/assetPath';
 
 const GlobalStyle = createGlobalStyle`
   @font-face {
     font-family: 'WashingtonText';
-    src: url('/sinister-suns/fonts/WashingtonText.ttf') format('truetype');
+    src: url('${withBase('sinister-suns/fonts/WashingtonText.ttf')}') format('truetype');
     font-display: swap;
   }
 `;
 
-const ASSET_BASE = '/sinister-suns/images';
+const ASSET_BASE = withBase('sinister-suns/images');
 
 function formatRange(start, end) {
   const startText = formatMonthYear(start);

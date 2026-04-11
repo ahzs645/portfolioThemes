@@ -4,6 +4,10 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { useGLTF } from '@react-three/drei';
 import { AnimationMixer, MathUtils } from 'three';
 import DuckMoves from '../utils/duckMoves';
+import { withBase } from '../../../utils/assetPath';
+
+const DUCK_MODEL = withBase('models/duck_centered.glb');
+const CISCO_MODEL = withBase('models/cisco_centered.glb');
 
 // Inactivity timeout before switching to idle animation
 const MOVE_TIMEOUT_MS = 50;
@@ -68,10 +72,10 @@ export default function Duck({ scrollPercent, isScrolling }) {
   const [movements, setMovements] = useState(DuckMoves.duckKeyframes);
 
   // Load duck model
-  const gltf = useLoader(GLTFLoader, '/models/duck_centered.glb');
+  const gltf = useLoader(GLTFLoader, DUCK_MODEL);
 
   // Load cisco accessory
-  const cisco = useGLTF('/models/cisco_centered.glb');
+  const cisco = useGLTF(CISCO_MODEL);
 
   // Create animation mixer
   useEffect(() => {
@@ -221,5 +225,5 @@ export default function Duck({ scrollPercent, isScrolling }) {
 }
 
 // Preload models
-useGLTF.preload('/models/duck_centered.glb');
-useGLTF.preload('/models/cisco_centered.glb');
+useGLTF.preload(DUCK_MODEL);
+useGLTF.preload(CISCO_MODEL);

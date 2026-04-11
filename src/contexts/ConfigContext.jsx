@@ -7,6 +7,7 @@ import {
   getCurrentJobTitle,
 } from '../utils/cvHelpers';
 import { normalizeMarkdownInObject } from '../utils/parseMarkdown';
+import { withBase } from '../utils/assetPath';
 
 const ConfigContext = createContext(null);
 
@@ -32,7 +33,7 @@ export function ConfigProvider({ children }) {
   useEffect(() => {
     async function loadCV() {
       try {
-        const response = await fetch('/CV.yaml');
+        const response = await fetch(withBase('CV.yaml'));
         if (!response.ok) {
           throw new Error(`Failed to load CV.yaml: ${response.status}`);
         }
@@ -145,7 +146,7 @@ export function ConfigProvider({ children }) {
   const resetCV = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/CV.yaml');
+      const response = await fetch(withBase('CV.yaml'));
       if (!response.ok) {
         throw new Error(`Failed to load CV.yaml: ${response.status}`);
       }

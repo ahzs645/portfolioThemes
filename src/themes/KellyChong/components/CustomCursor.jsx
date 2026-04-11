@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import gsap from 'gsap';
+import { withBase } from '../../../utils/assetPath';
 
-const DEFAULT_SRC = '/kelly-chong/cursor-default.png';
-const HOVER_SRC = '/kelly-chong/cursor-hover.png';
+const DEFAULT_SRC = withBase('kelly-chong/cursor-default.png');
+const HOVER_SRC = withBase('kelly-chong/cursor-hover.png');
 
 export default function CustomCursor() {
   const cursorRef = useRef(null);

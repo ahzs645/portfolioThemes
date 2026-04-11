@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { withBase } from '../../utils/assetPath';
 
 const lightPalette = {
   bodyBackground: '#f6f3ee',
@@ -192,7 +193,7 @@ function useWireCube(canvasRef, palette) {
     duck.onload = () => {
       duckReady = true;
     };
-    duck.src = '/saint-angels/home_duck.png';
+    duck.src = withBase('saint-angels/home_duck.png');
 
     resize();
     render();

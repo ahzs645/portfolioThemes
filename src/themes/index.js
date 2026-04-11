@@ -1,3 +1,4 @@
+import { stripBase } from '../utils/assetPath';
 import { AnsubMinimalTheme } from './AnsubMinimal/AnsubMinimalTheme';
 import { BoehsTheme } from './Boehs/BoehsTheme';
 import { BrutalistTheme } from './Brutalist/BrutalistTheme';
@@ -46,6 +47,7 @@ import { WallenartTUITheme } from './WallenartTUI/WallenartTUITheme';
 import { NimTheme } from './Nim/NimTheme';
 import { RetroComputerTheme } from './RetroComputer/RetroComputerTheme';
 import { VSCodePortfolioTheme } from './VSCodePortfolio/VSCodePortfolioTheme';
+import { FaizRaeimTheme } from './FaizRaeim/FaizRaeimTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -432,6 +434,14 @@ export const PORTFOLIO_THEMES = [
     source: 'https://github.com/caglarturali/vscode-portfolio',
     Component: VSCodePortfolioTheme,
   },
+  {
+    id: 'faiz-raeim',
+    slug: 'zinc-grid',
+    name: 'Zinc Grid',
+    description: 'Dark zinc card-based grid portfolio with animated spring blocks, status badge, floating decorations, and scroll-parallax footer.',
+    source: 'https://faizraeim.github.io',
+    Component: FaizRaeimTheme,
+  },
 ];
 
 export function getPortfolioTheme(themeId) {
@@ -443,7 +453,8 @@ export function getThemeBySlug(slug) {
 }
 
 export function getThemeIdFromPath(pathname) {
-  const slug = pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+  const stripped = stripBase(pathname);
+  const slug = stripped.replace(/^\/+|\/+$/g, '').toLowerCase();
   if (!slug) return null;
   const theme = getThemeBySlug(slug);
   return theme ? theme.id : null;

@@ -2,8 +2,9 @@ import * as THREE from 'three';
 import loadAssets from './loader';
 import createRenderEngine from './screen/renderEngine';
 import createTextEngine from './screen/textEngine';
+import { withBase } from '../../utils/assetPath';
 
-const BASE = '/retro-computer';
+const BASE = withBase('retro-computer').replace(/\/$/, '');
 
 function valMap(x, from, to) {
   const y = ((x - from[0]) / (from[1] - from[0])) * (to[1] - to[0]) + to[0];

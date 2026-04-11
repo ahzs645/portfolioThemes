@@ -4,6 +4,7 @@ import { useCV } from '../../contexts/ConfigContext';
 import { useTerminal } from './useTerminal';
 import createScene from './createScene';
 import ContentSection from './ContentSection';
+import { withBase } from '../../utils/assetPath';
 
 const C = { beige: '#f6d4b1', dark: '#525252', orange: '#f99021' };
 
@@ -275,13 +276,13 @@ export function RetroComputerTheme({ darkMode }) {
       style.textContent = `
         @font-face {
           font-family: 'public-pixel';
-          src: url('/retro-computer/fonts/public-pixel.woff') format('woff');
+          src: url('${withBase('retro-computer/fonts/public-pixel.woff')}') format('woff');
           font-display: swap;
         }
 
         @font-face {
           font-family: 'chill';
-          src: url('/retro-computer/fonts/chill.woff') format('woff');
+          src: url('${withBase('retro-computer/fonts/chill.woff')}') format('woff');
           font-display: swap;
         }
       `;

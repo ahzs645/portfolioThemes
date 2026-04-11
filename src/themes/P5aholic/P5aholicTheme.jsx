@@ -3,6 +3,7 @@ import styled, { css } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import * as THREE from 'three';
 import gsap from 'gsap';
+import { withBase } from '../../utils/assetPath';
 
 // Original vertex shader (for RawShaderMaterial)
 const vertexShader = `
@@ -199,8 +200,8 @@ function BackgroundCanvas({ darkMode, isMonospace }) {
     // Load textures
     const loader = new THREE.TextureLoader();
     Promise.all([
-      loader.loadAsync('/grain.webp'),
-      loader.loadAsync('/blur.webp')
+      loader.loadAsync(withBase('grain.webp')),
+      loader.loadAsync(withBase('blur.webp'))
     ]).then(([grainTex, blurTex]) => {
       // Set texture parameters exactly like original
       grainTex.minFilter = THREE.NearestFilter;

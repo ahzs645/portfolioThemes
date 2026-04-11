@@ -3,6 +3,8 @@
  * Unauthenticated API — 60 req/hour per IP
  */
 
+import { withBase } from './assetPath';
+
 const GITHUB_API = 'https://api.github.com';
 const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
 
@@ -247,7 +249,7 @@ export async function fetchContributions() {
   if (cached) return cached;
 
   try {
-    const res = await fetch('/github-activity.json');
+    const res = await fetch(withBase('github-activity.json'));
     if (!res.ok) return null;
     const data = await res.json();
     cacheSet(key, data);

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useCV } from '../../contexts/ConfigContext';
 import { ShadowRoot } from '../../ui/ShadowRoot';
 import { formatDateRange, formatMonthYear } from '../../utils/cvHelpers';
+import { withBase } from '../../utils/assetPath';
 
 import rawStyles from './jamiePates.css?raw';
 
@@ -128,13 +129,13 @@ const DEFAULT_WINDOW_COLOR = {
 const COLOR_KEYS = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'];
 const MENU_ORDER = ['projects', 'skills', 'history', 'config'];
 const WORK_HISTORY_IMAGES = [
-  '/jamie-pates/history__dos.png',
-  '/jamie-pates/history__ruroc.png',
-  '/jamie-pates/history__tangymedia.png',
+  withBase('jamie-pates/history__dos.png'),
+  withBase('jamie-pates/history__ruroc.png'),
+  withBase('jamie-pates/history__tangymedia.png'),
 ];
 const EDUCATION_HISTORY_IMAGES = [
-  '/jamie-pates/history__plymouth.png',
-  '/jamie-pates/history__gloscol.png',
+  withBase('jamie-pates/history__plymouth.png'),
+  withBase('jamie-pates/history__gloscol.png'),
 ];
 const PAGE_TITLES = {
   home: 'Homepage',
@@ -360,7 +361,7 @@ function buildHistoryRecords(cv, mode, level) {
 }
 
 function getProjectIcon(index) {
-  return index % 2 === 0 ? '/jamie-pates/xpicon.png' : '/jamie-pates/cardicon.png';
+  return withBase(index % 2 === 0 ? 'jamie-pates/xpicon.png' : 'jamie-pates/cardicon.png');
 }
 
 function formatClock(totalSeconds) {
@@ -549,7 +550,7 @@ export function JamiePatesTheme() {
   function playSound(type) {
     const file = AUDIO_FILES[type];
     if (!soundEnabled || !file) return;
-    const audio = new Audio(`/jamie-pates/audio/${file}`);
+    const audio = new Audio(withBase(`jamie-pates/audio/${file}`));
     audio.volume = 0.2;
     audio.play().catch(() => {});
   }

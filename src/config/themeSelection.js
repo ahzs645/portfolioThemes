@@ -1,4 +1,5 @@
 import { getPortfolioTheme, getThemeIdFromPath, PORTFOLIO_THEMES } from '../themes';
+import { BASE_PREFIX, stripBase } from '../utils/assetPath';
 
 const THEME_SELECTION_MODES = {
   FIXED: 'fixed',
@@ -19,8 +20,11 @@ function normalizeThemeSelectionMode(value) {
 }
 
 function normalizePath(pathname = '/') {
-  const trimmedPath = pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
-  return trimmedPath ? `/${trimmedPath}` : '/';
+  const stripped = stripBase(pathname);
+  const trimmedPath = stripped.replace(/^\/+|\/+$/g, '').toLowerCase();
+  const rel = trimmedPath ? `/${trimmedPath}` : '/';
+  if (!BASE_PREFIX) return rel;
+  return rel === '/' ? `${BASE_PREFIX}/` : `${BASE_PREFIX}${rel}`;
 }
 
 export const themeSelectionMode = normalizeThemeSelectionMode(
@@ -64,5 +68,7 @@ export function resolveThemePath(themeId, pathname) {
   }
 
   const theme = getPortfolioTheme(themeId);
-  return theme.slug === 'minimal' ? '/' : `/${theme.slug}`;
+  const rel = theme.slug === 'minimal' ? '/' : `/${theme.slug}`;
+  if (!BASE_PREFIX) return rel;
+  return rel === '/' ? `${BASE_PREFIX}/` : `${BASE_PREFIX}${rel}`;
 }
