@@ -47,7 +47,6 @@ import { WallenartTUITheme } from './WallenartTUI/WallenartTUITheme';
 import { NimTheme } from './Nim/NimTheme';
 import { RetroComputerTheme } from './RetroComputer/RetroComputerTheme';
 import { VSCodePortfolioTheme } from './VSCodePortfolio/VSCodePortfolioTheme';
-import { FaizRaeimTheme } from './FaizRaeim/FaizRaeimTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -433,14 +432,6 @@ export const PORTFOLIO_THEMES = [
     description: 'IDE-themed portfolio with Atom One Dark colors, tab navigation, left activity bar, status bar, and code-file section names.',
     source: 'https://github.com/caglarturali/vscode-portfolio',
     Component: VSCodePortfolioTheme,
-  },
-  {
-    id: 'faiz-raeim',
-    slug: 'zinc-grid',
-    name: 'Zinc Grid',
-    description: 'Dark zinc card-based grid portfolio with animated spring blocks, status badge, floating decorations, and scroll-parallax footer.',
-    source: 'https://faizraeim.github.io',
-    Component: FaizRaeimTheme,
   },
 ];
 
