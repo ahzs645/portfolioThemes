@@ -1,7 +1,38 @@
 import styled, { createGlobalStyle, keyframes } from 'styled-components';
+import awesomeSerif400 from './assets/awesome-serif-400.otf?url';
+import awesomeSerif600 from './assets/awesome-serif-600.otf?url';
+import gtFlexaMono400 from './assets/gt-flexa-mono-400.otf?url';
+import gtFlexaMono700 from './assets/gt-flexa-mono-700.otf?url';
 
 export const FontLoader = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;700;900&display=swap');
+  @font-face {
+    font-family: 'awesomeSerif';
+    src: url(${awesomeSerif400}) format('opentype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'awesomeSerif';
+    src: url(${awesomeSerif600}) format('opentype');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'gtFlexaMono';
+    src: url(${gtFlexaMono400}) format('opentype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'gtFlexaMono';
+    src: url(${gtFlexaMono700}) format('opentype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+  }
 
   .vemula-theme ::selection { background-color: #FFC000; color: #000; }
   .vemula-theme ::-moz-selection { background-color: #FFC000; color: #000; }
@@ -15,7 +46,7 @@ export const Page = styled.div`
   padding: 20px 20px 50vh;
   background: #ffffff;
   color: #4E4E4E;
-  font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
+  font-family: 'awesomeSerif', Georgia, 'Times New Roman', serif;
   box-sizing: border-box;
   overflow-x: hidden;
 
@@ -25,8 +56,7 @@ export const Page = styled.div`
 
 export const Title = styled.h1`
   color: #4E4E4E;
-  font-family: 'Fraunces', Georgia, serif;
-  font-variation-settings: 'opsz' 144;
+  font-family: 'awesomeSerif', Georgia, serif;
   font-size: 2.5rem;
   font-weight: 600;
   line-height: 1.089;
@@ -67,7 +97,7 @@ export const Title = styled.h1`
 
 export const Subtitle = styled.div`
   color: #878787;
-  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-family: 'gtFlexaMono', ui-monospace, 'SF Mono', Menlo, monospace;
   font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.089;
@@ -273,7 +303,7 @@ export const CardLabel = styled.div`
   top: 10px;
   left: 12px;
   right: 12px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'gtFlexaMono', ui-monospace, monospace;
   font-weight: 700;
   font-size: 0.62rem;
   letter-spacing: 0.08em;
@@ -288,7 +318,7 @@ export const CardCount = styled.div`
   position: absolute;
   top: 10px;
   right: 12px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'gtFlexaMono', ui-monospace, monospace;
   font-weight: 700;
   font-size: 0.62rem;
   color: var(--card-label);
@@ -303,8 +333,7 @@ export const CardTitle = styled.div`
   bottom: 12px;
   left: 12px;
   right: 12px;
-  font-family: 'Fraunces', Georgia, serif;
-  font-variation-settings: 'opsz' 144;
+  font-family: 'awesomeSerif', Georgia, serif;
   font-weight: 600;
   font-size: 1rem;
   line-height: 1.05;
@@ -352,7 +381,7 @@ export const BackButton = styled.button`
   border: 1px solid currentColor;
   background: transparent;
   color: inherit;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'gtFlexaMono', ui-monospace, monospace;
   font-weight: 700;
   font-size: 0.78rem;
   letter-spacing: 0.08em;
@@ -381,7 +410,7 @@ export const DetailHeader = styled.div`
 `;
 
 export const DetailLabel = styled.div`
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'gtFlexaMono', ui-monospace, monospace;
   font-weight: 700;
   font-size: 0.78rem;
   letter-spacing: 0.1em;
@@ -391,8 +420,7 @@ export const DetailLabel = styled.div`
 `;
 
 export const DetailTitle = styled.h2`
-  font-family: 'Fraunces', Georgia, serif;
-  font-variation-settings: 'opsz' 144;
+  font-family: 'awesomeSerif', Georgia, serif;
   font-weight: 600;
   font-size: 2.5rem;
   line-height: 1.05;
@@ -413,8 +441,7 @@ export const DetailItem = styled.article`
 `;
 
 export const ItemTitle = styled.h3`
-  font-family: 'Fraunces', Georgia, serif;
-  font-variation-settings: 'opsz' 144;
+  font-family: 'awesomeSerif', Georgia, serif;
   font-weight: 600;
   font-size: 1.5rem;
   line-height: 1.1;
@@ -424,7 +451,7 @@ export const ItemTitle = styled.h3`
 `;
 
 export const ItemSubtitle = styled.div`
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'gtFlexaMono', ui-monospace, monospace;
   font-size: 0.95rem;
   font-weight: 400;
   opacity: 0.8;
@@ -434,7 +461,7 @@ export const ItemSubtitle = styled.div`
 `;
 
 export const ItemMeta = styled.div`
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'gtFlexaMono', ui-monospace, monospace;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -444,7 +471,7 @@ export const ItemMeta = styled.div`
 `;
 
 export const ItemBody = styled.p`
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'awesomeSerif', Georgia, serif;
   font-size: 1.1rem;
   line-height: 1.55;
   margin: 12px 0;
@@ -454,7 +481,7 @@ export const ItemBody = styled.p`
 export const ItemHighlights = styled.ul`
   margin: 12px 0 0;
   padding: 0 0 0 20px;
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'awesomeSerif', Georgia, serif;
   font-size: 1.05rem;
   line-height: 1.55;
   max-width: 70ch;
@@ -470,7 +497,7 @@ export const Tags = styled.div`
 `;
 
 export const Tag = styled.span`
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'gtFlexaMono', ui-monospace, monospace;
   font-weight: 700;
   font-size: 0.78rem;
   text-transform: uppercase;
@@ -487,7 +514,7 @@ export const LinkRow = styled.a`
   gap: 16px;
   padding: 18px 0;
   border-bottom: 1px solid currentColor;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'gtFlexaMono', ui-monospace, monospace;
   text-decoration: none;
   color: inherit;
   transition: padding-left 0.2s ease;
