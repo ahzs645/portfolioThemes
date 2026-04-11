@@ -1,6 +1,19 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
-import styled, { keyframes } from 'styled-components';
+import React, { useMemo, useState, useEffect } from 'react';
+import styled, { keyframes, css } from 'styled-components';
 import { useConfig } from '../../contexts/ConfigContext';
+import {
+  MatrixRain,
+  InfoLogs,
+  TypingTerminal,
+  Equalizer,
+  SpinningGeometry,
+  CellularAutomaton,
+  FlowDiagram,
+  SystemLoad,
+} from './components/TileAnimations';
+import { TileIcon } from './components/TileIcons';
+import { LiveFeed } from './components/LiveFeed';
+import { ActionMenu } from './components/ActionMenu';
 
 function isArchived(entry) {
   return Array.isArray(entry?.tags) && entry.tags.includes('archived');
@@ -12,63 +25,39 @@ function pickSocialUrl(socials, networkNames = []) {
   return found?.url || null;
 }
 
-// Matrix rain effect component
-function MatrixRain({ active }) {
-  const canvasRef = useRef(null);
-  const animationRef = useRef(null);
-
-  useEffect(() => {
-    if (!active || !canvasRef.current) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*';
-    const fontSize = 14;
-    const columns = Math.floor(canvas.width / fontSize);
-    const drops = Array(columns).fill(1);
-
-    const draw = () => {
-      ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = '#22c55e';
-      ctx.font = `${fontSize}px monospace`;
-
-      for (let i = 0; i < drops.length; i++) {
-        const char = chars[Math.floor(Math.random() * chars.length)];
-        ctx.fillText(char, i * fontSize, drops[i] * fontSize);
-
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-        drops[i]++;
-      }
-    };
-
-    const interval = setInterval(draw, 33);
-    return () => clearInterval(interval);
-  }, [active]);
-
-  if (!active) return null;
-
-  return (
-    <MatrixCanvas ref={canvasRef} />
-  );
+function renderTileAnimation(tileId, accent, active) {
+  switch (tileId) {
+    case 'projects':
+      return <MatrixRain active={active} />;
+    case 'work':
+      return <FlowDiagram active={active} color={accent} />;
+    case 'skills':
+      return <CellularAutomaton active={active} color={accent} />;
+    case 'about':
+      return <Equalizer active={active} color={accent} />;
+    case 'education':
+      return <SystemLoad active={active} color={accent} />;
+    case 'awards':
+      return <InfoLogs active={active} color={accent} />;
+    case 'more':
+      return <TypingTerminal active={active} color={accent} />;
+    case 'contact':
+      return <SpinningGeometry active={active} color={accent} />;
+    default:
+      return null;
+  }
 }
 
 // Tile configuration - based on CV sections
 const tileConfig = [
-  { id: 'projects', number: '01', title: 'Projects', accent: '#f97316', colSpan: 2 },
-  { id: 'work', number: '02', title: 'Work', accent: '#22c55e' },
-  { id: 'skills', number: '03', title: 'Skills', accent: '#3b82f6' },
-  { id: 'about', number: '04', title: 'About', accent: '#a855f7' },
-  { id: 'education', number: '05', title: 'Education', accent: '#ec4899' },
+  { id: 'projects', number: '01', title: 'Projects', accent: '#f97316', colSpan: 2, rowSpan: 2 },
   { id: 'awards', number: '06', title: 'Awards', accent: '#eab308' },
   { id: 'more', number: '07', title: 'More', accent: '#14b8a6' },
+  { id: 'about', number: '04', title: 'About', accent: '#a855f7' },
   { id: 'contact', number: '08', title: 'Contact', accent: '#06b6d4' },
+  { id: 'skills', number: '03', title: 'Skills', accent: '#3b82f6' },
+  { id: 'work', number: '02', title: 'Work', accent: '#22c55e' },
+  { id: 'education', number: '05', title: 'Education', accent: '#ec4899' },
 ];
 
 export function U11gTheme() {
@@ -161,6 +150,36 @@ export function U11gTheme() {
   const certificationsSkillsItems = useMemo(() => {
     return cv?.sections?.certifications_skills || [];
   }, [cv]);
+
+  // Live feed items — recent projects + experience
+  const feedItems = useMemo(() => {
+    const items = [];
+    projectItems.slice(0, 6).forEach((p) => {
+      items.push({
+        title: p.name || 'Untitled',
+        category: 'PROJECT',
+        date: p.date || '',
+        targetId: 'projects',
+      });
+    });
+    experienceItems.slice(0, 6).forEach((e) => {
+      items.push({
+        title: e.title || e.company || 'Role',
+        category: 'WORK',
+        date: e.date || '',
+        targetId: 'work',
+      });
+    });
+    awardItems.slice(0, 4).forEach((a) => {
+      items.push({
+        title: a.name || 'Award',
+        category: 'AWARD',
+        date: a.date || '',
+        targetId: 'awards',
+      });
+    });
+    return items;
+  }, [projectItems, experienceItems, awardItems]);
 
   // Command palette keyboard shortcut
   useEffect(() => {
@@ -411,73 +430,93 @@ export function U11gTheme() {
 
   return (
     <Container>
+      {/* Mobile brand bar */}
+      <MobileBrand>
+        <BrandText>{(fullName || 'portfolio').toLowerCase().replace(/\s+/g, '')}</BrandText>
+        <BrandDot />
+      </MobileBrand>
+
       <Dashboard>
         {/* Render tiles dynamically from config */}
-        {tileConfig.map((tile) => (
-          <Tile
-            key={tile.id}
-            $colSpan={tile.colSpan}
-            $rowSpan={tile.rowSpan}
-            $accent={tile.accent}
-            onClick={() => handleTileClick(tile.id)}
-            onMouseEnter={() => setHoveredTile(tile.id)}
-            onMouseLeave={() => setHoveredTile(null)}
-          >
-            {tile.id === 'projects' && <MatrixRain active={hoveredTile === 'projects'} />}
-            <TileContent>
-              <TileNumber>{tile.number}</TileNumber>
-              <TileBottom>
-                <TileTitle $large={tile.colSpan === 2}>{tile.title}</TileTitle>
-                <TileAccent $color={tile.accent} />
-              </TileBottom>
-            </TileContent>
-          </Tile>
-        ))}
+        {tileConfig.map((tile) => {
+          const isHovered = hoveredTile === tile.id;
+
+          // Split tile: "about" is a half-tile on top with LiveFeed on bottom
+          if (tile.id === 'about') {
+            return (
+              <SplitTile key={tile.id} $colSpan={tile.colSpan} $rowSpan={tile.rowSpan}>
+                <Tile
+                  as="button"
+                  $accent={tile.accent}
+                  onClick={() => handleTileClick(tile.id)}
+                  onMouseEnter={() => setHoveredTile(tile.id)}
+                  onMouseLeave={() => setHoveredTile(null)}
+                  style={{ height: '50%' }}
+                >
+                  {renderTileAnimation(tile.id, tile.accent, isHovered)}
+                  <TileIconWrap>
+                    <TileIcon id={tile.id} />
+                  </TileIconWrap>
+                  <TileContent>
+                    <TileNumber>{tile.number}</TileNumber>
+                    <TileBottom>
+                      <GlitchTitle data-text={tile.title} $hovered={isHovered}>
+                        {tile.title}
+                      </GlitchTitle>
+                      <TileAccent $color={tile.accent} />
+                    </TileBottom>
+                  </TileContent>
+                </Tile>
+                <LiveFeedWrap>
+                  <LiveFeed
+                    items={feedItems}
+                    onSelect={(item) => item?.targetId && setActivePage(item.targetId)}
+                  />
+                </LiveFeedWrap>
+              </SplitTile>
+            );
+          }
+
+          return (
+            <Tile
+              key={tile.id}
+              $colSpan={tile.colSpan}
+              $rowSpan={tile.rowSpan}
+              $accent={tile.accent}
+              onClick={() => handleTileClick(tile.id)}
+              onMouseEnter={() => setHoveredTile(tile.id)}
+              onMouseLeave={() => setHoveredTile(null)}
+            >
+              {renderTileAnimation(tile.id, tile.accent, isHovered)}
+              <TileIconWrap>
+                <TileIcon id={tile.id} />
+              </TileIconWrap>
+              <TileContent>
+                <TileNumber>{tile.number}</TileNumber>
+                <TileBottom>
+                  <GlitchTitle
+                    data-text={tile.title}
+                    $large={tile.colSpan === 2}
+                    $hovered={isHovered}
+                  >
+                    {tile.title}
+                  </GlitchTitle>
+                  <TileAccent $color={tile.accent} />
+                </TileBottom>
+              </TileContent>
+            </Tile>
+          );
+        })}
 
         {/* Action Menu Tile */}
-        <ActionTile>
-          <ActionTop>
-            <SocialLinks>
-              {githubUrl && (
-                <SocialIcon href={githubUrl} target="_blank" rel="noopener" aria-label="GitHub">
-                  <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                  </svg>
-                </SocialIcon>
-              )}
-              {linkedinUrl && (
-                <SocialIcon href={linkedinUrl} target="_blank" rel="noopener" aria-label="LinkedIn">
-                  <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                  </svg>
-                </SocialIcon>
-              )}
-              {twitterUrl && (
-                <SocialIcon href={twitterUrl} target="_blank" rel="noopener" aria-label="X">
-                  <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                  </svg>
-                </SocialIcon>
-              )}
-              {email && (
-                <SocialIcon href={`mailto:${email}`} aria-label="Email">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
-                    <rect width="20" height="16" x="2" y="4" rx="2" />
-                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                  </svg>
-                </SocialIcon>
-              )}
-            </SocialLinks>
-          </ActionTop>
-          <ActionBottom>
-            <CmdKButton onClick={() => setShowCommandPalette(true)}>
-              <kbd>⌘</kbd>
-              <span>+</span>
-              <kbd>K</kbd>
-            </CmdKButton>
-            <MoreButton>MORE</MoreButton>
-          </ActionBottom>
-        </ActionTile>
+        <ActionTileWrap>
+          <ActionMenu
+            socials={{ github: githubUrl, linkedin: linkedinUrl, twitter: twitterUrl }}
+            email={email}
+            resumeUrl={cv?.resumeUrl || null}
+            onCommandPalette={() => setShowCommandPalette(true)}
+          />
+        </ActionTileWrap>
       </Dashboard>
 
       {/* Subpage */}
@@ -544,12 +583,48 @@ const Dashboard = styled.div`
   gap: 1px;
   background: ${colors.appBg};
   width: 100%;
-  height: 100%;
+  min-height: 100%;
 
   @media (min-width: 768px) {
     grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(2, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    height: 100%;
   }
+`;
+
+const MobileBrand = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: ${colors.surface};
+  border-bottom: 1px solid ${colors.passive};
+
+  @media (min-width: 768px) {
+    display: none;
+  }
+`;
+
+const BrandText = styled.h1`
+  color: ${colors.primary};
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  margin: 0;
+`;
+
+const brandPulse = keyframes`
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+`;
+
+const BrandDot = styled.span`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: ${brandPulse} 1.6s ease-in-out infinite;
 `;
 
 const Tile = styled.button`
@@ -565,6 +640,7 @@ const Tile = styled.button`
   transition: background 0.2s;
   overflow: hidden;
   text-align: left;
+  width: 100%;
 
   @media (min-width: 768px) {
     padding: 24px;
@@ -577,13 +653,44 @@ const Tile = styled.button`
   }
 `;
 
-const MatrixCanvas = styled.canvas`
+const SplitTile = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: ${colors.appBg};
+  min-height: 320px;
+
+  @media (min-width: 768px) {
+    min-height: 0;
+    grid-column: ${props => props.$colSpan ? `span ${props.$colSpan}` : 'span 1'};
+    grid-row: ${props => props.$rowSpan ? `span ${props.$rowSpan}` : 'span 1'};
+  }
+`;
+
+const LiveFeedWrap = styled.div`
+  flex: 1;
+  min-height: 0;
+  height: 50%;
+`;
+
+const TileIconWrap = styled.div`
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  color: ${colors.secondary};
+  transition: color 0.3s;
   pointer-events: none;
-  opacity: 0.3;
+
+  ${Tile}:hover & {
+    color: ${colors.primary};
+  }
+
+  @media (min-width: 768px) {
+    top: 24px;
+    right: 24px;
+  }
 `;
 
 const TileContent = styled.div`
@@ -607,15 +714,69 @@ const TileBottom = styled.div`
   gap: 8px;
 `;
 
-const TileTitle = styled.h2`
+const glitchTop = keyframes`
+  0%, 100% { clip-path: inset(0 0 85% 0); transform: translate(0, 0); }
+  20% { clip-path: inset(20% 0 60% 0); transform: translate(-2px, 0); }
+  40% { clip-path: inset(45% 0 30% 0); transform: translate(2px, 0); }
+  60% { clip-path: inset(10% 0 75% 0); transform: translate(-1px, 0); }
+  80% { clip-path: inset(30% 0 50% 0); transform: translate(1px, 0); }
+`;
+
+const glitchBottom = keyframes`
+  0%, 100% { clip-path: inset(85% 0 0 0); transform: translate(0, 0); }
+  20% { clip-path: inset(60% 0 10% 0); transform: translate(2px, 0); }
+  40% { clip-path: inset(30% 0 35% 0); transform: translate(-2px, 0); }
+  60% { clip-path: inset(75% 0 5% 0); transform: translate(1px, 0); }
+  80% { clip-path: inset(50% 0 20% 0); transform: translate(-1px, 0); }
+`;
+
+const GlitchTitle = styled.h2`
+  position: relative;
   font-size: ${props => props.$large ? '48px' : '24px'};
   font-weight: normal;
   margin: 0;
   font-family: 'JetBrains Mono', monospace;
+  color: ${colors.primary};
 
   @media (min-width: 768px) {
     font-size: ${props => props.$large ? '64px' : '32px'};
   }
+
+  &::before,
+  &::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+
+  &::before {
+    color: #f97316;
+    z-index: 1;
+  }
+
+  &::after {
+    color: #06b6d4;
+    z-index: 2;
+  }
+
+  ${(p) =>
+    p.$hovered &&
+    css`
+      &::before {
+        opacity: 0.8;
+        animation: ${glitchTop} 1.6s steps(2, end) infinite;
+      }
+      &::after {
+        opacity: 0.8;
+        animation: ${glitchBottom} 1.6s steps(2, end) infinite;
+      }
+    `}
 `;
 
 const TileAccent = styled.div`
@@ -624,97 +785,13 @@ const TileAccent = styled.div`
   background: ${props => props.$color};
 `;
 
-const ActionTile = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 16px;
-  background: ${colors.surface};
+const ActionTileWrap = styled.div`
+  position: relative;
+  min-height: 320px;
+  width: 100%;
 
   @media (min-width: 768px) {
-    padding: 24px;
-  }
-`;
-
-const ActionTop = styled.div`
-  display: flex;
-  justify-content: flex-start;
-`;
-
-const SocialLinks = styled.div`
-  display: flex;
-  gap: 8px;
-`;
-
-const SocialIcon = styled.a`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: ${colors.surfaceHover};
-  border-radius: 50%;
-  color: ${colors.secondary};
-  text-decoration: none;
-  transition: all 0.2s;
-
-  &:hover {
-    color: ${colors.primary};
-    background: ${colors.passive};
-  }
-`;
-
-const ActionBottom = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-`;
-
-const CmdKButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 12px;
-  background: ${colors.surfaceHover};
-  border: 1px solid ${colors.passive};
-  border-radius: 6px;
-  color: ${colors.secondary};
-  cursor: pointer;
-  transition: all 0.2s;
-
-  kbd {
-    font-family: inherit;
-    font-size: 12px;
-    padding: 2px 6px;
-    background: ${colors.surface};
-    border: 1px solid ${colors.passive};
-    border-radius: 3px;
-  }
-
-  span {
-    font-size: 10px;
-  }
-
-  &:hover {
-    color: ${colors.primary};
-    border-color: ${colors.secondary};
-  }
-`;
-
-const MoreButton = styled.button`
-  padding: 8px 16px;
-  background: transparent;
-  border: 1px solid ${colors.passive};
-  border-radius: 4px;
-  color: ${colors.secondary};
-  font-family: inherit;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    color: ${colors.primary};
-    border-color: ${colors.secondary};
+    min-height: 0;
   }
 `;
 

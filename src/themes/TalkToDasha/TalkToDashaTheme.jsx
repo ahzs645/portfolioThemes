@@ -1,9 +1,8 @@
 import React, { useMemo } from 'react';
 import { useCV } from '../../contexts/ConfigContext';
-import { FontLoader, Page, Container, Footer } from './styles';
+import { FontLoader, Page, Container, FolderGrid, Footer } from './styles';
 import { Hero } from './components/Hero';
 import { CurrentStatus } from './components/CurrentStatus';
-import { AboutCard } from './components/AboutCard';
 import { ProjectsSection } from './components/ProjectsSection';
 import { PastCollabsSection } from './components/PastCollabsSection';
 import { FounderSection } from './components/FounderSection';
@@ -30,7 +29,6 @@ export function TalkToDashaTheme() {
       title: cv.currentJobTitle || 'Strategist & Builder',
       location: cv.location,
       email: cv.email,
-      about: cv.about,
       currentJobs: experience.filter((e) => e.isCurrent),
       pastJobs: experience.filter((e) => !e.isCurrent),
       projects: cv.projects || [],
@@ -49,15 +47,18 @@ export function TalkToDashaTheme() {
         <Container>
           <Hero name={data.name} title={data.title} location={data.location} />
           <CurrentStatus jobs={data.currentJobs} />
-          <AboutCard text={data.about} />
-          <ProjectsSection projects={data.projects} />
-          <PastCollabsSection jobs={data.pastJobs} />
-          <FounderSection
-            awards={data.awards}
-            certifications={data.certifications}
-          />
-          <SocialSection socials={data.socials} />
-          <ContactSection email={data.email} />
+          <FolderGrid>
+            <ProjectsSection projects={data.projects} />
+            <PastCollabsSection jobs={data.pastJobs} />
+            <FounderSection
+              awards={data.awards}
+              certifications={data.certifications}
+            />
+            <SocialSection socials={data.socials} />
+          </FolderGrid>
+          <FolderGrid>
+            <ContactSection email={data.email} />
+          </FolderGrid>
           <Footer>© {new Date().getFullYear()} {data.name}</Footer>
         </Container>
       </Page>

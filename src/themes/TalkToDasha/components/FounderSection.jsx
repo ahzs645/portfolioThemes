@@ -1,38 +1,34 @@
 import React from 'react';
-import { SectionCard } from './SectionCard';
-import { MiniCard, MiniGrid } from './MiniCard';
+import { FolderCard } from './FolderCard';
+import { FileTabStack, FileTab } from './FileTab';
 
 export function FounderSection({ awards = [], certifications = [] }) {
   if (awards.length === 0 && certifications.length === 0) return null;
 
   const items = [
-    ...awards.slice(0, 4).map((award, i) => ({
-      key: `a-${i}`,
-      eyebrow: award.date,
-      title: award.title,
-      body: award.issuer,
+    ...awards.slice(0, 3).map((a) => ({
+      label: a.title,
+      sub: a.issuer,
     })),
-    ...certifications.slice(0, 4).map((cert, i) => ({
-      key: `c-${i}`,
-      eyebrow: cert.date,
-      title: cert.name || cert.title,
-      body: cert.issuer,
+    ...certifications.slice(0, 3).map((c) => ({
+      label: c.name || c.title,
+      sub: c.issuer,
     })),
-  ];
+  ].slice(0, 3);
 
   return (
-    <SectionCard tone="mustard" heading="Recognitions">
-      <MiniGrid>
+    <FolderCard tone="mustard" label="Founder">
+      <FileTabStack>
         {items.map((item, i) => (
-          <MiniCard
-            key={item.key}
-            rotate={i % 2 === 0 ? -1.5 : 1.2}
-            eyebrow={item.eyebrow}
-            title={item.title}
-            body={item.body}
+          <FileTab
+            key={i}
+            index={i}
+            total={items.length}
+            label={item.label}
+            sub={item.sub}
           />
         ))}
-      </MiniGrid>
-    </SectionCard>
+      </FileTabStack>
+    </FolderCard>
   );
 }

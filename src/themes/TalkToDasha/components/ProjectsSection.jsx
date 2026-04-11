@@ -1,23 +1,24 @@
 import React from 'react';
-import { SectionCard } from './SectionCard';
-import { MiniCard, MiniGrid } from './MiniCard';
+import { FolderCard } from './FolderCard';
+import { FileTabStack, FileTab } from './FileTab';
 
 export function ProjectsSection({ projects }) {
   if (!projects || projects.length === 0) return null;
+  const items = projects.slice(0, 3);
 
   return (
-    <SectionCard tone="sage" heading="Latest releases">
-      <MiniGrid>
-        {projects.slice(0, 6).map((project, i) => (
-          <MiniCard
+    <FolderCard tone="sage" label="Latest release">
+      <FileTabStack>
+        {items.map((project, i) => (
+          <FileTab
             key={i}
-            rotate={i % 2 === 0 ? -1.2 : 1.4}
-            title={project.name}
-            body={project.description}
-            href={project.url}
+            index={i}
+            total={items.length}
+            label={project.name}
+            sub={project.description}
           />
         ))}
-      </MiniGrid>
-    </SectionCard>
+      </FileTabStack>
+    </FolderCard>
   );
 }
