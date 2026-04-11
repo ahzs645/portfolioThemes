@@ -65,69 +65,71 @@ export function FolderCard({ tone = 'lavender', label, items = [] }) {
       ref={rootRef}
       onMouseLeave={() => setActiveIndex(null)}
     >
-      <CardBase $bg={color.bg} />
+      <ClipLayer>
+        <CardBase $bg={color.bg} />
 
-      <ItemsLayer>
-        {visibleItems.map((item, index) => {
-          const state = getItemTransform(index, activeIndex);
-          const href = item.href || undefined;
+        <ItemsLayer>
+          {visibleItems.map((item, index) => {
+            const state = getItemTransform(index, activeIndex);
+            const href = item.href || undefined;
 
-          return (
-            <ItemCard
-              key={`${item.label}-${index}`}
-              as={href ? 'a' : 'button'}
-              href={href}
-              type={href ? undefined : 'button'}
-              target={href ? '_blank' : undefined}
-              rel={href ? 'noreferrer noopener' : undefined}
-              $top={STACK_TOPS[index] ?? STACK_TOPS[STACK_TOPS.length - 1]}
-              $bottom={STACK_BOTTOMS[index] ?? STACK_BOTTOMS[STACK_BOTTOMS.length - 1]}
-              $zIndex={state.zIndex}
-              initial={false}
-              animate={{
-                rotate: state.rotate,
-                y: state.translateY,
-                opacity: state.opacity,
-              }}
-              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-              onMouseEnter={() => setActiveIndex(index)}
-              onMouseMove={updateBubblePosition}
-              onFocus={() => setActiveIndex(index)}
-              onBlur={() => setActiveIndex(null)}
-            >
-              <ItemTitle>{item.label}</ItemTitle>
-              {item.meta && <ItemMeta>{item.meta}</ItemMeta>}
-            </ItemCard>
-          );
-        })}
-      </ItemsLayer>
+            return (
+              <ItemCard
+                key={`${item.label}-${index}`}
+                as={href ? 'a' : 'button'}
+                href={href}
+                type={href ? undefined : 'button'}
+                target={href ? '_blank' : undefined}
+                rel={href ? 'noreferrer noopener' : undefined}
+                $top={STACK_TOPS[index] ?? STACK_TOPS[STACK_TOPS.length - 1]}
+                $bottom={STACK_BOTTOMS[index] ?? STACK_BOTTOMS[STACK_BOTTOMS.length - 1]}
+                $zIndex={state.zIndex}
+                initial={false}
+                animate={{
+                  rotate: state.rotate,
+                  y: state.translateY,
+                  opacity: state.opacity,
+                }}
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                onMouseEnter={() => setActiveIndex(index)}
+                onMouseMove={updateBubblePosition}
+                onFocus={() => setActiveIndex(index)}
+                onBlur={() => setActiveIndex(null)}
+              >
+                <ItemTitle>{item.label}</ItemTitle>
+                {item.meta && <ItemMeta>{item.meta}</ItemMeta>}
+              </ItemCard>
+            );
+          })}
+        </ItemsLayer>
 
-      <FolderFace
-        viewBox={FOLDER_VIEWBOX}
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        <defs>
-          <filter id={shadowId} x="-10%" y="-10%" width="120%" height="130%">
-            <feDropShadow
-              dx="0"
-              dy="10"
-              stdDeviation="12"
-              floodColor="#000"
-              floodOpacity="0.08"
-            />
-          </filter>
-        </defs>
-        <path
-          d={FOLDER_PATH}
-          fill={color.bg}
-          filter={`url(${`#${shadowId}`})`}
-        />
-      </FolderFace>
+        <FolderFace
+          viewBox={FOLDER_VIEWBOX}
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <defs>
+            <filter id={shadowId} x="-10%" y="-10%" width="120%" height="130%">
+              <feDropShadow
+                dx="0"
+                dy="10"
+                stdDeviation="12"
+                floodColor="#000"
+                floodOpacity="0.08"
+              />
+            </filter>
+          </defs>
+          <path
+            d={FOLDER_PATH}
+            fill={color.bg}
+            filter={`url(${`#${shadowId}`})`}
+          />
+        </FolderFace>
 
-      <FooterRow>
-        {label && <Label $ink={color.ink}>{label}</Label>}
-      </FooterRow>
+        <FooterRow>
+          {label && <Label $ink={color.ink}>{label}</Label>}
+        </FooterRow>
+      </ClipLayer>
 
       <AnimatePresence>
         {activeItem?.detail && (
@@ -148,11 +150,18 @@ export function FolderCard({ tone = 'lavender', label, items = [] }) {
 
 const Wrap = styled.div`
   position: relative;
-  min-height: 248px;
-  height: clamp(248px, 34vw, 286px);
+  width: min(100%, 248px);
+  aspect-ratio: 1 / 1;
+  justify-self: center;
+  overflow: visible;
+  isolation: isolate;
+`;
+
+const ClipLayer = styled.div`
+  position: absolute;
+  inset: 0;
   border-radius: 24px;
   overflow: hidden;
-  isolation: isolate;
 `;
 
 const CardBase = styled.div`
@@ -248,7 +257,7 @@ const FloatingBubble = styled(motion.div)`
   position: absolute;
   top: 0;
   left: 0;
-  max-width: min(180px, calc(100% - 40px));
+  max-width: 180px;
   padding: 9px 12px;
   border-radius: 12px;
   background: #111111;

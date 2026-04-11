@@ -54,6 +54,7 @@ import { ChesterHowTheme } from './ChesterHow/ChesterHowTheme';
 import { JacobLeechTheme } from './JacobLeech/JacobLeechTheme';
 import { TalkToDashaTheme } from './TalkToDasha/TalkToDashaTheme';
 import { KaachowTheme } from './Kaachow/KaachowTheme';
+import { VemulaTheme } from './Vemula/VemulaTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -495,6 +496,14 @@ export const PORTFOLIO_THEMES = [
     description: 'Playful single-viewport hero with an oversized serif headline and a draggable physics-driven trash can full of crumpled papers, plus a custom "find me here instead" cursor — inspired by kaachow.xyz.',
     source: 'https://www.kaachow.xyz',
     Component: KaachowTheme,
+  },
+  {
+    id: 'vemula',
+    slug: 'card-stack',
+    name: 'Card Stack',
+    description: 'Editorial serif headline with inline avatar and sparkle, paired with a bottom-fixed row of overlapping gradient cards that lift and rotate on hover. Inspired by vemula.me.',
+    source: 'https://vemula.me',
+    Component: VemulaTheme,
   },
 ];
 

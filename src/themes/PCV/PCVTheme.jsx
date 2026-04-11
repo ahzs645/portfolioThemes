@@ -226,7 +226,7 @@ export function PCVTheme({ darkMode }) {
             <Spacer />
 
             {experience.map((e, i) => (
-              <Row key={`e${i}`}>
+              <Row key={`e${i}`} className="experience-row">
                 <NoLink>
                   <span>{e.company}</span>
                   <Dates>{e.dates}</Dates>
@@ -382,6 +382,7 @@ const Row = styled.div`
   @media (max-width: 768px) {
     min-height: 32px;
     &.desktop-only { display: none; }
+    &.experience-row + .experience-row { margin-top: 16px; }
   }
 `;
 
@@ -492,6 +493,10 @@ const NoLink = styled.div`
     top: 0;
   }
   @media (max-width: 768px) {
+    align-items: flex-start;
+    line-height: 22px;
+    padding-top: 5px;
+    padding-bottom: 5px;
     &:hover ${Dates}::after, &:focus-visible ${Dates}::after { content: none; }
   }
 `;

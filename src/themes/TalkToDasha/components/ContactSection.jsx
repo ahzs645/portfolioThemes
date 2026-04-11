@@ -41,8 +41,9 @@ export function ContactSection({ email }) {
 
 const Wrap = styled.div`
   position: relative;
-  min-height: 248px;
-  height: clamp(248px, 34vw, 286px);
+  width: min(100%, 248px);
+  aspect-ratio: 1 / 1;
+  justify-self: center;
   border-radius: 24px;
   overflow: hidden;
   background: ${cards.terracotta.bg};
