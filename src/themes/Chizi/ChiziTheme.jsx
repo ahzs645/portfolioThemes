@@ -542,9 +542,8 @@ const Avatar = styled.div`
   height: 1.75rem;
   border-radius: 0.25rem;
   background: ${({ $theme }) => $theme.primary};
-  display: var(--initial-display, flex);
   color: #fff;
-  display: flex;
+  display: var(--initial-display, flex);
   align-items: center;
   justify-content: center;
   font-weight: 600;

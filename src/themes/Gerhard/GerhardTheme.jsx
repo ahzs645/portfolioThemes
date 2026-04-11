@@ -140,226 +140,231 @@ export function GerhardTheme() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Container>
-        <Header>
-          <IconButton onClick={() => setIsDark(!isDark)} title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="2" y1="12" x2="22" y2="12"/>
-              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-            </svg>
-          </IconButton>
-        </Header>
+      <Page>
+        <Container>
+          <Header>
+            <IconButton onClick={() => setIsDark(!isDark)} title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+            </IconButton>
+          </Header>
 
-        <Main>
-          <Name>{fullName}</Name>
+          <Main>
+            <Name>{fullName}</Name>
 
-          <SectionLabel>About</SectionLabel>
-          {aboutText && <Paragraph>{aboutText}</Paragraph>}
-          {location && <Paragraph>Based in {location}.</Paragraph>}
-          {currentPosition && <Paragraph>{currentPosition}</Paragraph>}
+            <SectionLabel>About</SectionLabel>
+            {aboutText && <Paragraph>{aboutText}</Paragraph>}
+            {location && <Paragraph>Based in {location}.</Paragraph>}
+            {currentPosition && <Paragraph>{currentPosition}</Paragraph>}
 
-          {projectItems.length > 0 && (
-            <>
-              <SectionLabel>Projects</SectionLabel>
-              <List>
-                {projectItems.map((project, idx) => (
-                  <ListItem key={`proj-${idx}`}>
-                    {project.url ? (
-                      <Link href={project.url} target="_blank" rel="noopener" className="spacing">
-                        {project.name}
-                      </Link>
-                    ) : (
-                      <span className="spacing">{project.name}</span>
-                    )}
-                    {project.summary && <Small>{project.summary}</Small>}
-                  </ListItem>
-                ))}
-              </List>
-            </>
-          )}
+            {projectItems.length > 0 && (
+              <>
+                <SectionLabel>Projects</SectionLabel>
+                <List>
+                  {projectItems.map((project, idx) => (
+                    <ListItem key={`proj-${idx}`}>
+                      {project.url ? (
+                        <Link href={project.url} target="_blank" rel="noopener" className="spacing">
+                          {project.name}
+                        </Link>
+                      ) : (
+                        <span className="spacing">{project.name}</span>
+                      )}
+                      {project.summary && <Small>{project.summary}</Small>}
+                    </ListItem>
+                  ))}
+                </List>
+              </>
+            )}
 
-          {experienceItems.length > 0 && (
-            <>
-              <SectionLabel>Experience</SectionLabel>
-              <ExperienceList>
-                {experienceItems.map((exp, idx) => (
-                  <ExperienceItem key={`exp-${idx}`}>
-                    <ExperienceHeader>
-                      <Small>{exp.positions[0]?.startDate}{exp.positions[0]?.endDate && ` - ${exp.positions[0]?.endDate}`}</Small>
-                      <span className="company">{exp.company}</span>
-                    </ExperienceHeader>
-                    {exp.positions.map((pos, posIdx) => (
-                      <PositionItem key={`pos-${posIdx}`} $indented>
-                        {pos.title}
-                        {exp.positions.length > 1 && (
-                          <Small className="date"> ({pos.startDate}{pos.endDate && ` - ${pos.endDate}`})</Small>
-                        )}
+            {experienceItems.length > 0 && (
+              <>
+                <SectionLabel>Experience</SectionLabel>
+                <ExperienceList>
+                  {experienceItems.map((exp, idx) => (
+                    <ExperienceItem key={`exp-${idx}`}>
+                      <ExperienceHeader>
+                        <Small>{exp.positions[0]?.startDate}{exp.positions[0]?.endDate && ` - ${exp.positions[0]?.endDate}`}</Small>
+                        <span className="company">{exp.company}</span>
+                      </ExperienceHeader>
+                      {exp.positions.map((pos, posIdx) => (
+                        <PositionItem key={`pos-${posIdx}`} $indented>
+                          {pos.title}
+                          {exp.positions.length > 1 && (
+                            <Small className="date"> ({pos.startDate}{pos.endDate && ` - ${pos.endDate}`})</Small>
+                          )}
+                        </PositionItem>
+                      ))}
+                    </ExperienceItem>
+                  ))}
+                </ExperienceList>
+              </>
+            )}
+
+            {volunteerItems.length > 0 && (
+              <>
+                <SectionLabel>Volunteer</SectionLabel>
+                <ExperienceList>
+                  {volunteerItems.map((vol, idx) => (
+                    <ExperienceItem key={`vol-${idx}`}>
+                      <ExperienceHeader>
+                        <Small>{formatDate(vol.start_date)}{vol.end_date && ` - ${formatDate(vol.end_date)}`}</Small>
+                        <span className="company">{vol.organization || vol.company}</span>
+                      </ExperienceHeader>
+                      <PositionItem $indented>
+                        {vol.position || vol.role}
+                        {vol.summary && <Small> - {vol.summary}</Small>}
                       </PositionItem>
-                    ))}
-                  </ExperienceItem>
-                ))}
-              </ExperienceList>
-            </>
-          )}
-
-          {volunteerItems.length > 0 && (
-            <>
-              <SectionLabel>Volunteer</SectionLabel>
-              <ExperienceList>
-                {volunteerItems.map((vol, idx) => (
-                  <ExperienceItem key={`vol-${idx}`}>
-                    <ExperienceHeader>
-                      <Small>{formatDate(vol.start_date)}{vol.end_date && ` - ${formatDate(vol.end_date)}`}</Small>
-                      <span className="company">{vol.organization || vol.company}</span>
-                    </ExperienceHeader>
-                    <PositionItem $indented>
-                      {vol.position || vol.role}
-                      {vol.summary && <Small> - {vol.summary}</Small>}
-                    </PositionItem>
-                  </ExperienceItem>
-                ))}
-              </ExperienceList>
-            </>
-          )}
-
-          {educationItems.length > 0 && (
-            <>
-              <SectionLabel>Education</SectionLabel>
-              <List>
-                {educationItems.map((edu, idx) => (
-                  <ListItem key={`edu-${idx}`}>
-                    <Small className="spacing">{formatDate(edu.end_date)}</Small>
-                    <span>{edu.degree} in {edu.area}, {edu.institution}</span>
-                  </ListItem>
-                ))}
-              </List>
-            </>
-          )}
-
-          {awardItems.length > 0 && (
-            <>
-              <SectionLabel>Awards</SectionLabel>
-              <List>
-                {awardItems.map((award, idx) => (
-                  <ListItem key={`award-${idx}`}>
-                    <Small className="spacing">{formatDate(award.date)}</Small>
-                    <span>{award.name}</span>
-                    {award.summary && <Small> - {award.summary}</Small>}
-                  </ListItem>
-                ))}
-              </List>
-            </>
-          )}
-
-          {presentationItems.length > 0 && (
-            <>
-              <SectionLabel>Presentations</SectionLabel>
-              <List>
-                {presentationItems.map((pres, idx) => (
-                  <ListItem key={`pres-${idx}`}>
-                    <Small className="spacing">{formatDate(pres.date)}</Small>
-                    <span>{pres.name}</span>
-                    {pres.location && <Small> - {pres.location}</Small>}
-                  </ListItem>
-                ))}
-              </List>
-            </>
-          )}
-
-          {publicationItems.length > 0 && (
-            <>
-              <SectionLabel>Publications</SectionLabel>
-              <List>
-                {publicationItems.map((pub, idx) => (
-                  <ListItem key={`pub-${idx}`}>
-                    <Small className="spacing">{formatDate(pub.date || pub.releaseDate)}</Small>
-                    {pub.doi ? (
-                      <Link href={`https://doi.org/${pub.doi}`} target="_blank" rel="noopener">
-                        {pub.name || pub.title}
-                      </Link>
-                    ) : pub.url ? (
-                      <Link href={pub.url} target="_blank" rel="noopener">
-                        {pub.name || pub.title}
-                      </Link>
-                    ) : (
-                      <span>{pub.name || pub.title}</span>
-                    )}
-                    {pub.authors && <Small> - {pub.authors}</Small>}
-                  </ListItem>
-                ))}
-              </List>
-            </>
-          )}
-
-          {professionalDevItems.length > 0 && (
-            <>
-              <SectionLabel>Professional Development</SectionLabel>
-              <List>
-                {professionalDevItems.map((item, idx) => (
-                  <ListItem key={`profdev-${idx}`}>
-                    <Small className="spacing">{formatDate(item.date)}</Small>
-                    <span>{item.name}</span>
-                    {item.location && <Small> at {item.location}</Small>}
-                  </ListItem>
-                ))}
-              </List>
-            </>
-          )}
-
-          <SectionLabel>Elsewhere</SectionLabel>
-          <List>
-            {email && (
-              <ListItem>
-                <Link href={`mailto:${email}`}>{email}</Link>
-              </ListItem>
+                    </ExperienceItem>
+                  ))}
+                </ExperienceList>
+              </>
             )}
-            {phone && (
-              <ListItem>
-                <Link href={`tel:${phone}`}>{phone}</Link>
-              </ListItem>
-            )}
-            {githubUrl && (
-              <ListItem>
-                <Link href={githubUrl} target="_blank" rel="noopener">GitHub</Link>
-              </ListItem>
-            )}
-            {linkedinUrl && (
-              <ListItem>
-                <Link href={linkedinUrl} target="_blank" rel="noopener">LinkedIn</Link>
-              </ListItem>
-            )}
-            {twitterUrl && (
-              <ListItem>
-                <Link href={twitterUrl} target="_blank" rel="noopener">Twitter</Link>
-              </ListItem>
-            )}
-          </List>
-        </Main>
 
-        <Footer>
-          <FooterList>
-            <li><Small>Updated {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</Small></li>
-            <li><Small><em>No hurry, no pause...</em></Small></li>
-            <li><Small>&copy; {new Date().getFullYear()}</Small></li>
-          </FooterList>
-        </Footer>
-      </Container>
+            {educationItems.length > 0 && (
+              <>
+                <SectionLabel>Education</SectionLabel>
+                <List>
+                  {educationItems.map((edu, idx) => (
+                    <ListItem key={`edu-${idx}`}>
+                      <Small className="spacing">{formatDate(edu.end_date)}</Small>
+                      <span>{edu.degree} in {edu.area}, {edu.institution}</span>
+                    </ListItem>
+                  ))}
+                </List>
+              </>
+            )}
+
+            {awardItems.length > 0 && (
+              <>
+                <SectionLabel>Awards</SectionLabel>
+                <List>
+                  {awardItems.map((award, idx) => (
+                    <ListItem key={`award-${idx}`}>
+                      <Small className="spacing">{formatDate(award.date)}</Small>
+                      <span>{award.name}</span>
+                      {award.summary && <Small> - {award.summary}</Small>}
+                    </ListItem>
+                  ))}
+                </List>
+              </>
+            )}
+
+            {presentationItems.length > 0 && (
+              <>
+                <SectionLabel>Presentations</SectionLabel>
+                <List>
+                  {presentationItems.map((pres, idx) => (
+                    <ListItem key={`pres-${idx}`}>
+                      <Small className="spacing">{formatDate(pres.date)}</Small>
+                      <span>{pres.name}</span>
+                      {pres.location && <Small> - {pres.location}</Small>}
+                    </ListItem>
+                  ))}
+                </List>
+              </>
+            )}
+
+            {publicationItems.length > 0 && (
+              <>
+                <SectionLabel>Publications</SectionLabel>
+                <List>
+                  {publicationItems.map((pub, idx) => (
+                    <ListItem key={`pub-${idx}`}>
+                      <Small className="spacing">{formatDate(pub.date || pub.releaseDate)}</Small>
+                      {pub.doi ? (
+                        <Link href={`https://doi.org/${pub.doi}`} target="_blank" rel="noopener">
+                          {pub.name || pub.title}
+                        </Link>
+                      ) : pub.url ? (
+                        <Link href={pub.url} target="_blank" rel="noopener">
+                          {pub.name || pub.title}
+                        </Link>
+                      ) : (
+                        <span>{pub.name || pub.title}</span>
+                      )}
+                      {pub.authors && <Small> - {pub.authors}</Small>}
+                    </ListItem>
+                  ))}
+                </List>
+              </>
+            )}
+
+            {professionalDevItems.length > 0 && (
+              <>
+                <SectionLabel>Professional Development</SectionLabel>
+                <List>
+                  {professionalDevItems.map((item, idx) => (
+                    <ListItem key={`profdev-${idx}`}>
+                      <Small className="spacing">{formatDate(item.date)}</Small>
+                      <span>{item.name}</span>
+                      {item.location && <Small> at {item.location}</Small>}
+                    </ListItem>
+                  ))}
+                </List>
+              </>
+            )}
+
+            <SectionLabel>Elsewhere</SectionLabel>
+            <List>
+              {email && (
+                <ListItem>
+                  <Link href={`mailto:${email}`}>{email}</Link>
+                </ListItem>
+              )}
+              {phone && (
+                <ListItem>
+                  <Link href={`tel:${phone}`}>{phone}</Link>
+                </ListItem>
+              )}
+              {githubUrl && (
+                <ListItem>
+                  <Link href={githubUrl} target="_blank" rel="noopener">GitHub</Link>
+                </ListItem>
+              )}
+              {linkedinUrl && (
+                <ListItem>
+                  <Link href={linkedinUrl} target="_blank" rel="noopener">LinkedIn</Link>
+                </ListItem>
+              )}
+              {twitterUrl && (
+                <ListItem>
+                  <Link href={twitterUrl} target="_blank" rel="noopener">Twitter</Link>
+                </ListItem>
+              )}
+            </List>
+          </Main>
+
+          <Footer>
+            <FooterList>
+              <li><Small>Updated {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</Small></li>
+              <li><Small><em>No hurry, no pause...</em></Small></li>
+              <li><Small>&copy; {new Date().getFullYear()}</Small></li>
+            </FooterList>
+          </Footer>
+        </Container>
+      </Page>
     </ThemeProvider>
   );
 }
 
-const Container = styled.div`
+const Page = styled.div`
   min-height: 100%;
   width: 100%;
+  background-color: ${props => props.theme.background};
+  color: ${props => props.theme.foreground};
+  transition: background-color 0.3s ease, color 0.3s ease;
+`;
+
+const Container = styled.div`
   font: 80%/1.6 system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   margin: 0;
   padding: 2rem;
   max-width: 60ch;
   box-sizing: border-box;
-  background-color: ${props => props.theme.background};
-  color: ${props => props.theme.foreground};
-  transition: background-color 0.3s ease, color 0.3s ease;
 `;
 
 const Header = styled.header`

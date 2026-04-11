@@ -50,7 +50,9 @@ function IsolatedPreview({ children, width, height }) {
     const handleLoad = () => {
       const doc = iframe.contentDocument;
       if (!doc) return;
+      doc.documentElement.style.height = '100%';
       doc.body.style.margin = '0';
+      doc.body.style.height = '100%';
       doc.body.style.overflow = 'hidden';
       let mountEl = doc.getElementById('preview-root');
       if (!mountEl) {
@@ -58,6 +60,8 @@ function IsolatedPreview({ children, width, height }) {
         mountEl.id = 'preview-root';
         doc.body.appendChild(mountEl);
       }
+      mountEl.style.width = '100%';
+      mountEl.style.height = '100%';
       setIframeState({ mountEl, head: doc.head });
     };
     iframe.addEventListener('load', handleLoad);
@@ -1172,4 +1176,3 @@ const CardDescription = styled.p`
   margin: 0;
   line-height: 1.5;
 `;
-
