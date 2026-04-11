@@ -14,6 +14,7 @@ import {
 import { TileIcon } from './components/TileIcons';
 import { LiveFeed } from './components/LiveFeed';
 import { ActionMenu } from './components/ActionMenu';
+import { THEME_NAMES, THEME_PALETTES, paletteToCssVars, STORAGE_KEY } from './themes';
 
 function isArchived(entry) {
   return Array.isArray(entry?.tags) && entry.tags.includes('archived');
@@ -67,6 +68,26 @@ export function U11gTheme() {
   const [hoveredTile, setHoveredTile] = useState(null);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [theme, setTheme] = useState(() => {
+    if (typeof localStorage === 'undefined') return 'default';
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return THEME_NAMES.includes(stored) ? stored : 'default';
+  });
+
+  useEffect(() => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, theme);
+    }
+  }, [theme]);
+
+  const cycleTheme = () => {
+    setTheme((current) => {
+      const idx = THEME_NAMES.indexOf(current);
+      return THEME_NAMES[(idx + 1) % THEME_NAMES.length];
+    });
+  };
+
+  const themeVars = useMemo(() => paletteToCssVars(THEME_PALETTES[theme]), [theme]);
 
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;
@@ -429,7 +450,7 @@ export function U11gTheme() {
   };
 
   return (
-    <Container>
+    <Container data-u11g-theme={theme} style={themeVars}>
       {/* Mobile brand bar */}
       <MobileBrand>
         <BrandText>{(fullName || 'portfolio').toLowerCase().replace(/\s+/g, '')}</BrandText>
@@ -515,6 +536,8 @@ export function U11gTheme() {
             email={email}
             resumeUrl={cv?.resumeUrl || null}
             onCommandPalette={() => setShowCommandPalette(true)}
+            theme={theme}
+            onCycleTheme={cycleTheme}
           />
         </ActionTileWrap>
       </Dashboard>
@@ -551,14 +574,15 @@ export function U11gTheme() {
   );
 }
 
-// Color palette
-const colors = {
-  appBg: '#27272a',
-  surface: '#0a0a0a',
-  surfaceHover: '#18181b',
-  primary: '#ffffff',
-  secondary: '#a1a1aa',
-  passive: '#333333',
+// Theme colors come from CSS variables set on Container via data-u11g-theme.
+// Defined in ./themes.js and applied via inline style.
+const c = {
+  appBg: 'var(--u11g-app-bg)',
+  surface: 'var(--u11g-surface)',
+  surfaceHover: 'var(--u11g-surface-hover)',
+  primary: 'var(--u11g-primary)',
+  secondary: 'var(--u11g-secondary)',
+  passive: 'var(--u11g-passive)',
 };
 
 const pulse = keyframes`
@@ -571,8 +595,8 @@ const Container = styled.div`
   height: 100%;
   width: 100%;
   overflow: hidden;
-  background-color: ${colors.appBg};
-  color: ${colors.primary};
+  background-color: ${c.appBg};
+  color: ${c.primary};
   font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
 `;
 
@@ -581,7 +605,7 @@ const Dashboard = styled.div`
   grid-template-columns: 1fr;
   grid-auto-rows: 1fr;
   gap: 1px;
-  background: ${colors.appBg};
+  background: ${c.appBg};
   width: 100%;
   min-height: 100%;
 
@@ -597,8 +621,8 @@ const MobileBrand = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
-  background: ${colors.surface};
-  border-bottom: 1px solid ${colors.passive};
+  background: ${c.surface};
+  border-bottom: 1px solid ${c.passive};
 
   @media (min-width: 768px) {
     display: none;
@@ -606,7 +630,7 @@ const MobileBrand = styled.div`
 `;
 
 const BrandText = styled.h1`
-  color: ${colors.primary};
+  color: ${c.primary};
   font-family: 'JetBrains Mono', monospace;
   font-size: 18px;
   font-weight: 700;
@@ -633,9 +657,9 @@ const Tile = styled.button`
   flex-direction: column;
   justify-content: space-between;
   padding: 16px;
-  background: ${colors.surface};
+  background: ${c.surface};
   border: none;
-  color: ${colors.primary};
+  color: ${c.primary};
   cursor: pointer;
   transition: background 0.2s;
   overflow: hidden;
@@ -649,7 +673,7 @@ const Tile = styled.button`
   }
 
   &:hover {
-    background: ${colors.surfaceHover};
+    background: ${c.surfaceHover};
   }
 `;
 
@@ -658,7 +682,7 @@ const SplitTile = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1px;
-  background: ${colors.appBg};
+  background: ${c.appBg};
   min-height: 320px;
 
   @media (min-width: 768px) {
@@ -679,12 +703,12 @@ const TileIconWrap = styled.div`
   top: 16px;
   right: 16px;
   z-index: 2;
-  color: ${colors.secondary};
+  color: ${c.secondary};
   transition: color 0.3s;
   pointer-events: none;
 
   ${Tile}:hover & {
-    color: ${colors.primary};
+    color: ${c.primary};
   }
 
   @media (min-width: 768px) {
@@ -704,7 +728,7 @@ const TileContent = styled.div`
 
 const TileNumber = styled.span`
   font-size: 14px;
-  color: ${colors.secondary};
+  color: ${c.secondary};
   font-family: 'JetBrains Mono', monospace;
 `;
 
@@ -736,7 +760,7 @@ const GlitchTitle = styled.h2`
   font-weight: normal;
   margin: 0;
   font-family: 'JetBrains Mono', monospace;
-  color: ${colors.primary};
+  color: ${c.primary};
 
   @media (min-width: 768px) {
     font-size: ${props => props.$large ? '64px' : '32px'};
@@ -811,8 +835,8 @@ const SubpageContent = styled.div`
   width: 100%;
   max-width: 900px;
   max-height: 90vh;
-  background: ${colors.surface};
-  border: 1px solid ${colors.passive};
+  background: ${c.surface};
+  border: 1px solid ${c.passive};
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -822,13 +846,13 @@ const SubpageHeader = styled.div`
   display: flex;
   align-items: center;
   padding: 24px;
-  border-bottom: 1px solid ${colors.passive};
+  border-bottom: 1px solid ${c.passive};
   gap: 16px;
 `;
 
 const SubpageNumber = styled.span`
   font-size: 14px;
-  color: ${colors.secondary};
+  color: ${c.secondary};
 `;
 
 const SubpageTitle = styled.h1`
@@ -845,14 +869,14 @@ const CloseButton = styled.button`
   width: 40px;
   height: 40px;
   background: transparent;
-  border: 1px solid ${colors.passive};
-  color: ${colors.secondary};
+  border: 1px solid ${c.passive};
+  color: ${c.secondary};
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    color: ${colors.primary};
-    border-color: ${colors.secondary};
+    color: ${c.primary};
+    border-color: ${c.secondary};
   }
 `;
 
@@ -873,14 +897,14 @@ const ProjectCard = styled.a`
   flex-direction: column;
   gap: 8px;
   padding: 20px;
-  background: ${colors.surfaceHover};
-  border: 1px solid ${colors.passive};
+  background: ${c.surfaceHover};
+  border: 1px solid ${c.passive};
   text-decoration: none;
   color: inherit;
   transition: all 0.2s;
 
   &:hover {
-    border-color: ${colors.secondary};
+    border-color: ${c.secondary};
   }
 `;
 
@@ -892,7 +916,7 @@ const ProjectName = styled.h3`
 
 const ProjectDesc = styled.p`
   font-size: 14px;
-  color: ${colors.secondary};
+  color: ${c.secondary};
   margin: 0;
   line-height: 1.5;
 `;
@@ -900,10 +924,10 @@ const ProjectDesc = styled.p`
 const SubpageSectionLabel = styled.h2`
   font-size: 14px;
   text-transform: uppercase;
-  color: ${colors.secondary};
+  color: ${c.secondary};
   margin: 24px 0 8px;
   padding-bottom: 8px;
-  border-bottom: 1px solid ${colors.passive};
+  border-bottom: 1px solid ${c.passive};
 
   &:first-child {
     margin-top: 0;
@@ -918,13 +942,13 @@ const WorkList = styled.div`
 
 const WorkItem = styled.div`
   padding: 20px;
-  background: ${colors.surfaceHover};
-  border: 1px solid ${colors.passive};
+  background: ${c.surfaceHover};
+  border: 1px solid ${c.passive};
 `;
 
 const WorkCompany = styled.div`
   font-size: 12px;
-  color: ${colors.secondary};
+  color: ${c.secondary};
   text-transform: uppercase;
   margin-bottom: 8px;
 `;
@@ -937,7 +961,7 @@ const WorkTitle = styled.h3`
 
 const WorkDesc = styled.p`
   font-size: 14px;
-  color: ${colors.secondary};
+  color: ${c.secondary};
   margin: 0;
   line-height: 1.5;
 `;
@@ -956,7 +980,7 @@ const AboutName = styled.h2`
 
 const AboutBio = styled.p`
   font-size: 16px;
-  color: ${colors.secondary};
+  color: ${c.secondary};
   line-height: 1.8;
   margin: 0;
 `;
@@ -969,15 +993,15 @@ const SkillsGrid = styled.div`
 
 const SkillCard = styled.div`
   padding: 20px;
-  background: ${colors.surfaceHover};
-  border: 1px solid ${colors.passive};
+  background: ${c.surfaceHover};
+  border: 1px solid ${c.passive};
 `;
 
 const SkillName = styled.h3`
   font-size: 16px;
   font-weight: normal;
   margin: 0 0 12px;
-  color: ${colors.primary};
+  color: ${c.primary};
 `;
 
 const SkillTags = styled.div`
@@ -989,9 +1013,9 @@ const SkillTags = styled.div`
 const SkillTag = styled.span`
   font-size: 11px;
   padding: 4px 8px;
-  background: ${colors.surface};
-  border: 1px solid ${colors.passive};
-  color: ${colors.secondary};
+  background: ${c.surface};
+  border: 1px solid ${c.passive};
+  color: ${c.secondary};
 `;
 
 const ContactContent = styled.div`
@@ -1005,26 +1029,26 @@ const ContactItem = styled.a`
   flex-direction: column;
   gap: 4px;
   padding: 20px;
-  background: ${colors.surfaceHover};
-  border: 1px solid ${colors.passive};
+  background: ${c.surfaceHover};
+  border: 1px solid ${c.passive};
   text-decoration: none;
   color: inherit;
   transition: all 0.2s;
 
   &:hover {
-    border-color: ${colors.secondary};
+    border-color: ${c.secondary};
   }
 `;
 
 const ContactLabel = styled.span`
   font-size: 12px;
-  color: ${colors.secondary};
+  color: ${c.secondary};
   text-transform: uppercase;
 `;
 
 const ContactValue = styled.span`
   font-size: 16px;
-  color: ${colors.primary};
+  color: ${c.primary};
 `;
 
 // Command Palette
@@ -1041,8 +1065,8 @@ const CommandPaletteOverlay = styled.div`
 const CommandPalette = styled.div`
   width: 100%;
   max-height: 75vh;
-  background: ${colors.surface};
-  border-top: 1px solid ${colors.passive};
+  background: ${c.surface};
+  border-top: 1px solid ${c.passive};
   display: flex;
   flex-direction: column;
   padding: 32px;
@@ -1051,7 +1075,7 @@ const CommandPalette = styled.div`
 const CommandHeader = styled.div`
   display: flex;
   align-items: center;
-  border-bottom: 1px solid ${colors.passive};
+  border-bottom: 1px solid ${c.passive};
   padding-bottom: 24px;
   margin-bottom: 24px;
 `;
@@ -1070,12 +1094,12 @@ const CommandInput = styled.input`
   outline: none;
   font-size: 32px;
   font-family: inherit;
-  color: ${colors.primary};
+  color: ${c.primary};
   text-transform: uppercase;
   letter-spacing: -0.02em;
 
   &::placeholder {
-    color: ${colors.passive};
+    color: ${c.passive};
   }
 
   @media (min-width: 768px) {
@@ -1089,8 +1113,8 @@ const CommandResults = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1px;
-  background: ${colors.passive}50;
-  border: 1px solid ${colors.passive}50;
+  background: ${c.passive}50;
+  border: 1px solid ${c.passive}50;
 `;
 
 const CommandItem = styled.button`
@@ -1098,16 +1122,16 @@ const CommandItem = styled.button`
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px;
-  background: ${colors.surface};
+  background: ${c.surface};
   border: none;
-  color: ${colors.secondary};
+  color: ${c.secondary};
   cursor: pointer;
   transition: all 0.2s;
   text-align: left;
 
   &:hover {
-    background: ${colors.surfaceHover};
-    color: ${colors.primary};
+    background: ${c.surfaceHover};
+    color: ${c.primary};
   }
 `;
 
@@ -1125,12 +1149,12 @@ const CommandItemType = styled.span`
   padding: 4px 8px;
   text-transform: uppercase;
   font-weight: bold;
-  color: ${colors.surface};
+  color: ${c.surface};
   background: ${props => {
     switch (props.$type) {
       case 'NAVIGATE': return '#a855f7';
       case 'PROJECT': return '#f97316';
-      default: return colors.secondary;
+      default: return c.secondary;
     }
   }};
 `;

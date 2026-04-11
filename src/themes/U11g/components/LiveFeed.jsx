@@ -57,8 +57,8 @@ const Wrap = styled.div`
   flex-direction: column;
   justify-content: space-between;
   padding: 16px;
-  background: #0a0a0a;
-  color: #fff;
+  background: var(--u11g-surface);
+  color: var(--u11g-primary);
   cursor: pointer;
   overflow: hidden;
   user-select: none;
@@ -72,7 +72,7 @@ const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--u11g-passive);
   padding-bottom: 8px;
 `;
 
@@ -81,10 +81,10 @@ const Label = styled.span`
   font-family: 'JetBrains Mono', monospace;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #a1a1aa;
+  color: var(--u11g-secondary);
 
   strong {
-    color: #fff;
+    color: var(--u11g-primary);
     font-weight: 600;
   }
 `;
@@ -92,7 +92,7 @@ const Label = styled.span`
 const Date = styled.span`
   font-size: 10px;
   font-family: 'JetBrains Mono', monospace;
-  color: #a1a1aa;
+  color: var(--u11g-secondary);
 `;
 
 const TitleWrap = styled.div`
@@ -107,7 +107,7 @@ const Title = styled.div`
   text-transform: uppercase;
   letter-spacing: -0.02em;
   line-height: 1;
-  color: #fff;
+  color: var(--u11g-primary);
   font-weight: 400;
   transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
   transform: ${(p) => (p.$phase === 'out' ? 'translateX(-100%)' : 'translateX(0)')};

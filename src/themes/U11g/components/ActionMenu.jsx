@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { THEME_NAMES } from '../themes';
 
 const iconProps = {
   xmlns: 'http://www.w3.org/2000/svg',
@@ -57,12 +58,11 @@ function FileIcon() {
     </svg>
   );
 }
-function MachineIcon() {
+function SearchIcon() {
   return (
     <svg {...iconProps}>
-      <path d="M4 7v10c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V7" />
-      <path d="M4 7c0-2.21 1.79-4 4-4h8c2.21 0 4 1.79 4 4" />
-      <path d="M9 11h6" />
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
     </svg>
   );
 }
@@ -80,10 +80,24 @@ export function ActionMenu({
   email,
   resumeUrl,
   onCommandPalette,
+  theme,
+  onCycleTheme,
 }) {
-  const [view, setView] = useState('main'); // 'main' | 'overlay'
+  const [view, setView] = useState('main');
+  const [themeFeedback, setThemeFeedback] = useState(false);
 
   const { github, linkedin, twitter } = socials || {};
+
+  useEffect(() => {
+    if (!themeFeedback) return;
+    const t = setTimeout(() => setThemeFeedback(false), 1200);
+    return () => clearTimeout(t);
+  }, [themeFeedback, theme]);
+
+  const handleThemeClick = () => {
+    onCycleTheme?.();
+    setThemeFeedback(true);
+  };
 
   return (
     <Root>
@@ -150,12 +164,25 @@ export function ActionMenu({
             </OverlayCell>
           )}
           <OverlayCell as="button" onClick={onCommandPalette}>
-            <MachineIcon />
+            <SearchIcon />
             <span>Search</span>
           </OverlayCell>
-          <OverlayCell as="div" style={{ opacity: 0.5, cursor: 'default' }}>
-            <ThemeIcon />
-            <span>Theme</span>
+          <OverlayCell as="button" onClick={handleThemeClick}>
+            {themeFeedback ? (
+              <ThemeFeedback>
+                <ThemeName>{theme?.toUpperCase()}</ThemeName>
+                <ThemeDots>
+                  {THEME_NAMES.map((name) => (
+                    <ThemeDot key={name} $active={name === theme} />
+                  ))}
+                </ThemeDots>
+              </ThemeFeedback>
+            ) : (
+              <>
+                <ThemeIcon />
+                <span>Theme</span>
+              </>
+            )}
           </OverlayCell>
           <BackCell as="button" onClick={() => setView('main')}>
             BACK
@@ -166,20 +193,11 @@ export function ActionMenu({
   );
 }
 
-const colors = {
-  appBg: '#27272a',
-  surface: '#0a0a0a',
-  surfaceHover: '#18181b',
-  primary: '#ffffff',
-  secondary: '#a1a1aa',
-  passive: '#333333',
-};
-
 const Root = styled.div`
   position: relative;
   width: 100%;
   height: 100%;
-  background: ${colors.appBg};
+  background: var(--u11g-app-bg);
   overflow: hidden;
 `;
 
@@ -190,15 +208,15 @@ const MainGrid = styled.div`
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr 1fr;
   gap: 1px;
-  background: ${colors.appBg};
+  background: var(--u11g-app-bg);
 `;
 
 const cellBase = `
   display: flex;
   align-items: center;
   justify-content: center;
-  background: ${colors.surface};
-  color: ${colors.secondary};
+  background: var(--u11g-surface);
+  color: var(--u11g-secondary);
   border: none;
   text-decoration: none;
   cursor: pointer;
@@ -206,8 +224,8 @@ const cellBase = `
   transition: all 0.2s;
 
   &:hover {
-    background: ${colors.surfaceHover};
-    color: ${colors.primary};
+    background: var(--u11g-surface-hover);
+    color: var(--u11g-primary);
   }
 `;
 
@@ -223,8 +241,8 @@ const CmdCell = styled.a`
     font-family: inherit;
     font-size: 11px;
     padding: 2px 6px;
-    background: ${colors.appBg};
-    border: 1px solid ${colors.passive};
+    background: var(--u11g-app-bg);
+    border: 1px solid var(--u11g-passive);
     border-radius: 3px;
     color: inherit;
   }
@@ -244,7 +262,7 @@ const OverlayGrid = styled.div`
   grid-template-columns: 1fr 1fr;
   grid-template-rows: repeat(4, 1fr);
   gap: 1px;
-  background: ${colors.appBg};
+  background: var(--u11g-app-bg);
 `;
 
 const OverlayCell = styled.a`
@@ -253,6 +271,7 @@ const OverlayCell = styled.a`
   gap: 6px;
   padding: 8px;
   text-align: center;
+  position: relative;
 
   span {
     font-size: 9px;
@@ -264,12 +283,40 @@ const OverlayCell = styled.a`
 
 const BackCell = styled.a`
   ${cellBase}
-  background: ${colors.surfaceHover};
-  color: ${colors.primary};
+  background: var(--u11g-surface-hover);
+  color: var(--u11g-primary);
   font-size: 11px;
   grid-column: 1 / -1;
 
   &:hover {
-    background: ${colors.appBg};
+    background: var(--u11g-app-bg);
   }
+`;
+
+const ThemeFeedback = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+`;
+
+const ThemeName = styled.span`
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--u11g-primary);
+`;
+
+const ThemeDots = styled.div`
+  display: flex;
+  gap: 4px;
+`;
+
+const ThemeDot = styled.span`
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: ${(p) => (p.$active ? 'var(--u11g-primary)' : 'var(--u11g-passive)')};
+  transition: background 0.2s;
 `;

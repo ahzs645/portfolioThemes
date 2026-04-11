@@ -53,6 +53,7 @@ import { JoostDamhuisTheme } from './JoostDamhuis/JoostDamhuisTheme';
 import { ChesterHowTheme } from './ChesterHow/ChesterHowTheme';
 import { JacobLeechTheme } from './JacobLeech/JacobLeechTheme';
 import { TalkToDashaTheme } from './TalkToDasha/TalkToDashaTheme';
+import { KaachowTheme } from './Kaachow/KaachowTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -486,6 +487,14 @@ export const PORTFOLIO_THEMES = [
     description: 'Cream background with pastel-colored section cards, floating pill headings, and rotated white mini-cards. Inter Tight typography and a playful, approachable mood inspired by talktodasha.com.',
     source: 'https://www.talktodasha.com',
     Component: TalkToDashaTheme,
+  },
+  {
+    id: 'kaachow',
+    slug: 'threw-it-away',
+    name: 'Threw It Away',
+    description: 'Playful single-viewport hero with an oversized serif headline and a draggable physics-driven trash can full of crumpled papers, plus a custom "find me here instead" cursor — inspired by kaachow.xyz.',
+    source: 'https://www.kaachow.xyz',
+    Component: KaachowTheme,
   },
 ];
 

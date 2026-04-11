@@ -17,18 +17,18 @@ export const cards = {
   terracotta: { bg: '#FF947C', ink: '#801C1C', soft: '#FFD5CB' },
 };
 
-// Folder-tab SVG path. Original reference viewBox is 0 0 230 120 with the
-// tab defined on the top-left corner (rising ~17 y-units above the rest of
-// the top edge). We extend the vertical so the card can be taller than the
-// native shape.
+// Folder-tab SVG path from the reference HTML. This only draws the lower
+// folder face; the card background sits behind it and the white stack floats
+// above, matching the original Framer composition.
 export const FOLDER_PATH =
-  'M230 260H0V0L138.093 0C141.552 0 144.951 0.896735 147.959 2.60266L168.722 14.377C171.73 16.083 175.129 16.9797 178.588 16.9797H230V260Z';
-export const FOLDER_VIEWBOX = '0 0 230 260';
+  'M230 120H0V0L138.093 0C141.552 0 144.951 0.896735 147.959 2.60266L168.722 14.377C171.73 16.083 175.129 16.9797 178.588 16.9797H230V120Z';
+export const FOLDER_VIEWBOX = '0 0 230 120';
 
-// Inner white file-tab path — uses the same tab geometry but a shorter body.
+// Inner white file-tab path. Shorter body so the tab flap is proportionally
+// bigger — the label fits inside the tab area even at small render heights.
 export const FILE_TAB_PATH =
-  'M230 80H0V0L138.093 0C141.552 0 144.951 0.896735 147.959 2.60266L168.722 14.377C171.73 16.083 175.129 16.9797 178.588 16.9797H230V80Z';
-export const FILE_TAB_VIEWBOX = '0 0 230 80';
+  'M230 56H0V0L138.093 0C141.552 0 144.951 0.896735 147.959 2.60266L168.722 14.377C171.73 16.083 175.129 16.9797 178.588 16.9797H230V56Z';
+export const FILE_TAB_VIEWBOX = '0 0 230 56';
 
 export const FontLoader = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap');
