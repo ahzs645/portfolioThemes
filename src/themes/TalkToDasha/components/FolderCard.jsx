@@ -8,45 +8,106 @@ const CARD_VARIANTS = {
     shadow: 'rgba(69, 36, 131, 0.2)',
     footerBottom: 13,
     face: { bottom: 0, height: 120 },
-    items: [
+    baseItems: [
       { top: 18, bottom: 45, opacity: 0.7 },
       { top: 53, bottom: 10, opacity: 0.8 },
       { top: 88, bottom: -25, opacity: 1 },
     ],
-    active: {
-      0: { top: 12, bottom: 45, rotate: -3, badge: { top: 21, right: -2, rotate: -7 } },
-      1: { top: 48, bottom: 15, rotate: 4, badge: { top: 7, right: 28, rotate: 4 } },
-      2: { top: 84, bottom: -21, rotate: -4, badge: { top: 13, right: 3, rotate: -7 } },
+    states: {
+      0: {
+        items: [
+          { top: 12, bottom: 45, rotate: -3, opacity: 0.7 },
+          { top: 53, bottom: 10, opacity: 0.8 },
+          { top: 88, bottom: -25, opacity: 1 },
+        ],
+        badge: { top: 21, right: -2, rotate: -7 },
+      },
+      1: {
+        items: [
+          { top: 18, bottom: 45, opacity: 0.7 },
+          { top: 48, bottom: 15, rotate: 4, opacity: 0.8 },
+          { top: 88, bottom: -25, opacity: 1 },
+        ],
+        badge: { top: 7, right: 28, rotate: 4 },
+      },
+      2: {
+        items: [
+          { top: 18, bottom: 45, opacity: 0.7 },
+          { top: 53, bottom: 10, opacity: 0.8 },
+          { top: 84, bottom: -21, rotate: -4, opacity: 1 },
+        ],
+        badge: { top: 13, right: 3, rotate: -7 },
+      },
     },
   },
   founder: {
     shadow: 'rgba(117, 19, 19, 0.1)',
     footerBottom: 13,
     face: { bottom: 0, height: 120 },
-    items: [
+    baseItems: [
       { top: 18, bottom: 45, opacity: 0.7, blur: 6 },
       { top: 53, bottom: 10, opacity: 0.8 },
       { top: 88, bottom: -25, opacity: 0.9 },
     ],
-    active: {
-      0: { top: 9, bottom: 54, rotate: -2, badge: { top: 10, right: 8, rotate: 1 }, leaveDelay: 0 },
-      1: { top: 40, bottom: 23, rotate: 2, badge: { top: 10, right: 8, rotate: 1 }, leaveDelay: 0 },
-      2: { top: 80, bottom: -17, rotate: -4, badge: { top: 10, right: 8, rotate: 1 }, leaveDelay: 200 },
+    states: {
+      0: {
+        items: [
+          { top: 9, bottom: 54, rotate: -2, opacity: 0.7, blur: 6 },
+          { top: 61, bottom: 2, opacity: 0.8 },
+          { top: 96, bottom: -33, opacity: 0.9 },
+        ],
+        badge: { top: 10, right: 8, rotate: 1 },
+      },
+      1: {
+        items: [
+          { top: 18, bottom: 45, opacity: 0.7, blur: 6 },
+          { top: 40, bottom: 23, rotate: 2, opacity: 0.8 },
+          { top: 88, bottom: -25, opacity: 0.9 },
+        ],
+        badge: { top: 10, right: 8, rotate: 1 },
+      },
+      2: {
+        items: [
+          { top: 18, bottom: 45, opacity: 0.7, blur: 6 },
+          { top: 53, bottom: 10, opacity: 0.8 },
+          { top: 80, bottom: -17, right: 17, rotate: -4, opacity: 0.9 },
+        ],
+        badge: { top: 10, right: 8, rotate: 1 },
+        leaveDelay: 200,
+      },
     },
   },
   social: {
     shadow: 'rgba(42, 96, 15, 0.2)',
     footerBottom: 16,
     face: { top: 128, height: 120 },
-    items: [
+    baseItems: [
       { top: 18, bottom: 45, opacity: 0.7 },
       { top: 53, bottom: 10, opacity: 0.9 },
       { top: 88, bottom: -25, opacity: 1 },
     ],
-    active: {
-      0: { top: 15, bottom: 45, rotate: 6 },
-      1: { top: 46, bottom: 17, rotate: -7 },
-      2: { top: 82, bottom: -19, rotate: 5 },
+    states: {
+      0: {
+        items: [
+          { top: 15, bottom: 45, rotate: 6, opacity: 0.7 },
+          { top: 53, bottom: 10, opacity: 0.9 },
+          { top: 88, bottom: -25, opacity: 1 },
+        ],
+      },
+      1: {
+        items: [
+          { top: 18, bottom: 45, opacity: 0.7 },
+          { top: 46, bottom: 17, rotate: -7, opacity: 0.9 },
+          { top: 88, bottom: -25, opacity: 1 },
+        ],
+      },
+      2: {
+        items: [
+          { top: 18, bottom: 45, opacity: 0.7 },
+          { top: 53, bottom: 10, opacity: 0.9 },
+          { top: 82, bottom: -19, rotate: 5, opacity: 1 },
+        ],
+      },
     },
   },
 };
@@ -74,8 +135,12 @@ export function FolderCard({ tone = 'lavender', label, items = [], variant = 'pa
     });
   };
 
+  const itemSpecs = activeIndex == null
+    ? config.baseItems
+    : (config.states[activeIndex]?.items || config.baseItems);
+
   const clearActive = (index) => {
-    const delay = config.active[index]?.leaveDelay ?? 0;
+    const delay = config.states[index]?.leaveDelay ?? 0;
     if (delay > 0) {
       window.setTimeout(() => {
         setActiveIndex((current) => (current === index ? null : current));
@@ -92,9 +157,7 @@ export function FolderCard({ tone = 'lavender', label, items = [], variant = 'pa
 
         <ItemsLayer>
           {visibleItems.map((item, index) => {
-            const base = config.items[index] || config.items[config.items.length - 1];
-            const active = activeIndex === index ? config.active[index] : null;
-            const spec = active ? { ...base, ...active } : base;
+            const spec = itemSpecs[index] || itemSpecs[itemSpecs.length - 1];
             const href = item.href || undefined;
 
             return (
@@ -106,6 +169,8 @@ export function FolderCard({ tone = 'lavender', label, items = [], variant = 'pa
                 target={href ? '_blank' : undefined}
                 rel={href ? 'noreferrer noopener' : undefined}
                 $shadow={config.shadow}
+                $left={spec.left}
+                $right={spec.right}
                 initial={false}
                 animate={{
                   top: spec.top,
@@ -120,8 +185,9 @@ export function FolderCard({ tone = 'lavender', label, items = [], variant = 'pa
                 onFocus={() => setActiveIndex(index)}
                 onBlur={() => clearActive(index)}
               >
-                <ItemTitle>{item.label}</ItemTitle>
-                {spec.blur ? <BlurMask /> : null}
+                <ItemTitle $top={spec.titleTop} $blur={spec.blur}>
+                  {item.label}
+                </ItemTitle>
               </ItemCard>
             );
           })}
@@ -154,14 +220,14 @@ export function FolderCard({ tone = 'lavender', label, items = [], variant = 'pa
         </FooterRow>
       </ClipLayer>
 
-      {activeItem?.detail && config.active[activeIndex]?.badge ? (
+      {activeItem?.detail && config.states[activeIndex]?.badge ? (
         <Badge
-          initial={{ opacity: 0, scale: 0.96, rotate: config.active[activeIndex].badge.rotate }}
-          animate={{ opacity: 1, scale: 1, rotate: config.active[activeIndex].badge.rotate }}
-          exit={{ opacity: 0, scale: 0.96, rotate: config.active[activeIndex].badge.rotate }}
+          initial={{ opacity: 0, scale: 0.96, rotate: config.states[activeIndex].badge.rotate }}
+          animate={{ opacity: 1, scale: 1, rotate: config.states[activeIndex].badge.rotate }}
+          exit={{ opacity: 0, scale: 0.96, rotate: config.states[activeIndex].badge.rotate }}
           transition={{ type: 'spring', stiffness: 420, damping: 28 }}
-          $top={config.active[activeIndex].badge.top}
-          $right={config.active[activeIndex].badge.right}
+          $top={config.states[activeIndex].badge.top}
+          $right={config.states[activeIndex].badge.right}
         >
           <BadgeMarker
             animate={{ x: marker.x, y: marker.y }}
@@ -205,8 +271,8 @@ const ItemsLayer = styled.div`
 
 const ItemCard = styled(motion.button)`
   position: absolute;
-  left: 18px;
-  right: 18px;
+  left: ${(p) => `${p.$left ?? 18}px`};
+  right: ${(p) => `${p.$right ?? 18}px`};
   border: 0;
   border-radius: 6px;
   background: #fff;
@@ -221,7 +287,7 @@ const ItemCard = styled(motion.button)`
 
 const ItemTitle = styled.div`
   position: absolute;
-  top: 9px;
+  top: ${(p) => `${p.$top ?? 9}px`};
   left: 11px;
   right: 11px;
   font-size: 14px;
@@ -231,13 +297,7 @@ const ItemTitle = styled.div`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-`;
-
-const BlurMask = styled.div`
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.9));
-  backdrop-filter: blur(6px);
+  filter: ${(p) => (p.$blur ? `blur(${p.$blur}px)` : 'none')};
 `;
 
 const FolderFace = styled.svg`
@@ -273,19 +333,19 @@ const Badge = styled(motion.div)`
   position: absolute;
   top: ${(p) => `${p.$top}px`};
   right: ${(p) => `${p.$right}px`};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 9px 12px;
+  padding: 9px 12px 9px 31px;
   border-radius: 10px;
   background: #000;
   color: #fff;
   z-index: 10;
   pointer-events: none;
+  overflow: hidden;
 `;
 
 const BadgeMarker = styled(motion.span)`
+  position: absolute;
+  left: 12px;
+  top: calc(50% - 5px);
   width: 10px;
   height: 10px;
   border-radius: 999px;
@@ -294,6 +354,7 @@ const BadgeMarker = styled(motion.span)`
 `;
 
 const BadgeText = styled.div`
+  position: relative;
   font-size: 12px;
   font-weight: 500;
   line-height: 1.1;

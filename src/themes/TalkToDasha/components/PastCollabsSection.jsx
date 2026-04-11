@@ -8,7 +8,7 @@ export function PastCollabsSection({ jobs }) {
     label: job.company,
     detail: [job.title, formatDateRange(job.startDate, job.endDate)]
       .filter(Boolean)
-      .join(' • '),
+      .join('\n'),
   }));
 
   return (
