@@ -63,22 +63,56 @@ const CanvasEl = styled.canvas`
   z-index: 0;
 `;
 
-const Toolbar = styled.div`
+const ToolbarDock = styled.div`
   position: absolute;
-  bottom: 18px;
+  bottom: 12px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  z-index: 30;
+`;
+
+const ToolbarStack = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transform: ${(p) => (p.$open ? 'translateY(0)' : 'translateY(calc(100% + 8px))')};
+  transition: transform 0.3s ease;
+`;
+
+const GrabHandle = styled.button`
+  width: 65px;
+  height: 4px;
+  border-radius: 3px;
+  background-color: rgba(255, 255, 255, 0.5);
+  cursor: grab;
+  transition: background-color 0.2s ease;
+  border: none;
+  padding: 0;
+  box-shadow: rgba(0, 0, 0, 0.3) 0px 2px 8px;
+
+  &:hover { background-color: rgba(255, 255, 255, 0.85); }
+`;
+
+const Toolbar = styled.div`
+  display: flex;
   align-items: center;
   gap: 12px;
-  padding: 9px 14px;
+  padding: 8px 12px;
   background: rgba(0, 0, 0, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
+  border-radius: 24px;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  z-index: 30;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: rgba(0, 0, 0, 0.3) 0px 4px 12px;
+  opacity: ${(p) => (p.$open ? 1 : 0)};
+  pointer-events: ${(p) => (p.$open ? 'auto' : 'none')};
+  transition: opacity 0.3s ease;
 
   .swatch {
     width: 20px;
@@ -94,7 +128,7 @@ const Toolbar = styled.div`
   .swatch.active { border-color: #fff; }
 
   .range {
-    width: 70px;
+    width: 45px;
     height: 4px;
     appearance: none;
     -webkit-appearance: none;
@@ -105,16 +139,16 @@ const Toolbar = styled.div`
   }
   .range::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     background: #fff;
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
   }
   .range::-moz-range-thumb {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     background: #fff;
     cursor: pointer;
@@ -122,18 +156,19 @@ const Toolbar = styled.div`
   }
 
   .clear {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: transparent;
     border: none;
-    color: rgba(255,255,255,0.55);
+    color: rgb(105, 105, 105);
     display: grid;
     place-items: center;
     cursor: pointer;
-    transition: color 140ms ease;
+    transition: color 140ms ease, transform 140ms ease;
+    padding: 0;
   }
-  .clear:hover { color: #fff; }
+  .clear:hover { color: #fff; transform: scale(1.1); }
 `;
 
 const Stage = styled.div`
@@ -764,6 +799,7 @@ export function BenIssenTheme() {
   const [color, setColor] = useState(COLORS[0]);
   const [brush, setBrush] = useState(3);
   const [clearKey, setClearKey] = useState(0);
+  const [toolsOpen, setToolsOpen] = useState(false);
   const rightScrollRef = useRef(null);
 
   useEffect(() => {
@@ -1093,40 +1129,48 @@ export function BenIssenTheme() {
           </Card>
         </Stage>
 
-        <Toolbar>
-          {COLORS.map((col) => (
-            <button
-              key={col}
-              type="button"
-              aria-label={`Pick ${col}`}
-              className={`swatch ${color === col ? 'active' : ''}`}
-              style={{ background: col }}
-              onClick={() => setColor(col)}
+        <ToolbarDock>
+          <ToolbarStack $open={toolsOpen}>
+            <GrabHandle
+              aria-label={toolsOpen ? 'Hide drawing tools' : 'Show drawing tools'}
+              onClick={() => setToolsOpen((v) => !v)}
             />
-          ))}
-          <input
-            type="range"
-            min="1"
-            max="60"
-            value={brush}
-            aria-label="Brush size"
-            className="range"
-            onChange={(e) => setBrush(Number(e.target.value))}
-          />
-          <button
-            type="button"
-            className="clear"
-            aria-label="Clear canvas"
-            onClick={() => setClearKey((k) => k + 1)}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-              <line x1="10" y1="11" x2="10" y2="17" />
-              <line x1="14" y1="11" x2="14" y2="17" />
-            </svg>
-          </button>
-        </Toolbar>
+            <Toolbar $open={toolsOpen}>
+              {COLORS.map((col) => (
+                <button
+                  key={col}
+                  type="button"
+                  aria-label={`Pick ${col}`}
+                  className={`swatch ${color === col ? 'active' : ''}`}
+                  style={{ background: col }}
+                  onClick={() => setColor(col)}
+                />
+              ))}
+              <input
+                type="range"
+                min="1"
+                max="60"
+                value={brush}
+                aria-label="Brush size"
+                className="range"
+                onChange={(e) => setBrush(Number(e.target.value))}
+              />
+              <button
+                type="button"
+                className="clear"
+                aria-label="Clear canvas"
+                onClick={() => setClearKey((k) => k + 1)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  <line x1="10" y1="11" x2="10" y2="17" />
+                  <line x1="14" y1="11" x2="14" y2="17" />
+                </svg>
+              </button>
+            </Toolbar>
+          </ToolbarStack>
+        </ToolbarDock>
       </Wrap>
     </>
   );

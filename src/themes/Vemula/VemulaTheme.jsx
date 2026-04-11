@@ -70,6 +70,71 @@ export function VemulaTheme() {
   const stackTransforms = useMemo(() => computeStackTransforms(sections), [sections]);
 
   useEffect(() => {
+    setOrder(sections.map((_, i) => i));
+  }, [sections]);
+
+  const handlePointerDown = useCallback(
+    (e, position) => {
+      if (position !== order.length - 1) return;
+      if (e.button !== undefined && e.button !== 0) return;
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch (err) {
+        // ignore
+      }
+      setDrag({
+        pointerId: e.pointerId,
+        startX: e.clientX,
+        startY: e.clientY,
+        dx: 0,
+        dy: 0,
+        isDragging: false,
+      });
+    },
+    [order.length]
+  );
+
+  const handlePointerMove = useCallback((e) => {
+    setDrag((prev) => {
+      if (!prev || prev.pointerId !== e.pointerId) return prev;
+      const dx = e.clientX - prev.startX;
+      const dy = e.clientY - prev.startY;
+      const isDragging = prev.isDragging || Math.hypot(dx, dy) > TAP_THRESHOLD;
+      return { ...prev, dx, dy, isDragging };
+    });
+  }, []);
+
+  const handlePointerUp = useCallback((e) => {
+    setDrag((prev) => {
+      if (!prev || prev.pointerId !== e.pointerId) return prev;
+      if (!prev.isDragging) {
+        wasDragRef.current = false;
+        return null;
+      }
+      wasDragRef.current = true;
+      const distance = Math.hypot(prev.dx, prev.dy);
+      if (distance > SWIPE_THRESHOLD) {
+        setOrder((o) => (o.length ? [o[o.length - 1], ...o.slice(0, -1)] : o));
+      }
+      return null;
+    });
+  }, []);
+
+  const handlePointerCancel = useCallback(() => {
+    setDrag(null);
+  }, []);
+
+  const handleCardClick = useCallback((e, key) => {
+    if (wasDragRef.current) {
+      wasDragRef.current = false;
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    setOpenKey(key);
+  }, []);
+
+  useEffect(() => {
     if (isMobile || !sections.length) return undefined;
     function recalc() {
       const node = containerRef.current;
@@ -200,14 +265,28 @@ export function VemulaTheme() {
 
         {isMobile && (
           <StackContainer>
-            {sections.map((section, i) => {
-              const t = stackTransforms[i];
+            {order.map((sectionIdx, position) => {
+              const section = sections[sectionIdx];
+              if (!section) return null;
+              const t = stackTransforms[position];
+              const isTop = position === order.length - 1;
+              const isBeingDragged = isTop && drag !== null;
+              const dragX = isBeingDragged ? drag.dx : 0;
+              const dragY = isBeingDragged ? drag.dy : 0;
+              const dragRot = isBeingDragged ? drag.dx * 0.06 : 0;
+              const className = `${stackStateClass}${
+                isBeingDragged && drag.isDragging ? ' vemula-dragging' : ''
+              }`;
               return (
                 <StackCard
                   key={section.key}
                   type="button"
-                  className={stackStateClass}
-                  onClick={() => setOpenKey(section.key)}
+                  className={className}
+                  onPointerDown={(e) => handlePointerDown(e, position)}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
+                  onPointerCancel={handlePointerCancel}
+                  onClick={(e) => handleCardClick(e, section.key)}
                   aria-label={`Open ${section.title}`}
                   style={{
                     '--card-from': section.palette.from,
@@ -215,8 +294,11 @@ export function VemulaTheme() {
                     '--card-label': section.palette.label,
                     '--card-scale': t.scale,
                     '--card-rot': `${t.rotation}deg`,
-                    '--enter-delay': `${i * 80}ms`,
-                    zIndex: t.zIndex,
+                    '--drag-x': `${dragX}px`,
+                    '--drag-y': `${dragY}px`,
+                    '--drag-rot': `${dragRot}deg`,
+                    '--enter-delay': `${position * 80}ms`,
+                    zIndex: position,
                   }}
                 >
                   <CardLabel>{section.label}</CardLabel>
