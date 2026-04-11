@@ -3,7 +3,8 @@ import styled from 'styled-components';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cards, FOLDER_PATH, FOLDER_VIEWBOX } from '../styles';
 
-const STACK_TOPS = [18, 54, 90];
+const STACK_TOPS = [18, 53, 88];
+const STACK_BOTTOMS = [45, 10, -25];
 const STACK_ROTATIONS = [-3.5, 3.5, -4];
 
 function clamp(value, min, max) {
@@ -69,7 +70,6 @@ export function FolderCard({ tone = 'lavender', label, items = [] }) {
       <ItemsLayer>
         {visibleItems.map((item, index) => {
           const state = getItemTransform(index, activeIndex);
-          const isActive = index === activeIndex;
           const href = item.href || undefined;
 
           return (
@@ -81,6 +81,7 @@ export function FolderCard({ tone = 'lavender', label, items = [] }) {
               target={href ? '_blank' : undefined}
               rel={href ? 'noreferrer noopener' : undefined}
               $top={STACK_TOPS[index] ?? STACK_TOPS[STACK_TOPS.length - 1]}
+              $bottom={STACK_BOTTOMS[index] ?? STACK_BOTTOMS[STACK_BOTTOMS.length - 1]}
               $zIndex={state.zIndex}
               initial={false}
               animate={{
@@ -88,21 +89,14 @@ export function FolderCard({ tone = 'lavender', label, items = [] }) {
                 y: state.translateY,
                 opacity: state.opacity,
               }}
-              transition={{ type: 'spring', stiffness: 340, damping: 28 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               onMouseEnter={() => setActiveIndex(index)}
               onMouseMove={updateBubblePosition}
               onFocus={() => setActiveIndex(index)}
               onBlur={() => setActiveIndex(null)}
             >
               <ItemTitle>{item.label}</ItemTitle>
-              {item.meta && (
-                <ItemMeta
-                  animate={{ opacity: isActive ? 1 : 0.55, y: isActive ? 0 : 1 }}
-                  transition={{ duration: 0.18 }}
-                >
-                  {item.meta}
-                </ItemMeta>
-              )}
+              {item.meta && <ItemMeta>{item.meta}</ItemMeta>}
             </ItemCard>
           );
         })}
@@ -179,8 +173,8 @@ const ItemCard = styled(motion.button)`
   left: 18px;
   right: 18px;
   top: ${(p) => `${p.$top}px`};
-  height: 108px;
-  padding: 16px 14px;
+  bottom: ${(p) => `${p.$bottom}px`};
+  padding: 10px 12px;
   border: 0;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.98);
@@ -201,17 +195,20 @@ const ItemCard = styled(motion.button)`
 `;
 
 const ItemTitle = styled.div`
+  position: absolute;
+  top: 9px;
+  left: 11px;
   font-size: 14px;
   font-weight: 500;
   line-height: 1.25;
   color: #1e1e1e;
-  max-width: calc(100% - 84px);
+  max-width: calc(100% - 22px);
 `;
 
-const ItemMeta = styled(motion.div)`
+const ItemMeta = styled.div`
   position: absolute;
-  top: 14px;
-  right: 12px;
+  right: 9px;
+  top: 10px;
   font-size: 11px;
   font-weight: 500;
   color: rgba(0, 0, 0, 0.48);
@@ -233,7 +230,7 @@ const FooterRow = styled.div`
   position: absolute;
   left: 14px;
   right: 14px;
-  bottom: 14px;
+  bottom: 13px;
   min-height: 32px;
   z-index: 3;
   display: flex;

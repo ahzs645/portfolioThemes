@@ -6,8 +6,9 @@ export function PastCollabsSection({ jobs }) {
   if (!jobs || jobs.length === 0) return null;
   const items = jobs.slice(0, 3).map((job) => ({
     label: job.company,
-    meta: formatDateRange(job.startDate, job.endDate) || 'Past role',
-    detail: job.title,
+    detail: [job.title, formatDateRange(job.startDate, job.endDate)]
+      .filter(Boolean)
+      .join(' • '),
   }));
 
   return (

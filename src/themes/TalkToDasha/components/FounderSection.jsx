@@ -7,12 +7,10 @@ export function FounderSection({ awards = [], certifications = [] }) {
   const items = [
     ...awards.slice(0, 3).map((a) => ({
       label: a.title,
-      meta: 'Award',
       detail: a.issuer || a.summary || 'Recognition',
     })),
     ...certifications.slice(0, 3).map((c) => ({
       label: c.name || c.title,
-      meta: 'Credential',
       detail: c.issuer || c.summary || 'Certification',
     })),
   ].slice(0, 3);

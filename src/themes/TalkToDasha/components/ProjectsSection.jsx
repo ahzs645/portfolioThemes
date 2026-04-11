@@ -5,7 +5,6 @@ export function ProjectsSection({ projects }) {
   if (!projects || projects.length === 0) return null;
   const items = projects.slice(0, 3).map((project) => ({
     label: project.name,
-    meta: project.date ? String(project.date) : 'Project',
     detail: project.summary || project.highlights?.[0] || 'Open project',
     href: project.url,
   }));
