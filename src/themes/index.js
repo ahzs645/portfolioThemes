@@ -47,6 +47,7 @@ import { WallenartTUITheme } from './WallenartTUI/WallenartTUITheme';
 import { NimTheme } from './Nim/NimTheme';
 import { RetroComputerTheme } from './RetroComputer/RetroComputerTheme';
 import { VSCodePortfolioTheme } from './VSCodePortfolio/VSCodePortfolioTheme';
+import { SharpEye08Theme } from './SharpEye08/SharpEye08Theme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -432,6 +433,14 @@ export const PORTFOLIO_THEMES = [
     description: 'IDE-themed portfolio with Atom One Dark colors, tab navigation, left activity bar, status bar, and code-file section names.',
     source: 'https://github.com/caglarturali/vscode-portfolio',
     Component: VSCodePortfolioTheme,
+  },
+  {
+    id: 'sharpeye08',
+    slug: 'italic-mono',
+    name: 'Italic Mono',
+    description: 'Pitch-black monospace portfolio with italic Georgia section titles, short divider rule, uppercase entry tags, and a light/dark toggle inspired by sharpeye08.github.io.',
+    source: 'https://sharpeye08.github.io',
+    Component: SharpEye08Theme,
   },
 ];
 
