@@ -508,9 +508,9 @@ export const PORTFOLIO_THEMES = [
   },
   {
     id: 'ben-issen',
-    slug: 'ai-clone',
-    name: 'AI Clone',
-    description: 'ChatGPT-style portfolio with a dark sidebar, suggestion chips, and CV sections rendered as assistant replies — chat with the user\'s AI clone. Inspired by benissen.com.',
+    slug: 'sketchpad',
+    name: 'Sketchpad',
+    description: 'Two floating dark cards (avatar + tabbed project list, and big-name bio with newsletter) on top of an interactive drawing canvas you can doodle on with three colors and a variable brush. Inspired by benissen.com.',
     source: 'https://benissen.com',
     Component: BenIssenTheme,
   },

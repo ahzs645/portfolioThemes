@@ -6,8 +6,9 @@ import { CurrentStatus } from './components/CurrentStatus';
 import { ProjectsSection } from './components/ProjectsSection';
 import { PastCollabsSection } from './components/PastCollabsSection';
 import { FounderSection } from './components/FounderSection';
+import { DevelopmentSection } from './components/DevelopmentSection';
+import { VolunteerSection } from './components/VolunteerSection';
 import { SocialSection } from './components/SocialSection';
-import { ContactSection } from './components/ContactSection';
 
 export function TalkToDashaTheme() {
   const cv = useCV();
@@ -31,6 +32,7 @@ export function TalkToDashaTheme() {
       projects: cv.projects || [],
       education: cv.education || [],
       professionalDevelopment: cv.professionalDevelopment || [],
+      volunteer: cv.volunteer || [],
       socials,
     };
   }, [cv]);
@@ -46,14 +48,10 @@ export function TalkToDashaTheme() {
           <FolderGrid>
             <ProjectsSection projects={data.projects} />
             <PastCollabsSection jobs={data.pastJobs} />
-            <FounderSection
-              education={data.education}
-              professionalDevelopment={data.professionalDevelopment}
-            />
+            <FounderSection education={data.education} />
+            <DevelopmentSection items={data.professionalDevelopment} />
+            <VolunteerSection volunteer={data.volunteer} />
             <SocialSection socials={data.socials} />
-          </FolderGrid>
-          <FolderGrid>
-            <ContactSection email={data.email} />
           </FolderGrid>
           <Footer>© {new Date().getFullYear()} {data.name}</Footer>
         </Container>

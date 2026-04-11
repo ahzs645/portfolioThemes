@@ -1,1093 +1,1133 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import styled, { createGlobalStyle, keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-import { formatMonthYear } from '../../utils/cvHelpers';
+import { formatMonthYear, isPresent, isArchived } from '../../utils/cvHelpers';
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-  body.benissen-theme-locked { overflow: hidden; }
-  .benissen-theme ::selection { background: #3a3a3a; color: #fff; }
+  body.benissen-locked { overflow: hidden; background: rgb(28, 28, 28); }
+  .benissen-theme ::selection { background: rgba(255,255,255,0.18); color: #fff; }
 `;
 
-const COLORS = {
-  bg: '#1c1c1c',
-  panel: '#202020',
-  panelAlt: '#262626',
-  border: '#2f2f2f',
-  borderSoft: '#262626',
-  text: '#ECECEC',
-  textMid: '#bdbdbd',
-  textMuted: '#7a7a7a',
-  accent: '#ffffff',
-  bubbleUser: '#2f2f2f',
-  bubbleAi: 'transparent',
-  link: '#cfcfcf',
-  pill: '#272727',
-  pillHover: '#303030',
+const C = {
+  bg: 'rgb(28, 28, 28)',
+  card: 'rgb(54, 54, 54)',
+  inset: 'rgb(46, 46, 46)',
+  inset2: 'rgb(38, 38, 38)',
+  tabActive: 'rgb(71, 71, 71)',
+  border: 'rgba(117, 117, 117, 0.5)',
+  borderHard: 'rgb(97, 97, 97)',
+  borderSoft: 'rgb(82, 82, 82)',
+  text: 'rgb(224, 224, 224)',
+  textMid: 'rgb(189, 189, 189)',
+  textMuted: 'rgb(153, 153, 153)',
+  pulse: 'rgb(255, 51, 51)',
+  white: '#ffffff',
 };
 
-const blink = keyframes`
-  0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
-  40% { opacity: 1; transform: translateY(-2px); }
+const COLORS = ['#FFFFFF', '#FF5D0D', '#7A64FF'];
+
+const pulse = keyframes`
+  0%, 100% { transform: translate(-50%, -50%) scale(1.0); opacity: 0.85; }
+  50%      { transform: translate(-50%, -50%) scale(1.6); opacity: 0.0; }
 `;
 
-const fadeUp = keyframes`
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
 `;
 
-const Shell = styled.div`
+const detailIn = keyframes`
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
+
+const Wrap = styled.div`
   position: fixed;
   inset: 0;
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  background: ${COLORS.bg};
-  color: ${COLORS.text};
+  background: ${C.bg};
+  color: ${C.text};
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 14px;
-  line-height: 1.55;
+  letter-spacing: -0.01em;
   overflow: hidden;
-
-  @media (max-width: 820px) {
-    grid-template-columns: 1fr;
-  }
 `;
 
-const Sidebar = styled.aside`
-  background: ${COLORS.panel};
-  border-right: 1px solid ${COLORS.border};
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-
-  @media (max-width: 820px) {
-    position: fixed;
-    inset: 0 auto 0 0;
-    width: 280px;
-    z-index: 50;
-    transform: translateX(${(p) => (p.$open ? '0' : '-100%')});
-    transition: transform 220ms ease;
-    box-shadow: ${(p) => (p.$open ? '0 0 60px rgba(0,0,0,0.6)' : 'none')};
-  }
+const CanvasEl = styled.canvas`
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  touch-action: none;
+  z-index: 0;
 `;
 
-const SidebarTop = styled.div`
-  padding: 14px 12px 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-`;
-
-const Brand = styled.div`
+const Toolbar = styled.div`
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 8px;
+  gap: 12px;
+  padding: 9px 14px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 30;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+
+  .swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 140ms ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+  .swatch:hover { transform: scale(1.1); }
+  .swatch.active { border-color: #fff; }
+
+  .range {
+    width: 70px;
+    height: 4px;
+    appearance: none;
+    -webkit-appearance: none;
+    background: rgba(255,255,255,0.3);
+    border-radius: 10px;
+    outline: none;
+    cursor: pointer;
+  }
+  .range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+  .range::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    border: none;
+  }
+
+  .clear {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.55);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: color 140ms ease;
+  }
+  .clear:hover { color: #fff; }
 `;
 
-const Logo = styled.div`
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #fff, #b8b8b8);
-  color: #1c1c1c;
+const Stage = styled.div`
+  position: absolute;
+  inset: 0;
   display: grid;
   place-items: center;
-  font-weight: 700;
-  font-size: 13px;
-  letter-spacing: -0.02em;
-`;
-
-const BrandName = styled.div`
-  font-weight: 600;
-  font-size: 14px;
-  letter-spacing: -0.01em;
-`;
-
-const NewChatButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  width: 100%;
-  padding: 10px 12px;
-  background: transparent;
-  border: 1px solid ${COLORS.border};
-  border-radius: 10px;
-  color: ${COLORS.text};
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 140ms ease, border-color 140ms ease;
-
-  &:hover {
-    background: ${COLORS.pillHover};
-    border-color: #3a3a3a;
-  }
-
-  span.icon {
-    display: grid;
-    place-items: center;
-    width: 18px;
-    height: 18px;
-    color: ${COLORS.textMid};
-  }
-`;
-
-const SidebarSection = styled.div`
-  padding: 6px 12px 0;
-  flex: 1;
+  padding: 28px 20px 100px;
+  z-index: 10;
+  pointer-events: none;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #333 transparent;
 
-  &::-webkit-scrollbar { width: 6px; }
-  &::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-`;
-
-const SidebarLabel = styled.div`
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: ${COLORS.textMuted};
-  padding: 16px 8px 6px;
-`;
-
-const ConvoItem = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  text-align: left;
-  padding: 9px 10px;
-  background: ${(p) => (p.$active ? COLORS.pillHover : 'transparent')};
-  border: none;
-  border-radius: 8px;
-  color: ${(p) => (p.$active ? COLORS.text : COLORS.textMid)};
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 120ms ease, color 120ms ease;
-  margin-bottom: 2px;
-
-  &:hover {
-    background: ${COLORS.pillHover};
-    color: ${COLORS.text};
-  }
-
-  .dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: ${(p) => (p.$active ? '#fff' : '#555')};
-    flex-shrink: 0;
-  }
-
-  .label {
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  @media (max-width: 900px) {
+    padding: 18px 14px 110px;
+    align-items: start;
   }
 `;
 
-const SidebarFoot = styled.div`
-  border-top: 1px solid ${COLORS.border};
-  padding: 12px;
-`;
-
-const UserPill = styled.a`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  text-decoration: none;
-  color: ${COLORS.text};
-  transition: background 120ms ease;
-
-  &:hover { background: ${COLORS.pillHover}; }
-
-  .avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #444, #2a2a2a);
-    display: grid;
-    place-items: center;
-    font-weight: 600;
-    font-size: 13px;
-    color: #fff;
-    overflow: hidden;
-  }
-
-  .meta {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.2;
-    min-width: 0;
-  }
-
-  .name { font-weight: 600; font-size: 13px; }
-  .sub  { font-size: 11px; color: ${COLORS.textMuted}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-`;
-
-const Main = styled.main`
+const Card = styled.div`
   position: relative;
+  background: ${C.card};
+  border-radius: 30px;
+  padding: 10px;
+  width: min(960px, 100%);
+  pointer-events: auto;
+  box-shadow:
+    rgba(0,0,0,0.53) 0px 0.7px 0.95px -1.25px,
+    rgba(0,0,0,0.48) 0px 2.05px 2.87px -2.5px,
+    rgba(0,0,0,0.37) 0px 5.4px 7.6px -3.75px,
+    rgba(140,140,140,1) 0px 0px 0px 0.5px,
+    rgba(0,0,0,0.25) 0px 4px 8px 0px,
+    rgba(0,0,0,0.19) 0px 16px 73px -1px;
+  animation: ${fadeIn} 480ms cubic-bezier(0.5,0,0.88,0.77) both;
+`;
+
+const Grain = styled.div`
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0.05;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: 256px 256px;
+`;
+
+const Inset = styled.div`
+  position: relative;
+  background: ${C.inset};
+  border: 0.5px solid ${C.border};
+  border-radius: 22px;
+  box-shadow: rgba(0,0,0,0.16) 0px 1px 2px 2px inset;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  min-height: 540px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+`;
+
+const LeftCol = styled.div`
   display: flex;
   flex-direction: column;
-  min-width: 0;
+  border-right: 0.5px solid rgba(117,117,117,0.25);
   min-height: 0;
-`;
 
-const TopBar = styled.header`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 18px;
-  border-bottom: 1px solid ${COLORS.borderSoft};
-  background: ${COLORS.bg};
-`;
-
-const TopTitle = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  font-weight: 600;
-
-  .badge {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: ${COLORS.textMuted};
-    border: 1px solid ${COLORS.border};
-    padding: 3px 7px;
-    border-radius: 999px;
+  @media (max-width: 900px) {
+    border-right: none;
+    border-bottom: 0.5px solid rgba(117,117,117,0.25);
   }
 `;
 
-const TopActions = styled.div`
+const RightCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  position: relative;
+`;
+
+const HeaderRow = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 14px 12px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 14px;
+  margin: 4px;
+  transition: background 140ms ease;
+
+  &:hover { background: rgba(255,255,255,0.025); }
+`;
+
+const Avatar = styled.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6e6e6e, #2a2a2a);
+  flex-shrink: 0;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 16px;
+  border: 0.5px solid rgba(255,255,255,0.08);
+
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+`;
+
+const NameBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+
+  .n { font-size: 16px; font-weight: 600; color: ${C.text}; line-height: 1.2; }
+  .t { font-size: 13px; color: ${C.textMid}; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+`;
+
+const Tools = styled.div`
   display: flex;
   align-items: center;
   gap: 6px;
+  background: ${C.inset2};
+  margin: 0 10px;
+  padding: 6px;
+  border-radius: 18px;
+  box-shadow: 0 1px 0 0 rgba(0,0,0,0.25) inset;
 `;
 
-const IconBtn = styled.button`
-  background: transparent;
-  border: 1px solid ${COLORS.border};
-  color: ${COLORS.textMid};
+const Tab = styled.button`
+  flex: 1;
+  background: ${(p) => (p.$active ? C.tabActive : 'transparent')};
+  border: 0.5px solid ${(p) => (p.$active ? C.borderHard : 'transparent')};
+  color: ${C.text};
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  padding: 8px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, opacity 140ms ease;
+  opacity: ${(p) => (p.$active ? 1 : 0.8)};
+  box-shadow: ${(p) => (p.$active ? '0 2px 4px rgba(0,0,0,0.25)' : 'none')};
+
+  &:hover { opacity: 1; }
+`;
+
+const SearchBtn = styled.button`
+  flex-shrink: 0;
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  color: rgb(227, 227, 227);
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: background 120ms ease, color 120ms ease;
+  opacity: 0.6;
+  transition: opacity 140ms ease;
 
-  &:hover { background: ${COLORS.pillHover}; color: ${COLORS.text}; }
+  &:hover { opacity: 1; }
 `;
 
-const MenuBtn = styled(IconBtn)`
-  display: none;
-  @media (max-width: 820px) { display: grid; }
-`;
-
-const ChatScroll = styled.div`
+const ListWrap = styled.div`
   flex: 1;
   overflow-y: auto;
+  padding: 6px 14px 14px;
   scrollbar-width: thin;
-  scrollbar-color: #2e2e2e transparent;
+  scrollbar-color: #444 transparent;
+  min-height: 0;
 
-  &::-webkit-scrollbar { width: 8px; }
-  &::-webkit-scrollbar-thumb { background: #2e2e2e; border-radius: 4px; }
-`;
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
 
-const ChatInner = styled.div`
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 32px 24px 140px;
-
-  @media (max-width: 820px) {
-    padding: 24px 16px 160px;
+  @media (max-width: 900px) {
+    max-height: 300px;
   }
 `;
 
-const Greeting = styled.div`
-  text-align: center;
-  padding: 60px 0 36px;
-  animation: ${fadeUp} 500ms ease both;
-
-  .hi {
-    font-size: clamp(28px, 5vw, 40px);
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    background: linear-gradient(180deg, #ffffff, #9c9c9c);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    margin-bottom: 8px;
-  }
-
-  .sub {
-    color: ${COLORS.textMuted};
-    font-size: 14px;
-  }
-`;
-
-const ChipGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-top: 24px;
-
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const Chip = styled.button`
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
+const ItemBtn = styled.button`
+  display: block;
+  width: 100%;
   text-align: left;
-  padding: 14px 14px;
-  background: ${COLORS.panel};
-  border: 1px solid ${COLORS.border};
-  border-radius: 12px;
-  color: ${COLORS.text};
+  background: ${(p) => (p.$active ? 'rgba(255,255,255,0.05)' : 'transparent')};
+  border: none;
+  padding: 12px 10px;
+  color: inherit;
   font-family: inherit;
-  font-size: 13px;
   cursor: pointer;
-  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
-  animation: ${fadeUp} 400ms ease both;
-  animation-delay: ${(p) => (p.$i || 0) * 50}ms;
-
-  &:hover {
-    background: ${COLORS.pillHover};
-    border-color: #3a3a3a;
-    transform: translateY(-1px);
-  }
-
-  .icon {
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-    color: ${COLORS.textMid};
-    margin-top: 1px;
-  }
-
-  .text {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .q { font-weight: 600; }
-  .h { color: ${COLORS.textMuted}; font-size: 12px; }
-`;
-
-const Message = styled.div`
-  display: flex;
-  gap: 14px;
-  padding: 22px 0;
-  border-bottom: 1px solid ${COLORS.borderSoft};
-  animation: ${fadeUp} 320ms ease both;
+  border-bottom: 0.5px solid rgba(117,117,117,0.18);
+  border-radius: 8px;
+  transition: background 140ms ease, padding 140ms ease;
+  position: relative;
 
   &:last-child { border-bottom: none; }
+  &:hover { background: rgba(255,255,255,0.04); padding-left: 14px; }
 
-  .avatar {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    display: grid;
-    place-items: center;
-    font-size: 12px;
-    font-weight: 600;
-    overflow: hidden;
-    background: ${(p) => (p.$role === 'user' ? '#444' : 'linear-gradient(135deg,#fff,#bdbdbd)')};
-    color: ${(p) => (p.$role === 'user' ? '#fff' : '#1c1c1c')};
-  }
-
-  .body {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .role {
-    font-size: 12px;
-    font-weight: 600;
-    color: ${COLORS.textMid};
+  .title-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
     margin-bottom: 4px;
   }
 
-  .content {
-    color: ${COLORS.text};
+  .title {
     font-size: 14px;
-    line-height: 1.7;
+    font-weight: 500;
+    color: ${C.text};
+    line-height: 1.3;
+    letter-spacing: -0.01em;
   }
 
-  p { margin: 0 0 10px; }
-  p:last-child { margin-bottom: 0; }
+  .badge {
+    font-size: 12px;
+    color: ${C.textMuted};
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+  }
+
+  .desc {
+    font-size: 13px;
+    color: ${C.textMid};
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
 `;
 
-const Typing = styled.div`
+const Empty = styled.div`
+  padding: 32px 6px;
+  text-align: center;
+  color: ${C.textMuted};
+  font-size: 13px;
+`;
+
+const RightScroll = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #444 transparent;
+
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+`;
+
+const BioBody = styled.div`
+  padding: 22px 26px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  animation: ${detailIn} 280ms ease both;
+`;
+
+const DetailBody = styled.div`
+  padding: 22px 26px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: ${detailIn} 280ms ease both;
+`;
+
+const BackBtn = styled.button`
+  align-self: flex-start;
   display: inline-flex;
-  gap: 4px;
-  padding: 6px 0;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 0.5px solid rgba(117,117,117,0.4);
+  color: ${C.textMid};
+  font-family: inherit;
+  font-size: 12px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
 
-  span {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: ${COLORS.textMid};
-    animation: ${blink} 1.2s infinite ease-in-out;
+  &:hover {
+    background: rgba(255,255,255,0.04);
+    color: ${C.text};
+    border-color: ${C.borderHard};
   }
-  span:nth-child(2) { animation-delay: 0.15s; }
-  span:nth-child(3) { animation-delay: 0.3s; }
 `;
 
-const ItemList = styled.ul`
+const Loc = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .dot-wrap {
+    position: relative;
+    width: 16px;
+    height: 16px;
+  }
+  .dot {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    background: ${C.pulse};
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .dot::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 100%;
+    height: 100%;
+    background: ${C.pulse};
+    border-radius: 50%;
+    animation: ${pulse} 1.6s ease-out infinite;
+  }
+
+  .text {
+    font-size: 13px;
+    color: ${C.textMid};
+    letter-spacing: -0.01em;
+  }
+`;
+
+const BigName = styled.h1`
+  margin: 0;
+  font-size: clamp(34px, 5vw, 48px);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  color: ${C.text};
+`;
+
+const DetailTitleRow = styled.div`
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+`;
+
+const DetailTitle = styled.h2`
+  margin: 0;
+  font-size: clamp(28px, 4vw, 36px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: ${C.text};
+`;
+
+const StatusBadge = styled.span`
+  font-size: 12px;
+  font-weight: 500;
+  color: ${C.textMuted};
+  border: 0.5px solid rgba(117,117,117,0.5);
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: -0.01em;
+  text-transform: capitalize;
+`;
+
+const MetaRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 12.5px;
+  color: ${C.textMuted};
+
+  span { display: inline-flex; gap: 5px; align-items: center; }
+`;
+
+const BioText = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: ${C.textMid};
+    letter-spacing: -0.01em;
+  }
+`;
+
+const Highlights = styled.ul`
   list-style: none;
   padding: 0;
   margin: 4px 0 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-`;
+  gap: 8px;
 
-const ItemRow = styled.li`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px 14px;
-  background: ${COLORS.panel};
-  border: 1px solid ${COLORS.border};
-  border-radius: 10px;
-
-  .head {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    align-items: baseline;
-    flex-wrap: wrap;
-  }
-
-  .title { font-weight: 600; font-size: 13.5px; color: ${COLORS.text}; }
-  .meta  { font-size: 11.5px; color: ${COLORS.textMuted}; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .sub   { font-size: 12.5px; color: ${COLORS.textMid}; }
-  .desc  { font-size: 13px; color: ${COLORS.textMid}; margin-top: 4px; line-height: 1.55; }
-
-  ul.bul {
-    list-style: none;
-    padding: 0;
-    margin: 6px 0 0;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  ul.bul li {
-    font-size: 12.5px;
-    color: ${COLORS.textMid};
-    padding-left: 14px;
+  li {
     position: relative;
-    line-height: 1.5;
+    padding-left: 18px;
+    font-size: 13.5px;
+    color: ${C.textMid};
+    line-height: 1.55;
+    letter-spacing: -0.01em;
   }
-  ul.bul li::before {
+  li::before {
     content: '';
     position: absolute;
     left: 4px;
     top: 9px;
-    width: 4px;
-    height: 4px;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
-    background: #555;
+    background: ${C.borderHard};
   }
 `;
 
-const TagWrap = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 4px;
+const Divider = styled.div`
+  height: 0.5px;
+  background: ${C.borderSoft};
+  margin: 4px 0;
 `;
 
-const Tag = styled.span`
-  background: ${COLORS.panel};
-  border: 1px solid ${COLORS.border};
-  color: ${COLORS.textMid};
-  padding: 5px 10px;
-  border-radius: 999px;
-  font-size: 11.5px;
-  font-weight: 500;
+const Tagline = styled.p`
+  margin: 0;
+  font-size: 13px;
+  color: ${C.textMid};
+  line-height: 1.4;
+  letter-spacing: -0.01em;
 `;
 
-const ContactGrid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+const VisitLink = styled.a`
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
   margin-top: 4px;
-
-  @media (max-width: 520px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const ContactCard = styled.a`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 12px;
-  background: ${COLORS.panel};
-  border: 1px solid ${COLORS.border};
-  border-radius: 10px;
-  color: ${COLORS.text};
+  padding: 10px 16px;
+  background: ${C.white};
+  color: #000;
+  border-radius: 32px;
   text-decoration: none;
-  transition: background 140ms ease, border-color 140ms ease;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  align-self: flex-start;
+  transition: background 140ms ease;
 
-  &:hover {
-    background: ${COLORS.pillHover};
-    border-color: #3a3a3a;
-  }
-
-  .ico {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    background: ${COLORS.panelAlt};
-    display: grid;
-    place-items: center;
-    color: ${COLORS.text};
-    flex-shrink: 0;
-  }
-
-  .col { display: flex; flex-direction: column; min-width: 0; }
-  .lbl { font-size: 12.5px; font-weight: 600; }
-  .sub { font-size: 11.5px; color: ${COLORS.textMuted}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  &:hover { background: #e6e6e6; }
 `;
 
-const Composer = styled.div`
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 16px 24px 22px;
-  background: linear-gradient(180deg, transparent 0%, ${COLORS.bg} 35%);
-  pointer-events: none;
-`;
-
-const ComposerInner = styled.div`
-  max-width: 760px;
-  margin: 0 auto;
-  pointer-events: auto;
-  background: ${COLORS.panel};
-  border: 1px solid ${COLORS.border};
-  border-radius: 16px;
+const Newsletter = styled.form`
   display: flex;
-  align-items: flex-end;
-  gap: 10px;
-  padding: 12px 14px;
-  box-shadow: 0 -10px 40px rgba(0,0,0,0.4);
+  flex-direction: row;
+  gap: 8px;
+  width: 100%;
 
-  textarea {
+  input[type='email'] {
     flex: 1;
-    background: transparent;
-    border: none;
+    background: ${C.inset2};
+    color: #fff;
+    border: 1px solid rgba(237,237,237,0);
+    border-radius: 32px;
+    padding: 11px 16px;
     outline: none;
-    resize: none;
-    color: ${COLORS.text};
     font-family: inherit;
-    font-size: 14px;
-    line-height: 1.5;
-    min-height: 22px;
-    max-height: 140px;
-    padding: 4px 0;
+    font-size: 13px;
+    letter-spacing: -0.01em;
+    min-width: 0;
 
-    &::placeholder { color: ${COLORS.textMuted}; }
+    &::placeholder { color: ${C.textMuted}; }
+    &:focus { border-color: rgba(237,237,237,0.3); }
   }
 
-  .send {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
+  button {
+    background: ${C.white};
+    color: #000;
     border: none;
-    background: ${COLORS.text};
-    color: ${COLORS.bg};
-    display: grid;
-    place-items: center;
+    border-radius: 32px;
+    padding: 11px 22px;
     cursor: pointer;
-    flex-shrink: 0;
-    transition: opacity 140ms ease;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    transition: background 140ms ease;
+    white-space: nowrap;
 
-    &:disabled { opacity: 0.35; cursor: not-allowed; }
+    &:hover { background: #e6e6e6; }
   }
 `;
 
-const Hint = styled.div`
-  text-align: center;
-  font-size: 11px;
-  color: ${COLORS.textMuted};
-  margin-top: 8px;
-`;
-
-const Backdrop = styled.div`
-  display: none;
-  @media (max-width: 820px) {
-    display: ${(p) => (p.$open ? 'block' : 'none')};
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.55);
-    z-index: 40;
-  }
-`;
-
-function Icon({ name, size = 16 }) {
-  const props = {
-    width: size,
-    height: size,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    strokeWidth: 1.7,
-    strokeLinecap: 'round',
-    strokeLinejoin: 'round',
-  };
-  switch (name) {
-    case 'plus':
-      return <svg {...props}><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>;
-    case 'edit':
-      return <svg {...props}><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z" /></svg>;
-    case 'send':
-      return <svg {...props}><path d="M22 2 11 13" /><path d="m22 2-7 20-4-9-9-4 20-7Z" /></svg>;
-    case 'menu':
-      return <svg {...props}><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>;
-    case 'close':
-      return <svg {...props}><line x1="6" y1="6" x2="18" y2="18" /><line x1="18" y1="6" x2="6" y2="18" /></svg>;
-    case 'user':
-      return <svg {...props}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>;
-    case 'briefcase':
-      return <svg {...props}><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>;
-    case 'sparkles':
-      return <svg {...props}><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8" /></svg>;
-    case 'cap':
-      return <svg {...props}><path d="M22 10 12 5 2 10l10 5 10-5Z" /><path d="M6 12v5c3 2 9 2 12 0v-5" /></svg>;
-    case 'tag':
-      return <svg {...props}><path d="M20.59 13.41 12 22l-9-9 8.59-8.59A2 2 0 0 1 13 4h7v7a2 2 0 0 1-.41 1.41Z" /><line x1="7" y1="7" x2="7.01" y2="7" /></svg>;
-    case 'mail':
-      return <svg {...props}><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-10 6L2 7" /></svg>;
-    case 'globe':
-      return <svg {...props}><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z" /></svg>;
-    case 'github':
-      return <svg {...props}><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" /></svg>;
-    case 'linkedin':
-      return <svg {...props}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6Z" /><rect x="2" y="9" width="4" height="12" /><circle cx="4" cy="4" r="2" /></svg>;
-    case 'pin':
-      return <svg {...props}><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0Z" /><circle cx="12" cy="10" r="3" /></svg>;
-    default:
-      return null;
-  }
+function statusFor(item) {
+  if (isArchived(item)) return 'Archived';
+  if (item?.end_date && isPresent(item.end_date)) return 'Live';
+  if (!item?.end_date) return 'Live';
+  return 'Past';
 }
 
-function fmtRange(item) {
-  const start = formatMonthYear(item?.startDate);
-  const end = formatMonthYear(item?.endDate);
-  if (!start && !end) return '';
-  if (!end) return start;
-  return `${start} — ${end}`;
+function fmtRange(start, end) {
+  const s = formatMonthYear(start);
+  const e = formatMonthYear(end);
+  if (!s && !e) return '';
+  if (!e) return s;
+  return `${s} — ${e}`;
 }
 
 function getInitials(name = '') {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0])
-    .join('')
-    .toUpperCase() || 'AI';
+  return (
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((p) => p[0])
+      .join('')
+      .toUpperCase() || 'A'
+  );
 }
 
-function networkIcon(network = '') {
-  const n = network.toLowerCase();
-  if (n.includes('github')) return 'github';
-  if (n.includes('linked')) return 'linkedin';
-  if (n.includes('mail') || n.includes('email')) return 'mail';
-  return 'globe';
+function DrawingCanvas({ color, size, clearKey }) {
+  const ref = useRef(null);
+  const drawing = useRef(false);
+  const last = useRef({ x: 0, y: 0 });
+  const colorRef = useRef(color);
+  const sizeRef = useRef(size);
+
+  useEffect(() => { colorRef.current = color; }, [color]);
+  useEffect(() => { sizeRef.current = size; }, [size]);
+
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+
+    const fit = () => {
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      const prev = document.createElement('canvas');
+      prev.width = canvas.width;
+      prev.height = canvas.height;
+      const pctx = prev.getContext('2d');
+      if (pctx && canvas.width > 0) pctx.drawImage(canvas, 0, 0);
+
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      if (prev.width > 0) {
+        ctx.drawImage(prev, 0, 0, prev.width, prev.height, 0, 0, w, h);
+      }
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, []);
+
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }, [clearKey]);
+
+  const point = useCallback((e) => {
+    const r = ref.current.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return { x: t.clientX - r.left, y: t.clientY - r.top };
+  }, []);
+
+  const start = useCallback((e) => {
+    if (e.target !== ref.current) return;
+    drawing.current = true;
+    last.current = point(e);
+    e.preventDefault();
+  }, [point]);
+
+  const move = useCallback((e) => {
+    if (!drawing.current) return;
+    const ctx = ref.current.getContext('2d');
+    const p = point(e);
+    ctx.strokeStyle = colorRef.current;
+    ctx.lineWidth = sizeRef.current;
+    ctx.beginPath();
+    ctx.moveTo(last.current.x, last.current.y);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    last.current = p;
+    e.preventDefault();
+  }, [point]);
+
+  const end = useCallback(() => { drawing.current = false; }, []);
+
+  useEffect(() => {
+    const c = ref.current;
+    if (!c) return;
+    c.addEventListener('mousedown', start);
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', end);
+    c.addEventListener('touchstart', start, { passive: false });
+    c.addEventListener('touchmove', move, { passive: false });
+    c.addEventListener('touchend', end);
+    return () => {
+      c.removeEventListener('mousedown', start);
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', end);
+      c.removeEventListener('touchstart', start);
+      c.removeEventListener('touchmove', move);
+      c.removeEventListener('touchend', end);
+    };
+  }, [start, move, end]);
+
+  return <CanvasEl ref={ref} />;
 }
 
 export function BenIssenTheme() {
   const cv = useCV();
-  const [activeId, setActiveId] = useState(null);
-  const [thinking, setThinking] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const scrollRef = useRef(null);
-  const thinkTimer = useRef(null);
+  const [tab, setTab] = useState('experience');
+  const [selectedKey, setSelectedKey] = useState(null);
+  const [showBio, setShowBio] = useState(false);
+  const [color, setColor] = useState(COLORS[0]);
+  const [brush, setBrush] = useState(3);
+  const [clearKey, setClearKey] = useState(0);
+  const rightScrollRef = useRef(null);
 
-  const initials = useMemo(() => getInitials(cv?.name || 'AI'), [cv?.name]);
-  const firstName = (cv?.name || '').split(/\s+/)[0] || 'me';
-  const cloneName = `${firstName}GPT`;
+  useEffect(() => {
+    document.body.classList.add('benissen-locked');
+    return () => document.body.classList.remove('benissen-locked');
+  }, []);
 
-  const conversations = useMemo(() => {
-    if (!cv) return [];
-    const list = [];
+  const initials = useMemo(() => getInitials(cv?.name || 'A'), [cv?.name]);
 
-    if (cv.about) {
-      list.push({
-        id: 'about',
-        icon: 'sparkles',
-        question: `Who is ${firstName}?`,
-        sidebar: 'About me',
-        hint: 'A quick intro',
-        render: () => (
-          <div className="content">
-            <p>{cv.about}</p>
-            {cv.location && (
-              <p style={{ color: COLORS.textMid, fontSize: 13 }}>
-                <Icon name="pin" size={13} /> Based in {cv.location}.
-              </p>
-            )}
-          </div>
-        ),
-      });
-    }
+  const projects = useMemo(
+    () => (cv?.sectionsRaw?.projects || []).filter((p) => p?.name),
+    [cv?.sectionsRaw?.projects]
+  );
 
-    if (cv.experience?.length) {
-      list.push({
-        id: 'experience',
-        icon: 'briefcase',
-        question: 'What have you been working on?',
-        sidebar: 'Experience',
-        hint: 'Roles & companies',
-        render: () => (
-          <div className="content">
-            <p>Here are the roles I've been doing recently:</p>
-            <ItemList>
-              {cv.experience.slice(0, 8).map((e, i) => (
-                <ItemRow key={i}>
-                  <div className="head">
-                    <div className="title">{e.title}{e.company ? ` · ${e.company}` : ''}</div>
-                    <div className="meta">{fmtRange(e)}</div>
-                  </div>
-                  {e.location && <div className="sub">{e.location}</div>}
-                  {e.highlights?.length > 0 && (
-                    <ul className="bul">
-                      {e.highlights.slice(0, 3).map((h, j) => (
-                        <li key={j}>{h}</li>
-                      ))}
-                    </ul>
-                  )}
-                </ItemRow>
-              ))}
-            </ItemList>
-          </div>
-        ),
-      });
-    }
+  const experience = useMemo(() => cv?.experience || [], [cv?.experience]);
 
-    if (cv.projects?.length) {
-      list.push({
-        id: 'projects',
-        icon: 'sparkles',
-        question: 'What have you built?',
-        sidebar: 'Projects',
-        hint: 'Things I made',
-        render: () => (
-          <div className="content">
-            <p>A few projects I've shipped:</p>
-            <ItemList>
-              {cv.projects.slice(0, 10).map((p, i) => (
-                <ItemRow key={i}>
-                  <div className="head">
-                    <div className="title">
-                      {p.url ? (
-                        <a href={p.url} target="_blank" rel="noreferrer" style={{ color: COLORS.text, textDecoration: 'none', borderBottom: `1px dashed ${COLORS.textMuted}` }}>
-                          {p.name}
-                        </a>
-                      ) : p.name}
-                    </div>
-                    <div className="meta">{fmtRange(p)}</div>
-                  </div>
-                  {p.description && <div className="desc">{p.description}</div>}
-                </ItemRow>
-              ))}
-            </ItemList>
-          </div>
-        ),
-      });
-    }
-
-    if (cv.education?.length) {
-      list.push({
-        id: 'education',
-        icon: 'cap',
-        question: 'Where did you study?',
-        sidebar: 'Education',
-        hint: 'School & degrees',
-        render: () => (
-          <div className="content">
-            <ItemList>
-              {cv.education.map((e, i) => (
-                <ItemRow key={i}>
-                  <div className="head">
-                    <div className="title">{e.school || e.institution}</div>
-                    <div className="meta">{fmtRange({ startDate: e.start_date, endDate: e.end_date })}</div>
-                  </div>
-                  {(e.degree || e.area) && <div className="sub">{[e.degree, e.area].filter(Boolean).join(' · ')}</div>}
-                </ItemRow>
-              ))}
-            </ItemList>
-          </div>
-        ),
-      });
-    }
-
-    if (cv.skills?.length) {
-      const flatSkills = [];
-      cv.skills.forEach((s) => {
-        if (typeof s === 'string') flatSkills.push(s);
-        else if (s?.label) flatSkills.push(s.label);
-        else if (s?.name) flatSkills.push(s.name);
-        if (Array.isArray(s?.details)) s.details.forEach((d) => flatSkills.push(d));
-      });
-      if (flatSkills.length) {
-        list.push({
-          id: 'skills',
-          icon: 'tag',
-          question: 'What are you skilled at?',
-          sidebar: 'Skills',
-          hint: 'Tools & abilities',
-          render: () => (
-            <div className="content">
-              <p>Here's what I bring to the table:</p>
-              <TagWrap>
-                {flatSkills.slice(0, 40).map((s, i) => (
-                  <Tag key={i}>{s}</Tag>
-                ))}
-              </TagWrap>
-            </div>
-          ),
-        });
-      }
-    }
-
-    const contactItems = [];
-    if (cv.email) contactItems.push({ network: 'Email', label: cv.email, url: `mailto:${cv.email}` });
-    (cv.socialRaw || []).forEach((s) => {
-      if (s?.url) contactItems.push({ network: s.network, label: s.username || s.network, url: s.url });
+  const articles = useMemo(() => {
+    const out = [];
+    (cv?.publications || []).forEach((p, i) => {
+      if (p?.title) out.push({ title: p.title, sub: p.publisher || p.venue, url: p.url, date: p.date, _i: `pub-${i}` });
     });
-    if (cv.website) contactItems.push({ network: 'Website', label: cv.website.replace(/^https?:\/\//, ''), url: cv.website });
+    (cv?.presentations || []).forEach((p, i) => {
+      if (p?.title) out.push({ title: p.title, sub: p.venue || p.event, url: p.url, date: p.date, _i: `pre-${i}` });
+    });
+    return out;
+  }, [cv?.publications, cv?.presentations]);
 
-    if (contactItems.length) {
-      list.push({
-        id: 'contact',
-        icon: 'mail',
-        question: 'How can I reach you?',
-        sidebar: 'Contact',
-        hint: 'Get in touch',
-        render: () => (
-          <div className="content">
-            <p>The fastest ways to find me:</p>
-            <ContactGrid>
-              {contactItems.map((c, i) => (
-                <ContactCard key={i} href={c.url} target="_blank" rel="noreferrer">
-                  <div className="ico"><Icon name={networkIcon(c.network)} size={15} /></div>
-                  <div className="col">
-                    <div className="lbl">{c.network}</div>
-                    <div className="sub">{c.label}</div>
-                  </div>
-                </ContactCard>
-              ))}
-            </ContactGrid>
-          </div>
-        ),
-      });
-    }
+  const contacts = useMemo(() => {
+    const out = [];
+    if (cv?.email) out.push({ key: 'email', title: 'Email', sub: cv.email, url: `mailto:${cv.email}` });
+    (cv?.socialRaw || []).forEach((s, i) => {
+      if (s?.url) out.push({ key: `s-${i}`, title: s.network, sub: s.username || s.url.replace(/^https?:\/\//, ''), url: s.url });
+    });
+    if (cv?.website) out.push({ key: 'web', title: 'Website', sub: cv.website.replace(/^https?:\/\//, ''), url: cv.website });
+    if (cv?.phone) out.push({ key: 'phone', title: 'Phone', sub: cv.phone, url: `tel:${cv.phone}` });
+    return out;
+  }, [cv]);
 
-    return list;
-  }, [cv, firstName]);
+  const bioParagraphs = useMemo(() => {
+    if (!cv?.about) return [];
+    return cv.about.split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
+  }, [cv?.about]);
 
   useEffect(() => {
-    document.body.classList.add('benissen-theme-locked');
-    return () => document.body.classList.remove('benissen-theme-locked');
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (thinkTimer.current) clearTimeout(thinkTimer.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [activeId, thinking]);
-
-  const handleAsk = (id) => {
-    if (thinkTimer.current) clearTimeout(thinkTimer.current);
-    setActiveId(id);
-    setThinking(true);
-    setSidebarOpen(false);
-    thinkTimer.current = setTimeout(() => setThinking(false), 700);
-  };
-
-  const handleNew = () => {
-    if (thinkTimer.current) clearTimeout(thinkTimer.current);
-    setActiveId(null);
-    setThinking(false);
-  };
+    if (rightScrollRef.current) rightScrollRef.current.scrollTop = 0;
+  }, [selectedKey, showBio]);
 
   if (!cv) {
     return (
-      <Shell className="benissen-theme">
+      <Wrap className="benissen-theme">
         <GlobalStyle />
-        <div style={{ gridColumn: '1 / -1', display: 'grid', placeItems: 'center', color: COLORS.textMid }}>
+        <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: C.textMuted }}>
           Loading…
         </div>
-      </Shell>
+      </Wrap>
     );
   }
 
-  const active = conversations.find((c) => c.id === activeId);
+  let listItems = [];
+  if (tab === 'experience') {
+    listItems = experience.map((e, i) => ({
+      key: `e-${i}`,
+      title: e.title,
+      badge: e.isCurrent ? 'Current' : null,
+      desc: e.company,
+      raw: e,
+      type: 'experience',
+    }));
+  } else if (tab === 'work') {
+    listItems = projects.map((p, i) => ({
+      key: `p-${i}`,
+      title: p.name,
+      badge: statusFor(p),
+      desc: p.description,
+      raw: p,
+      type: 'project',
+    }));
+  } else if (tab === 'articles') {
+    listItems = articles.map((a) => ({
+      key: a._i,
+      title: a.title,
+      desc: a.sub,
+      raw: a,
+      type: 'article',
+    }));
+  } else {
+    listItems = contacts.map((c) => ({
+      key: c.key,
+      title: c.title,
+      desc: c.sub,
+      raw: c,
+      type: 'contact',
+    }));
+  }
+
+  const effectiveKey =
+    listItems.find((it) => it.key === selectedKey)?.key ?? listItems[0]?.key ?? null;
+  const selected = !showBio && effectiveKey
+    ? listItems.find((it) => it.key === effectiveKey)
+    : null;
+
+  const renderDetail = () => {
+    if (!selected) return null;
+
+    if (selected.type === 'experience') {
+      const e = selected.raw;
+      return (
+        <DetailBody>
+          <BackBtn onClick={() => setShowBio(true)}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
+            </svg>
+            Bio
+          </BackBtn>
+          <DetailTitleRow>
+            <DetailTitle>{e.title}</DetailTitle>
+            {e.isCurrent && <StatusBadge>Current</StatusBadge>}
+          </DetailTitleRow>
+          {e.company && <Tagline>{e.company}</Tagline>}
+          <MetaRow>
+            {(e.startDate || e.endDate) && <span>{fmtRange(e.startDate, e.endDate)}</span>}
+            {e.location && <span>· {e.location}</span>}
+          </MetaRow>
+          {Array.isArray(e.highlights) && e.highlights.length > 0 && (
+            <Highlights>
+              {e.highlights.map((h, i) => <li key={i}>{h}</li>)}
+            </Highlights>
+          )}
+        </DetailBody>
+      );
+    }
+
+    if (selected.type === 'project') {
+      const p = selected.raw;
+      return (
+        <DetailBody>
+          <BackBtn onClick={() => setShowBio(true)}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
+            </svg>
+            Back
+          </BackBtn>
+          <DetailTitleRow>
+            <DetailTitle>{p.name}</DetailTitle>
+            <StatusBadge>{statusFor(p)}</StatusBadge>
+          </DetailTitleRow>
+          {(p.start_date || p.end_date) && (
+            <MetaRow>
+              <span>{fmtRange(p.start_date, p.end_date)}</span>
+            </MetaRow>
+          )}
+          {p.description && (
+            <BioText><p>{p.description}</p></BioText>
+          )}
+          {Array.isArray(p.highlights) && p.highlights.length > 0 && (
+            <Highlights>
+              {p.highlights.map((h, i) => <li key={i}>{h}</li>)}
+            </Highlights>
+          )}
+          {p.url && (
+            <VisitLink href={p.url} target="_blank" rel="noreferrer">
+              Visit project
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7 17 17 7" /><polyline points="7 7 17 7 17 17" />
+              </svg>
+            </VisitLink>
+          )}
+        </DetailBody>
+      );
+    }
+
+    if (selected.type === 'article') {
+      const a = selected.raw;
+      return (
+        <DetailBody>
+          <BackBtn onClick={() => setShowBio(true)}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
+            </svg>
+            Back
+          </BackBtn>
+          <DetailTitle>{a.title}</DetailTitle>
+          {a.sub && <Tagline>{a.sub}</Tagline>}
+          {a.date && <MetaRow><span>{formatMonthYear(a.date)}</span></MetaRow>}
+          {a.url && (
+            <VisitLink href={a.url} target="_blank" rel="noreferrer">
+              Read article
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7 17 17 7" /><polyline points="7 7 17 7 17 17" />
+              </svg>
+            </VisitLink>
+          )}
+        </DetailBody>
+      );
+    }
+
+    const c = selected.raw;
+    return (
+      <DetailBody>
+        <BackBtn onClick={() => setSelectedKey(null)}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
+          </svg>
+          Back
+        </BackBtn>
+        <DetailTitle>{c.title}</DetailTitle>
+        <Tagline>{c.sub}</Tagline>
+        {c.url && (
+          <VisitLink href={c.url} target={c.url.startsWith('http') ? '_blank' : undefined} rel="noreferrer">
+            Open
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M7 17 17 7" /><polyline points="7 7 17 7 17 17" />
+            </svg>
+          </VisitLink>
+        )}
+      </DetailBody>
+    );
+  };
+
+  const renderBio = () => (
+    <BioBody>
+      {cv.location && (
+        <Loc>
+          <div className="dot-wrap"><div className="dot" /></div>
+          <div className="text">{cv.location}</div>
+        </Loc>
+      )}
+
+      <BigName>{cv.name}</BigName>
+
+      {bioParagraphs.length ? (
+        <BioText>
+          {bioParagraphs.map((p, i) => <p key={i}>{p}</p>)}
+        </BioText>
+      ) : (
+        <BioText>
+          <p>{cv.currentJobTitle || 'Designer and builder.'}</p>
+        </BioText>
+      )}
+
+      <Divider />
+
+      <Tagline>
+        Doodle on the background while you read. Then say hi:
+      </Tagline>
+
+      <Newsletter
+        onSubmit={(e) => {
+          e.preventDefault();
+          const email = e.target.elements.email.value;
+          if (cv.email && email) {
+            window.location.href = `mailto:${cv.email}?subject=Hi%20${encodeURIComponent(cv.name)}&body=From%20${encodeURIComponent(email)}`;
+          }
+        }}
+      >
+        <input
+          type="email"
+          name="email"
+          placeholder="Your email"
+          required
+        />
+        <button type="submit">Say hi</button>
+      </Newsletter>
+    </BioBody>
+  );
 
   return (
     <>
       <GlobalStyle />
-      <Shell className="benissen-theme">
-        <Backdrop $open={sidebarOpen} onClick={() => setSidebarOpen(false)} />
+      <Wrap className="benissen-theme">
+        <DrawingCanvas color={color} size={brush} clearKey={clearKey} />
 
-        <Sidebar $open={sidebarOpen}>
-          <SidebarTop>
-            <Brand>
-              <Logo>{initials}</Logo>
-              <BrandName>{cloneName}</BrandName>
-            </Brand>
-            <NewChatButton onClick={handleNew}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span className="icon"><Icon name="edit" size={15} /></span>
-                New chat
-              </span>
-              <span className="icon"><Icon name="plus" size={14} /></span>
-            </NewChatButton>
-          </SidebarTop>
+        <Stage>
+          <Card>
+            <Grain />
+            <Inset>
+              <LeftCol>
+                <HeaderRow onClick={() => setShowBio(true)} title="Show bio">
+                  <Avatar>
+                    {cv.avatar ? <img src={cv.avatar} alt="" /> : initials}
+                  </Avatar>
+                  <NameBlock>
+                    <div className="n">{cv.name}</div>
+                    <div className="t">{cv.currentJobTitle || 'I design and build things people love'}</div>
+                  </NameBlock>
+                </HeaderRow>
 
-          <SidebarSection>
-            <SidebarLabel>Conversations</SidebarLabel>
-            {conversations.map((c) => (
-              <ConvoItem
-                key={c.id}
-                $active={activeId === c.id}
-                onClick={() => handleAsk(c.id)}
-              >
-                <span className="dot" />
-                <span className="label">{c.sidebar}</span>
-              </ConvoItem>
-            ))}
-          </SidebarSection>
+                <Tools>
+                  <Tab $active={tab === 'experience'} onClick={() => { setTab('experience'); setShowBio(false); setSelectedKey(null); }}>Experience</Tab>
+                  <Tab $active={tab === 'work'} onClick={() => { setTab('work'); setShowBio(false); setSelectedKey(null); }}>Work</Tab>
+                  <Tab $active={tab === 'articles'} onClick={() => { setTab('articles'); setShowBio(false); setSelectedKey(null); }}>Articles</Tab>
+                  <Tab $active={tab === 'contact'} onClick={() => { setTab('contact'); setShowBio(false); setSelectedKey(null); }}>Contact</Tab>
+                  <SearchBtn aria-label="Search">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="16" height="16">
+                      <path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z" fill="currentColor" />
+                    </svg>
+                  </SearchBtn>
+                </Tools>
 
-          <SidebarFoot>
-            <UserPill href={cv.email ? `mailto:${cv.email}` : '#'}>
-              <div className="avatar">
-                {cv.avatar ? (
-                  <img src={cv.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  initials
-                )}
-              </div>
-              <div className="meta">
-                <div className="name">{cv.name}</div>
-                {cv.currentJobTitle && <div className="sub">{cv.currentJobTitle}</div>}
-              </div>
-            </UserPill>
-          </SidebarFoot>
-        </Sidebar>
-
-        <Main>
-          <TopBar>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <MenuBtn onClick={() => setSidebarOpen(true)} aria-label="Open sidebar">
-                <Icon name="menu" size={16} />
-              </MenuBtn>
-              <TopTitle>
-                {cloneName}
-                <span className="badge">Beta</span>
-              </TopTitle>
-            </div>
-            <TopActions>
-              <IconBtn onClick={handleNew} aria-label="New chat">
-                <Icon name="edit" size={15} />
-              </IconBtn>
-            </TopActions>
-          </TopBar>
-
-          <ChatScroll ref={scrollRef}>
-            <ChatInner>
-              {!active ? (
-                <>
-                  <Greeting>
-                    <div className="hi">Hi, I'm {firstName}'s AI clone.</div>
-                    <div className="sub">
-                      Ask me anything about {firstName}'s work, projects, or background.
-                    </div>
-                  </Greeting>
-                  <ChipGrid>
-                    {conversations.map((c, i) => (
-                      <Chip key={c.id} $i={i} onClick={() => handleAsk(c.id)}>
-                        <div className="icon"><Icon name={c.icon} size={18} /></div>
-                        <div className="text">
-                          <div className="q">{c.question}</div>
-                          <div className="h">{c.hint}</div>
+                <ListWrap>
+                  {listItems.length ? (
+                    listItems.map((it) => (
+                      <ItemBtn
+                        key={it.key}
+                        $active={!showBio && effectiveKey === it.key}
+                        onClick={() => { setSelectedKey(it.key); setShowBio(false); }}
+                      >
+                        <div className="title-row">
+                          <div className="title">{it.title}</div>
+                          {it.badge && <div className="badge">{it.badge}</div>}
                         </div>
-                      </Chip>
-                    ))}
-                  </ChipGrid>
-                </>
-              ) : (
-                <>
-                  <Message $role="user">
-                    <div className="avatar"><Icon name="user" size={15} /></div>
-                    <div className="body">
-                      <div className="role">You</div>
-                      <div className="content"><p>{active.question}</p></div>
-                    </div>
-                  </Message>
-                  <Message $role="assistant">
-                    <div className="avatar">{initials}</div>
-                    <div className="body">
-                      <div className="role">{cloneName}</div>
-                      {thinking ? (
-                        <Typing><span /><span /><span /></Typing>
-                      ) : (
-                        active.render()
-                      )}
-                    </div>
-                  </Message>
-                </>
-              )}
-            </ChatInner>
-          </ChatScroll>
+                        {it.desc && <div className="desc">{it.desc}</div>}
+                      </ItemBtn>
+                    ))
+                  ) : (
+                    <Empty>Nothing here yet.</Empty>
+                  )}
+                </ListWrap>
+              </LeftCol>
 
-          <Composer>
-            <ComposerInner>
-              <textarea
-                rows={1}
-                placeholder={`Message ${cloneName}…`}
-                readOnly
-                onFocus={(e) => e.target.blur()}
-              />
-              <button className="send" disabled aria-label="Send">
-                <Icon name="send" size={15} />
-              </button>
-            </ComposerInner>
-            <Hint>Pick a suggestion above — this is a static demo of {cloneName}.</Hint>
-          </Composer>
-        </Main>
-      </Shell>
+              <RightCol>
+                <RightScroll ref={rightScrollRef}>
+                  {selected ? renderDetail() : renderBio()}
+                </RightScroll>
+              </RightCol>
+            </Inset>
+          </Card>
+        </Stage>
+
+        <Toolbar>
+          {COLORS.map((col) => (
+            <button
+              key={col}
+              type="button"
+              aria-label={`Pick ${col}`}
+              className={`swatch ${color === col ? 'active' : ''}`}
+              style={{ background: col }}
+              onClick={() => setColor(col)}
+            />
+          ))}
+          <input
+            type="range"
+            min="1"
+            max="60"
+            value={brush}
+            aria-label="Brush size"
+            className="range"
+            onChange={(e) => setBrush(Number(e.target.value))}
+          />
+          <button
+            type="button"
+            className="clear"
+            aria-label="Clear canvas"
+            onClick={() => setClearKey((k) => k + 1)}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              <line x1="10" y1="11" x2="10" y2="17" />
+              <line x1="14" y1="11" x2="14" y2="17" />
+            </svg>
+          </button>
+        </Toolbar>
+      </Wrap>
     </>
   );
 }

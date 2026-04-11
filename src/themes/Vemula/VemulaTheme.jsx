@@ -32,12 +32,33 @@ function Sparkle() {
   );
 }
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(max-width: 767px)').matches;
+  });
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const onChange = (e) => setIsMobile(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  return isMobile;
+}
+
+const SWIPE_THRESHOLD = 70;
+const TAP_THRESHOLD = 6;
+
 export function VemulaTheme() {
   const cv = useCV();
   const containerRef = useRef(null);
   const [overlap, setOverlap] = useState(180);
   const [enterState, setEnterState] = useState('hidden');
   const [openKey, setOpenKey] = useState(null);
+  const isMobile = useIsMobile();
+  const [order, setOrder] = useState([]);
+  const [drag, setDrag] = useState(null);
+  const wasDragRef = useRef(false);
 
   const sections = useMemo(() => {
     if (!cv) return [];
@@ -49,7 +70,7 @@ export function VemulaTheme() {
   const stackTransforms = useMemo(() => computeStackTransforms(sections), [sections]);
 
   useEffect(() => {
-    if (!sections.length) return;
+    if (isMobile || !sections.length) return undefined;
     function recalc() {
       const node = containerRef.current;
       if (!node) return;
@@ -60,7 +81,7 @@ export function VemulaTheme() {
     recalc();
     window.addEventListener('resize', recalc);
     return () => window.removeEventListener('resize', recalc);
-  }, [sections.length]);
+  }, [sections.length, isMobile]);
 
   useEffect(() => {
     if (!sections.length) return undefined;
@@ -146,64 +167,68 @@ export function VemulaTheme() {
           </Subtitle>
         </div>
 
-        <CardsContainer ref={containerRef}>
-          {sections.map((section, i) => {
-            const isLast = i === sections.length - 1;
-            return (
-              <Card
-                key={section.key}
-                type="button"
-                className={rowStateClass}
-                onClick={() => setOpenKey(section.key)}
-                aria-label={`Open ${section.title}`}
-                style={{
-                  '--card-from': section.palette.from,
-                  '--card-to': section.palette.to,
-                  '--card-label': section.palette.label,
-                  '--enter-delay': `${i * 100}ms`,
-                  zIndex: 10 + i,
-                  marginRight: isLast ? 0 : `-${overlap}px`,
-                }}
-              >
-                <CardLabel>{section.label}</CardLabel>
-                {section.items.length > 1 && (
-                  <CardCount>{String(section.items.length).padStart(2, '0')}</CardCount>
-                )}
-                <CardTitle>{section.title}</CardTitle>
-              </Card>
-            );
-          })}
-        </CardsContainer>
+        {!isMobile && (
+          <CardsContainer ref={containerRef}>
+            {sections.map((section, i) => {
+              const isLast = i === sections.length - 1;
+              return (
+                <Card
+                  key={section.key}
+                  type="button"
+                  className={rowStateClass}
+                  onClick={() => setOpenKey(section.key)}
+                  aria-label={`Open ${section.title}`}
+                  style={{
+                    '--card-from': section.palette.from,
+                    '--card-to': section.palette.to,
+                    '--card-label': section.palette.label,
+                    '--enter-delay': `${i * 100}ms`,
+                    zIndex: 10 + i,
+                    marginRight: isLast ? 0 : `-${overlap}px`,
+                  }}
+                >
+                  <CardLabel>{section.label}</CardLabel>
+                  {section.items.length > 1 && (
+                    <CardCount>{String(section.items.length).padStart(2, '0')}</CardCount>
+                  )}
+                  <CardTitle>{section.title}</CardTitle>
+                </Card>
+              );
+            })}
+          </CardsContainer>
+        )}
 
-        <StackContainer>
-          {sections.map((section, i) => {
-            const t = stackTransforms[i];
-            return (
-              <StackCard
-                key={section.key}
-                type="button"
-                className={stackStateClass}
-                onClick={() => setOpenKey(section.key)}
-                aria-label={`Open ${section.title}`}
-                style={{
-                  '--card-from': section.palette.from,
-                  '--card-to': section.palette.to,
-                  '--card-label': section.palette.label,
-                  '--card-scale': t.scale,
-                  '--card-rot': `${t.rotation}deg`,
-                  '--enter-delay': `${i * 80}ms`,
-                  zIndex: t.zIndex,
-                }}
-              >
-                <CardLabel>{section.label}</CardLabel>
-                {section.items.length > 1 && (
-                  <CardCount>{String(section.items.length).padStart(2, '0')}</CardCount>
-                )}
-                <CardTitle>{section.title}</CardTitle>
-              </StackCard>
-            );
-          })}
-        </StackContainer>
+        {isMobile && (
+          <StackContainer>
+            {sections.map((section, i) => {
+              const t = stackTransforms[i];
+              return (
+                <StackCard
+                  key={section.key}
+                  type="button"
+                  className={stackStateClass}
+                  onClick={() => setOpenKey(section.key)}
+                  aria-label={`Open ${section.title}`}
+                  style={{
+                    '--card-from': section.palette.from,
+                    '--card-to': section.palette.to,
+                    '--card-label': section.palette.label,
+                    '--card-scale': t.scale,
+                    '--card-rot': `${t.rotation}deg`,
+                    '--enter-delay': `${i * 80}ms`,
+                    zIndex: t.zIndex,
+                  }}
+                >
+                  <CardLabel>{section.label}</CardLabel>
+                  {section.items.length > 1 && (
+                    <CardCount>{String(section.items.length).padStart(2, '0')}</CardCount>
+                  )}
+                  <CardTitle>{section.title}</CardTitle>
+                </StackCard>
+              );
+            })}
+          </StackContainer>
+        )}
       </Page>
 
       <DetailPanel section={openSection} onClose={closeDetail} />

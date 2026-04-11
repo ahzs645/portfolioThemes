@@ -117,19 +117,14 @@ const riseUpDesktop = keyframes`
 export const CardsContainer = styled.div`
   position: fixed;
   bottom: -5%;
-  left: 20px;
-  right: 20px;
-  display: none;
+  left: 30px;
+  right: 30px;
+  display: flex;
   flex-wrap: nowrap;
   justify-content: center;
   z-index: 5;
   pointer-events: none;
 
-  @media (min-width: 768px) {
-    display: flex;
-    left: 30px;
-    right: 30px;
-  }
   @media (min-width: 1024px) {
     left: 47px;
     right: 47px;
@@ -215,37 +210,46 @@ export const Card = styled.button`
 
 export const StackContainer = styled.div`
   position: fixed;
-  top: 62%;
+  top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(76vw, 273px);
-  aspect-ratio: 273 / 362.7;
-  perspective: 600px;
-  z-index: 5;
+  width: min(80vw, 280px);
+  height: min(106vw, 372px);
+  margin-left: calc(min(80vw, 280px) / -2);
+  margin-top: calc(min(106vw, 372px) / -2 + 10vh);
+  perspective: 800px;
+  z-index: 30;
   pointer-events: none;
-
-  @media (min-width: 768px) { display: none; }
+  /* keep above any sibling fixed layer */
+  isolation: isolate;
 `;
 
 export const StackCard = styled.button`
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
+  margin: 0;
   border: none;
   padding: 0;
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
   background: linear-gradient(155deg, var(--card-from), var(--card-to));
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
-  cursor: pointer;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  cursor: grab;
   text-align: left;
   font: inherit;
   color: inherit;
   pointer-events: auto;
+  touch-action: none;
   -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  appearance: none;
   transform-origin: 90% 90%;
-  transform: scale(var(--card-scale)) rotateZ(var(--card-rot));
+  transform:
+    translate3d(var(--drag-x, 0px), var(--drag-y, 0px), 0)
+    scale(var(--card-scale))
+    rotateZ(calc(var(--card-rot) + var(--drag-rot, 0deg)));
   transition:
     transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1),
     box-shadow 0.3s ease,
@@ -258,8 +262,9 @@ export const StackCard = styled.button`
     opacity: 0;
     pointer-events: none;
   }
-  &.vemula-entered:active {
-    transform: scale(calc(var(--card-scale) * 0.97)) rotateZ(var(--card-rot));
+  &.vemula-dragging {
+    transition: none;
+    cursor: grabbing;
   }
 `;
 
