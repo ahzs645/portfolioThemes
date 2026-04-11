@@ -55,6 +55,7 @@ import { JacobLeechTheme } from './JacobLeech/JacobLeechTheme';
 import { TalkToDashaTheme } from './TalkToDasha/TalkToDashaTheme';
 import { KaachowTheme } from './Kaachow/KaachowTheme';
 import { VemulaTheme } from './Vemula/VemulaTheme';
+import { BenIssenTheme } from './BenIssen/BenIssenTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -504,6 +505,14 @@ export const PORTFOLIO_THEMES = [
     description: 'Editorial serif headline with inline avatar and sparkle, paired with a bottom-fixed row of overlapping gradient cards that lift and rotate on hover. Inspired by vemula.me.',
     source: 'https://vemula.me',
     Component: VemulaTheme,
+  },
+  {
+    id: 'ben-issen',
+    slug: 'ai-clone',
+    name: 'AI Clone',
+    description: 'ChatGPT-style portfolio with a dark sidebar, suggestion chips, and CV sections rendered as assistant replies — chat with the user\'s AI clone. Inspired by benissen.com.',
+    source: 'https://benissen.com',
+    Component: BenIssenTheme,
   },
 ];
 

@@ -1,4 +1,4 @@
-import styled, { createGlobalStyle } from 'styled-components';
+import styled from 'styled-components';
 
 export const palette = {
   bg: '#FEFEFC',
@@ -29,10 +29,6 @@ export const FOLDER_VIEWBOX = '0 0 230 120';
 export const FILE_TAB_PATH =
   'M230 56H0V0L138.093 0C141.552 0 144.951 0.896735 147.959 2.60266L168.722 14.377C171.73 16.083 175.129 16.9797 178.588 16.9797H230V56Z';
 export const FILE_TAB_VIEWBOX = '0 0 230 56';
-
-export const FontLoader = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap');
-`;
 
 export const Page = styled.div`
   min-height: 100vh;

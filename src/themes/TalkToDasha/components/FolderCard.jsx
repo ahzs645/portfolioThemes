@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { motion } from 'framer-motion';
 import { cards, FOLDER_PATH, FOLDER_VIEWBOX } from '../styles';
 
@@ -123,7 +123,6 @@ export function FolderCard({ tone = 'lavender', label, items = [], variant = 'pa
   const [activeIndex, setActiveIndex] = useState(null);
   const [marker, setMarker] = useState({ x: 0, y: 0 });
   const visibleItems = useMemo(() => items.slice(0, 3), [items]);
-  const activeItem = activeIndex == null ? null : visibleItems[activeIndex];
 
   const updateMarker = (event) => {
     const bounds = event.currentTarget.getBoundingClientRect();
@@ -159,36 +158,84 @@ export function FolderCard({ tone = 'lavender', label, items = [], variant = 'pa
           {visibleItems.map((item, index) => {
             const spec = itemSpecs[index] || itemSpecs[itemSpecs.length - 1];
             const href = item.href || undefined;
+            const badge = activeIndex === index ? config.states[index]?.badge : null;
+            const cardProps = {
+              $shadow: config.shadow,
+              $left: spec.left,
+              $right: spec.right,
+              initial: false,
+              animate: {
+                top: spec.top,
+                bottom: spec.bottom,
+                rotate: spec.rotate || 0,
+                opacity: spec.opacity,
+              },
+              transition: { type: 'spring', stiffness: 400, damping: 30 },
+              onMouseEnter: () => setActiveIndex(index),
+              onMouseMove: updateMarker,
+              onMouseLeave: () => clearActive(index),
+              onFocus: () => setActiveIndex(index),
+              onBlur: () => clearActive(index),
+            };
+
+            if (href) {
+              return (
+                <ItemLinkCard
+                  key={`${item.label}-${index}`}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  {...cardProps}
+                >
+                  <ItemTitle $top={spec.titleTop} $blur={spec.blur}>
+                    {item.label}
+                  </ItemTitle>
+                  {badge && item.detail ? (
+                    <Badge
+                      initial={{ opacity: 0, scale: 0.96, rotate: badge.rotate }}
+                      animate={{ opacity: 1, scale: 1, rotate: badge.rotate }}
+                      exit={{ opacity: 0, scale: 0.96, rotate: badge.rotate }}
+                      transition={{ type: 'spring', stiffness: 420, damping: 28 }}
+                      $top={badge.top}
+                      $right={badge.right}
+                    >
+                      <BadgeMarker
+                        animate={{ x: marker.x, y: marker.y }}
+                        transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+                      />
+                      <BadgeText>{item.detail}</BadgeText>
+                    </Badge>
+                  ) : null}
+                </ItemLinkCard>
+              );
+            }
 
             return (
-              <ItemCard
+              <ItemButtonCard
                 key={`${item.label}-${index}`}
-                as={href ? 'a' : 'button'}
-                href={href}
-                type={href ? undefined : 'button'}
-                target={href ? '_blank' : undefined}
-                rel={href ? 'noreferrer noopener' : undefined}
-                $shadow={config.shadow}
-                $left={spec.left}
-                $right={spec.right}
-                initial={false}
-                animate={{
-                  top: spec.top,
-                  bottom: spec.bottom,
-                  rotate: spec.rotate || 0,
-                  opacity: spec.opacity,
-                }}
-                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                onMouseEnter={() => setActiveIndex(index)}
-                onMouseMove={updateMarker}
-                onMouseLeave={() => clearActive(index)}
-                onFocus={() => setActiveIndex(index)}
-                onBlur={() => clearActive(index)}
+                type="button"
+                {...cardProps}
               >
                 <ItemTitle $top={spec.titleTop} $blur={spec.blur}>
                   {item.label}
                 </ItemTitle>
-              </ItemCard>
+                {badge && item.detail ? (
+                  <Badge
+                    initial={{ opacity: 0, scale: 0.96, rotate: badge.rotate }}
+                    animate={{ opacity: 1, scale: 1, rotate: badge.rotate }}
+                    exit={{ opacity: 0, scale: 0.96, rotate: badge.rotate }}
+                    transition={{ type: 'spring', stiffness: 420, damping: 28 }}
+                    $top={badge.top}
+                    $right={badge.right}
+                  >
+                    <BadgeMarker
+                      animate={{ x: marker.x, y: marker.y }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+                    />
+                    <BadgeText>{item.detail}</BadgeText>
+                  </Badge>
+                ) : null}
+              </ItemButtonCard>
             );
           })}
         </ItemsLayer>
@@ -219,23 +266,6 @@ export function FolderCard({ tone = 'lavender', label, items = [], variant = 'pa
           {label && <Label $ink={color.ink}>{label}</Label>}
         </FooterRow>
       </ClipLayer>
-
-      {activeItem?.detail && config.states[activeIndex]?.badge ? (
-        <Badge
-          initial={{ opacity: 0, scale: 0.96, rotate: config.states[activeIndex].badge.rotate }}
-          animate={{ opacity: 1, scale: 1, rotate: config.states[activeIndex].badge.rotate }}
-          exit={{ opacity: 0, scale: 0.96, rotate: config.states[activeIndex].badge.rotate }}
-          transition={{ type: 'spring', stiffness: 420, damping: 28 }}
-          $top={config.states[activeIndex].badge.top}
-          $right={config.states[activeIndex].badge.right}
-        >
-          <BadgeMarker
-            animate={{ x: marker.x, y: marker.y }}
-            transition={{ type: 'spring', stiffness: 500, damping: 40 }}
-          />
-          <BadgeText>{activeItem.detail}</BadgeText>
-        </Badge>
-      ) : null}
     </Wrap>
   );
 }
@@ -266,10 +296,10 @@ const CardBase = styled.div`
 const ItemsLayer = styled.div`
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 1;
 `;
 
-const ItemCard = styled(motion.button)`
+const itemCardStyles = css`
   position: absolute;
   left: ${(p) => `${p.$left ?? 18}px`};
   right: ${(p) => `${p.$right ?? 18}px`};
@@ -283,6 +313,14 @@ const ItemCard = styled(motion.button)`
   text-align: left;
   text-decoration: none;
   outline: none;
+`;
+
+const ItemButtonCard = styled(motion.button)`
+  ${itemCardStyles}
+`;
+
+const ItemLinkCard = styled(motion.a)`
+  ${itemCardStyles}
 `;
 
 const ItemTitle = styled.div`
@@ -308,8 +346,9 @@ const FolderFace = styled.svg`
   ${(p) => (p.$bottom != null ? `bottom: ${p.$bottom}px;` : '')}
   ${(p) => (p.$height != null ? `height: ${p.$height}px;` : '')}
   width: 100%;
-  z-index: 1;
+  z-index: 2;
   display: block;
+  pointer-events: none;
 `;
 
 const FooterRow = styled.div`

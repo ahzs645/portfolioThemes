@@ -10,6 +10,6 @@ export function ProjectsSection({ projects }) {
   }));
 
   return (
-    <FolderCard tone="sage" label="Latest release" items={items} />
+    <FolderCard tone="sage" label="Projects" items={items} />
   );
 }

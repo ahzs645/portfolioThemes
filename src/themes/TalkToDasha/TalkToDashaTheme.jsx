@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useCV } from '../../contexts/ConfigContext';
-import { FontLoader, Page, Container, FolderGrid, Footer } from './styles';
+import { Page, Container, FolderGrid, Footer } from './styles';
 import { Hero } from './components/Hero';
 import { CurrentStatus } from './components/CurrentStatus';
 import { ProjectsSection } from './components/ProjectsSection';
@@ -19,9 +19,6 @@ export function TalkToDashaTheme() {
     const socials = [
       socialLinks.linkedin && { label: 'LinkedIn', url: socialLinks.linkedin },
       socialLinks.github && { label: 'GitHub', url: socialLinks.github },
-      socialLinks.twitter && { label: 'Twitter', url: socialLinks.twitter },
-      socialLinks.youtube && { label: 'YouTube', url: socialLinks.youtube },
-      socialLinks.website && { label: 'Website', url: socialLinks.website },
     ].filter(Boolean);
 
     return {
@@ -32,8 +29,8 @@ export function TalkToDashaTheme() {
       currentJobs: experience.filter((e) => e.isCurrent),
       pastJobs: experience.filter((e) => !e.isCurrent),
       projects: cv.projects || [],
-      awards: cv.awards || [],
-      certifications: cv.certifications || [],
+      education: cv.education || [],
+      professionalDevelopment: cv.professionalDevelopment || [],
       socials,
     };
   }, [cv]);
@@ -42,7 +39,6 @@ export function TalkToDashaTheme() {
 
   return (
     <>
-      <FontLoader />
       <Page>
         <Container>
           <Hero name={data.name} title={data.title} location={data.location} />
@@ -51,8 +47,8 @@ export function TalkToDashaTheme() {
             <ProjectsSection projects={data.projects} />
             <PastCollabsSection jobs={data.pastJobs} />
             <FounderSection
-              awards={data.awards}
-              certifications={data.certifications}
+              education={data.education}
+              professionalDevelopment={data.professionalDevelopment}
             />
             <SocialSection socials={data.socials} />
           </FolderGrid>
