@@ -48,6 +48,8 @@ import { NimTheme } from './Nim/NimTheme';
 import { RetroComputerTheme } from './RetroComputer/RetroComputerTheme';
 import { VSCodePortfolioTheme } from './VSCodePortfolio/VSCodePortfolioTheme';
 import { SharpEye08Theme } from './SharpEye08/SharpEye08Theme';
+import { MattRothenbergTheme } from './MattRothenberg/MattRothenbergTheme';
+import { JoostDamhuisTheme } from './JoostDamhuis/JoostDamhuisTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -441,6 +443,22 @@ export const PORTFOLIO_THEMES = [
     description: 'Pitch-black monospace portfolio with italic Georgia section titles, short divider rule, uppercase entry tags, and a light/dark toggle inspired by sharpeye08.github.io.',
     source: 'https://sharpeye08.github.io',
     Component: SharpEye08Theme,
+  },
+  {
+    id: 'matt-rothenberg',
+    slug: 'editorial-prose',
+    name: 'Editorial Prose',
+    description: 'Narrative single-column layout with oversized Fraunces serif paragraphs, mono "I ___" eyebrows, inline employment pills, and editorial underlines inspired by mattrothenberg.com.',
+    source: 'https://mattrothenberg.com',
+    Component: MattRothenbergTheme,
+  },
+  {
+    id: 'joost-damhuis',
+    slug: 'framer-mono',
+    name: 'Framer Mono',
+    description: 'Dark single-viewport landing with an oversized lowercase name, live clock widget, teal accents, and a now-playing card inspired by joost.design.',
+    source: 'https://joost.design',
+    Component: JoostDamhuisTheme,
   },
 ];
 

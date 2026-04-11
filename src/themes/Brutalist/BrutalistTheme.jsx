@@ -40,7 +40,7 @@ function formatDate(date) {
   return date;
 }
 
-export function BrutalistTheme() {
+export function BrutalistTheme({ darkMode = false }) {
   const { cvData } = useConfig();
   const cv = useMemo(() => cvData?.cv || {}, [cvData]);
 
@@ -87,7 +87,16 @@ export function BrutalistTheme() {
   }, [cv]);
 
   return (
-    <div style={{ height: '100%', width: '100%', overflow: 'auto' }}>
+    <div
+      style={{
+        height: '100%',
+        width: '100%',
+        overflow: 'auto',
+        colorScheme: darkMode ? 'dark' : 'light',
+        background: darkMode ? '#000' : '#fff',
+        color: darkMode ? '#fff' : '#000',
+      }}
+    >
       <div>
         <h1>{fullName}</h1>
         <p>

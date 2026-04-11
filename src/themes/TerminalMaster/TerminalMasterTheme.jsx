@@ -1,8 +1,10 @@
-import React, { useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { generateBanner } from './banner';
 import { buildCommands } from './commands';
+
+const MOBILE_QUERY = '(max-width: 640px)';
 
 const TerminalGlobalStyles = createGlobalStyle`
   @import url('https://cdn.jsdelivr.net/npm/jquery.terminal/css/jquery.terminal.min.css');
@@ -19,6 +21,12 @@ const TerminalGlobalStyles = createGlobalStyle`
     padding: 0;
     height: 100%;
     background: rgb(0, 0, 0);
+  }
+
+  @media ${MOBILE_QUERY.replace('(', 'screen and (')} {
+    .terminal, .cmd {
+      padding: 8px !important;
+    }
   }
 `;
 
@@ -49,6 +57,20 @@ export function TerminalMasterTheme() {
   const containerRef = useRef(null);
   const terminalRef = useRef(null);
 
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia
+      ? window.matchMedia(MOBILE_QUERY).matches
+      : false
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
+    const mq = window.matchMedia(MOBILE_QUERY);
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
   const username = useMemo(() => {
     if (!cv?.name) return 'portfolio';
     return cv.name.toLowerCase().replace(/\s+/g, '');
@@ -56,13 +78,13 @@ export function TerminalMasterTheme() {
 
   const bannerText = useMemo(() => {
     if (!cv) return '';
-    return generateBanner(cv);
-  }, [cv]);
+    return generateBanner(cv, { compact: isMobile });
+  }, [cv, isMobile]);
 
   const commands = useMemo(() => {
     if (!cv) return {};
-    return buildCommands(cv);
-  }, [cv]);
+    return buildCommands(cv, { compact: isMobile });
+  }, [cv, isMobile]);
 
   const initTerminal = useCallback(() => {
     if (!containerRef.current || !window.jQuery || !cv) return;

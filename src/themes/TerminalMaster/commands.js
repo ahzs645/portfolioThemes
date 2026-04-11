@@ -74,7 +74,7 @@ function formatSocials(socialLinks = {}) {
     .join('\n');
 }
 
-export function buildCommands(cv) {
+export function buildCommands(cv, { compact = false } = {}) {
   const username = (cv.name || 'portfolio').toLowerCase().replace(/\s+/g, '');
 
   return {
@@ -99,7 +99,7 @@ export function buildCommands(cv) {
       this.echo(parts.join('\n') || 'No about information available.');
     },
     banner: function () {
-      this.echo(generateBanner(cv));
+      this.echo(generateBanner(cv, { compact }));
     },
     education: function () {
       const text = formatEducation(cv.education);

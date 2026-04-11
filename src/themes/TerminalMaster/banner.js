@@ -46,11 +46,7 @@ function renderAsciiName(name) {
   return lines.join('\n');
 }
 
-export function generateBanner(cv) {
-  const name = cv.name || 'Portfolio';
-  const ascii = renderAsciiName(name);
-
-  const fish = `
+const WIDE_FISH = `
                 _,           _,                                                                _,           _,
               .' (        .-'./                                                              .' (        .-'./
             _/..._'.    .'.-'/                                                             _/..._'.    .'.-'/
@@ -60,10 +56,26 @@ export function generateBanner(cv) {
              \\) |\`\\ \\)  '.'-.\\.                                                              \\) |\`\\ \\)  '.'-.\\
                 \\_/       '-._\\                                                                \\_/       '-._\\`;
 
+const SMALL_FISH = `
+      _,
+    .' (        .-'./
+  _/..._'.    .'.-'/
+.-\`      \` '-./.'_.'
+( o)   ))      ;= <_
+ '-.,\\\\__ __.-;\`\\'. '.
+      \\) |\`\\ \\)  '.'-.\\.
+         \\_/       '-._\\`;
+
+export function generateBanner(cv, { compact = false } = {}) {
+  const name = cv.name || 'Portfolio';
   const title = cv.currentJobTitle ? `\n${cv.currentJobTitle}` : '';
+  const helpLine = `Type [[;rgba(245, 40, 145, 0.99);;]"help"] to see available commands.\n`;
 
-  let banner = ascii + '\n' + fish + title + '\n\n';
-  banner += `Type [[;rgba(245, 40, 145, 0.99);;]"help"] to see available commands.\n`;
+  if (compact) {
+    const heading = `[[b;#71ee79;]${name.toUpperCase()}]`;
+    return `${heading}\n${SMALL_FISH}\n\n~~ Welcome to my terminal-like website! ~~${title}\n\n${helpLine}`;
+  }
 
-  return banner;
+  const ascii = renderAsciiName(name);
+  return `${ascii}\n${WIDE_FISH}${title}\n\n${helpLine}`;
 }
