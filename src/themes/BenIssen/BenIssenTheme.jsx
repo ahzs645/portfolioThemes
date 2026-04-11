@@ -1,10 +1,22 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import styled, { createGlobalStyle, keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { formatMonthYear, isPresent, isArchived } from '../../utils/cvHelpers';
 
+const FONT_HREF = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
+
+function useFontLink(href) {
+  useEffect(() => {
+    if (document.querySelector(`link[data-benissen-font="1"]`)) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    link.dataset.benissenFont = '1';
+    document.head.appendChild(link);
+  }, [href]);
+}
+
 const GlobalStyle = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
   body.benissen-locked { overflow: hidden; background: rgb(28, 28, 28); }
   .benissen-theme ::selection { background: rgba(255,255,255,0.18); color: #fff; }
 `;
@@ -661,9 +673,14 @@ function statusFor(item) {
   return 'Past';
 }
 
+function safeFmt(d) {
+  if (d == null || d === '') return '';
+  return formatMonthYear(String(d));
+}
+
 function fmtRange(start, end) {
-  const s = formatMonthYear(start);
-  const e = formatMonthYear(end);
+  const s = safeFmt(start);
+  const e = safeFmt(end);
   if (!s && !e) return '';
   if (!e) return s;
   return `${s} — ${e}`;
@@ -788,6 +805,8 @@ export function BenIssenTheme() {
   const [clearKey, setClearKey] = useState(0);
   const [toolsOpen, setToolsOpen] = useState(false);
   const rightScrollRef = useRef(null);
+
+  useFontLink(FONT_HREF);
 
   useEffect(() => {
     document.body.classList.add('benissen-locked');
@@ -970,7 +989,7 @@ export function BenIssenTheme() {
           </BackBtn>
           <DetailTitle>{a.title}</DetailTitle>
           {a.sub && <Tagline>{a.sub}</Tagline>}
-          {a.date && <MetaRow><span>{formatMonthYear(a.date)}</span></MetaRow>}
+          {a.date && <MetaRow><span>{safeFmt(a.date)}</span></MetaRow>}
           {a.url && (
             <VisitLink href={a.url} target="_blank" rel="noreferrer">
               Read article
