@@ -298,46 +298,33 @@ const NameBlock = styled.div`
 const Tools = styled.div`
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   background: ${C.inset2};
   margin: 0 10px;
-  padding: 6px;
-  border-radius: 18px;
+  padding: 5px;
+  border-radius: 16px;
   box-shadow: 0 1px 0 0 rgba(0,0,0,0.25) inset;
 `;
 
 const Tab = styled.button`
   flex: 1;
+  min-width: 0;
   background: ${(p) => (p.$active ? C.tabActive : 'transparent')};
   border: 0.5px solid ${(p) => (p.$active ? C.borderHard : 'transparent')};
   color: ${C.text};
   font-family: inherit;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 500;
-  letter-spacing: -0.01em;
-  padding: 8px 12px;
-  border-radius: 14px;
+  letter-spacing: -0.015em;
+  padding: 7px 6px;
+  border-radius: 12px;
   cursor: pointer;
   transition: background 140ms ease, border-color 140ms ease, opacity 140ms ease;
   opacity: ${(p) => (p.$active ? 1 : 0.8)};
   box-shadow: ${(p) => (p.$active ? '0 2px 4px rgba(0,0,0,0.25)' : 'none')};
-
-  &:hover { opacity: 1; }
-`;
-
-const SearchBtn = styled.button`
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  background: transparent;
-  border: none;
-  border-radius: 12px;
-  color: rgb(227, 227, 227);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 140ms ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   &:hover { opacity: 1; }
 `;
@@ -1092,11 +1079,6 @@ export function BenIssenTheme() {
                   <Tab $active={tab === 'work'} onClick={() => { setTab('work'); setShowBio(false); setSelectedKey(null); }}>Work</Tab>
                   <Tab $active={tab === 'articles'} onClick={() => { setTab('articles'); setShowBio(false); setSelectedKey(null); }}>Articles</Tab>
                   <Tab $active={tab === 'contact'} onClick={() => { setTab('contact'); setShowBio(false); setSelectedKey(null); }}>Contact</Tab>
-                  <SearchBtn aria-label="Search">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="16" height="16">
-                      <path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z" fill="currentColor" />
-                    </svg>
-                  </SearchBtn>
                 </Tools>
 
                 <ListWrap>
