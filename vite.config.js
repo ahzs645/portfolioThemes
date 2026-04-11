@@ -14,8 +14,15 @@ const spa404Plugin = () => ({
   }
 });
 
+// GitHub's configure-pages action emits base_path without a trailing
+// slash (e.g. "/fletch"), but Vite's BASE_URL substitution uses the
+// raw string. Normalize so it always ends with "/" — otherwise
+// `${BASE_URL}CV.yaml` becomes "/fletchCV.yaml".
+const rawBase = process.env.VITE_BASE_PATH || '/';
+const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
+
 export default defineConfig({
   plugins: [react(), spa404Plugin()],
   assetsInclude: ['**/*.yaml', '**/*.yml'],
-  base: process.env.VITE_BASE_PATH || '/',
+  base,
 });

@@ -1,5 +1,9 @@
-// Vite's BASE_URL always ends with a trailing slash (e.g. "/" or "/fletch/").
-const BASE_URL = import.meta.env.BASE_URL || '/';
+// Vite's BASE_URL should end with a trailing slash, but when the raw
+// `base` config is passed without one (e.g. from GitHub's configure-pages
+// output "/fletch"), the injected BASE_URL can leak through without it.
+// Normalize defensively so every consumer gets a predictable value.
+const RAW_BASE_URL = import.meta.env.BASE_URL || '/';
+const BASE_URL = RAW_BASE_URL.endsWith('/') ? RAW_BASE_URL : `${RAW_BASE_URL}/`;
 
 // Prepend the Vite base to a root-relative public asset path.
 // Accepts "/foo" or "foo" and returns e.g. "/fletch/foo" when deployed at /fletch/.
