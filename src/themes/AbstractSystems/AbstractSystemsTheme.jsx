@@ -92,10 +92,13 @@ const ScrollContainer = styled.div`
 const Content = styled.main`
   max-width: 492px;
   margin: 0 auto;
-  padding: 130px 24px 80px;
+  padding: 120px 24px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 
   @media (max-width: ${BREAKPOINT}px) {
-    padding: 130px 20px 60px;
+    padding: 130px 24px 80px;
   }
 `;
 

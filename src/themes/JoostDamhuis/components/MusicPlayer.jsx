@@ -86,18 +86,21 @@ export function MusicPlayer() {
 const Wrap = styled.div`
   display: flex;
   width: 100%;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 25px;
+  height: max-content;
 `;
 
 const Meta = styled.div`
   display: flex;
-  min-width: 0;
-  flex: 1;
   flex-direction: column;
   gap: 4px;
   align-items: flex-start;
+  width: 100%;
+  max-width: 100%;
+  padding-left: 0;
 `;
 
 const sharedTrack = `
@@ -130,13 +133,20 @@ const Orb = styled.button`
   width: 50px;
   height: 50px;
   flex-shrink: 0;
-  border: 1px solid ${({ $isPlaying }) => ($isPlaying ? '#000' : 'rgba(255, 255, 255, 0.1)')};
+  border-top: 1px solid
+    ${({ $isPlaying }) => ($isPlaying ? '#000' : 'rgba(255, 255, 255, 0.1)')};
+  border-right: none;
+  border-bottom: none;
+  border-left: none;
   border-radius: 999px;
   cursor: pointer;
   background: ${({ $isPlaying }) =>
     $isPlaying
       ? 'linear-gradient(180deg, rgb(10, 10, 10), rgb(18, 18, 18))'
       : 'linear-gradient(180deg, rgb(23, 23, 23), rgb(10, 10, 10))'};
+  display: flex;
+  align-items: center;
+  justify-content: center;
   opacity: ${({ $isHovered }) => ($isHovered ? 0.6 : 1)};
   transform: ${({ $isPlaying }) => ($isPlaying ? 'scale(0.99)' : 'scale(1)')};
   transition: transform 0.3s ease, opacity 0.2s ease;

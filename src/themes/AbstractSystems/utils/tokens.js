@@ -20,11 +20,13 @@ export const light = {
   shadowRing: 'rgba(0, 0, 0, 0.06)',
   shadowSm: 'rgba(0, 0, 0, 0.04)',
   barEmpty: '#d0d6dd',
-  // Nav always uses a dark pill
-  navBg: 'rgba(10, 37, 64, 0.9)',
-  navBgMobile: 'rgba(10, 37, 64, 0.7)',
-  navActiveBg: '#ffffff',
+  // Nav: light glass pill, theme-tinted text
+  navBg: 'rgba(255, 255, 255, 0.82)',
+  navBgMobile: 'rgba(255, 255, 255, 0.82)',
+  navBorder: 'rgba(10, 37, 64, 0.08)',
   navActiveText: '#0a2540',
+  navInactiveText: '#8898aa',
+  navHoverText: '#425466',
 };
 
 export const dark = {
@@ -42,9 +44,11 @@ export const dark = {
   shadowRing: 'rgba(0, 0, 0, 0.3)',
   shadowSm: 'rgba(0, 0, 0, 0.2)',
   barEmpty: '#28282f',
-  // Nav always uses a dark pill
-  navBg: 'rgba(10, 10, 10, 0.85)',
-  navBgMobile: 'rgba(10, 10, 10, 0.85)',
-  navActiveBg: '#23232b',
+  // Nav: light glass pill, theme-tinted text
+  navBg: 'rgba(40, 40, 47, 0.82)',
+  navBgMobile: 'rgba(40, 40, 47, 0.82)',
+  navBorder: 'rgba(255, 255, 255, 0.08)',
   navActiveText: '#e8e8ec',
+  navInactiveText: '#62626e',
+  navHoverText: '#9d9da8',
 };

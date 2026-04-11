@@ -81,18 +81,19 @@ const List = styled.div`
 
 const Entry = styled.div`
   display: flex;
-  gap: 16px;
+  gap: 0;
   padding: 12px 0;
   border-top: 1px dotted ${p => p.$theme.border};
 `;
 
 const EntryNum = styled.span`
   font-family: ${FONT.mono};
-  font-size: 11px;
+  font-size: 12px;
   line-height: 20px;
   letter-spacing: 0.02em;
   color: ${p => p.$theme.muted};
   flex-shrink: 0;
+  width: 24px;
   padding-top: 1px;
 `;
 
@@ -136,16 +137,15 @@ const Badge = styled.span`
   letter-spacing: 0.04em;
   text-transform: uppercase;
   padding: 2px 8px;
-  border-radius: 999px;
-  background: ${p => p.$theme.green}1a;
-  color: ${p => p.$theme.green};
-  border: 1px solid ${p => p.$theme.green}4d;
+  border-radius: 4px;
+  background: ${p => p.$theme.blue}14;
+  color: ${p => p.$theme.blue};
 `;
 
 const EntryBody = styled.p`
   font-family: ${FONT.sans};
-  font-size: 14px;
-  line-height: 22px;
+  font-size: 13px;
+  line-height: 20px;
   color: ${p => p.$theme.body};
   margin: 0;
 `;

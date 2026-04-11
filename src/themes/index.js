@@ -50,6 +50,7 @@ import { VSCodePortfolioTheme } from './VSCodePortfolio/VSCodePortfolioTheme';
 import { SharpEye08Theme } from './SharpEye08/SharpEye08Theme';
 import { MattRothenbergTheme } from './MattRothenberg/MattRothenbergTheme';
 import { JoostDamhuisTheme } from './JoostDamhuis/JoostDamhuisTheme';
+import { ChesterHowTheme } from './ChesterHow/ChesterHowTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -459,6 +460,14 @@ export const PORTFOLIO_THEMES = [
     description: 'Dark single-viewport landing with an oversized lowercase name, live clock widget, teal accents, and a now-playing card inspired by joost.design.',
     source: 'https://joost.design',
     Component: JoostDamhuisTheme,
+  },
+  {
+    id: 'chester-how',
+    slug: 'digital-garden',
+    name: 'Digital Garden',
+    description: 'A quiet masonry digital garden with Fraunces serif display type, pill nav, and color-tagged cards — inspired by chester.how.',
+    source: 'https://chester.how',
+    Component: ChesterHowTheme,
   },
 ];
 

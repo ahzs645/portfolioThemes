@@ -18,48 +18,56 @@ const shellFloat = keyframes`
   50% { transform: translate3d(0, -6px, 0); }
 `;
 
-const springIn = {
+const shellEnter = {
   animate: { opacity: 1, y: 0 },
-  initial: { opacity: 1, y: 600 },
-  transition: { bounce: 0, delay: 0, duration: 3, type: 'spring' },
+  initial: { opacity: 1, y: 260 },
+  transition: { bounce: 0, delay: 0.05, duration: 2.3, type: 'spring' },
 };
 
-const softIn = {
-  animate: { filter: 'blur(0px)', opacity: 1 },
-  initial: { filter: 'blur(5px)', opacity: 0 },
-  transition: { bounce: 0.2, delay: 0.6, duration: 2, type: 'spring' },
+const plugEnter = {
+  animate: { opacity: [0, 1, 1, 1], y: [230, 42, -10, 0] },
+  initial: { opacity: 0, y: 230 },
+  transition: {
+    delay: 0.72,
+    duration: 1.15,
+    ease: [0.16, 1, 0.3, 1],
+    times: [0, 0.58, 0.86, 1],
+  },
 };
 
 export function DeviceSculpture({ timeLabel }) {
   return (
     <Stage
-      initial={{ opacity: 0, y: 40 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 1.05, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
-      <WireGlowWrap {...springIn}>
+      <WireGlowWrap {...plugEnter}>
         <SideGlow src={ASSETS.sideGlow} alt="" />
         <WireLine viewBox="0 0 1 28.5" aria-hidden="true">
           <path d="M0 0L0 28.5" />
         </WireLine>
+        <CableWrap>
+          <CableSvg viewBox="0 0 133.152 921.128" aria-hidden="true">
+            <path d="M74.611 0C74.611 0 74.223 17.707 74.611 34.667C74.999 51.627 76.165 70.173 78.193 79.613C82.248 98.493 90.744 113.792 84.985 123.113C79.227 132.434 65.017 137.508 50.638 138.113C36.259 138.718 21.71 134.854 15.273 127.113C8.836 119.371 9.024 107.393 13.004 95.113C16.984 82.833 24.756 70.184 33.488 61.113C50.95 42.971 91.644 26.113 113.193 46.113C123.967 56.113 137.451 73.418 131.833 110.112C126.216 146.806 47.717 259.335 26.278 326.668C4.838 394.002 13.518 381.175 4.965 462.224C-12.142 624.321 21.397 935.488 9.693 920.613" />
+          </CableSvg>
+
+          <CableCap>
+            <CableCapShade />
+            <CableCapBloom />
+          </CableCap>
+        </CableWrap>
+
+        <BlobField>
+          <BlobOne />
+          <BlobTwo />
+          <BlobThree />
+        </BlobField>
       </WireGlowWrap>
 
-      <CableWrap>
-        <CableSvg viewBox="0 0 133.152 921.128" aria-hidden="true">
-          <path d="M74.611 0C74.611 0 74.223 17.707 74.611 34.667C74.999 51.627 76.165 70.173 78.193 79.613C82.248 98.493 90.744 113.792 84.985 123.113C79.227 132.434 65.017 137.508 50.638 138.113C36.259 138.718 21.71 134.854 15.273 127.113C8.836 119.371 9.024 107.393 13.004 95.113C16.984 82.833 24.756 70.184 33.488 61.113C50.95 42.971 91.644 26.113 113.193 46.113C123.967 56.113 137.451 73.418 131.833 110.112C126.216 146.806 47.717 259.335 26.278 326.668C4.838 394.002 13.518 381.175 4.965 462.224C-12.142 624.321 21.397 935.488 9.693 920.613" />
-        </CableSvg>
-        <CableCap>
-          <CableCapShade />
-          <CableCapBloom />
-        </CableCap>
-        <BlobOne />
-        <BlobTwo />
-        <BlobThree />
-      </CableWrap>
-
-      <Shell {...springIn}>
-        <ShellInset {...softIn}>
-          <MintCard {...softIn}>
+      <Shell {...shellEnter}>
+        <ShellInset>
+          <MintCard>
             <TimeBadge>
               <BadgeText>{timeLabel}</BadgeText>
             </TimeBadge>
@@ -69,18 +77,18 @@ export function DeviceSculpture({ timeLabel }) {
               <DegreeMark>o</DegreeMark>
               <WeatherValue>C</WeatherValue>
             </WeatherBadge>
-
-            <StampIcon src={ASSETS.deviceIcon} alt="" />
-
-            <MusicDock>
-              <MusicPlayer />
-            </MusicDock>
-
-            <AccentRing />
-            <RightShine />
-            <CenterBeam />
           </MintCard>
         </ShellInset>
+
+        <StampIcon src={ASSETS.deviceIcon} alt="" />
+
+        <MusicDock>
+          <MusicPlayer />
+        </MusicDock>
+
+        <AccentRing />
+        <RightShine />
+        <CenterBeam />
       </Shell>
     </Stage>
   );
@@ -129,8 +137,12 @@ const WireLine = styled.svg`
 
 const CableWrap = styled.div`
   position: absolute;
-  inset: -80px -160px -112px -113px;
-  pointer-events: none;
+  top: calc(435.71428571428567% - 485px / 2);
+  left: calc(310.00000000000006% - 178px / 2);
+  width: 178px;
+  height: 485px;
+  transform: scale(0.9);
+  transform-origin: top left;
   z-index: 1;
 `;
 
@@ -140,13 +152,22 @@ const CableSvg = styled.svg`
   left: -9px;
   width: 133px;
   height: 921px;
-  transform: scale(0.9);
 
   path {
     fill: transparent;
     stroke: rgb(226, 226, 228);
     stroke-width: 6;
   }
+`;
+
+const BlobField = styled.div`
+  position: absolute;
+  top: -80px;
+  right: -160px;
+  bottom: -112px;
+  left: -113px;
+  overflow: hidden;
+  z-index: 10;
 `;
 
 const CableCap = styled.div`
@@ -206,6 +227,7 @@ const BlobOne = styled.div`
   opacity: 0.38;
   transform: rotate(-21deg);
   animation: ${drift} 7.5s ease-in-out infinite;
+  z-index: 1;
 `;
 
 const BlobTwo = styled.div`
@@ -218,6 +240,7 @@ const BlobTwo = styled.div`
   opacity: 0.38;
   transform: rotate(-21deg);
   animation: ${drift} 9s ease-in-out infinite reverse;
+  z-index: 1;
 `;
 
 const BlobThree = styled.div`
@@ -229,6 +252,7 @@ const BlobThree = styled.div`
   filter: blur(4px);
   opacity: 0.2;
   transform: rotate(-7deg);
+  z-index: 10;
 `;
 
 const Shell = styled(motion.div)`
@@ -246,11 +270,10 @@ const Shell = styled(motion.div)`
   background: linear-gradient(0deg, #0a0a0a 0%, rgb(28, 28, 28) 100%);
 `;
 
-const ShellInset = styled(motion.div)`
+const ShellInset = styled.div`
   position: absolute;
   top: 4px;
   left: 50%;
-  z-index: 10;
   display: flex;
   min-width: 155px;
   min-height: 86px;
@@ -261,7 +284,7 @@ const ShellInset = styled(motion.div)`
   background: radial-gradient(50% 50% at 50% 50%, #000 0%, rgb(33, 33, 33) 100%);
 `;
 
-const MintCard = styled(motion.div)`
+const MintCard = styled.div`
   position: absolute;
   top: 50%;
   left: 50%;
@@ -272,6 +295,7 @@ const MintCard = styled(motion.div)`
   border-radius: 27px;
   background: linear-gradient(0deg, #78ffdf 0%, rgb(86, 191, 167) 100%);
   box-shadow: inset 0 1px 10px 1px rgba(0, 0, 0, 0.2);
+  z-index: 10;
 `;
 
 const TimeBadge = styled.div`
@@ -344,6 +368,7 @@ const StampIcon = styled.img`
   transform: translate(-50%, -50%);
   opacity: 0.15;
   filter: invert(1) drop-shadow(0.46px 0.46px 0px ${ACCENT});
+  z-index: 1;
 `;
 
 const MusicDock = styled.div`
@@ -351,6 +376,7 @@ const MusicDock = styled.div`
   bottom: 13px;
   left: 19px;
   width: 129px;
+  z-index: 12;
 `;
 
 const AccentRing = styled.div`
