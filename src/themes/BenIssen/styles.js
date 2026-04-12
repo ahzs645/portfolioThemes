@@ -153,8 +153,9 @@ export const Toolbar = styled.div`
 export const Stage = styled.div`
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 28px 20px 100px;
   z-index: 10;
   pointer-events: none;
@@ -162,7 +163,7 @@ export const Stage = styled.div`
 
   @media (max-width: 900px) {
     padding: 18px 14px 110px;
-    align-items: start;
+    align-items: flex-start;
   }
 `;
 
@@ -172,6 +173,10 @@ export const Card = styled.div`
   border-radius: 30px;
   padding: 10px;
   width: min(960px, 100%);
+  height: min(580px, calc(100vh - 140px));
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
   pointer-events: auto;
   box-shadow:
     rgba(0,0,0,0.53) 0px 0.7px 0.95px -1.25px,
@@ -181,6 +186,10 @@ export const Card = styled.div`
     rgba(0,0,0,0.25) 0px 4px 8px 0px,
     rgba(0,0,0,0.19) 0px 16px 73px -1px;
   animation: ${fadeIn} 480ms cubic-bezier(0.5,0,0.88,0.77) both;
+
+  @media (max-width: 900px) {
+    height: auto;
+  }
 `;
 
 export const Grain = styled.div`
@@ -200,12 +209,18 @@ export const Inset = styled.div`
   border-radius: 22px;
   box-shadow: rgba(0,0,0,0.16) 0px 1px 2px 2px inset;
   display: grid;
-  grid-template-columns: 320px 1fr;
-  min-height: 540px;
+  grid-template-columns: 320px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
 
   @media (max-width: 900px) {
-    grid-template-columns: 1fr;
-    min-height: auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    flex: none;
+    min-height: 540px;
+    overflow: visible;
   }
 `;
 
@@ -214,10 +229,14 @@ export const LeftCol = styled.div`
   flex-direction: column;
   border-right: 0.5px solid rgba(117,117,117,0.25);
   min-height: 0;
+  height: 100%;
+  overflow: hidden;
 
   @media (max-width: 900px) {
     border-right: none;
     border-bottom: 0.5px solid rgba(117,117,117,0.25);
+    height: auto;
+    overflow: visible;
   }
 `;
 
@@ -225,7 +244,14 @@ export const RightCol = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 0;
+  height: 100%;
   position: relative;
+  overflow: hidden;
+
+  @media (max-width: 900px) {
+    height: auto;
+    overflow: visible;
+  }
 `;
 
 export const HeaderRow = styled.button`
