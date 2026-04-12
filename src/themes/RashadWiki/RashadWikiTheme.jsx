@@ -20,10 +20,12 @@ function formatDateRange(start, end) {
   const fmt = d => {
     if (!d) return '';
     const date = new Date(d);
+    if (isNaN(date.getTime())) return '';
     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   };
   const s = fmt(start);
-  const e = end ? fmt(end) : 'present';
+  const e = fmt(end) || 'present';
+  if (!s) return e !== 'present' ? e : '';
   return `${s} – ${e}`;
 }
 
@@ -95,10 +97,23 @@ export function RashadWikiTheme({ darkMode }) {
               </SearchIcon>
               <SearchInput $dark={darkMode} placeholder={`Search ${cv.name ? cv.name.split(' ')[0] + "'s portfolio" : 'Wikipedia'}`} readOnly />
             </SearchBox>
-            <DonateButton href={cv.website || '#'} target="_blank" rel="noopener noreferrer">
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M10 1a5.49 5.49 0 0 0-3.89 1.61 5.49 5.49 0 0 0 0 7.78L10 14.27l3.89-3.88a5.49 5.49 0 0 0 0-7.78A5.49 5.49 0 0 0 10 1"/></svg>
-              Donate
-            </DonateButton>
+            <UserLinks $dark={darkMode}>
+              <HeaderLink $dark={darkMode} href={cv.website || '#'} target="_blank" rel="noopener noreferrer">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M12.3 2a5.23 5.23 0 0 1 3.7 8.93l-5.9 5.93a.2.2 0 0 1-.14.06.2.2 0 0 1-.14-.06l-5.93-5.93A5.23 5.23 0 1 1 11.23 3.6a5.3 5.3 0 0 1 1.07-1.6m-.02 2.05a3.65 3.65 0 0 0-.55.66 3.22 3.22 0 0 0-.49 1.72 3.24 3.24 0 0 1-3.24 3.24 3.2 3.2 0 0 1-1.72-.5 3.65 3.65 0 0 0-.65.55 3.23 3.23 0 0 0 0 4.56L10 18.66l4.37-4.38a3.23 3.23 0 0 0-2.09-5.23"/></svg>
+                <span>Donate</span>
+              </HeaderLink>
+              <HeaderLink $dark={darkMode} href="#">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M17 7a7 7 0 1 0-11.47 5.38v.03l.09.07A6.93 6.93 0 0 0 10 14a6.93 6.93 0 0 0 4.38-1.52l.09-.07v-.03A7 7 0 0 0 17 7m-7 2a2 2 0 1 1 0-4 2 2 0 0 1 0 4m-3.72 2.87A4 4 0 0 1 10 10a4 4 0 0 1 3.72 1.87A4.9 4.9 0 0 1 10 13a4.9 4.9 0 0 1-3.72-1.13M2 17v-1.5C2 14.12 5.58 13 10 13s8 1.12 8 2.5V17z"/></svg>
+                <span>Create account</span>
+              </HeaderLink>
+              <HeaderLink $dark={darkMode} href="#">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M10 1a5 5 0 0 0-5 5c0 1.93 1.11 3.6 2.73 4.39A8 8 0 0 0 2 18h2a6 6 0 0 1 12 0h2a8 8 0 0 0-5.73-7.61A5 5 0 0 0 10 1m0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6"/></svg>
+                <span>Log in</span>
+              </HeaderLink>
+              <HeaderIconBtn $dark={darkMode} aria-label="Personal tools">
+                <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="4" cy="10" r="2" fill="currentColor"/><circle cx="10" cy="10" r="2" fill="currentColor"/><circle cx="16" cy="10" r="2" fill="currentColor"/></svg>
+              </HeaderIconBtn>
+            </UserLinks>
           </HeaderEnd>
         </HeaderInner>
       </Header>
@@ -238,7 +253,7 @@ export function RashadWikiTheme({ darkMode }) {
                         {edu.description && <span dangerouslySetInnerHTML={{ __html: edu.description }} />}
                       </>
                     ) : (
-                      <>attended <a href={edu.url || '#'}>{edu.institution}</a>{edu.area ? `, studying ${edu.area}` : ''}{edu.studyType ? ` (${edu.studyType})` : ''}{edu.startDate ? `, graduating in ${new Date(edu.endDate || edu.startDate).getFullYear()}` : ''}.
+                      <>attended <a href={edu.url || '#'}>{edu.institution}</a>{edu.area ? `, studying ${edu.area}` : ''}{edu.studyType ? ` (${edu.studyType})` : ''}{edu.startDate && !isNaN(new Date(edu.endDate || edu.startDate).getTime()) ? `, graduating in ${new Date(edu.endDate || edu.startDate).getFullYear()}` : ''}.
                       </>
                     )}
                   </Paragraph>
@@ -490,32 +505,51 @@ const SearchInput = styled.input`
   }
 `;
 
-const DonateButton = styled.a`
+const UserLinks = styled.div`
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: #36c;
-  color: #fff !important;
-  padding: 6px 14px;
-  border-radius: 2px;
-  font-size: 14px;
-  font-weight: 700;
-  white-space: nowrap;
-  text-decoration: none !important;
+  gap: 4px;
   flex-shrink: 0;
+`;
+
+const HeaderLink = styled.a`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: 2px;
+  font-size: 13px;
+  color: ${p => p.$dark ? '#c8ccd1' : '#54595d'} !important;
+  text-decoration: none !important;
+  white-space: nowrap;
 
   &:hover {
-    background: #447ff5;
+    background: ${p => p.$dark ? '#2a2e32' : '#eaecf0'};
+    color: ${p => p.$dark ? '#e0e0e0' : '#202122'} !important;
   }
 
   &:visited {
-    color: #fff !important;
+    color: ${p => p.$dark ? '#c8ccd1' : '#54595d'} !important;
   }
 
-  @media (max-width: 600px) {
-    padding: 6px 10px;
-    font-size: 13px;
+  @media (max-width: 800px) {
     span { display: none; }
+    padding: 6px;
+  }
+`;
+
+const HeaderIconBtn = styled.button`
+  display: flex;
+  align-items: center;
+  padding: 6px;
+  border-radius: 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: ${p => p.$dark ? '#c8ccd1' : '#54595d'};
+
+  &:hover {
+    background: ${p => p.$dark ? '#2a2e32' : '#eaecf0'};
   }
 `;
 
