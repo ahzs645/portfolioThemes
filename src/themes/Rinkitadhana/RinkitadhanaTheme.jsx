@@ -710,7 +710,7 @@ const ProfileImage = styled.div`
   border-radius: 12px;
   border: 1px solid ${props => props.$dark ? '#313131' : '#d1d1d1'};
   padding: 4px;
-  display: flex;
+  display: var(--initial-display, flex);
   align-items: center;
   justify-content: center;
   background-color: ${props => props.$dark ? '#18181b' : '#fafafa'};

@@ -56,6 +56,7 @@ import { TalkToDashaTheme } from './TalkToDasha/TalkToDashaTheme';
 import { KaachowTheme } from './Kaachow/KaachowTheme';
 import { VemulaTheme } from './Vemula/VemulaTheme';
 import { BenIssenTheme } from './BenIssen/BenIssenTheme';
+import { HackedJekyllTheme } from './HackedJekyll/HackedJekyllTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -513,6 +514,14 @@ export const PORTFOLIO_THEMES = [
     description: 'Two floating dark cards (avatar + tabbed project list, and big-name bio with newsletter) on top of an interactive drawing canvas you can doodle on with three colors and a variable brush. Inspired by benissen.com.',
     source: 'https://benissen.com',
     Component: BenIssenTheme,
+  },
+  {
+    id: 'hacked-jekyll',
+    slug: 'hacked',
+    name: 'Hacked',
+    description: 'Terminal-inspired JSON portfolio that renders your CV as a formatted JSON object with monospace Hack font, green-on-dark styling, and a typewriter animation. Based on piazzai/hacked-jekyll.',
+    source: 'https://piazzai.github.io/hacked-jekyll/',
+    Component: HackedJekyllTheme,
   },
 ];
 

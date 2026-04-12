@@ -598,6 +598,11 @@ const Container = styled.div`
   background-color: ${c.appBg};
   color: ${c.primary};
   font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+
+  @media (max-width: 767px) {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 `;
 
 const Dashboard = styled.div`
