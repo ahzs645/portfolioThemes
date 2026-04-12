@@ -620,7 +620,6 @@ const TabRow = styled.div`
   justify-content: space-between;
   border-bottom: 1px solid ${p => p.$dark ? '#3a3a3a' : '#a2a9b1'};
   margin-top: 4px;
-  overflow-x: auto;
   font-size: 13px;
 
   @media (max-width: 600px) {
