@@ -89,31 +89,18 @@ export function RashadWikiTheme({ darkMode }) {
                 <TaglineWrap $dark={darkMode}><WikiTagline /></TaglineWrap>
               </LogoText>
             </LogoLink>
-          </HeaderStart>
-          <HeaderEnd $dark={darkMode}>
             <SearchBox $dark={darkMode}>
               <SearchIcon>
                 <svg width="20" height="20" viewBox="0 0 20 20"><path d="M12.2 13.6a7 7 0 1 1 1.4-1.4l5.4 5.4-1.4 1.4zM3 8a5 5 0 1 0 10 0A5 5 0 0 0 3 8" fill="currentColor"/></svg>
               </SearchIcon>
               <SearchInput $dark={darkMode} placeholder={`Search ${cv.name ? cv.name.split(' ')[0] + "'s portfolio" : 'Wikipedia'}`} readOnly />
             </SearchBox>
-            <UserLinks $dark={darkMode}>
-              <HeaderLink $dark={darkMode} href={cv.website || '#'} target="_blank" rel="noopener noreferrer">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M12.3 2a5.23 5.23 0 0 1 3.7 8.93l-5.9 5.93a.2.2 0 0 1-.14.06.2.2 0 0 1-.14-.06l-5.93-5.93A5.23 5.23 0 1 1 11.23 3.6a5.3 5.3 0 0 1 1.07-1.6m-.02 2.05a3.65 3.65 0 0 0-.55.66 3.22 3.22 0 0 0-.49 1.72 3.24 3.24 0 0 1-3.24 3.24 3.2 3.2 0 0 1-1.72-.5 3.65 3.65 0 0 0-.65.55 3.23 3.23 0 0 0 0 4.56L10 18.66l4.37-4.38a3.23 3.23 0 0 0-2.09-5.23"/></svg>
-                <span>Donate</span>
-              </HeaderLink>
-              <HeaderLink $dark={darkMode} href="#">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M17 7a7 7 0 1 0-11.47 5.38v.03l.09.07A6.93 6.93 0 0 0 10 14a6.93 6.93 0 0 0 4.38-1.52l.09-.07v-.03A7 7 0 0 0 17 7m-7 2a2 2 0 1 1 0-4 2 2 0 0 1 0 4m-3.72 2.87A4 4 0 0 1 10 10a4 4 0 0 1 3.72 1.87A4.9 4.9 0 0 1 10 13a4.9 4.9 0 0 1-3.72-1.13M2 17v-1.5C2 14.12 5.58 13 10 13s8 1.12 8 2.5V17z"/></svg>
-                <span>Create account</span>
-              </HeaderLink>
-              <HeaderLink $dark={darkMode} href="#">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path d="M10 1a5 5 0 0 0-5 5c0 1.93 1.11 3.6 2.73 4.39A8 8 0 0 0 2 18h2a6 6 0 0 1 12 0h2a8 8 0 0 0-5.73-7.61A5 5 0 0 0 10 1m0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6"/></svg>
-                <span>Log in</span>
-              </HeaderLink>
-              <HeaderIconBtn $dark={darkMode} aria-label="Personal tools">
-                <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="4" cy="10" r="2" fill="currentColor"/><circle cx="10" cy="10" r="2" fill="currentColor"/><circle cx="16" cy="10" r="2" fill="currentColor"/></svg>
-              </HeaderIconBtn>
-            </UserLinks>
+          </HeaderStart>
+          <HeaderEnd $dark={darkMode}>
+            <DonateButton href="https://donate.wikimedia.org/?wmf_source=donate&wmf_medium=sidebar&wmf_campaign=en.wikipedia.org&uselang=en" target="_blank" rel="noopener noreferrer">
+              <svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 18.5a.5.5 0 0 1-.35-.15l-7.08-7.07a5.13 5.13 0 0 1 0-7.26 5.17 5.17 0 0 1 7.27 0l.16.16.16-.16a5.17 5.17 0 0 1 7.27 0 5.13 5.13 0 0 1 0 7.26l-7.08 7.07a.5.5 0 0 1-.35.15" fill="#dd3333"/></svg>
+              <span>Donate</span>
+            </DonateButton>
           </HeaderEnd>
         </HeaderInner>
       </Header>
@@ -411,7 +398,8 @@ const HeaderStart = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
 `;
 
 const MenuButton = styled.button`
@@ -464,9 +452,7 @@ const TaglineWrap = styled.span`
 const HeaderEnd = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  flex: 1;
-  justify-content: flex-end;
+  flex-shrink: 0;
   color: ${p => p.$dark ? '#a0a0a0' : '#54595d'};
 `;
 
@@ -476,8 +462,9 @@ const SearchBox = styled.div`
   border: 1px solid ${p => p.$dark ? '#4a4a4a' : '#a2a9b1'};
   border-radius: 2px;
   background: ${p => p.$dark ? '#2a2e32' : '#fff'};
-  width: 100%;
-  max-width: 500px;
+  flex: 1;
+  max-width: 450px;
+  min-width: 120px;
 
   &:focus-within {
     border-color: ${p => p.$dark ? '#6b9eff' : '#3366cc'};
@@ -505,51 +492,29 @@ const SearchInput = styled.input`
   }
 `;
 
-const UserLinks = styled.div`
+const DonateButton = styled.a`
   display: flex;
   align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-`;
-
-const HeaderLink = styled.a`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 8px;
+  gap: 6px;
+  padding: 6px 12px;
   border-radius: 2px;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 700;
   color: ${p => p.$dark ? '#c8ccd1' : '#54595d'} !important;
   text-decoration: none !important;
   white-space: nowrap;
 
   &:hover {
     background: ${p => p.$dark ? '#2a2e32' : '#eaecf0'};
-    color: ${p => p.$dark ? '#e0e0e0' : '#202122'} !important;
   }
 
   &:visited {
     color: ${p => p.$dark ? '#c8ccd1' : '#54595d'} !important;
   }
 
-  @media (max-width: 800px) {
+  @media (max-width: 600px) {
     span { display: none; }
     padding: 6px;
-  }
-`;
-
-const HeaderIconBtn = styled.button`
-  display: flex;
-  align-items: center;
-  padding: 6px;
-  border-radius: 2px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: ${p => p.$dark ? '#c8ccd1' : '#54595d'};
-
-  &:hover {
-    background: ${p => p.$dark ? '#2a2e32' : '#eaecf0'};
   }
 `;
 
