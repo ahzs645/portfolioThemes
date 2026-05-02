@@ -57,6 +57,7 @@ import { KaachowTheme } from './Kaachow/KaachowTheme';
 import { VemulaTheme } from './Vemula/VemulaTheme';
 import { BenIssenTheme } from './BenIssen/BenIssenTheme';
 import { HackedJekyllTheme } from './HackedJekyll/HackedJekyllTheme';
+import { CompTheme } from './Comp/CompTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -522,6 +523,14 @@ export const PORTFOLIO_THEMES = [
     description: 'Terminal-inspired JSON portfolio that renders your CV as a formatted JSON object with monospace Hack font, green-on-dark styling, and a typewriter animation. Based on piazzai/hacked-jekyll.',
     source: 'https://piazzai.github.io/hacked-jekyll/',
     Component: HackedJekyllTheme,
+  },
+  {
+    id: 'comp',
+    slug: 'comp-room',
+    name: 'Comp Room',
+    description: 'WebGL desktop diorama with an arcade machine, twin monitors, whiteboard and Rubik\'s cube — orbit around the room and click props to dive into CV-driven screens. Adapted from joanramosrefusta.com.',
+    source: 'https://joanramosrefusta.com',
+    Component: CompTheme,
   },
 ];
 

@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import glsl from 'vite-plugin-glsl';
 import { writeFileSync, readFileSync } from 'fs';
 
 // Plugin to copy index.html to 404.html for GitHub Pages SPA routing
@@ -22,7 +23,7 @@ const rawBase = process.env.VITE_BASE_PATH || '/';
 const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
 
 export default defineConfig({
-  plugins: [react(), spa404Plugin()],
+  plugins: [react(), glsl({ compress: false }), spa404Plugin()],
   assetsInclude: ['**/*.yaml', '**/*.yml'],
   base,
 });
