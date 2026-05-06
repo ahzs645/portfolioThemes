@@ -58,6 +58,7 @@ import { VemulaTheme } from './Vemula/VemulaTheme';
 import { BenIssenTheme } from './BenIssen/BenIssenTheme';
 import { HackedJekyllTheme } from './HackedJekyll/HackedJekyllTheme';
 import { CompTheme } from './Comp/CompTheme';
+import { AidenBaiTheme } from './AidenBai/AidenBaiTheme';
 
 export const PORTFOLIO_THEMES = [
   {
@@ -531,6 +532,14 @@ export const PORTFOLIO_THEMES = [
     description: 'WebGL desktop diorama with an arcade machine, twin monitors, whiteboard and Rubik\'s cube — orbit around the room and click props to dive into CV-driven screens. Adapted from joanramosrefusta.com.',
     source: 'https://joanramosrefusta.com',
     Component: CompTheme,
+  },
+  {
+    id: 'aiden-bai',
+    slug: 'aiden-bai',
+    name: 'Aiden Bai',
+    description: 'Narrow text-only portfolio with stone neutrals, serif heading, understated underlined links, shimmer emphasis, and expandable lore inspired by aidenybai.com without the image strip.',
+    source: 'https://www.aidenybai.com',
+    Component: AidenBaiTheme,
   },
 ];
 
