@@ -274,33 +274,35 @@ export function SharonZhengTheme() {
       return undefined;
     }
 
-    const originalBodyHeight = document.body.style.height;
-    const originalBodyOverflow = document.body.style.overflow;
+    const doc = centerContent.ownerDocument;
+    const win = doc.defaultView || window;
+    const originalBodyHeight = doc.body.style.height;
+    const originalBodyOverflow = doc.body.style.overflow;
     let rafId = 0;
 
     const updateBodyHeight = () => {
       const overflowHeight = Math.max(0, centerContent.clientHeight - centerFold.clientHeight);
-      document.body.style.height = `${overflowHeight + window.innerHeight}px`;
-      document.body.style.overflow = 'auto';
+      doc.body.style.height = `${overflowHeight + win.innerHeight}px`;
+      doc.body.style.overflow = 'auto';
     };
 
     const tick = () => {
-      const scroll = -(window.scrollY || document.documentElement.scrollTop || 0);
+      const scroll = -(win.scrollY || doc.documentElement.scrollTop || 0);
       foldsContent.forEach((content) => {
         content.style.transform = `translateY(${scroll}px)`;
       });
-      rafId = requestAnimationFrame(tick);
+      rafId = win.requestAnimationFrame(tick);
     };
 
-    window.addEventListener('resize', updateBodyHeight);
+    win.addEventListener('resize', updateBodyHeight);
     updateBodyHeight();
     tick();
 
     return () => {
-      window.removeEventListener('resize', updateBodyHeight);
-      cancelAnimationFrame(rafId);
-      document.body.style.height = originalBodyHeight;
-      document.body.style.overflow = originalBodyOverflow;
+      win.removeEventListener('resize', updateBodyHeight);
+      win.cancelAnimationFrame(rafId);
+      doc.body.style.height = originalBodyHeight;
+      doc.body.style.overflow = originalBodyOverflow;
     };
   }, [data]);
 
