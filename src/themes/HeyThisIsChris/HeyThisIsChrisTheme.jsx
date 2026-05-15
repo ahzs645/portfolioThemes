@@ -25,7 +25,7 @@ const GlobalStyle = createGlobalStyle`
     --separator-border: #66666666;
     position: relative;
     min-height: 100vh;
-    padding-top: 20px;
+    padding-top: 16px;
     background: var(--body);
     color: var(--text);
     font-family: "Atkinson Hyperlegible Next", Atkinson, Arial, sans-serif;
@@ -96,18 +96,18 @@ const iconMap = [
 
 const articles = [
   {
-    source: 'Hacker News',
-    title: 'SQLite on the edge, tiny tools, and why boring software keeps winning',
-    description: 'A running ticker inspired by the original site bookmark feed.',
+    source: 'Lab Notes',
+    title: 'Spreadsheet survived another "quick fix" and is requesting a union',
+    description: 'A tiny feed of CV-shaped jokes, useful crumbs, and professional nonsense.',
   },
   {
-    source: 'Reddit',
-    title: 'CSS-only interface experiments that still feel usable',
-    description: 'Interface notes, saved links, and compact reading material.',
+    source: 'Inbox Weather',
+    title: 'Chance of stakeholder emails remains high until the deck is exported',
+    description: 'Compact updates for people who enjoy dashboards more than free time.',
   },
   {
-    source: 'Google News',
-    title: 'AI-assisted product engineering keeps moving into normal workflows',
+    source: 'Field Report',
+    title: 'Local analyst converts vague request into three tables and one calm sentence',
     description: 'A lightweight replacement for the captured remote feed.',
   },
 ];
@@ -138,6 +138,55 @@ function linkLabel(link) {
 
 function formatRange(item) {
   return item?.date || item?.dates || item?.period || item?.range || [item?.startDate, item?.endDate || (item?.isCurrent ? 'Present' : null)].filter(Boolean).join(' - ');
+}
+
+function firstNameOf(name = '') {
+  return name.trim().split(/\s+/)[0] || 'Someone';
+}
+
+function firstInitialOf(name = '') {
+  return firstNameOf(name).slice(0, 1).toUpperCase() || '?';
+}
+
+function compactName(value = '') {
+  return String(value).replace(/\s+/g, ' ').trim();
+}
+
+function getItemName(item, fallback = 'mystery item') {
+  return compactName(item?.name || item?.title || item?.company || item?.institution || item?.school || fallback);
+}
+
+function buildFunnyArticles(cv) {
+  const firstName = firstNameOf(cv?.name);
+  const job = compactName(cv?.currentJobTitle || cv?.headline || 'professional tab wrangler');
+  const project = getItemName(cv?.projects?.[0], 'side project');
+  const secondProject = getItemName(cv?.projects?.[1], project);
+  const employer = getItemName(cv?.experience?.[0], 'the office');
+  const skill = getItemName(cv?.skills?.[0], 'turning chaos into checklists');
+  const education = getItemName(cv?.education?.[0], 'a respectable institution');
+
+  return [
+    {
+      source: 'Status Desk',
+      title: `${firstName} is currently operating as ${job}, powered by calendar invites and suspicious optimism`,
+      description: 'The official personal newswire, now with fewer imaginary breaking alerts.',
+    },
+    {
+      source: 'Project Bureau',
+      title: `${project} was last seen pretending the README is "basically documentation"`,
+      description: `Also monitoring ${secondProject}, which has entered the "one more polish pass" stage.`,
+    },
+    {
+      source: 'Work Gossip',
+      title: `${employer} reports a measurable decrease in chaos after someone opened a spreadsheet on purpose`,
+      description: 'No dashboards were harmed, but several tabs were renamed responsibly.',
+    },
+    {
+      source: 'Skill Index',
+      title: `${skill} upgraded from "nice to have" to "please save this meeting"`,
+      description: `${education} has been notified that the syllabus did not fully prepare anyone for production reality.`,
+    },
+  ];
 }
 
 function SquaresCanvas({
@@ -429,12 +478,12 @@ function PortfolioView({ projects }) {
   );
 }
 
-function ArticlesView({ cv }) {
+function ArticlesView({ cv, funnyArticles }) {
   const items = [
     ...(cv.publications || []).map((item) => ({ title: item.title || item.name, description: item.summary || item.journal || item.publisher, link: getLink(item) })),
     ...(cv.presentations || []).map((item) => ({ title: item.title || item.name, description: item.summary || item.venue || item.event, link: getLink(item) })),
   ];
-  const display = items.length ? items : articles;
+  const display = items.length ? items : funnyArticles;
 
   return (
     <div className="hc-list-page">
@@ -476,8 +525,8 @@ function ContactView({ cv }) {
   );
 }
 
-function Ticker() {
-  const repeated = [...articles, ...articles];
+function Ticker({ items }) {
+  const repeated = [...items, ...items];
   return (
     <div className="hc-ticker" title="Recent articles and bookmarks">
       <div className="hc-ticker-track">
@@ -497,6 +546,7 @@ export function HeyThisIsChrisTheme() {
   const [view, setView] = useState('articles');
   const socialLinks = normalizeLinks(cv?.socialLinks);
   const githubLink = socialLinks.find((link) => link?.url && /github/i.test(link.network || link.url || ''));
+  const funnyArticles = useMemo(() => buildFunnyArticles(cv), [cv]);
 
   const tabs = useMemo(() => [
     { id: 'articles', label: 'Articles' },
@@ -517,7 +567,8 @@ export function HeyThisIsChrisTheme() {
   }
 
   const title = cv.name ? `hey, this is ${cv.name.split(/\s+/)[0].toLowerCase()}` : 'hey, this is chris';
-  const avatar = cv.avatar || asset('logo.jpg');
+  const avatar = cv.avatar;
+  const initial = firstInitialOf(cv.name);
 
   return (
     <>
@@ -533,11 +584,11 @@ export function HeyThisIsChrisTheme() {
             darkMode={darkMode}
           />
         </div>
-        <Ticker />
+        <Ticker items={funnyArticles.length ? funnyArticles : articles} />
         <main className="hc-shell">
           <motion.header className="hc-header" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <button className="hc-logo-button" type="button" onClick={() => setView('articles')}>
-              <img src={avatar} alt="" />
+              {avatar ? <img src={avatar} alt="" /> : <span className="hc-logo-initial">{initial}</span>}
             </button>
             <div className="hc-heading">
               <div className="hc-title-row">
@@ -578,7 +629,7 @@ export function HeyThisIsChrisTheme() {
 
           {view === 'resume' && <ResumeView cv={cv} />}
           {view === 'portfolio' && <PortfolioView projects={cv.projects || []} />}
-          {view === 'articles' && <ArticlesView cv={cv} />}
+          {view === 'articles' && <ArticlesView cv={cv} funnyArticles={funnyArticles} />}
           {view === 'contact' && <ContactView cv={cv} />}
         </main>
 
@@ -602,7 +653,7 @@ export function HeyThisIsChrisTheme() {
             top: 0;
             left: 0;
             right: 0;
-            z-index: 2;
+            z-index: 10;
             height: 20px;
             overflow: hidden;
             border-bottom: 1px solid var(--border);
@@ -638,7 +689,7 @@ export function HeyThisIsChrisTheme() {
             position: relative;
             z-index: 1;
             width: min(1024px, 100%);
-            min-height: calc(100vh - 20px);
+            min-height: 100vh;
             margin: 0 auto;
             padding-bottom: 48px;
             background: var(--background);
@@ -675,6 +726,21 @@ export function HeyThisIsChrisTheme() {
             object-fit: cover;
             border: 1px solid var(--border);
             border-radius: 8px;
+          }
+
+          .hc-logo-initial {
+            display: grid;
+            place-items: center;
+            width: 80px;
+            aspect-ratio: 1;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--card);
+            color: var(--text);
+            font-size: 38px;
+            font-weight: 700;
+            line-height: 1;
+            text-transform: uppercase;
           }
 
           .hc-heading {
@@ -944,7 +1010,7 @@ export function HeyThisIsChrisTheme() {
 
           @media (max-width: 520px) {
             .hey-chris-theme {
-              padding-top: 20px;
+              padding-top: 16px;
             }
 
             .hc-header,

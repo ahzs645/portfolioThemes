@@ -440,6 +440,14 @@ export const PORTFOLIO_THEMES = [
     Component: lazyTheme(() => import('./TalkToDasha/TalkToDashaTheme'), 'TalkToDashaTheme'),
   },
   {
+    id: 'floperillat-chat',
+    slug: 'resume-chat',
+    name: 'Resume Chat',
+    description: 'Fake iMessage-style resume chat with blue and gray bubbles, suggested prompts, typed name intro, and heuristic auto-replies based on CV.yaml. Inspired by floperillat.com.',
+    source: 'https://floperillat.com',
+    Component: lazyTheme(() => import('./FloperillatChat/FloperillatChatTheme'), 'FloperillatChatTheme'),
+  },
+  {
     id: 'kaachow',
     slug: 'threw-it-away',
     name: 'Threw It Away',
