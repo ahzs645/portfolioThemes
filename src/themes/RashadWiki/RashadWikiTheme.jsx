@@ -358,7 +358,8 @@ const Wrapper = styled.div`
   line-height: 1.6;
   color: ${p => p.$dark ? '#e0e0e0' : '#202122'};
   background: ${p => p.$dark ? '#101418' : '#f8f9fa'};
-  flex: 1;
+  flex: 0 0 auto;
+  width: 100%;
   min-height: 100vh;
 
   a {
