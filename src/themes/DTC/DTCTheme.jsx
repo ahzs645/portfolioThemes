@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import styled, { ThemeProvider, keyframes } from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 
 function isArchived(entry) {
   return Array.isArray(entry?.tags) && entry.tags.includes('archived');
@@ -123,8 +123,7 @@ const COLORS = [
 ];
 
 export function DTCTheme() {
-  const { cvData, getAboutContent } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
 
   const fullName = cv?.name || 'Your Name';
   const avatarUrl = cv?.avatar || null;
@@ -133,7 +132,7 @@ export function DTCTheme() {
   const email = cv?.email || null;
 
   const socials = cv?.social || [];
-  const aboutText = getAboutContent()?.markdown || '';
+  const aboutText = cv?.about || '';
 
   // Experience items for timeline - with nesting support
   const experienceItems = useMemo(() => {

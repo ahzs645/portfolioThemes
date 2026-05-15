@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 import { filterActive, formatDateRange } from '../../utils/cvHelpers';
 
 const BLUE = '#1700c7';
@@ -224,7 +224,7 @@ function FoldContent({ cv, headline, socials, projects, moreProjects, experience
 }
 
 export function SharonZhengTheme() {
-  const { cv } = useConfig();
+  const cv = useCV();
   const centerContentRef = useRef(null);
   const centerFoldRef = useRef(null);
   const topContentRef = useRef(null);

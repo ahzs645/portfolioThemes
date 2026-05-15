@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 
 import ThreeView from './components/ThreeView';
 import Header from './components/Header';
@@ -108,8 +108,7 @@ function isArchived(entry) {
 }
 
 export function PalmesTheme() {
-  const { cvData, getAboutContent } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
 
   const scrollContainerRef = useRef(null);
   const [scrollPercent, setScrollPercent] = useState(0);
@@ -156,7 +155,7 @@ export function PalmesTheme() {
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;
   const socials = cv?.social || [];
-  const aboutText = getAboutContent()?.markdown || '';
+  const aboutText = cv?.about || '';
 
   // Get current job title
   const currentTitle = useMemo(() => {

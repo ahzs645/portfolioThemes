@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 import {
   filterActive,
   flattenExperience,
@@ -38,8 +38,7 @@ function getHighlights(item) {
 }
 
 export function SinisterSunsTheme() {
-  const { cvData } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
   const [hasEntered, setHasEntered] = useState(false);
 
   const experienceItems = useMemo(

@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 import tardisGif from './assets/tardis-rotate.gif';
 
 const colors = {
@@ -74,8 +74,7 @@ function pickSocialUrl(socials, networkNames = []) {
 }
 
 export function ChiangCurrentTheme() {
-  const { cvData } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
   const [activeSection, setActiveSection] = useState('about');
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [showTimeTravelModal, setShowTimeTravelModal] = useState(false);

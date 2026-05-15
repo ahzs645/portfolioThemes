@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import styled, { keyframes, css } from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 import {
   MatrixRain,
   InfoLogs,
@@ -62,8 +62,7 @@ const tileConfig = [
 ];
 
 export function U11gTheme() {
-  const { cvData, getAboutContent } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
   const [activePage, setActivePage] = useState(null);
   const [hoveredTile, setHoveredTile] = useState(null);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
@@ -97,7 +96,7 @@ export function U11gTheme() {
   const linkedinUrl = pickSocialUrl(socials, ['linkedin']);
   const twitterUrl = pickSocialUrl(socials, ['twitter', 'x']);
 
-  const aboutText = getAboutContent()?.markdown || '';
+  const aboutText = cv?.about || '';
 
   // Experience items
   const experienceItems = useMemo(() => {

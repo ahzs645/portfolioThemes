@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 import { parseMarkdown } from '../../utils/parseMarkdown';
 
 function isArchived(entry) {
@@ -25,7 +25,7 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 export function EdHendersonTheme({ darkMode }) {
-  const { cv } = useConfig();
+  const cv = useCV();
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 

@@ -121,7 +121,7 @@ export default function App() {
   const [currentThemeId, setCurrentThemeId] = useState(getInitialThemeId);
   const [showCatalog, setShowCatalog] = useState(false);
   const [darkMode, setDarkMode] = useState(getInitialDarkMode);
-  const [uploadError, setUploadError] = useState('');
+  const [uploadErrors, setUploadErrors] = useState([]);
   const hideInitials = hideInitialsSetting;
   const [searchQuery, setSearchQuery] = useState('');
   const [focusedThemeIndex, setFocusedThemeIndex] = useState(0);
@@ -193,6 +193,34 @@ export default function App() {
     browseButtonRef.current?.focus();
   }, []);
 
+  const focusThemeByDelta = useCallback((delta) => {
+    setFocusedThemeIndex((index) => {
+      if (filteredThemes.length === 0) return 0;
+      return Math.max(0, Math.min(index + delta, filteredThemes.length - 1));
+    });
+  }, [filteredThemes.length]);
+
+  const handleCatalogKeyDown = useCallback((e) => {
+    if (e.key === 'Escape') {
+      setHoveredThemeId(null);
+      setShowCatalog(false);
+      browseButtonRef.current?.focus();
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      focusThemeByDelta(1);
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      focusThemeByDelta(-1);
+    }
+    if (e.key === 'Enter' && filteredThemes[focusedThemeIndex]) {
+      e.preventDefault();
+      selectTheme(filteredThemes[focusedThemeIndex].id);
+    }
+  }, [filteredThemes, focusedThemeIndex, focusThemeByDelta, selectTheme]);
+
   // Cleanup timeout and rAF on unmount
   useEffect(() => {
     return () => {
@@ -206,33 +234,22 @@ export default function App() {
     if (!showCatalog) return;
     searchInputRef.current?.focus();
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        setHoveredThemeId(null);
-        setShowCatalog(false);
-        browseButtonRef.current?.focus();
-        return;
-      }
       if (e.target.tagName === 'INPUT') return;
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setFocusedThemeIndex((index) => Math.min(index + 1, filteredThemes.length - 1));
-      }
-      if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setFocusedThemeIndex((index) => Math.max(index - 1, 0));
-      }
-      if (e.key === 'Enter' && filteredThemes[focusedThemeIndex]) {
-        e.preventDefault();
-        selectTheme(filteredThemes[focusedThemeIndex].id);
-      }
+      handleCatalogKeyDown(e);
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showCatalog, filteredThemes, focusedThemeIndex]);
+  }, [showCatalog, handleCatalogKeyDown]);
 
   useEffect(() => {
     setFocusedThemeIndex(0);
   }, [searchQuery]);
+
+  useEffect(() => {
+    if (!showCatalog) return;
+    const row = tableContainerRef.current?.querySelector(`[data-theme-index="${focusedThemeIndex}"]`);
+    row?.scrollIntoView({ block: 'nearest' });
+  }, [showCatalog, focusedThemeIndex]);
 
   useEffect(() => {
     try {
@@ -265,7 +282,7 @@ export default function App() {
 
   const processFile = (file) => {
     if (!file) return;
-    setUploadError('');
+    setUploadErrors([]);
 
     // Check file extension
     const validExtensions = ['.yaml', '.yml'];
@@ -274,7 +291,7 @@ export default function App() {
     );
 
     if (!hasValidExtension) {
-      setUploadError('Upload a .yaml or .yml file.');
+      setUploadErrors(['Upload a .yaml or .yml file.']);
       return;
     }
 
@@ -284,12 +301,12 @@ export default function App() {
       if (typeof content === 'string') {
         const result = uploadCV(content);
         if (!result.success) {
-          setUploadError(`Error parsing CV: ${result.error}`);
+          setUploadErrors(result.errors || [`Error parsing CV: ${result.error}`]);
         }
       }
     };
     reader.onerror = () => {
-      setUploadError('Error reading file.');
+      setUploadErrors(['Error reading file.']);
     };
     reader.readAsText(file);
   };
@@ -371,6 +388,7 @@ export default function App() {
                 placeholder="Search name, slug, source..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleCatalogKeyDown}
               />
               {searchQuery && (
                 <SearchClear $darkMode={darkMode} onClick={() => setSearchQuery('')}>
@@ -412,11 +430,18 @@ export default function App() {
               </tr>
             </thead>
             <tbody>
-              {filteredThemes.map((theme, index) => {
+              {filteredThemes.length === 0 ? (
+                <tr>
+                  <EmptyCell $darkMode={darkMode} colSpan={5}>
+                    No themes found for "{searchQuery}".
+                  </EmptyCell>
+                </tr>
+              ) : filteredThemes.map((theme, index) => {
                 const globalIndex = PORTFOLIO_THEMES.indexOf(theme);
                 return (
                   <TableRow
                     key={theme.id}
+                    data-theme-index={index}
                     $active={theme.id === currentThemeId}
                     $focused={index === focusedThemeIndex}
                     $darkMode={darkMode}
@@ -466,7 +491,11 @@ export default function App() {
         </TableContainer>
 
         <MobileCardList $darkMode={darkMode}>
-          {filteredThemes.map((theme, index) => {
+          {filteredThemes.length === 0 ? (
+            <EmptyMobileState $darkMode={darkMode}>
+              No themes found for "{searchQuery}".
+            </EmptyMobileState>
+          ) : filteredThemes.map((theme, index) => {
             const globalIndex = PORTFOLIO_THEMES.indexOf(theme);
             return (
               <MobileCard
@@ -545,9 +574,12 @@ export default function App() {
               accept=".yaml,.yml"
               onChange={handleFileUpload}
             />
-            {uploadError && (
+            {uploadErrors.length > 0 && (
               <UploadError $darkMode={darkMode} role="status">
-                {uploadError}
+                {uploadErrors.slice(0, 3).map((message) => (
+                  <div key={message}>{message}</div>
+                ))}
+                {uploadErrors.length > 3 && <div>{uploadErrors.length - 3} more issues.</div>}
               </UploadError>
             )}
             {isCustomCV ? (
@@ -1146,6 +1178,13 @@ const Td = styled.td`
   }
 `;
 
+const EmptyCell = styled.td`
+  padding: 40px 16px;
+  text-align: center;
+  color: ${({ $darkMode }) => ($darkMode ? '#737373' : '#6b7280')};
+  background: ${({ $darkMode }) => ($darkMode ? '#101010' : '#ffffff')};
+`;
+
 const SourceLink = styled.a`
   font-size: 12px;
   color: ${({ $darkMode }) => ($darkMode ? '#60a5fa' : '#3b82f6')};
@@ -1244,6 +1283,15 @@ const MobileCard = styled.div`
       return $active ? '#e8f1fd' : '#f3f4f6';
     }};
   }
+`;
+
+const EmptyMobileState = styled.div`
+  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#e5e7eb')};
+  border-radius: 10px;
+  padding: 28px 16px;
+  text-align: center;
+  color: ${({ $darkMode }) => ($darkMode ? '#737373' : '#6b7280')};
+  background: ${({ $darkMode }) => ($darkMode ? '#141414' : '#ffffff')};
 `;
 
 const CardInfo = styled.div`

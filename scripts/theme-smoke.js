@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import process from 'node:process';
 import { chromium } from 'playwright';
@@ -128,6 +129,77 @@ async function checkRoute(browser, baseUrl, theme, viewport) {
   return { theme, viewport, issues };
 }
 
+async function checkAppShell(browser, baseUrl) {
+  const page = await browser.newPage({
+    viewport: { width: 1280, height: 900 },
+    reducedMotion: 'reduce',
+  });
+  const issues = [];
+  const tmp = mkdtempSync(resolve(tmpdir(), 'portfolio-themes-'));
+  const invalidPath = resolve(tmp, 'invalid.yaml');
+  const validPath = resolve(tmp, 'valid.yaml');
+
+  page.on('console', (message) => {
+    if (message.type() === 'error') issues.push(`console error: ${message.text()}`);
+  });
+  page.on('pageerror', (error) => {
+    issues.push(`page error: ${error.message}`);
+  });
+
+  try {
+    writeFileSync(invalidPath, 'cv:\n  sections: []\n', 'utf8');
+    writeFileSync(validPath, [
+      'cv:',
+      '  name: QA Upload',
+      '  email: qa@example.com',
+      '  sections:',
+      '    about: Uploaded CV smoke test.',
+      '    projects: []',
+      '    experience: []',
+      '',
+    ].join('\n'), 'utf8');
+
+    await page.goto(new URL('/brutalist', baseUrl).href, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.evaluate(() => localStorage.removeItem('portfolioThemes-customCV'));
+    await page.reload({ waitUntil: 'networkidle', timeout: 30000 });
+
+    await page.getByRole('button', { name: /Browse Themes/i }).click();
+    const search = page.getByPlaceholder('Search name, slug, source...');
+    await search.waitFor({ state: 'visible', timeout: 5000 });
+    await search.fill('__definitely_missing_theme__');
+    await page.getByRole('cell', { name: /No themes found/ }).waitFor({ state: 'visible', timeout: 5000 });
+    await search.fill('terminal');
+    await search.press('ArrowDown');
+    await search.press('Enter');
+    await page.waitForURL(/terminal-master/, { timeout: 5000 });
+
+    await page.getByRole('button', { name: /Previous theme/i }).click();
+    await page.waitForURL(/terminal$/, { timeout: 5000 });
+    await page.goBack({ waitUntil: 'networkidle', timeout: 10000 });
+    if (!page.url().includes('/terminal-master')) {
+      issues.push('browser back did not restore previous theme route');
+    }
+
+    await page.goto(baseUrl, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.locator('input[type="file"]').setInputFiles(invalidPath);
+    await page.getByText(/cv\.name: is required/).waitFor({ state: 'visible', timeout: 5000 });
+    await page.goto(new URL('/brutalist', baseUrl).href, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.locator('input[type="file"]').setInputFiles(validPath);
+    await page.waitForFunction(() => document.body.innerText.includes('QA Upload'), null, { timeout: 10000 });
+    await page.reload({ waitUntil: 'networkidle', timeout: 30000 });
+    await page.waitForFunction(() => document.body.innerText.includes('QA Upload'), null, { timeout: 10000 });
+    await page.getByRole('button', { name: /Clear CV/i }).click();
+  } catch (error) {
+    issues.push(`app shell check failed: ${error.message}`);
+  } finally {
+    await page.evaluate(() => localStorage.removeItem('portfolioThemes-customCV')).catch(() => {});
+    await page.close();
+    rmSync(tmp, { recursive: true, force: true });
+  }
+
+  return { issues };
+}
+
 async function main() {
   const args = parseArgs();
   const port = Number(args.get('port') || DEFAULT_PORT);
@@ -160,6 +232,14 @@ async function main() {
           console.log(`PASS ${label}`);
         }
       }
+    }
+    const appShell = await checkAppShell(browser, baseUrl);
+    if (appShell.issues.length) {
+      console.log('FAIL app-shell');
+      appShell.issues.forEach((issue) => console.log(`  - ${issue}`));
+      results.push({ theme: { slug: 'app-shell' }, viewport: { width: 1280, height: 900 }, issues: appShell.issues });
+    } else {
+      console.log('PASS app-shell');
     }
   } finally {
     await browser.close();

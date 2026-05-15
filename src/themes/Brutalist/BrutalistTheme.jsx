@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 
 function isPresent(value) {
   return String(value || '').trim().toLowerCase() === 'present';
@@ -41,8 +41,7 @@ function formatDate(date) {
 }
 
 export function BrutalistTheme({ darkMode = false }) {
-  const { cvData } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
 
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;

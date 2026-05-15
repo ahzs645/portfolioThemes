@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 
 function isArchived(entry) {
   return Array.isArray(entry?.tags) && entry.tags.includes('archived');
@@ -25,8 +25,7 @@ function pickSocialUrl(socials, networkNames = []) {
 }
 
 export function RinkitadhanaTheme() {
-  const { cvData, getAboutContent } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
   const [isDark, setIsDark] = useState(false);
   const [expandedExp, setExpandedExp] = useState({});
   // Inject view transition CSS into document head
@@ -77,7 +76,7 @@ export function RinkitadhanaTheme() {
   const linkedinUrl = pickSocialUrl(socials, ['linkedin']);
   const twitterUrl = pickSocialUrl(socials, ['twitter', 'x']);
 
-  const aboutText = getAboutContent()?.markdown || '';
+  const aboutText = cv?.about || '';
 
   // Current job title
   const currentTitle = useMemo(() => {

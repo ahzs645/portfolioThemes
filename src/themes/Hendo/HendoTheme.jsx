@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 
 function isArchived(entry) {
   return Array.isArray(entry?.tags) && entry.tags.includes('archived');
@@ -84,8 +84,7 @@ const NAV_ITEMS = [
 ];
 
 export function HendoTheme() {
-  const { cvData, getAboutContent } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
   const [activeSection, setActiveSection] = useState('about');
   const [isDark, setIsDark] = useState(false);
 
@@ -99,7 +98,7 @@ export function HendoTheme() {
   const linkedinUrl = pickSocialUrl(socials, ['linkedin']);
   const twitterUrl = pickSocialUrl(socials, ['twitter', 'x']);
 
-  const aboutText = getAboutContent()?.markdown || '';
+  const aboutText = cv?.about || '';
 
   const experienceItems = useMemo(() => {
     return (cv?.sections?.experience || []).filter(e => !isArchived(e)).slice(0, 8);

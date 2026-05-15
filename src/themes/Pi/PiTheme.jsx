@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import styled from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 
 function isArchived(entry) {
   return Array.isArray(entry?.tags) && entry.tags.includes('archived');
@@ -112,8 +112,7 @@ function TimelineList({ items }) {
 }
 
 export function PiTheme() {
-  const { cvData, getAboutContent } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
 
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;
@@ -125,7 +124,7 @@ export function PiTheme() {
   const linkedinUrl = pickSocialUrl(socials, ['linkedin']);
   const twitterUrl = pickSocialUrl(socials, ['twitter', 'x']);
 
-  const aboutText = getAboutContent()?.markdown || '';
+  const aboutText = cv?.about || '';
 
   // Experience items - handle nested positions
   const experienceItems = useMemo(() => {

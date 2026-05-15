@@ -77,7 +77,6 @@ function parseSkillGroups(cv) {
 
 export function JacobLeechTheme() {
   const cv = useCV();
-  const { cvData } = useConfig();
 
   useEffect(() => {
     const id = 'jacob-leech-fonts';
@@ -102,7 +101,7 @@ export function JacobLeechTheme() {
   }, [cv?.experience]);
 
   const educationDisplay = useMemo(() => {
-    const raw = filterActive(cvData?.cv?.sections?.education || []);
+    const raw = filterActive(cv?.sections?.education || []);
     return raw.map((edu) => ({
       institution: edu.institution,
       school: edu.institution,
@@ -110,7 +109,7 @@ export function JacobLeechTheme() {
       area: edu.area,
       range: formatRange(edu.start_date, edu.end_date),
     }));
-  }, [cvData]);
+  }, [cv?.sections?.education]);
 
   const awardsDisplay = useMemo(() => {
     const raw = cv?.awards || [];

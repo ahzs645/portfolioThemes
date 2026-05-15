@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 
 function isArchived(entry) {
   return Array.isArray(entry?.tags) && entry.tags.includes('archived');
@@ -38,8 +38,7 @@ const darkTheme = {
 };
 
 export function GerhardTheme() {
-  const { cvData, getAboutContent } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
   const [isDark, setIsDark] = useState(false);
 
   const fullName = cv?.name || 'Your Name';
@@ -52,7 +51,7 @@ export function GerhardTheme() {
   const linkedinUrl = pickSocialUrl(socials, ['linkedin']);
   const twitterUrl = pickSocialUrl(socials, ['twitter', 'x']);
 
-  const aboutText = getAboutContent()?.markdown || '';
+  const aboutText = cv?.about || '';
 
   // Current position (first active experience)
   const currentPosition = useMemo(() => {

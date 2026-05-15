@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import styled from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 
 function formatWebsiteLabel(url) {
   if (!url) return '';
@@ -13,7 +13,7 @@ function formatWebsiteLabel(url) {
 }
 
 export function StefanFiskTheme({ darkMode = false }) {
-  const { cv } = useConfig();
+  const cv = useCV();
 
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;

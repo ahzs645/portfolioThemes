@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import styled, { keyframes, css } from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 
 function isPresent(value) {
   return String(value || '').trim().toLowerCase() === 'present';
@@ -80,8 +80,7 @@ function stringToColor(str) {
 }
 
 export function NickComputerTheme() {
-  const { cvData, getAboutContent } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Inject Rammetto One font
@@ -120,7 +119,7 @@ export function NickComputerTheme() {
   const linkedinUrl = pickSocialUrl(socials, ['linkedin']);
   const twitterUrl = pickSocialUrl(socials, ['twitter', 'x']);
 
-  const aboutText = getAboutContent()?.markdown || "I'm a developer who builds things for the web.";
+  const aboutText = cv?.about || "I'm a developer who builds things for the web.";
 
   // Grouped experience (connected positions)
   const experienceGroups = useMemo(() => {

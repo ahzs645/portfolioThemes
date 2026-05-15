@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 import { withBase } from '../../utils/assetPath';
 
 function isArchived(entry) {
@@ -101,8 +101,7 @@ function Pill({ children, href }) {
 }
 
 export function MattRothenbergTheme({ darkMode }) {
-  const { cvData, getAboutContent } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
   const [isDark, setIsDark] = useState(darkMode ?? false);
 
   useEffect(() => {
@@ -114,7 +113,7 @@ export function MattRothenbergTheme({ darkMode }) {
   const location = cv?.location || null;
   const website = cv?.website || null;
   const socials = Array.isArray(cv?.social) ? cv.social : [];
-  const aboutText = getAboutContent()?.markdown || '';
+  const aboutText = cv?.about || '';
 
   const githubUrl = pickSocial(socials, ['github']);
   const linkedinUrl = pickSocial(socials, ['linkedin']);

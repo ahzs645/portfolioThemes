@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useRef, useState } from 'react';
 import styled, { css, keyframes } from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 
 function isArchived(entry) {
   return Array.isArray(entry?.tags) && entry.tags.includes('archived');
@@ -71,8 +71,7 @@ function AnimatedRow({ children, index = 0, isDark }) {
 }
 
 export function FelixDornerTheme() {
-  const { cvData, getAboutContent } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
   const [isDark, setIsDark] = useState(true);
 
   const fullName = cv?.name || 'Your Name';
@@ -86,7 +85,7 @@ export function FelixDornerTheme() {
   const linkedinUrl = pickSocialUrl(socials, ['linkedin']);
   const twitterUrl = pickSocialUrl(socials, ['twitter', 'x']);
 
-  const aboutText = getAboutContent()?.markdown || '';
+  const aboutText = cv?.about || '';
 
   // Generate tagline from current position and location
   const tagline = useMemo(() => {

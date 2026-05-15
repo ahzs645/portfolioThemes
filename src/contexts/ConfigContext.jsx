@@ -7,9 +7,11 @@ import {
   getCurrentJobTitle,
 } from '../utils/cvHelpers';
 import { normalizeMarkdownInObject } from '../utils/parseMarkdown';
+import { validateCVData } from '../utils/cvValidation';
 import { withBase } from '../utils/assetPath';
 
 const ConfigContext = createContext(null);
+const CUSTOM_CV_STORAGE_KEY = 'portfolioThemes-customCV';
 
 function pickFirstString(...values) {
   for (const value of values) {
@@ -33,6 +35,19 @@ export function ConfigProvider({ children }) {
   useEffect(() => {
     async function loadCV() {
       try {
+        const stored = localStorage.getItem(CUSTOM_CV_STORAGE_KEY);
+        if (stored) {
+          const data = yaml.load(stored);
+          const validationErrors = validateCVData(data);
+          if (validationErrors.length === 0) {
+            setCvData(normalizeMarkdownInObject(data));
+            setIsCustomCV(true);
+            setLoading(false);
+            return;
+          }
+          localStorage.removeItem(CUSTOM_CV_STORAGE_KEY);
+        }
+
         const response = await fetch(withBase('CV.yaml'));
         if (!response.ok) {
           throw new Error(`Failed to load CV.yaml: ${response.status}`);
@@ -135,11 +150,20 @@ export function ConfigProvider({ children }) {
   const uploadCV = (yamlString) => {
     try {
       const data = yaml.load(yamlString);
+      const validationErrors = validateCVData(data);
+      if (validationErrors.length > 0) {
+        return {
+          success: false,
+          error: validationErrors[0],
+          errors: validationErrors,
+        };
+      }
       // Normalize markdown in the raw data so all themes get clean text
       const normalizedData = normalizeMarkdownInObject(data);
       setCvData(normalizedData);
       setError(null);
       setIsCustomCV(true);
+      localStorage.setItem(CUSTOM_CV_STORAGE_KEY, yamlString);
       return { success: true };
     } catch (err) {
       console.error('Error parsing uploaded CV:', err);
@@ -162,6 +186,7 @@ export function ConfigProvider({ children }) {
       setCvData(normalizedData);
       setError(null);
       setIsCustomCV(false);
+      localStorage.removeItem(CUSTOM_CV_STORAGE_KEY);
       setLoading(false);
     } catch (err) {
       console.error('Error resetting CV:', err);

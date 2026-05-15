@@ -104,7 +104,6 @@ function processVolunteerWithNesting(rawVolunteer = []) {
 
 export function AnsubMinimalTheme({ darkMode }) {
   const cv = useCV();
-  const { cvData } = useConfig();
 
   // Inject @font-face into document head (required for Shadow DOM font support)
   useEffect(() => {
@@ -123,21 +122,21 @@ export function AnsubMinimalTheme({ darkMode }) {
 
   // Process experience with nesting from raw data
   const experienceItems = useMemo(() => {
-    const raw = cvData?.cv?.sections?.experience || [];
+    const raw = cv?.sections?.experience || [];
     return processExperienceWithNesting(raw).slice(0, 6);
-  }, [cvData]);
+  }, [cv?.sections?.experience]);
 
   // Process education
   const educationItems = useMemo(() => {
-    const raw = cvData?.cv?.sections?.education || [];
+    const raw = cv?.sections?.education || [];
     return raw.filter(e => e && !isArchived(e)).slice(0, 4);
-  }, [cvData]);
+  }, [cv?.sections?.education]);
 
   // Process volunteer with nesting
   const volunteerItems = useMemo(() => {
-    const raw = cvData?.cv?.sections?.volunteer || [];
+    const raw = cv?.sections?.volunteer || [];
     return processVolunteerWithNesting(raw).slice(0, 4);
-  }, [cvData]);
+  }, [cv?.sections?.volunteer]);
 
   if (!cv) return null;
 

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 
 function isArchived(entry) {
   return Array.isArray(entry?.tags) && entry.tags.includes('archived');
@@ -45,8 +45,7 @@ const darkTheme = {
 };
 
 export function AlanaGoyalTheme() {
-  const { cvData, getAboutContent } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
   const [isDark, setIsDark] = useState(true);
   const [activeNote, setActiveNote] = useState('about');
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,7 +71,7 @@ export function AlanaGoyalTheme() {
   const linkedinUrl = pickSocialUrl(socials, ['linkedin']);
   const twitterUrl = pickSocialUrl(socials, ['twitter', 'x']);
 
-  const aboutText = getAboutContent()?.markdown || '';
+  const aboutText = cv?.about || '';
 
   // Experience items
   const experienceItems = useMemo(() => {

@@ -70,7 +70,6 @@ function processExperienceWithNesting(rawExperience = []) {
 
 export function ChiziTheme({ darkMode }) {
   const cv = useCV();
-  const { cvData } = useConfig();
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
@@ -80,19 +79,19 @@ export function ChiziTheme({ darkMode }) {
 
   // Process experience with nesting from raw data
   const experienceItems = useMemo(() => {
-    const raw = cvData?.cv?.sections?.experience || [];
+    const raw = cv?.sections?.experience || [];
     return processExperienceWithNesting(raw).slice(0, 6);
-  }, [cvData]);
+  }, [cv?.sections?.experience]);
 
   // Education items
   const educationItems = useMemo(() => {
-    const raw = cvData?.cv?.sections?.education || [];
+    const raw = cv?.sections?.education || [];
     return raw.filter(e => e && !isArchived(e)).slice(0, 4);
-  }, [cvData]);
+  }, [cv?.sections?.education]);
 
   // Volunteer items
   const volunteerItems = useMemo(() => {
-    const raw = cvData?.cv?.sections?.volunteer || [];
+    const raw = cv?.sections?.volunteer || [];
     return raw.filter(e => e && !isArchived(e)).map(vol => ({
       organization: vol.organization || vol.company || '',
       position: vol.position || vol.role || 'Volunteer',
@@ -101,13 +100,13 @@ export function ChiziTheme({ darkMode }) {
       isCurrent: isPresent(vol.end_date),
       url: vol.url,
     })).slice(0, 4);
-  }, [cvData]);
+  }, [cv?.sections?.volunteer]);
 
   // Publications items
   const publicationItems = useMemo(() => {
-    const raw = cvData?.cv?.sections?.publications || [];
+    const raw = cv?.sections?.publications || [];
     return raw.filter(e => e && !isArchived(e)).slice(0, 6);
-  }, [cvData]);
+  }, [cv?.sections?.publications]);
 
   if (!cv) return null;
 
@@ -124,21 +123,21 @@ export function ChiziTheme({ darkMode }) {
 
   // Awards items
   const awardItems = useMemo(() => {
-    const raw = cvData?.cv?.sections?.awards || [];
+    const raw = cv?.sections?.awards || [];
     return raw.filter(e => e && !isArchived(e));
-  }, [cvData]);
+  }, [cv?.sections?.awards]);
 
   // Presentations items
   const presentationItems = useMemo(() => {
-    const raw = cvData?.cv?.sections?.presentations || [];
+    const raw = cv?.sections?.presentations || [];
     return raw.filter(e => e && !isArchived(e));
-  }, [cvData]);
+  }, [cv?.sections?.presentations]);
 
   // Professional Development items
   const professionalDevItems = useMemo(() => {
-    const raw = cvData?.cv?.sections?.professional_development || [];
+    const raw = cv?.sections?.professional_development || [];
     return raw.filter(e => e && !isArchived(e));
-  }, [cvData]);
+  }, [cv?.sections?.professional_development]);
 
   const theme = darkMode ? colors.dark : colors.light;
   const projectItems = projects.slice(0, 6);

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 
 function isPresent(value) {
   return String(value || '').trim().toLowerCase() === 'present';
@@ -70,8 +70,7 @@ const NAV_ITEMS = [
 ];
 
 export function JoshBradleyTheme() {
-  const { cvData, getAboutContent } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
   const [activeSection, setActiveSection] = useState('about');
 
   const fullName = cv?.name || 'Your Name';
@@ -84,7 +83,7 @@ export function JoshBradleyTheme() {
   const linkedinUrl = pickSocialUrl(socials, ['linkedin']);
   const twitterUrl = pickSocialUrl(socials, ['twitter', 'x']);
 
-  const aboutText = getAboutContent()?.markdown || '';
+  const aboutText = cv?.about || '';
 
   const experienceGroups = useMemo(() => {
     return groupExperience(cv?.sections?.experience || []).slice(0, 8);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import styled, { createGlobalStyle, keyframes } from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 import hackRegular from './assets/hack-regular-subset.woff2';
 import hackItalic from './assets/hack-italic-subset.woff2';
 
@@ -214,8 +214,7 @@ function HashBlock({ k, entries, comma }) {
 }
 
 export function HackedJekyllTheme() {
-  const { cvData } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
 
   const sections = cv.sections || {};
   const social = cv.social || [];

@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 
 function isArchived(entry) {
   return Array.isArray(entry?.tags) && entry.tags.includes('archived');
@@ -18,8 +18,7 @@ function formatYear(dateStr) {
 }
 
 export function DmythroTheme() {
-  const { cvData, getAboutContent } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
 
   const fullName = cv?.name || 'Your Name';
   const avatarUrl = cv?.avatar || null;
@@ -28,7 +27,7 @@ export function DmythroTheme() {
   const phone = cv?.phone || null;
 
   const socials = cv?.social || [];
-  const aboutText = getAboutContent()?.markdown || '';
+  const aboutText = cv?.about || '';
 
   // Current position
   const currentPosition = useMemo(() => {

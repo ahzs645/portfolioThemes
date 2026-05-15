@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import styled from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 
 const colors = {
   darkNavy: '#020c1b',
@@ -70,8 +70,7 @@ function pickSocialUrl(socials, networkNames = []) {
 }
 
 export function ChiangV4Theme() {
-  const { cvData } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
 
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;

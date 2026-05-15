@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 
 function isArchived(entry) {
   return Array.isArray(entry?.tags) && entry.tags.includes('archived');
@@ -86,8 +86,7 @@ const lightTheme = {
 };
 
 export function SharpEye08Theme({ darkMode }) {
-  const { cvData, getAboutContent } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
   const [isDark, setIsDark] = useState(darkMode ?? true);
 
   useEffect(() => {
@@ -104,7 +103,7 @@ export function SharpEye08Theme({ darkMode }) {
   const xUrl = pickSocial(socials, ['twitter', 'x']);
   const linkedinUrl = pickSocial(socials, ['linkedin']);
 
-  const aboutText = getAboutContent()?.markdown || '';
+  const aboutText = cv?.about || '';
 
   const tagItems = useMemo(() => {
     const interests = cv?.sections?.interests;

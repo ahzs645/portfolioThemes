@@ -26,4 +26,20 @@ export default defineConfig({
   plugins: [react(), glsl({ compress: false }), spa404Plugin()],
   assetsInclude: ['**/*.yaml', '**/*.yml'],
   base,
+  build: {
+    chunkSizeWarningLimit: 700,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (id.includes('framer-motion')) return 'vendor-motion';
+          if (id.includes('styled-components')) return 'vendor-styled';
+          if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('scheduler')) {
+            return 'vendor-react';
+          }
+          return undefined;
+        },
+      },
+    },
+  },
 });

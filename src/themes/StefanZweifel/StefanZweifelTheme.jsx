@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import styled from 'styled-components';
-import { useConfig } from '../../contexts/ConfigContext';
+import { useCV } from '../../contexts/ConfigContext';
 
 function isArchived(entry) {
   return Array.isArray(entry?.tags) && entry.tags.includes('archived');
@@ -39,8 +39,7 @@ function pickSocialUrl(socials, networkNames = []) {
 }
 
 export function StefanZweifelTheme() {
-  const { cvData, getAboutContent } = useConfig();
-  const cv = useMemo(() => cvData?.cv || {}, [cvData]);
+  const cv = useCV() || {};
 
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;
@@ -53,7 +52,7 @@ export function StefanZweifelTheme() {
   const twitterUrl = pickSocialUrl(socials, ['twitter', 'x']);
   const mastodonUrl = pickSocialUrl(socials, ['mastodon']);
 
-  const aboutText = getAboutContent()?.markdown || '';
+  const aboutText = cv?.about || '';
 
   // Current position
   const currentPosition = useMemo(() => {
