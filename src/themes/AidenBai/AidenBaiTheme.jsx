@@ -94,21 +94,41 @@ function InlineLink({ href, children }) {
   );
 }
 
-function cleanupReactGrab() {
+let reactGrabLifecycle = 0;
+
+function cleanupReactGrab({ disable = true } = {}) {
+  if (disable) {
+    window.__REACT_GRAB_DISABLED__ = true;
+  }
+
+  try {
+    window.__REACT_GRAB__?.dispose?.();
+  } catch {}
+
   document
     .querySelectorAll('#aiden-react-grab-script, #aiden-react-grab-visual-edit, script[data-aiden-react-grab="true"]')
     .forEach((node) => node.remove());
 
   document
-    .querySelectorAll('[id*="react-grab" i], [class*="react-grab" i], [id*="visual-edit" i], [class*="visual-edit" i], [data-react-grab]')
+    .querySelectorAll('[id*="react-grab" i], [class*="react-grab" i], [id*="visual-edit" i], [class*="visual-edit" i], [data-react-grab], [data-react-grab-ignore-events]')
     .forEach((node) => node.remove());
 
-  ['__REACT_GRAB__', '__REACT_GRAB_MODULE__'].forEach((key) => {
+  ['__REACT_GRAB__', '__REACT_GRAB_MODULE__', '__REACT_GRAB_VISUAL_EDIT__'].forEach((key) => {
     try {
       delete window[key];
     } catch {
       window[key] = undefined;
     }
+  });
+}
+
+function cleanupReactGrabAsync() {
+  const lifecycle = ++reactGrabLifecycle;
+  cleanupReactGrab();
+  [0, 50, 250, 1000].forEach((delay) => {
+    window.setTimeout(() => {
+      if (lifecycle === reactGrabLifecycle) cleanupReactGrab();
+    }, delay);
   });
 }
 
@@ -206,12 +226,23 @@ function SpeedHover() {
   );
 }
 
-export function AidenBaiTheme({ darkMode }) {
+export function AidenBaiTheme({ darkMode, enableReactGrab = false }) {
   const cv = useCV();
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
+    if (!enableReactGrab) {
+      cleanupReactGrabAsync();
+      return undefined;
+    }
+
+    reactGrabLifecycle += 1;
     cleanupReactGrab();
+    try {
+      delete window.__REACT_GRAB_DISABLED__;
+    } catch {
+      window.__REACT_GRAB_DISABLED__ = false;
+    }
 
     const scripts = [
       {
@@ -239,9 +270,9 @@ export function AidenBaiTheme({ darkMode }) {
     });
 
     return () => {
-      cleanupReactGrab();
+      cleanupReactGrabAsync();
     };
-  }, []);
+  }, [enableReactGrab]);
 
   const data = useMemo(() => {
     if (!cv) return null;

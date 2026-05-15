@@ -1,64 +1,10 @@
+import { lazy } from 'react';
 import { stripBase } from '../utils/assetPath';
-import { AnsubMinimalTheme } from './AnsubMinimal/AnsubMinimalTheme';
-import { BoehsTheme } from './Boehs/BoehsTheme';
-import { BrutalistTheme } from './Brutalist/BrutalistTheme';
-import { ChiangV4Theme } from './ChiangV4/ChiangV4Theme';
-import { ChiangCurrentTheme } from './ChiangCurrent/ChiangCurrentTheme';
-import { NickComputerTheme } from './NickComputer/NickComputerTheme';
-import { BrianLovinTheme } from './BrianLovin/BrianLovinTheme';
-import { JoshBradleyTheme } from './JoshBradley/JoshBradleyTheme';
-import { HendoTheme } from './Hendo/HendoTheme';
-import { PiTheme } from './Pi/PiTheme';
-import { ChiziTheme } from './Chizi/ChiziTheme';
-import { GerhardTheme } from './Gerhard/GerhardTheme';
-import { AlanaGoyalTheme } from './AlanaGoyal/AlanaGoyalTheme';
-import { AysarTheme } from './Aysar/AysarTheme';
-import { AmirmxtTheme } from './Amirmxt/AmirmxtTheme';
-import { FelixDornerTheme } from './FelixDorner/FelixDornerTheme';
-import { JamiePatesTheme } from './JamiePates/JamiePatesTheme';
-import { TerminalTheme } from './Terminal/TerminalTheme';
-import { TerminalMasterTheme } from './TerminalMaster/TerminalMasterTheme';
-import { StammyTheme } from './Stammy/StammyTheme';
-import { StefanFiskTheme } from './StefanFisk/StefanFiskTheme';
-import { StefanZweifelTheme } from './StefanZweifel/StefanZweifelTheme';
-import { DmythroTheme } from './Dmythro/DmythroTheme';
-import { DTCTheme } from './DTC/DTCTheme';
-import { KubreTheme } from './Kubre/KubreTheme';
-import { PacoTheme } from './Paco/PacoTheme';
-import { P5aholicTheme } from './P5aholic/P5aholicTheme';
-import { RinkitadhanaTheme } from './Rinkitadhana/RinkitadhanaTheme';
-import { U11gTheme } from './U11g/U11gTheme';
-import { ShubhamTheme } from './Shubham/ShubhamTheme';
-import { PalmesTheme } from './Palmes/PalmesTheme';
-import { AbstractSystemsTheme } from './AbstractSystems/AbstractSystemsTheme';
-import { RashadWikiTheme } from './RashadWiki/RashadWikiTheme';
-import { AliciaPageTheme } from './AliciaPage/AliciaPageTheme';
-import { EdHendersonTheme } from './EdHenderson/EdHendersonTheme';
-import { HenryLangTheme } from './HenryLang/HenryLangTheme';
-import { LiamMattesonTheme } from './LiamMatteson/LiamMattesonTheme';
-import { KellyChongTheme } from './KellyChong/KellyChongTheme';
-import { SinisterSunsTheme } from './SinisterSuns/SinisterSunsTheme';
-import { SaintAngelsTheme } from './SaintAngels/SaintAngelsTheme';
-import { RuthZhaoTheme } from './RuthZhao/RuthZhaoTheme';
-import { TahaHossainTheme } from './TahaHossain/TahaHossainTheme';
-import { BaoToTheme } from './BaoTo/BaoToTheme';
-import { PCVTheme } from './PCV/PCVTheme';
-import { WallenartTUITheme } from './WallenartTUI/WallenartTUITheme';
-import { NimTheme } from './Nim/NimTheme';
-import { RetroComputerTheme } from './RetroComputer/RetroComputerTheme';
-import { VSCodePortfolioTheme } from './VSCodePortfolio/VSCodePortfolioTheme';
-import { SharpEye08Theme } from './SharpEye08/SharpEye08Theme';
-import { MattRothenbergTheme } from './MattRothenberg/MattRothenbergTheme';
-import { JoostDamhuisTheme } from './JoostDamhuis/JoostDamhuisTheme';
-import { ChesterHowTheme } from './ChesterHow/ChesterHowTheme';
-import { JacobLeechTheme } from './JacobLeech/JacobLeechTheme';
-import { TalkToDashaTheme } from './TalkToDasha/TalkToDashaTheme';
-import { KaachowTheme } from './Kaachow/KaachowTheme';
-import { VemulaTheme } from './Vemula/VemulaTheme';
-import { BenIssenTheme } from './BenIssen/BenIssenTheme';
-import { HackedJekyllTheme } from './HackedJekyll/HackedJekyllTheme';
-import { CompTheme } from './Comp/CompTheme';
-import { AidenBaiTheme } from './AidenBai/AidenBaiTheme';
+
+function lazyTheme(loader, exportName) {
+  return lazy(() => loader().then((module) => ({ default: module[exportName] })));
+}
+
 
 export const PORTFOLIO_THEMES = [
   {
@@ -67,7 +13,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Minimal',
     description: 'Clean single-page layout powered by CV.yaml. Features a timeline experience view, projects section, and contact info.',
     source: 'https://ansub.com',
-    Component: AnsubMinimalTheme,
+    Component: lazyTheme(() => import('./AnsubMinimal/AnsubMinimalTheme'), 'AnsubMinimalTheme'),
   },
   {
     id: 'boehs',
@@ -75,7 +21,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Indie Garden',
     description: 'Warm paper layout with serif typography, left-rule cards, a playful status line, and footer navigation inspired by boehs.org.',
     source: 'https://boehs.org',
-    Component: BoehsTheme,
+    Component: lazyTheme(() => import('./Boehs/BoehsTheme'), 'BoehsTheme'),
   },
   {
     id: 'brutalist',
@@ -83,7 +29,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Brutalist',
     description: 'No-frills, lightweight design. Just content, system fonts, and zero bullshit.',
     source: null,
-    Component: BrutalistTheme,
+    Component: lazyTheme(() => import('./Brutalist/BrutalistTheme'), 'BrutalistTheme'),
   },
   {
     id: 'chiang-v4',
@@ -91,7 +37,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Developer Dark',
     description: 'Dark navy portfolio with green accents. Full-page sections with numbered headings.',
     source: 'https://v4.brittanychiang.com',
-    Component: ChiangV4Theme,
+    Component: lazyTheme(() => import('./ChiangV4/ChiangV4Theme'), 'ChiangV4Theme'),
   },
   {
     id: 'chiang-current',
@@ -99,7 +45,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Spotlight',
     description: 'Modern two-column layout with slate colors and teal accents. Sticky navigation with scroll-aware highlighting.',
     source: 'https://brittanychiang.com',
-    Component: ChiangCurrentTheme,
+    Component: lazyTheme(() => import('./ChiangCurrent/ChiangCurrentTheme'), 'ChiangCurrentTheme'),
   },
   {
     id: 'nick-computer',
@@ -107,7 +53,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Creative Dark',
     description: 'Bold dark theme with Rammetto One display font. Horizontal project cards and clean experience list.',
     source: 'https://nick.computer',
-    Component: NickComputerTheme,
+    Component: lazyTheme(() => import('./NickComputer/NickComputerTheme'), 'NickComputerTheme'),
   },
   {
     id: 'brian-lovin',
@@ -115,7 +61,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Designer',
     description: 'Clean minimal portfolio with centered content, monospace dates, and elegant project listings.',
     source: 'https://brianlovin.com',
-    Component: BrianLovinTheme,
+    Component: lazyTheme(() => import('./BrianLovin/BrianLovinTheme'), 'BrianLovinTheme'),
   },
   {
     id: 'josh-bradley',
@@ -123,7 +69,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Editorial',
     description: 'Two-column layout with italic navigation, justified text, and leader-dot lists. Warm cream background with serif accents.',
     source: 'https://joshbradley.me',
-    Component: JoshBradleyTheme,
+    Component: lazyTheme(() => import('./JoshBradley/JoshBradleyTheme'), 'JoshBradleyTheme'),
   },
   {
     id: 'hendo',
@@ -131,7 +77,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Hendo',
     description: 'Clean minimal design with scramble text animation on hover. Light/dark mode toggle, centered content, and simple navigation.',
     source: 'https://hendo.dev',
-    Component: HendoTheme,
+    Component: lazyTheme(() => import('./Hendo/HendoTheme'), 'HendoTheme'),
   },
   {
     id: 'pi',
@@ -139,7 +85,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Research Lab',
     description: 'Monospace timeline layout with featured cards and box shadows. Cream background, serif logo, and vertical timeline with square dots.',
     source: 'https://www.andrewheiss.com',
-    Component: PiTheme,
+    Component: lazyTheme(() => import('./Pi/PiTheme'), 'PiTheme'),
   },
   {
     id: 'chizi',
@@ -147,7 +93,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Modern Blue',
     description: 'Clean minimalist design with blue accents. Features a live clock, project cards grid, and smooth hover animations.',
     source: 'https://chizi.me',
-    Component: ChiziTheme,
+    Component: lazyTheme(() => import('./Chizi/ChiziTheme'), 'ChiziTheme'),
   },
   {
     id: 'gerhard',
@@ -155,7 +101,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Plain Text',
     description: 'Ultra-minimal design with system fonts, 60ch width, and automatic dark/light mode. Subtle gray underlines and muted section labels.',
     source: 'https://gerhard.io',
-    Component: GerhardTheme,
+    Component: lazyTheme(() => import('./Gerhard/GerhardTheme'), 'GerhardTheme'),
   },
   {
     id: 'alana-goyal',
@@ -163,7 +109,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Notes',
     description: 'Notes-style layout with emoji icons, golden accent color, and dark mode default. Clean SF Pro typography with lowercase aesthetic.',
     source: 'https://alanagoyal.com',
-    Component: AlanaGoyalTheme,
+    Component: lazyTheme(() => import('./AlanaGoyal/AlanaGoyalTheme'), 'AlanaGoyalTheme'),
   },
   {
     id: 'aysar',
@@ -171,7 +117,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Founder Badge',
     description: 'Clean white portfolio with dark glass floating nav, Manrope typography, rounded project cards, and source-matched contact form.',
     source: 'https://www.aysark.com',
-    Component: AysarTheme,
+    Component: lazyTheme(() => import('./Aysar/AysarTheme'), 'AysarTheme'),
   },
   {
     id: 'amirmxt',
@@ -179,7 +125,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Builder',
     description: 'Clean professional layout with card-based projects and section dividers. Inter font, subtle hover effects, and live footer clock.',
     source: 'https://amirmxt.com',
-    Component: AmirmxtTheme,
+    Component: lazyTheme(() => import('./Amirmxt/AmirmxtTheme'), 'AmirmxtTheme'),
   },
   {
     id: 'felix-dorner',
@@ -187,7 +133,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Timeline',
     description: 'Clean professional design with timeline layout, monospace dates, and indigo accent links. Inter font with uppercase section labels.',
     source: 'https://felixdorner.com',
-    Component: FelixDornerTheme,
+    Component: lazyTheme(() => import('./FelixDorner/FelixDornerTheme'), 'FelixDornerTheme'),
   },
   {
     id: 'terminal',
@@ -195,7 +141,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Terminal',
     description: 'Hacker-style black terminal with Geist Mono font, ALL CAPS text, blinking cursor, and animated link underlines.',
     source: 'https://ragojose.com',
-    Component: TerminalTheme,
+    Component: lazyTheme(() => import('./Terminal/TerminalTheme'), 'TerminalTheme'),
   },
   {
     id: 'terminal-master',
@@ -203,7 +149,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Terminal Master',
     description: 'Interactive green-screen shell adapted from a standalone jQuery terminal portfolio, rebuilt as a CV-driven command interface.',
     source: null,
-    Component: TerminalMasterTheme,
+    Component: lazyTheme(() => import('./TerminalMaster/TerminalMasterTheme'), 'TerminalMasterTheme'),
   },
   {
     id: 'jamie-pates',
@@ -211,7 +157,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Sandbox Save',
     description: 'PS1-inspired interface with FF7-style panels, tabbed file views, and a game UI treatment driven by CV.yaml data.',
     source: 'https://www.jamiepates.com',
-    Component: JamiePatesTheme,
+    Component: lazyTheme(() => import('./JamiePates/JamiePatesTheme'), 'JamiePatesTheme'),
   },
   {
     id: 'stammy',
@@ -219,7 +165,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Stammy',
     description: 'Dark olive theme with left icon sidebar, serif typography, and table-style work history.',
     source: 'https://paulstamatiou.com',
-    Component: StammyTheme,
+    Component: lazyTheme(() => import('./Stammy/StammyTheme'), 'StammyTheme'),
   },
   {
     id: 'stefan-fisk',
@@ -227,7 +173,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Business Card',
     description: 'Ultra-minimal centered contact page with classic serif typography and simple hover-underlined links.',
     source: 'https://stefanfisk.com',
-    Component: StefanFiskTheme,
+    Component: lazyTheme(() => import('./StefanFisk/StefanFiskTheme'), 'StefanFiskTheme'),
   },
   {
     id: 'stefan-zweifel',
@@ -235,7 +181,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Developer',
     description: 'Clean white portfolio with pride gradient bar, system fonts, underlined links, and tabular date formatting.',
     source: 'https://stefanzweifel.dev',
-    Component: StefanZweifelTheme,
+    Component: lazyTheme(() => import('./StefanZweifel/StefanZweifelTheme'), 'StefanZweifelTheme'),
   },
   {
     id: 'dmythro',
@@ -243,7 +189,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Two Column',
     description: 'Modern two-column layout with sticky photo card, accordion sections, timeline with chip dates, and gradient social buttons. Dark mode support.',
     source: 'https://dmythro.com',
-    Component: DmythroTheme,
+    Component: lazyTheme(() => import('./Dmythro/DmythroTheme'), 'DmythroTheme'),
   },
   {
     id: 'dtc',
@@ -251,7 +197,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Splash',
     description: 'Full-screen hero splash with profile picture, colorful project cards, and alternating timeline. Dark theme with Roboto typography.',
     source: 'https://dtc.dev',
-    Component: DTCTheme,
+    Component: lazyTheme(() => import('./DTC/DTCTheme'), 'DTCTheme'),
   },
   {
     id: 'kubre',
@@ -259,7 +205,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Notebook',
     description: 'Monospace terminal aesthetic with glitch-style header, yellow accent hovers, and notebook paper dots.',
     source: 'https://kubre.in',
-    Component: KubreTheme,
+    Component: lazyTheme(() => import('./Kubre/KubreTheme'), 'KubreTheme'),
   },
   {
     id: 'paco',
@@ -267,7 +213,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Paco',
     description: 'Minimalist grayscale portfolio with staggered animations, three-column layout, and indigo accent.',
     source: 'https://paco.me',
-    Component: PacoTheme,
+    Component: lazyTheme(() => import('./Paco/PacoTheme'), 'PacoTheme'),
   },
   {
     id: 'p5aholic',
@@ -275,7 +221,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Framed',
     description: 'Artistic portfolio with border frame, mix-blend-mode difference, left navigation with dot indicators, and right-aligned projects. Sans/Mono toggle.',
     source: 'https://p5aholic.me',
-    Component: P5aholicTheme,
+    Component: lazyTheme(() => import('./P5aholic/P5aholicTheme'), 'P5aholicTheme'),
   },
   {
     id: 'rinkitadhana',
@@ -283,7 +229,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Dashed',
     description: 'Clean portfolio with dashed border separators, dot grid header, social pills, and two-column project grid. Geist-inspired typography.',
     source: 'https://rinkitadhana.com',
-    Component: RinkitadhanaTheme,
+    Component: lazyTheme(() => import('./Rinkitadhana/RinkitadhanaTheme'), 'RinkitadhanaTheme'),
   },
   {
     id: 'u11g',
@@ -291,7 +237,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Mainframe',
     description: 'Brutalist dashboard with zinc surfaces, monospace typography, topic cards with colored accents, and grid-based project layout.',
     source: 'https://u11g.com',
-    Component: U11gTheme,
+    Component: lazyTheme(() => import('./U11g/U11gTheme'), 'U11gTheme'),
   },
   {
     id: 'shubham',
@@ -299,7 +245,7 @@ export const PORTFOLIO_THEMES = [
     name: 'IMML',
     description: 'Minimal page-based portfolio with hash navigation, blockquote work entries, project tables, and dotted link underlines.',
     source: 'https://shubhwym.me',
-    Component: ShubhamTheme,
+    Component: lazyTheme(() => import('./Shubham/ShubhamTheme'), 'ShubhamTheme'),
   },
   {
     id: 'palmes',
@@ -307,7 +253,7 @@ export const PORTFOLIO_THEMES = [
     name: '3D Duck',
     description: 'Dark portfolio with scroll-synchronized 3D duck animation, cyan gradients, and comprehensive CV display.',
     source: 'https://palmes.dev',
-    Component: PalmesTheme,
+    Component: lazyTheme(() => import('./Palmes/PalmesTheme'), 'PalmesTheme'),
   },
   {
     id: 'abstract-systems',
@@ -315,7 +261,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Abstract Systems',
     description: 'Minimal blue-gray portfolio with floating pill nav, staggered fade-in animations, dotted section dividers, and monospace accents.',
     source: 'https://www.abstract.systems',
-    Component: AbstractSystemsTheme,
+    Component: lazyTheme(() => import('./AbstractSystems/AbstractSystemsTheme'), 'AbstractSystemsTheme'),
   },
   {
     id: 'rashad-wiki',
@@ -323,7 +269,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Wikipedia',
     description: 'Wikipedia-inspired portfolio with serif headings, infobox sidebar, blue links, and encyclopedia-style biography sections.',
     source: 'https://rashad.wiki',
-    Component: RashadWikiTheme,
+    Component: lazyTheme(() => import('./RashadWiki/RashadWikiTheme'), 'RashadWikiTheme'),
   },
   {
     id: 'alicia-page',
@@ -331,7 +277,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Lime Grid',
     description: 'Minimalist portfolio with lime green accents, 12-column grid layout, ASCII art header, animated link underlines, and dark/light mode.',
     source: 'https://alicias.page',
-    Component: AliciaPageTheme,
+    Component: lazyTheme(() => import('./AliciaPage/AliciaPageTheme'), 'AliciaPageTheme'),
   },
   {
     id: 'ed-henderson',
@@ -339,7 +285,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Monotype',
     description: 'Minimalist monospace portfolio with Roboto Mono, 600px content width, dropdown nav with dividers, bullet-point sections, and copy-to-clipboard email.',
     source: 'https://ed-henderson.com',
-    Component: EdHendersonTheme,
+    Component: lazyTheme(() => import('./EdHenderson/EdHendersonTheme'), 'EdHendersonTheme'),
   },
   {
     id: 'henrylang',
@@ -347,7 +293,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Retro OS',
     description: 'WebGL desktop portfolio with draggable windows, browser-style markdown pages, paint app, and CV-backed text files.',
     source: 'https://henrylang.net',
-    Component: HenryLangTheme,
+    Component: lazyTheme(() => import('./HenryLang/HenryLangTheme'), 'HenryLangTheme'),
   },
   {
     id: 'liam-matteson',
@@ -355,7 +301,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Liam CV',
     description: 'Editorial white portfolio with muted green-gray typography, oversized serif statement, underlined nav, and image-led project cards.',
     source: 'https://www.liam.cv',
-    Component: LiamMattesonTheme,
+    Component: lazyTheme(() => import('./LiamMatteson/LiamMattesonTheme'), 'LiamMattesonTheme'),
   },
   {
     id: 'kelly-chong',
@@ -363,7 +309,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Paper Notes',
     description: 'Soft paper-texture portfolio with a sticky pixel-nav, editorial serif headings, footer clock, and section blocks adapted from kellychong.ca.',
     source: 'https://kellychong.ca',
-    Component: KellyChongTheme,
+    Component: lazyTheme(() => import('./KellyChong/KellyChongTheme'), 'KellyChongTheme'),
   },
   {
     id: 'sinister-suns',
@@ -371,7 +317,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Moonrest',
     description: 'Dark fantasy resume theme with ivy corners, ornamental borders, parchment-toned type, and a tavern-inspired information architecture remade from the Sinister Suns site.',
     source: 'https://sinistersuns.neocities.org',
-    Component: SinisterSunsTheme,
+    Component: lazyTheme(() => import('./SinisterSuns/SinisterSunsTheme'), 'SinisterSunsTheme'),
   },
   {
     id: 'saint-angels',
@@ -379,7 +325,7 @@ export const PORTFOLIO_THEMES = [
     name: 'With Teeth',
     description: 'Minimal retro panel layout with a left nav, bordered content cards, and a rotating wireframe header adapted from saint-angels.github.io.',
     source: 'https://saint-angels.github.io',
-    Component: SaintAngelsTheme,
+    Component: lazyTheme(() => import('./SaintAngels/SaintAngelsTheme'), 'SaintAngelsTheme'),
   },
   {
     id: 'ruth-zhao',
@@ -387,7 +333,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Ruth Zhao',
     description: 'Soft editorial portfolio with IBM Plex Mono details, orange feature cards, airy panels, and a research-forward layout adapted from ruth-zhao.com.',
     source: 'https://www.ruth-zhao.com',
-    Component: RuthZhaoTheme,
+    Component: lazyTheme(() => import('./RuthZhao/RuthZhaoTheme'), 'RuthZhaoTheme'),
   },
   {
     id: 'taha-hossain',
@@ -395,7 +341,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Daybreak',
     description: 'Warm beige two-column portfolio with colored border lines, EB Garamond serif body, monospace technical details, and numbered resume items inspired by tahahossain.com.',
     source: 'https://tahahossain.com',
-    Component: TahaHossainTheme,
+    Component: lazyTheme(() => import('./TahaHossain/TahaHossainTheme'), 'TahaHossainTheme'),
   },
   {
     id: 'bao-to',
@@ -403,7 +349,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Design Engineer',
     description: 'Warm cream portfolio with glitch text hero, uppercase tab nav, monospace accents, and staggered project cards inspired by baothiento.com.',
     source: 'https://www.baothiento.com',
-    Component: BaoToTheme,
+    Component: lazyTheme(() => import('./BaoTo/BaoToTheme'), 'BaoToTheme'),
   },
   {
     id: 'pcv',
@@ -411,7 +357,7 @@ export const PORTFOLIO_THEMES = [
     name: 'ASCII Flame',
     description: 'Monospace split-screen portfolio with 7 cyclable color themes, interactive ASCII doom flame animation, and uppercase vertical rhythm inspired by p.cv.',
     source: 'https://p.cv',
-    Component: PCVTheme,
+    Component: lazyTheme(() => import('./PCV/PCVTheme'), 'PCVTheme'),
   },
   {
     id: 'wallenart-tui',
@@ -419,7 +365,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Terminal UI',
     description: 'Lazygit-inspired split-pane TUI with sidebar navigation, vim keybindings, item counters, and monospace Fira Mono typography.',
     source: 'https://wallenart.dev',
-    Component: WallenartTUITheme,
+    Component: lazyTheme(() => import('./WallenartTUI/WallenartTUITheme'), 'WallenartTUITheme'),
   },
   {
     id: 'nim',
@@ -427,7 +373,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Nim',
     description: 'Minimalist portfolio with staggered fade-in animations, spotlight hover cards, social pills, and zinc color palette inspired by nim-fawn.vercel.app.',
     source: 'https://nim-fawn.vercel.app',
-    Component: NimTheme,
+    Component: lazyTheme(() => import('./Nim/NimTheme'), 'NimTheme'),
   },
   {
     id: 'retro-computer',
@@ -435,7 +381,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Retro Computer',
     description: 'Interactive CRT terminal with virtual filesystem, retro Commodore PET styling, scan-line effects, and warm beige portfolio content inspired by edh.dev.',
     source: 'https://edh.dev',
-    Component: RetroComputerTheme,
+    Component: lazyTheme(() => import('./RetroComputer/RetroComputerTheme'), 'RetroComputerTheme'),
   },
   {
     id: 'vscode-portfolio',
@@ -443,7 +389,7 @@ export const PORTFOLIO_THEMES = [
     name: 'VS Code',
     description: 'IDE-themed portfolio with Atom One Dark colors, tab navigation, left activity bar, status bar, and code-file section names.',
     source: 'https://github.com/caglarturali/vscode-portfolio',
-    Component: VSCodePortfolioTheme,
+    Component: lazyTheme(() => import('./VSCodePortfolio/VSCodePortfolioTheme'), 'VSCodePortfolioTheme'),
   },
   {
     id: 'sharpeye08',
@@ -451,7 +397,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Italic Mono',
     description: 'Pitch-black monospace portfolio with italic Georgia section titles, short divider rule, uppercase entry tags, and a light/dark toggle inspired by sharpeye08.github.io.',
     source: 'https://sharpeye08.github.io',
-    Component: SharpEye08Theme,
+    Component: lazyTheme(() => import('./SharpEye08/SharpEye08Theme'), 'SharpEye08Theme'),
   },
   {
     id: 'matt-rothenberg',
@@ -459,7 +405,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Editorial Prose',
     description: 'Narrative single-column layout with oversized Fraunces serif paragraphs, mono "I ___" eyebrows, inline employment pills, and editorial underlines inspired by mattrothenberg.com.',
     source: 'https://mattrothenberg.com',
-    Component: MattRothenbergTheme,
+    Component: lazyTheme(() => import('./MattRothenberg/MattRothenbergTheme'), 'MattRothenbergTheme'),
   },
   {
     id: 'joost-damhuis',
@@ -467,7 +413,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Framer Mono',
     description: 'Dark single-viewport landing with an oversized lowercase name, live clock widget, teal accents, and a now-playing card inspired by joost.design.',
     source: 'https://joost.design',
-    Component: JoostDamhuisTheme,
+    Component: lazyTheme(() => import('./JoostDamhuis/JoostDamhuisTheme'), 'JoostDamhuisTheme'),
   },
   {
     id: 'chester-how',
@@ -475,7 +421,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Digital Garden',
     description: 'A quiet masonry digital garden with Fraunces serif display type, pill nav, and color-tagged cards — inspired by chester.how.',
     source: 'https://chester.how',
-    Component: ChesterHowTheme,
+    Component: lazyTheme(() => import('./ChesterHow/ChesterHowTheme'), 'ChesterHowTheme'),
   },
   {
     id: 'jacob-leech',
@@ -483,7 +429,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Digital Craftsman',
     description: 'Warm camel-and-brown editorial layout with Cormorant Garamond body, Bluu Titling display type, boxed drop caps, "Fig." figure captions, and bordered graphic panels — inspired by jacobleech.com.',
     source: 'https://jacobleech.com',
-    Component: JacobLeechTheme,
+    Component: lazyTheme(() => import('./JacobLeech/JacobLeechTheme'), 'JacobLeechTheme'),
   },
   {
     id: 'talk-to-dasha',
@@ -491,7 +437,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Pastel Cards',
     description: 'Cream background with pastel-colored section cards, floating pill headings, and rotated white mini-cards. Inter Tight typography and a playful, approachable mood inspired by talktodasha.com.',
     source: 'https://www.talktodasha.com',
-    Component: TalkToDashaTheme,
+    Component: lazyTheme(() => import('./TalkToDasha/TalkToDashaTheme'), 'TalkToDashaTheme'),
   },
   {
     id: 'kaachow',
@@ -499,7 +445,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Threw It Away',
     description: 'Playful single-viewport hero with an oversized serif headline and a draggable physics-driven trash can full of crumpled papers, plus a custom "find me here instead" cursor — inspired by kaachow.xyz.',
     source: 'https://www.kaachow.xyz',
-    Component: KaachowTheme,
+    Component: lazyTheme(() => import('./Kaachow/KaachowTheme'), 'KaachowTheme'),
   },
   {
     id: 'vemula',
@@ -507,7 +453,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Card Stack',
     description: 'Editorial serif headline with inline avatar and sparkle, paired with a bottom-fixed row of overlapping gradient cards that lift and rotate on hover. Inspired by vemula.me.',
     source: 'https://vemula.me',
-    Component: VemulaTheme,
+    Component: lazyTheme(() => import('./Vemula/VemulaTheme'), 'VemulaTheme'),
   },
   {
     id: 'ben-issen',
@@ -515,7 +461,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Sketchpad',
     description: 'Two floating dark cards (avatar + tabbed project list, and big-name bio with newsletter) on top of an interactive drawing canvas you can doodle on with three colors and a variable brush. Inspired by benissen.com.',
     source: 'https://benissen.com',
-    Component: BenIssenTheme,
+    Component: lazyTheme(() => import('./BenIssen/BenIssenTheme'), 'BenIssenTheme'),
   },
   {
     id: 'hacked-jekyll',
@@ -523,7 +469,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Hacked',
     description: 'Terminal-inspired JSON portfolio that renders your CV as a formatted JSON object with monospace Hack font, green-on-dark styling, and a typewriter animation. Based on piazzai/hacked-jekyll.',
     source: 'https://piazzai.github.io/hacked-jekyll/',
-    Component: HackedJekyllTheme,
+    Component: lazyTheme(() => import('./HackedJekyll/HackedJekyllTheme'), 'HackedJekyllTheme'),
   },
   {
     id: 'comp',
@@ -531,7 +477,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Comp Room',
     description: 'WebGL desktop diorama with an arcade machine, twin monitors, whiteboard and Rubik\'s cube — orbit around the room and click props to dive into CV-driven screens. Adapted from joanramosrefusta.com.',
     source: 'https://joanramosrefusta.com',
-    Component: CompTheme,
+    Component: lazyTheme(() => import('./Comp/CompTheme'), 'CompTheme'),
   },
   {
     id: 'aiden-bai',
@@ -539,7 +485,47 @@ export const PORTFOLIO_THEMES = [
     name: 'Aiden Bai',
     description: 'Narrow text-only portfolio with stone neutrals, serif heading, understated underlined links, shimmer emphasis, and expandable lore inspired by aidenybai.com without the image strip.',
     source: 'https://www.aidenybai.com',
-    Component: AidenBaiTheme,
+    Component: lazyTheme(() => import('./AidenBai/AidenBaiTheme'), 'AidenBaiTheme'),
+  },
+  {
+    id: 'sharon-zheng',
+    slug: 'cobalt-fold',
+    name: 'Cobalt Fold',
+    description: 'Cobalt blue folding portfolio with oversized uppercase name, square bullets, underlined external links, and print-poster energy inspired by sharonzheng.com.',
+    source: 'https://sharonzheng.com',
+    Component: lazyTheme(() => import('./SharonZheng/SharonZhengTheme'), 'SharonZhengTheme'),
+  },
+  {
+    id: 'sebastian-berns',
+    slug: 'research-designer',
+    name: 'Research Designer',
+    description: 'Warm gray editorial portfolio with Work Sans-style body text, oversized inline serif phrases, two-column navigation, and vivid accent colors inspired by sebastianberns.com.',
+    source: 'https://sebastianberns.com',
+    Component: lazyTheme(() => import('./SebastianBerns/SebastianBernsTheme'), 'SebastianBernsTheme'),
+  },
+  {
+    id: 'norman-ponte',
+    slug: 'orbital-notes',
+    name: 'Orbital Notes',
+    description: 'Black space portfolio with shader-twinkled stars, orbiting GLB artifacts, Radar display type, sticky translucent navigation, and CV-backed content panels inspired by normanponte.io.',
+    source: 'https://normanponte.io',
+    Component: lazyTheme(() => import('./NormanPonte/NormanPonteTheme'), 'NormanPonteTheme'),
+  },
+  {
+    id: 'noah-finer',
+    slug: 'shader-playground',
+    name: 'Shader Playground',
+    description: 'Playful olive WebGL portfolio with noisy fragment shaders, distorted title textures, blocky project cards, Basteleur display type, and captured media inspired by noahfiner.com.',
+    source: 'https://noahfiner.com',
+    Component: lazyTheme(() => import('./NoahFiner/NoahFinerTheme'), 'NoahFinerTheme'),
+  },
+  {
+    id: 'hey-this-is-chris',
+    slug: 'hey-this-is-chris',
+    name: 'Hey This Is Chris',
+    description: 'Compact blue-gray portfolio with an animated canvas grid, hover-filled squares, dark mode switch, marquee feed, bordered panels, icon-led entries, and CV-backed resume/project/contact views inspired by heythisischris.com.',
+    source: 'https://heythisischris.com',
+    Component: lazyTheme(() => import('./HeyThisIsChris/HeyThisIsChrisTheme'), 'HeyThisIsChrisTheme'),
   },
 ];
 

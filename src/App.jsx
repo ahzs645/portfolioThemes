@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback, Component } from 'react';
+import { Suspense, useState, useMemo, useEffect, useRef, useCallback, Component } from 'react';
 import { createPortal } from 'react-dom';
 import styled, { StyleSheetManager } from 'styled-components';
 import { useConfig } from './contexts/ConfigContext';
@@ -38,6 +38,14 @@ class PreviewErrorBoundary extends Component {
     }
     return this.props.children;
   }
+}
+
+function ThemeLoading({ label = 'Loading theme...' }) {
+  return (
+    <LoadingScreen>
+      <span>{label}</span>
+    </LoadingScreen>
+  );
 }
 
 function IsolatedPreview({ children, width, height }) {
@@ -106,20 +114,37 @@ const getInitialThemeId = () => {
   return resolveThemeIdForPath(window.location.pathname);
 };
 
+const enableReactGrab = import.meta.env.VITE_ENABLE_REACT_GRAB === 'true';
+
 export default function App() {
   const { loading, error, uploadCV, resetCV, isCustomCV } = useConfig();
   const [currentThemeId, setCurrentThemeId] = useState(getInitialThemeId);
   const [showCatalog, setShowCatalog] = useState(false);
   const [darkMode, setDarkMode] = useState(getInitialDarkMode);
+  const [uploadError, setUploadError] = useState('');
   const hideInitials = hideInitialsSetting;
   const [searchQuery, setSearchQuery] = useState('');
+  const [focusedThemeIndex, setFocusedThemeIndex] = useState(0);
   const fileInputRef = useRef(null);
   const searchInputRef = useRef(null);
+  const browseButtonRef = useRef(null);
   const [hoveredThemeId, setHoveredThemeId] = useState(null);
   const [previewPos, setPreviewPos] = useState({ top: 0, left: 0 });
   const previewTimeoutRef = useRef(null);
   const tableContainerRef = useRef(null);
   const rafRef = useRef(null);
+
+  const filteredThemes = useMemo(() => {
+    if (!searchQuery.trim()) return PORTFOLIO_THEMES;
+    const q = searchQuery.toLowerCase();
+    return PORTFOLIO_THEMES.filter(t =>
+      t.name.toLowerCase().includes(q) ||
+      t.slug.toLowerCase().includes(q) ||
+      t.id.toLowerCase().includes(q) ||
+      (t.source && t.source.toLowerCase().includes(q)) ||
+      (t.description && t.description.toLowerCase().includes(q))
+    );
+  }, [searchQuery]);
 
   const updatePreviewPos = useCallback((clientX, clientY) => {
     const previewW = 480;
@@ -161,6 +186,13 @@ export default function App() {
     previewTimeoutRef.current = setTimeout(() => setHoveredThemeId(null), 80);
   }, []);
 
+  const selectTheme = useCallback((themeId) => {
+    setCurrentThemeId(themeId);
+    setHoveredThemeId(null);
+    setShowCatalog(false);
+    browseButtonRef.current?.focus();
+  }, []);
+
   // Cleanup timeout and rAF on unmount
   useEffect(() => {
     return () => {
@@ -172,15 +204,35 @@ export default function App() {
   // Keyboard navigation in catalog
   useEffect(() => {
     if (!showCatalog) return;
+    searchInputRef.current?.focus();
     const handleKeyDown = (e) => {
-      if (e.target.tagName === 'INPUT') return;
       if (e.key === 'Escape') {
+        setHoveredThemeId(null);
         setShowCatalog(false);
+        browseButtonRef.current?.focus();
+        return;
+      }
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setFocusedThemeIndex((index) => Math.min(index + 1, filteredThemes.length - 1));
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setFocusedThemeIndex((index) => Math.max(index - 1, 0));
+      }
+      if (e.key === 'Enter' && filteredThemes[focusedThemeIndex]) {
+        e.preventDefault();
+        selectTheme(filteredThemes[focusedThemeIndex].id);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showCatalog]);
+  }, [showCatalog, filteredThemes, focusedThemeIndex]);
+
+  useEffect(() => {
+    setFocusedThemeIndex(0);
+  }, [searchQuery]);
 
   useEffect(() => {
     try {
@@ -213,6 +265,7 @@ export default function App() {
 
   const processFile = (file) => {
     if (!file) return;
+    setUploadError('');
 
     // Check file extension
     const validExtensions = ['.yaml', '.yml'];
@@ -221,7 +274,7 @@ export default function App() {
     );
 
     if (!hasValidExtension) {
-      alert('Please upload a .yaml or .yml file');
+      setUploadError('Upload a .yaml or .yml file.');
       return;
     }
 
@@ -231,12 +284,12 @@ export default function App() {
       if (typeof content === 'string') {
         const result = uploadCV(content);
         if (!result.success) {
-          alert(`Error parsing CV: ${result.error}`);
+          setUploadError(`Error parsing CV: ${result.error}`);
         }
       }
     };
     reader.onerror = () => {
-      alert('Error reading file');
+      setUploadError('Error reading file.');
     };
     reader.readAsText(file);
   };
@@ -259,15 +312,6 @@ export default function App() {
     const file = e.dataTransfer.files?.[0];
     processFile(file);
   };
-
-  const filteredThemes = useMemo(() => {
-    if (!searchQuery.trim()) return PORTFOLIO_THEMES;
-    const q = searchQuery.toLowerCase();
-    return PORTFOLIO_THEMES.filter(t =>
-      t.name.toLowerCase().includes(q) ||
-      (t.description && t.description.toLowerCase().includes(q))
-    );
-  }, [searchQuery]);
 
   const currentTheme = useMemo(() => getPortfolioTheme(currentThemeId), [currentThemeId]);
 
@@ -312,7 +356,7 @@ export default function App() {
         <CatalogHeader>
           <CatalogTitleRow>
             <h1>Resume Themes</h1>
-            <ThemeCount $darkMode={darkMode}>{filteredThemes.length} themes</ThemeCount>
+            {searchQuery && <ThemeCount $darkMode={darkMode}>Filtered results</ThemeCount>}
           </CatalogTitleRow>
           <HeaderActions>
             <SearchBar $darkMode={darkMode}>
@@ -324,7 +368,7 @@ export default function App() {
                 ref={searchInputRef}
                 $darkMode={darkMode}
                 type="text"
-                placeholder="Search themes..."
+                placeholder="Search name, slug, source..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -368,17 +412,24 @@ export default function App() {
               </tr>
             </thead>
             <tbody>
-              {filteredThemes.map((theme) => {
+              {filteredThemes.map((theme, index) => {
                 const globalIndex = PORTFOLIO_THEMES.indexOf(theme);
                 return (
                   <TableRow
                     key={theme.id}
                     $active={theme.id === currentThemeId}
+                    $focused={index === focusedThemeIndex}
                     $darkMode={darkMode}
-                    onClick={() => {
-                      setCurrentThemeId(theme.id);
-                      setHoveredThemeId(null);
-                      setShowCatalog(false);
+                    role="button"
+                    tabIndex={0}
+                    aria-current={theme.id === currentThemeId ? 'true' : undefined}
+                    onClick={() => selectTheme(theme.id)}
+                    onFocus={() => setFocusedThemeIndex(index)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        selectTheme(theme.id);
+                      }
                     }}
                     onMouseEnter={(e) => handleRowMouseEnter(e, theme.id)}
                     onMouseMove={handleRowMouseMove}
@@ -422,10 +473,15 @@ export default function App() {
                 key={theme.id}
                 $active={theme.id === currentThemeId}
                 $darkMode={darkMode}
-                onClick={() => {
-                  setCurrentThemeId(theme.id);
-                  setHoveredThemeId(null);
-                  setShowCatalog(false);
+                role="button"
+                tabIndex={0}
+                aria-current={theme.id === currentThemeId ? 'true' : undefined}
+                onClick={() => selectTheme(theme.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    selectTheme(theme.id);
+                  }
                 }}
               >
                 <CardInfo>
@@ -457,7 +513,9 @@ export default function App() {
             <PreviewViewport>
               <IsolatedPreview width="1440px" height="900px">
                 <PreviewErrorBoundary themeId={hoveredThemeId}>
-                  <HoveredComponent darkMode={darkMode} />
+                  <Suspense fallback={<ThemeLoading label="Loading preview..." />}>
+                    <HoveredComponent darkMode={darkMode} />
+                  </Suspense>
                 </PreviewErrorBoundary>
               </IsolatedPreview>
             </PreviewViewport>
@@ -487,6 +545,11 @@ export default function App() {
               accept=".yaml,.yml"
               onChange={handleFileUpload}
             />
+            {uploadError && (
+              <UploadError $darkMode={darkMode} role="status">
+                {uploadError}
+              </UploadError>
+            )}
             {isCustomCV ? (
               <ClearButton
                 $darkMode={darkMode}
@@ -527,7 +590,11 @@ export default function App() {
               </NavArrowButton>
             </ThemeNavGroup>
             <Separator $darkMode={darkMode} />
-            <SwitcherButton $darkMode={darkMode} onClick={() => { setSearchQuery(''); setShowCatalog(true); }}>
+            <SwitcherButton
+              ref={browseButtonRef}
+              $darkMode={darkMode}
+              onClick={() => { setSearchQuery(''); setShowCatalog(true); }}
+            >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="3" width="7" height="7" rx="1"/>
                 <rect x="14" y="3" width="7" height="7" rx="1"/>
@@ -556,7 +623,17 @@ export default function App() {
         </TopBar>
       )}
       <ThemeContainer $hasTopBar={showThemeBar} $hideInitials={hideInitials}>
-        {ThemeComponent ? <ThemeComponent darkMode={darkMode} /> : <div>No theme selected</div>}
+        {ThemeComponent ? (
+          <Suspense fallback={<ThemeLoading />}>
+            <ThemeComponent
+              key={currentThemeId}
+              darkMode={darkMode}
+              enableReactGrab={enableReactGrab && currentThemeId === 'aiden-bai'}
+            />
+          </Suspense>
+        ) : (
+          <div>No theme selected</div>
+        )}
       </ThemeContainer>
     </AppContainer>
   );
@@ -599,6 +676,10 @@ const AppContainer = styled.div`
 `;
 
 const TopBar = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -676,6 +757,18 @@ const TopBarActions = styled.div`
 
   @media (max-width: 640px) {
     gap: 6px;
+  }
+`;
+
+const UploadError = styled.div`
+  max-width: 240px;
+  color: ${({ $darkMode }) => ($darkMode ? '#fca5a5' : '#b91c1c')};
+  font-size: 12px;
+  line-height: 1.3;
+
+  @media (max-width: 640px) {
+    width: 100%;
+    order: 10;
   }
 `;
 
@@ -805,8 +898,14 @@ const ThemeContainer = styled.div`
   display: flex;
   flex-direction: column;
   overflow: auto;
+  box-sizing: border-box;
+  padding-top: var(--app-top-offset);
   --app-top-offset: ${({ $hasTopBar }) => $hasTopBar ? '61px' : '0px'};
   --initial-display: ${({ $hideInitials }) => $hideInitials ? 'none' : 'flex'};
+
+  @media (max-width: 640px) {
+    --app-top-offset: ${({ $hasTopBar }) => $hasTopBar ? '104px' : '0px'};
+  }
 `;
 
 const CatalogView = styled.div`
@@ -1003,6 +1102,10 @@ const Th = styled.th`
 const TableRow = styled.tr`
   cursor: pointer;
   transition: background 0.1s;
+  outline: ${({ $focused, $darkMode }) => (
+    $focused ? `2px solid ${$darkMode ? '#525252' : '#93c5fd'}` : 'none'
+  )};
+  outline-offset: -2px;
   background: ${({ $active, $darkMode }) => {
     if ($active) return $darkMode ? '#162032' : '#eff6ff';
     return 'transparent';

@@ -1,40 +1,12 @@
 # Portfolio Themes
 
-A collection of 29+ portfolio themes built with React and Vite. Each theme is accessible via its own URL path and renders content from a single `CV.yaml` data file.
+A portfolio theme catalog built with React and Vite. Each theme is accessible via its own URL path and renders content from a single `CV.yaml` data file.
 
 **Live Demo:** [portfolio.ahmadjalil.com](https://portfolio.ahmadjalil.com)
 
 ## Available Themes
 
-| Theme | URL | Description |
-|-------|-----|-------------|
-| Minimal | `/minimal` | Clean single-page layout with timeline and projects |
-| Brutalist | `/brutalist` | No-frills design with system fonts |
-| Developer Dark | `/developer-dark` | Dark navy with green accents |
-| Spotlight | `/spotlight` | Two-column layout with scroll-aware navigation |
-| Creative Dark | `/creative-dark` | Bold dark theme with Rammetto One font |
-| Designer | `/designer` | Centered content with monospace dates |
-| Editorial | `/editorial` | Two-column with serif accents |
-| Hendo | `/hendo` | Scramble text animation on hover |
-| Research Lab | `/research-lab` | Monospace timeline with featured cards |
-| Modern Blue | `/modern-blue` | Live clock and project cards grid |
-| Plain Text | `/plain-text` | Ultra-minimal with auto dark/light mode |
-| Notes | `/notes` | Notes-style with emoji icons |
-| Founder Badge | `/founder-badge` | Rounded founder landing page with suspended profile card and polished contact panel |
-| Builder | `/builder` | Card-based projects with live footer clock |
-| Timeline | `/timeline` | Professional design with monospace dates |
-| Terminal | `/terminal` | Hacker-style black terminal |
-| Stammy | `/stammy` | Dark olive with left icon sidebar |
-| Developer | `/developer` | Clean white with pride gradient bar |
-| Two Column | `/two-column` | Sticky photo card with accordion sections |
-| Splash | `/splash` | Full-screen hero with colorful project cards |
-| Notebook | `/notebook` | Monospace terminal with glitch header |
-| Paco | `/paco` | Minimalist grayscale with staggered animations |
-| Framed | `/framed` | Artistic with border frame and mix-blend-mode |
-| Dashed | `/dashed` | Dashed borders with dot grid header |
-| Mainframe | `/mainframe` | Brutalist dashboard with zinc surfaces |
-| IMML | `/imml` | Minimal page-based with hash navigation |
-| 3D Duck | `/3d-duck` | Scroll-synchronized 3D duck animation |
+The active theme list lives in `src/themes/index.js`. Open the running app and use **Browse Themes** to search by name, slug, description, or source.
 
 ## Tech Stack
 
@@ -66,7 +38,12 @@ npm run build:random
 
 # Preview production build
 npm run preview
+
+# Run route-level smoke checks for registered themes
+npm run qa:themes
 ```
+
+`npm run build` refreshes `public/github-activity.json` before bundling so the activity visualizations can be served as static data. Run `npm run prefetch` when you want to update that file without creating a production build.
 
 ## Theme Selection Modes
 
@@ -75,10 +52,14 @@ Theme selection is configurable with Vite env vars:
 ```bash
 VITE_THEME_SELECTION_MODE=fixed
 VITE_DEFAULT_THEME_ID=ansub-minimal
+VITE_ENABLE_GITHUB_LIVE=false
+VITE_ENABLE_REACT_GRAB=false
 ```
 
 - `fixed`: uses the theme from the URL, or falls back to `VITE_DEFAULT_THEME_ID` on `/`
 - `random`: keeps explicit theme URLs working, but picks a random theme on each fresh visit or refresh of `/`
+- `VITE_ENABLE_GITHUB_LIVE=true`: enables unauthenticated live GitHub API reads. The default uses the static `github-activity.json` file to avoid rate-limit console noise.
+- `VITE_ENABLE_REACT_GRAB=true`: enables the Aiden Bai visual-edit helper. It is disabled by default because it loads an external script.
 
 Use `.env.example` as the default setup, or build with the included random mode:
 
@@ -131,12 +112,10 @@ cv:
 ### Adding a New Theme
 
 1. Create a new folder in `src/themes/YourTheme/`
-2. Create `YourTheme.jsx` component that accepts `cvData` prop
+2. Create `YourTheme.jsx` component that reads portfolio data with `useCV()`
 3. Register it in `src/themes/index.js`:
 
 ```javascript
-import { YourTheme } from './YourTheme/YourTheme';
-
 export const PORTFOLIO_THEMES = [
   // ... existing themes
   {
@@ -144,7 +123,7 @@ export const PORTFOLIO_THEMES = [
     slug: 'your-slug',
     name: 'Your Theme',
     description: 'Description of your theme',
-    Component: YourTheme,
+    Component: lazyTheme(() => import('./YourTheme/YourTheme'), 'YourTheme'),
   },
 ];
 ```

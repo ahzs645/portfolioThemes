@@ -2,12 +2,14 @@ import React, { createContext, useContext, useState, useEffect, useMemo, useRef,
 import {
   extractUsername,
   fetchAllGitHubData,
+  fetchContributions,
   aggregateLanguages,
   clearGitHubCache,
 } from '../utils/githubHelpers';
 import { useCV } from './ConfigContext';
 
 const REFRESH_INTERVAL = 30 * 60 * 1000; // 30 minutes
+const ENABLE_LIVE_GITHUB = import.meta.env.VITE_ENABLE_GITHUB_LIVE === 'true';
 
 const GitHubContext = createContext(null);
 
@@ -32,10 +34,16 @@ export function GitHubProvider({ children }) {
 
     try {
       setError(null);
-      const result = await fetchAllGitHubData(username);
+      const result = ENABLE_LIVE_GITHUB
+        ? await fetchAllGitHubData(username)
+        : {
+          profile: null,
+          repos: [],
+          events: [],
+          contributions: await fetchContributions(),
+        };
       setData(result);
     } catch (err) {
-      console.error('GitHub fetch error:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -50,10 +58,12 @@ export function GitHubProvider({ children }) {
     }
 
     load();
-    intervalRef.current = setInterval(() => {
-      clearGitHubCache(username);
-      load();
-    }, REFRESH_INTERVAL);
+    if (ENABLE_LIVE_GITHUB) {
+      intervalRef.current = setInterval(() => {
+        clearGitHubCache(username);
+        load();
+      }, REFRESH_INTERVAL);
+    }
 
     return () => clearInterval(intervalRef.current);
   }, [username, load]);
@@ -64,7 +74,7 @@ export function GitHubProvider({ children }) {
 
     return {
       // Profile
-      ...data.profile,
+      ...(data.profile || {}),
 
       // Repos
       repos: data.repos,

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useCV } from '../../contexts/ConfigContext';
 import { withBase } from '../../utils/assetPath';
+import { canUseWebGL, usePrefersReducedMotion } from '../../utils/rendering';
 import './comp.css';
 
 const SVG = {
@@ -19,7 +20,7 @@ function detectMobile() {
   return Boolean(isMobileUA || isMobileHint || window.innerWidth <= 768);
 }
 
-function MobileFallback({ cv }) {
+function MobileFallback({ cv, reason = 'The interactive 3D scene is desktop-only.' }) {
   const projects = (cv?.projects || []).slice(0, 8);
   const experience = (cv?.experience || []).slice(0, 6);
   return (
@@ -27,7 +28,7 @@ function MobileFallback({ cv }) {
       <h1>{cv?.name}</h1>
       <p>{cv?.currentJobTitle}{cv?.location ? ` · ${cv.location}` : ''}</p>
       <p style={{ marginTop: 8, opacity: 0.7, fontSize: 13 }}>
-        The interactive 3D scene is desktop-only. Below is the same content as a list.
+        {reason} Below is the same content as a list.
       </p>
       <h2>Experience</h2>
       <ul>
@@ -64,6 +65,9 @@ export function CompTheme() {
   const cssLeftRef = useRef(null);
   const cssRightRef = useRef(null);
   const [isMobile] = useState(detectMobile);
+  const [webglAvailable] = useState(() => canUseWebGL());
+  const reducedMotion = usePrefersReducedMotion();
+  const useFallback = isMobile || !webglAvailable || reducedMotion;
 
   const socialUrls = useMemo(
     () => ({
@@ -75,7 +79,7 @@ export function CompTheme() {
   );
 
   useEffect(() => {
-    if (isMobile || !cv) return undefined;
+    if (useFallback || !cv) return undefined;
     let experience;
     let cancelled = false;
 
@@ -99,14 +103,19 @@ export function CompTheme() {
       cancelled = true;
       if (experience?.dispose) experience.dispose();
     };
-  }, [cv, isMobile, socialUrls]);
+  }, [cv, useFallback, socialUrls]);
 
   if (!cv) return null;
 
-  if (isMobile) {
+  if (useFallback) {
+    const reason = reducedMotion
+      ? 'The interactive 3D scene is disabled while reduced motion is enabled.'
+      : webglAvailable
+        ? 'The interactive 3D scene is desktop-only.'
+        : 'WebGL is unavailable in this browser.';
     return (
       <div className="comp-root" ref={rootRef}>
-        <MobileFallback cv={cv} />
+        <MobileFallback cv={cv} reason={reason} />
       </div>
     );
   }

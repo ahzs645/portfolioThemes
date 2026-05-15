@@ -83,6 +83,9 @@ export function ConfigProvider({ children }) {
     return {
       // Basic info
       name: raw.name || '',
+      label: raw.label || raw.headline || raw.tagline || null,
+      headline: raw.headline || raw.label || raw.tagline || null,
+      tagline: raw.tagline || raw.headline || raw.label || null,
       email: raw.email || null,
       phone: raw.phone || null,
       location: raw.location || null,
@@ -97,6 +100,7 @@ export function ConfigProvider({ children }) {
       socialLinks: normalizeSocialLinks(raw.social || [], raw.email),
 
       // Raw social array (for themes that need custom handling)
+      social: raw.social || [],
       socialRaw: raw.social || [],
 
       // Current job title (derived)
@@ -117,6 +121,7 @@ export function ConfigProvider({ children }) {
       certificationsSkills: sections.certifications_skills || [],
 
       // Raw sections
+      sections,
       sectionsRaw: sections,
     };
   }, [cvData]);
