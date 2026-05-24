@@ -1,11 +1,21 @@
-import React from 'react';
-import styled, { createGlobalStyle, keyframes } from 'styled-components';
+import React, { useEffect, useState } from 'react';
+import styled, { keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 
-// Load Geist Mono font
-const FontLoader = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap');
-`;
+const GEIST_MONO_FONT_ID = 'terminal-theme-geist-mono-font';
+const GEIST_MONO_FONT_URL = 'https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap';
+
+function useGeistMonoFont() {
+  useEffect(() => {
+    if (document.getElementById(GEIST_MONO_FONT_ID)) return;
+
+    const link = document.createElement('link');
+    link.id = GEIST_MONO_FONT_ID;
+    link.rel = 'stylesheet';
+    link.href = GEIST_MONO_FONT_URL;
+    document.head.appendChild(link);
+  }, []);
+}
 
 // Helper to check if archived
 const isArchived = (entry) => Array.isArray(entry?.tags) && entry.tags.includes('archived');
@@ -15,6 +25,8 @@ const isPresent = (value) => String(value || '').trim().toLowerCase() === 'prese
 
 export function TerminalTheme() {
   const cv = useCV();
+  useGeistMonoFont();
+  const [light, setLight] = useState(false);
 
   if (!cv) return null;
 
@@ -42,8 +54,15 @@ export function TerminalTheme() {
   const volunteerRaw = (sectionsRaw?.volunteer || []).filter(e => !isArchived(e));
 
   return (
-    <Container>
-      <FontLoader />
+    <Container $light={light}>
+      {/* Light/dark toggle */}
+      <ThemeToggle
+        type="button"
+        onClick={() => setLight((v) => !v)}
+        aria-label={light ? 'Switch to dark mode' : 'Switch to light mode'}
+      >
+        [{light ? 'DARK' : 'LIGHT'}]
+      </ThemeToggle>
 
       {/* Avatar in corner */}
       <AvatarWrapper>
@@ -259,10 +278,17 @@ const blink = keyframes`
 
 // Styled Components
 const Container = styled.div`
+  --term-bg: ${(p) => (p.$light ? '#f4f3ee' : '#000000')};
+  --term-fg: ${(p) => (p.$light ? '#1a1a1a' : '#ffffff')};
+  --term-muted: ${(p) => (p.$light ? '#5a5a5a' : '#909090')};
+  --term-avatar-bg: ${(p) => (p.$light ? '#e2e1da' : '#1a1a1a')};
+  --term-sel-bg: ${(p) => (p.$light ? 'black' : 'white')};
+  --term-sel-fg: ${(p) => (p.$light ? 'white' : 'black')};
+
   height: 100%;
   width: 100%;
-  background: #000000;
-  color: #ffffff;
+  background: var(--term-bg);
+  color: var(--term-fg);
   font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.75rem;
   line-height: 1.3;
@@ -273,18 +299,43 @@ const Container = styled.div`
   display: flex;
   justify-content: center;
   position: relative;
+  transition: background 0.2s ease, color 0.2s ease;
 
   * {
     text-transform: uppercase;
   }
 
   ::selection {
-    background: white;
-    color: black;
+    background: var(--term-sel-bg);
+    color: var(--term-sel-fg);
   }
 
   @media (min-width: 640px) {
     padding: 1.5rem;
+  }
+`;
+
+const ThemeToggle = styled.button`
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 2;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.75rem;
+  color: var(--term-muted);
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--term-fg);
+  }
+
+  @media (max-width: 640px) {
+    top: 1rem;
+    left: 1rem;
   }
 `;
 
@@ -309,8 +360,8 @@ const AvatarWrapper = styled.div`
 const Avatar = styled.div`
   width: 100%;
   height: 100%;
-  background: #1a1a1a;
-  color: #909090;
+  background: var(--term-avatar-bg);
+  color: var(--term-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -336,7 +387,7 @@ const Name = styled.h1`
   font-size: 0.75rem;
   font-weight: 400;
   margin: 0 0 0.2rem 0;
-  color: #ffffff;
+  color: var(--term-fg);
 `;
 
 const Caret = styled.span`
@@ -345,7 +396,7 @@ const Caret = styled.span`
 
 const Location = styled.p`
   font-size: 0.75rem;
-  color: #909090;
+  color: var(--term-muted);
   margin: 0;
 `;
 
@@ -360,13 +411,13 @@ const Spacer = styled.div`
 const SectionTitle = styled.h2`
   font-size: 0.75rem;
   font-weight: 400;
-  color: #ffffff;
+  color: var(--term-fg);
   margin: 0 0 0.5rem 0;
 `;
 
 const SectionText = styled.p`
   font-size: 0.75rem;
-  color: #909090;
+  color: var(--term-muted);
   margin: 0 0 1.5rem 0;
   line-height: 1.3rem;
 
@@ -386,7 +437,7 @@ const List = styled.ul`
 `;
 
 const ListItem = styled.li`
-  color: #909090;
+  color: var(--term-muted);
   font-size: 0.75rem;
   margin-bottom: 0.25rem;
   line-height: 1.3rem;
@@ -398,7 +449,7 @@ const ListItem = styled.li`
 `;
 
 const CompanyName = styled.div`
-  color: #909090;
+  color: var(--term-muted);
   font-weight: 400;
   margin-top: 0.5rem;
 
@@ -408,14 +459,14 @@ const CompanyName = styled.div`
 `;
 
 const PositionLine = styled.div`
-  color: #909090;
+  color: var(--term-muted);
   padding-left: 0.5rem;
 `;
 
 const StyledLink = styled.a`
   position: relative;
   text-decoration: none;
-  color: #909090;
+  color: var(--term-muted);
   cursor: pointer;
   word-break: break-word;
 
@@ -426,7 +477,7 @@ const StyledLink = styled.a`
     height: 1px;
     bottom: -0.5px;
     left: 0;
-    background-color: #909090;
+    background-color: var(--term-muted);
     transform: scaleX(1);
     transform-origin: bottom left;
     transition: transform 0.3s ease-out;
@@ -439,7 +490,7 @@ const StyledLink = styled.a`
 `;
 
 const Separator = styled.div`
-  color: #909090;
+  color: var(--term-muted);
   margin: 1.5rem 0 1rem 0;
 
   @media (min-width: 640px) {
@@ -449,7 +500,7 @@ const Separator = styled.div`
 
 const Quote = styled.blockquote`
   font-size: 0.75rem;
-  color: #909090;
+  color: var(--term-muted);
   font-style: italic;
   margin: 0;
 

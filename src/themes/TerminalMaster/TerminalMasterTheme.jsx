@@ -12,16 +12,16 @@ const TerminalGlobalStyles = createGlobalStyle`
 
   :root {
     --size: 1;
-    --color: #71ee79;
-    --glow: 0.5;
-    --background: rgb(0, 0, 0);
+    --color: ${(p) => (p.$light ? '#1f6f2a' : '#71ee79')};
+    --glow: ${(p) => (p.$light ? '0' : '0.5')};
+    --background: ${(p) => (p.$light ? 'rgb(244, 243, 238)' : 'rgb(0, 0, 0)')};
   }
 
   html, body, #root {
     margin: 0;
     padding: 0;
     height: 100%;
-    background: rgb(0, 0, 0);
+    background: ${(p) => (p.$light ? 'rgb(244, 243, 238)' : 'rgb(0, 0, 0)')};
   }
 
   @media ${MOBILE_QUERY.replace('(', 'screen and (')} {
@@ -30,6 +30,21 @@ const TerminalGlobalStyles = createGlobalStyle`
     }
   }
 `;
+
+const toggleButtonStyle = (light) => ({
+  position: 'absolute',
+  top: '12px',
+  right: '12px',
+  zIndex: 10,
+  background: 'transparent',
+  border: `1px solid ${light ? '#1f6f2a' : '#71ee79'}`,
+  color: light ? '#1f6f2a' : '#71ee79',
+  fontFamily: 'monospace',
+  fontSize: '12px',
+  padding: '4px 8px',
+  cursor: 'pointer',
+  borderRadius: '2px',
+});
 
 function loadScript(src) {
   if (scriptPromises.has(src)) return scriptPromises.get(src);
@@ -91,6 +106,7 @@ export function TerminalMasterTheme() {
   const containerRef = useRef(null);
   const terminalRef = useRef(null);
   const [dependencyError, setDependencyError] = useState('');
+  const [light, setLight] = useState(false);
 
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' && window.matchMedia
@@ -134,16 +150,19 @@ export function TerminalMasterTheme() {
     const $el = $(containerRef.current);
     $el.empty();
 
+    const guestColor = light ? 'rgba(31, 111, 42, 1)' : 'rgba(168, 218, 141, 1)';
+    const userColor = light ? 'rgba(150, 110, 20, 1)' : 'rgba(250, 251, 180, 1)';
+
     const term = $el.terminal(
       commands,
       {
-        prompt: `[[b;rgba(168, 218, 141, 1);;]guest]@[[b;rgba(250, 251, 180, 1);;]${username}]$ ~ `,
+        prompt: `[[b;${guestColor};;]guest]@[[b;${userColor};;]${username}]$ ~ `,
         greetings: bannerText,
       }
     );
 
     terminalRef.current = term;
-  }, [commands, username, bannerText, cv]);
+  }, [commands, username, bannerText, cv, light]);
 
   useEffect(() => {
     loadCSS('https://cdn.jsdelivr.net/npm/jquery.terminal/css/jquery.terminal.min.css');
@@ -171,14 +190,24 @@ export function TerminalMasterTheme() {
 
   return (
     <>
-      <TerminalGlobalStyles />
-      {dependencyError ? (
-        <div style={{ padding: 24, color: '#71ee79', background: '#000', minHeight: '100%' }}>
-          Terminal unavailable. {dependencyError}
-        </div>
-      ) : (
-        <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
-      )}
+      <TerminalGlobalStyles $light={light} />
+      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+        <button
+          type="button"
+          onClick={() => setLight((v) => !v)}
+          style={toggleButtonStyle(light)}
+          aria-label={light ? 'Switch to dark mode' : 'Switch to light mode'}
+        >
+          {light ? '[DARK]' : '[LIGHT]'}
+        </button>
+        {dependencyError ? (
+          <div style={{ padding: 24, color: light ? '#1f6f2a' : '#71ee79', background: light ? 'rgb(244, 243, 238)' : '#000', minHeight: '100%' }}>
+            Terminal unavailable. {dependencyError}
+          </div>
+        ) : (
+          <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+        )}
+      </div>
     </>
   );
 }
