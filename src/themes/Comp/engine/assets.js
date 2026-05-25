@@ -14,7 +14,6 @@ export default [
       { name: "baked1", source: url("assets/textures/baked1.ktx2"), type: "texture" },
       { name: "baked2", source: url("assets/textures/baked2.ktx2"), type: "texture" },
       { name: "baked3", source: url("assets/textures/baked3.ktx2"), type: "texture" },
-      { name: "texture_paint", source: url("assets/textures/texture_paint.png"), type: "texture" },
       { name: "_roomModel", source: url("assets/models/room.glb") },
       { name: "_roomModel2", source: url("assets/models/room2.glb") },
       { name: "_roomModel3", source: url("assets/models/room3.glb") },

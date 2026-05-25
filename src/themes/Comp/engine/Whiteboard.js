@@ -9,6 +9,8 @@ import {
   LinearMipmapLinearFilter,
 } from "three";
 import Experience from "./Experience.js";
+import { withBase } from "../../../utils/assetPath";
+import whiteboardSvg from "./whiteboard.svg?raw";
 
 export default class Whiteboard {
   constructor() {
@@ -74,47 +76,97 @@ export default class Whiteboard {
     planeMesh.name = "whiteboardCanvas";
     this.model.mesh.add(planeMesh);
 
-    const image = this.resources.items.texture_paint.source.data;
-    image.src = image.src;
-
     this.drawingCanvas = this.experience.query("#drawing-canvas");
     this.drawingContext = this.drawingCanvas.getContext("2d");
-    image.onload = () => {
-      this.drawingContext.drawImage(
-        image,
-        0,
-        0,
-        this.drawingCanvas.width,
-        this.drawingCanvas.height
-      );
 
-      this.canvasTexture = new CanvasTexture(this.drawingCanvas);
-
-      this.canvasTexture.anisotropy =
-        this.renderer.capabilities.getMaxAnisotropy();
-
-      this.canvasTexture.generateMipmaps = true;
-
-      this.canvasTexture.magFilter = LinearFilter;
-      this.canvasTexture.minFilter = LinearMipmapLinearFilter;
-
-      this.whiteboardMaterial.map = this.canvasTexture;
-      this.whiteboardMaterial.needsUpdate = true;
-    };
-
+    // Marker tool drawing defaults.
     this.drawingContext.lineWidth = 8;
     this.drawingContext.lineJoin = "round";
     this.drawingContext.lineCap = "round";
     this.drawingContext.fontSmoothingEnabled = true;
-    // draw white background
+
+    // White base so the board is never transparent before the art loads in.
     this.drawingContext.fillStyle = "white";
     this.drawingContext.fillRect(0, 0, 2048, 1024);
 
-    this.drawingCanvas.needsUpdate = true;
     this.canvasTexture = new CanvasTexture(this.drawingCanvas);
-
+    this.canvasTexture.anisotropy =
+      this.renderer.capabilities.getMaxAnisotropy();
+    this.canvasTexture.generateMipmaps = true;
+    this.canvasTexture.magFilter = LinearFilter;
+    this.canvasTexture.minFilter = LinearMipmapLinearFilter;
     this.whiteboardMaterial.map = this.canvasTexture;
-    this.whiteboardMaterial.map.needsUpdate = true;
+    this.whiteboardMaterial.needsUpdate = true;
+
+    this.renderWhiteboardArt();
+  }
+
+  // Rasterize the vector whiteboard art and stamp the visitor's first name
+  // onto it in the Cube Lab display font, then push it to the canvas texture.
+  // Degrades gracefully to the plain white board if anything fails.
+  async renderWhiteboardArt() {
+    const firstName =
+      String(this.experience.cv?.name || "").trim().split(/\s+/)[0] || "";
+
+    // Best-effort: the name still draws (in a fallback face) if this rejects.
+    try {
+      await Whiteboard.loadHandwritingFont();
+    } catch {
+      /* optional font */
+    }
+
+    const svgUrl = URL.createObjectURL(
+      new Blob([whiteboardSvg], { type: "image/svg+xml" })
+    );
+    const image = new Image();
+
+    image.onload = () => {
+      // Vector ink art: welcome text, room sketch, prop labels, cube solution.
+      this.drawingContext.drawImage(image, 0, 0, 2048, 1024);
+      URL.revokeObjectURL(svgUrl);
+
+      // Name signature — mirrors the original <text id="Name"> transform from
+      // whiteboard.svg: translate(1721.8041, 983.817) rotate(-8.5498deg),
+      // 72px red, -0.1em letter spacing.
+      if (firstName) {
+        const ctx = this.drawingContext;
+        ctx.save();
+        ctx.translate(1721.8041, 983.817);
+        ctx.rotate((-8.5498 * Math.PI) / 180);
+        ctx.font = "72px 'Cube Lab', sans-serif";
+        ctx.fillStyle = "red";
+        ctx.textBaseline = "alphabetic";
+        if ("letterSpacing" in ctx) ctx.letterSpacing = "-7.2px";
+        ctx.fillText(firstName, 0, 0);
+        ctx.restore();
+      }
+
+      this.whiteboardMaterial.map.needsUpdate = true;
+    };
+
+    image.onerror = () => URL.revokeObjectURL(svgUrl);
+    image.src = svgUrl;
+  }
+
+  // Register the Cube Lab font once at the document level so the canvas can
+  // render the name with it. Cached across instances.
+  static loadHandwritingFont() {
+    if (Whiteboard.fontPromise) return Whiteboard.fontPromise;
+    if (typeof FontFace === "undefined" || typeof document === "undefined") {
+      Whiteboard.fontPromise = Promise.resolve();
+      return Whiteboard.fontPromise;
+    }
+    const src = [
+      `url(${withBase("comp/assets/fonts/CubeLab-Regular.woff2")}) format('woff2')`,
+      `url(${withBase("comp/assets/fonts/CubeLab-Regular.woff")}) format('woff')`,
+      `url(${withBase("comp/assets/fonts/CubeLab-Regular.ttf")}) format('truetype')`,
+    ].join(", ");
+    const face = new FontFace("Cube Lab", src);
+    Whiteboard.fontPromise = face.load().then((loaded) => {
+      document.fonts.add(loaded);
+      return loaded;
+    });
+    return Whiteboard.fontPromise;
   }
 
   throttle(func, delay) {
