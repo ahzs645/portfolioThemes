@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import gsap from 'gsap';
 import { formatDateRange } from '../../../utils/cvHelpers';
 
-export default function LogsSection({ cv }) {
+export default function LogsSection({ cv, $dark = false }) {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -19,20 +19,20 @@ export default function LogsSection({ cv }) {
   return (
     <TabPage ref={ref}>
       <Inner>
-        <SectionLabel data-log>LOGS</SectionLabel>
-        <Subtitle data-log>Work experience, roles, and career timeline.</Subtitle>
+        <SectionLabel $dark={$dark} data-log>LOGS</SectionLabel>
+        <Subtitle $dark={$dark} data-log>Work experience, roles, and career timeline.</Subtitle>
 
         <ExpList>
           {cv.experience.map((item, i) => (
-            <ExpCard key={i} data-log>
+            <ExpCard $dark={$dark} key={i} data-log>
               <ExpHeader>
-                <ExpCompany>{item.company}</ExpCompany>
-                <ExpDate>{formatDateRange(item.startDate || item.start_date, item.endDate || item.end_date)}</ExpDate>
+                <ExpCompany $dark={$dark}>{item.company}</ExpCompany>
+                <ExpDate $dark={$dark}>{formatDateRange(item.startDate || item.start_date, item.endDate || item.end_date)}</ExpDate>
               </ExpHeader>
-              <ExpTitle>{item.title}</ExpTitle>
-              {item.summary && <ExpSummary>{item.summary}</ExpSummary>}
+              <ExpTitle $dark={$dark}>{item.title}</ExpTitle>
+              {item.summary && <ExpSummary $dark={$dark}>{item.summary}</ExpSummary>}
               {item.highlights && item.highlights.length > 0 && (
-                <HighlightList>
+                <HighlightList $dark={$dark}>
                   {item.highlights.map((h, j) => (
                     <li key={j}>{h}</li>
                   ))}
@@ -69,7 +69,7 @@ const SectionLabel = styled.h2`
   font-size: 13px;
   font-weight: 400;
   letter-spacing: 0.08em;
-  color: rgb(119, 111, 100);
+  color: ${p => p.$dark ? 'rgb(140, 130, 115)' : 'rgb(119, 111, 100)'};
   text-transform: uppercase;
 `;
 
@@ -78,7 +78,7 @@ const Subtitle = styled.p`
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
   font-size: 28px;
-  color: rgb(41, 72, 110);
+  color: ${p => p.$dark ? 'rgb(140, 175, 220)' : 'rgb(41, 72, 110)'};
   letter-spacing: -0.02em;
 
   @media (max-width: 809px) {
@@ -98,9 +98,9 @@ const ExpCard = styled.div`
   flex-direction: column;
   gap: 6px;
   padding: 20px 24px;
-  border: 1px solid rgba(41, 73, 111, 0.08);
+  border: 1px solid ${p => p.$dark ? 'rgba(140, 175, 220, 0.1)' : 'rgba(41, 73, 111, 0.08)'};
   border-radius: 2px;
-  background: rgba(255, 255, 255, 0.3);
+  background: ${p => p.$dark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.3)'};
   backdrop-filter: blur(4px);
 `;
 
@@ -116,14 +116,14 @@ const ExpCompany = styled.span`
   font-style: italic;
   font-size: 20px;
   font-weight: 500;
-  color: rgb(41, 72, 110);
+  color: ${p => p.$dark ? 'rgb(140, 175, 220)' : 'rgb(41, 72, 110)'};
   letter-spacing: -0.02em;
 `;
 
 const ExpDate = styled.span`
   font-family: 'Server Mono', 'IBM Plex Mono', monospace;
   font-size: 12px;
-  color: rgb(175, 184, 196);
+  color: ${p => p.$dark ? 'rgb(100, 115, 135)' : 'rgb(175, 184, 196)'};
   white-space: nowrap;
   flex-shrink: 0;
 `;
@@ -131,7 +131,7 @@ const ExpDate = styled.span`
 const ExpTitle = styled.span`
   font-family: 'Server Mono', 'IBM Plex Mono', monospace;
   font-size: 13px;
-  color: rgb(115, 131, 153);
+  color: ${p => p.$dark ? 'rgb(110, 125, 148)' : 'rgb(115, 131, 153)'};
   letter-spacing: -0.01em;
 `;
 
@@ -140,7 +140,7 @@ const ExpSummary = styled.p`
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 15px;
   line-height: 1.6;
-  color: rgb(146, 159, 176);
+  color: ${p => p.$dark ? 'rgb(110, 125, 148)' : 'rgb(146, 159, 176)'};
 `;
 
 const HighlightList = styled.ul`
@@ -149,7 +149,7 @@ const HighlightList = styled.ul`
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 14px;
   line-height: 1.7;
-  color: rgb(146, 159, 176);
+  color: ${p => p.$dark ? 'rgb(110, 125, 148)' : 'rgb(146, 159, 176)'};
 
   li {
     margin-bottom: 2px;

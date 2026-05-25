@@ -26,12 +26,23 @@ const TAB_BACKGROUNDS = {
   credits: 'linear-gradient(180deg, rgb(160, 120, 190) -6%, rgb(215, 195, 240) 15%, rgb(248, 244, 250) 36%, rgb(248, 244, 250) 100%)',
 };
 
-export function KellyChongTheme() {
+// Dark equivalents — richer, deeper versions of each hue
+const TAB_BACKGROUNDS_DARK = {
+  home: 'linear-gradient(180deg, rgb(40, 42, 110) -6%, rgb(28, 38, 68) 30%, rgb(15, 17, 26) 55%, rgb(15, 17, 26) 100%)',
+  info: 'linear-gradient(180deg, rgb(110, 65, 30) -6%, rgb(50, 35, 20) 30%, rgb(18, 14, 10) 55%, rgb(18, 14, 10) 100%)',
+  projects: 'linear-gradient(180deg, rgb(30, 72, 110) -6%, rgb(18, 40, 60) 30%, rgb(10, 18, 26) 55%, rgb(10, 18, 26) 100%)',
+  logs: 'linear-gradient(180deg, rgb(28, 72, 38) -6%, rgb(16, 44, 24) 30%, rgb(10, 20, 12) 55%, rgb(10, 20, 12) 100%)',
+  credits: 'linear-gradient(180deg, rgb(68, 38, 90) -6%, rgb(36, 22, 52) 30%, rgb(16, 10, 22) 55%, rgb(16, 10, 22) 100%)',
+};
+
+export function KellyChongTheme({ darkMode = false }) {
   const cv = useCV();
   const [activeTab, setActiveTab] = useState('home');
   const contentRef = useRef(null);
   const bgFrontRef = useRef(null);
   const bgBackRef = useRef(null);
+
+  const backgrounds = darkMode ? TAB_BACKGROUNDS_DARK : TAB_BACKGROUNDS;
 
   const handleTabChange = useCallback((tab) => {
     if (tab === activeTab) return;
@@ -48,14 +59,14 @@ export function KellyChongTheme() {
     // Crossfade: set new gradient on the front layer (currently invisible),
     // then fade it in over the old one
     if (front && back) {
-      front.style.background = TAB_BACKGROUNDS[tab];
+      front.style.background = backgrounds[tab];
       gsap.fromTo(front, { opacity: 0 }, {
         opacity: 1,
         duration: 0.5,
         ease: 'power2.inOut',
         onComplete: () => {
           // Once visible, copy to back layer and reset front
-          back.style.background = TAB_BACKGROUNDS[tab];
+          back.style.background = backgrounds[tab];
           front.style.opacity = 0;
         },
       });
@@ -104,16 +115,17 @@ export function KellyChongTheme() {
             email={cv.email}
             location={cv.location}
             website={cv.website}
+            $dark={darkMode}
           />
         );
       case 'info':
-        return <InfoSection cv={cv} />;
+        return <InfoSection cv={cv} $dark={darkMode} />;
       case 'projects':
-        return <ProjectsSection cv={cv} />;
+        return <ProjectsSection cv={cv} $dark={darkMode} />;
       case 'logs':
-        return <LogsSection cv={cv} />;
+        return <LogsSection cv={cv} $dark={darkMode} />;
       case 'credits':
-        return <CreditsSection cv={cv} />;
+        return <CreditsSection cv={cv} $dark={darkMode} />;
       default:
         return null;
     }
@@ -122,9 +134,9 @@ export function KellyChongTheme() {
   return (
     <>
       <GlobalStyles />
-      <Page>
+      <Page $dark={darkMode}>
         {/* Crossfade background: back = current, front = incoming */}
-        <BgLayer ref={bgBackRef} style={{ background: TAB_BACKGROUNDS[activeTab] }} />
+        <BgLayer ref={bgBackRef} style={{ background: backgrounds[activeTab] }} />
         <BgLayer ref={bgFrontRef} style={{ opacity: 0 }} />
 
         {/* Texture layers */}
@@ -135,8 +147,8 @@ export function KellyChongTheme() {
         <CustomCursor />
 
         {/* Fixed UI */}
-        <TopBar activeTab={activeTab} onTabChange={handleTabChange} />
-        <BottomBar location={cv.location} />
+        <TopBar activeTab={activeTab} onTabChange={handleTabChange} $dark={darkMode} />
+        <BottomBar location={cv.location} $dark={darkMode} />
 
         {/* Tab content */}
         <ContentLayer ref={contentRef}>
@@ -152,6 +164,7 @@ const Page = styled.main`
   width: 100%;
   height: 100%;
   overflow: hidden;
+  color: ${p => p.$dark ? '#d8d6d0' : 'inherit'};
 `;
 
 const BgLayer = styled.div`

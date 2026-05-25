@@ -75,7 +75,31 @@ function parseSkillGroups(cv) {
   return groups;
 }
 
-export function JacobLeechTheme() {
+const DARK_OVERRIDE_CSS = `
+:host {
+  --camel: #1a1a1a;
+  --camel-rgb: 26, 26, 26;
+  --camel-dark: #141414;
+  --camel-dark-rgb: 20, 20, 20;
+  --camel-darker: #0f0f0f;
+  --camel-darker-rgb: 15, 15, 15;
+  --camel-light: #222222;
+  --camel-light-rgb: 34, 34, 34;
+  --brown: #d4c9a8;
+  --brown-rgb: 212, 201, 168;
+  --brown-dark: #b8aa88;
+  --brown-light: #e8dfc4;
+}
+.jl-root {
+  color: var(--brown);
+  background-color: var(--camel);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%23333333' fill-opacity='0.4' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
+}
+.jl-root a { color: var(--brown); }
+.jl-root a:visited { color: var(--brown); }
+`;
+
+export function JacobLeechTheme({ darkMode = false }) {
   const cv = useCV();
 
   useEffect(() => {
@@ -188,19 +212,31 @@ export function JacobLeechTheme() {
 
   const educationFeature = `Formal study in environmental health, biomedical science, and the natural resources space — with a few awards along the way I'm grateful for.`;
 
-  const wrapperStyle = {
-    height: '100%',
-    width: '100%',
-    overflow: 'auto',
-    overscrollBehavior: 'none',
-    backgroundColor: 'hsl(42, 75%, 85%)',
-    backgroundImage:
-      "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%23ecc979' fill-opacity='0.65' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E\")",
-  };
+  const wrapperStyle = darkMode
+    ? {
+        height: '100%',
+        width: '100%',
+        overflow: 'auto',
+        overscrollBehavior: 'none',
+        backgroundColor: '#1a1a1a',
+        backgroundImage:
+          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%23333333' fill-opacity='0.4' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E\")",
+      }
+    : {
+        height: '100%',
+        width: '100%',
+        overflow: 'auto',
+        overscrollBehavior: 'none',
+        backgroundColor: 'hsl(42, 75%, 85%)',
+        backgroundImage:
+          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%23ecc979' fill-opacity='0.65' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E\")",
+      };
+
+  const shadowStyleText = rawStyles + (darkMode ? DARK_OVERRIDE_CSS : '');
 
   return (
     <div style={wrapperStyle}>
-      <ShadowRoot styleText={rawStyles}>
+      <ShadowRoot styleText={shadowStyleText}>
         <div className="jl-root">
           <SiteHeader name={name} tagline={tagline} links={headerLinks} />
 

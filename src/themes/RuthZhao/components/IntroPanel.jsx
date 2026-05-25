@@ -9,7 +9,7 @@ const glyphSvg = (
   </svg>
 );
 
-export function IntroPanel({ cv }) {
+export function IntroPanel({ cv, darkMode = false }) {
   return (
     <Panel>
       <TopSection>
@@ -17,13 +17,13 @@ export function IntroPanel({ cv }) {
           {glyphSvg}
         </GlyphWrap>
         <TextGroup>
-          <Wordmark>
+          <Wordmark $dark={darkMode}>
             {cv.name || 'Your Name'}
           </Wordmark>
-          <Prompt>{cv.label || 'What do you dream of?'}</Prompt>
+          <Prompt $dark={darkMode}>{cv.label || 'What do you dream of?'}</Prompt>
         </TextGroup>
       </TopSection>
-      <Lead>
+      <Lead $dark={darkMode}>
         {cv.about || `${cv.name || 'This person'} is building at the intersection of research, systems, and care.`}
       </Lead>
     </Panel>
@@ -67,7 +67,7 @@ const Wordmark = styled.div`
   font-size: 1rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #1f2328;
+  color: ${(p) => (p.$dark ? '#c0cace' : '#1f2328')};
   white-space: pre;
   will-change: transform;
 `;
@@ -77,7 +77,7 @@ const Prompt = styled.h1`
   font-size: clamp(2rem, 3vw, 3rem);
   font-weight: 400;
   line-height: 1;
-  color: rgba(0, 0, 0, 0.5);
+  color: ${(p) => (p.$dark ? 'rgba(200, 215, 220, 0.6)' : 'rgba(0, 0, 0, 0.5)')};
   white-space: pre-wrap;
   width: 232px;
 
@@ -88,7 +88,7 @@ const Prompt = styled.h1`
 
 const Lead = styled.p`
   margin: 0;
-  color: rgba(0, 0, 0, 0.5);
+  color: ${(p) => (p.$dark ? 'rgba(200, 215, 220, 0.55)' : 'rgba(0, 0, 0, 0.5)')};
   font-size: 1rem;
   line-height: 1.45;
   max-width: 250px;

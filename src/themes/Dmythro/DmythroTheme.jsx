@@ -17,7 +17,7 @@ function formatYear(dateStr) {
   return yearMatch ? yearMatch[0] : dateStr;
 }
 
-export function DmythroTheme() {
+export function DmythroTheme({ darkMode = false }) {
   const cv = useCV() || {};
 
   const fullName = cv?.name || 'Your Name';
@@ -138,13 +138,10 @@ export function DmythroTheme() {
     );
   };
 
-  // Dark mode state
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
-    return false;
-  });
+  // Dark mode state — seeded from the prop, togglable locally
+  const [isDark, setIsDark] = useState(darkMode);
+
+  useEffect(() => { setIsDark(darkMode); }, [darkMode]);
 
   const toggleDarkMode = () => setIsDark(prev => !prev);
 

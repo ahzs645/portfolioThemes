@@ -79,7 +79,7 @@ function stringToColor(str) {
   return colors[Math.abs(hash) % colors.length];
 }
 
-export function NickComputerTheme() {
+export function NickComputerTheme({ darkMode = false }) {
   const cv = useCV() || {};
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -160,7 +160,7 @@ export function NickComputerTheme() {
   }, [cv]);
 
   return (
-    <Container>
+    <Container $dark={darkMode}>
       <Content>
         <Header $isLoaded={isLoaded}>
           <Name>
@@ -454,8 +454,8 @@ const scaleIn = keyframes`
 const Container = styled.div`
   height: 100%;
   width: 100%;
-  background-color: #333;
-  color: #fff;
+  background-color: ${p => p.$dark ? '#333' : '#fff'};
+  color: ${p => p.$dark ? '#fff' : '#333'};
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 1.35;
@@ -463,21 +463,21 @@ const Container = styled.div`
   overflow: auto;
   overscroll-behavior: none;
 
-  @media (prefers-color-scheme: light) {
-    background-color: #fff;
-    color: #333;
-  }
+  --nc-bg: ${p => p.$dark ? '#333' : '#fff'};
+  --nc-fg: ${p => p.$dark ? '#fff' : '#333'};
+  --nc-muted: ${p => p.$dark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)'};
+  --nc-border: ${p => p.$dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)'};
+  --nc-icon-bg: ${p => p.$dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'};
+  --nc-icon-hover: ${p => p.$dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'};
+  --nc-connector: ${p => p.$dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)'};
+  --nc-connector-dot: ${p => p.$dark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.15)'};
+  --nc-tag-bg: ${p => p.$dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'};
+  --nc-tag-hover: ${p => p.$dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'};
+  --nc-skill-border: ${p => p.$dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
 
   ::selection {
     background: #333;
     color: #fff;
-  }
-
-  @media (prefers-color-scheme: light) {
-    ::selection {
-      background: #333;
-      color: #fff;
-    }
   }
 `;
 
@@ -524,10 +524,6 @@ const Bio = styled.p`
   animation: ${fadeInUp} 0.6s ease forwards;
   animation-delay: ${props => props.$delay || 0}s;
   opacity: 0;
-
-  @media (prefers-color-scheme: light) {
-    color: #333;
-  }
 `;
 
 const Location = styled.p`
@@ -536,11 +532,7 @@ const Location = styled.p`
   opacity: 0;
   animation: ${fadeInUp} 0.6s ease forwards;
   animation-delay: ${props => props.$delay || 0}s;
-  color: rgba(255, 255, 255, 0.6);
-
-  @media (prefers-color-scheme: light) {
-    color: rgba(0, 0, 0, 0.5);
-  }
+  color: var(--nc-muted);
 `;
 
 const SocialLinks = styled.div`
@@ -565,13 +557,7 @@ const SocialLink = styled.a`
   &:hover {
     opacity: 0.7;
     transform: scale(1.15);
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  @media (prefers-color-scheme: light) {
-    &:hover {
-      background: rgba(0, 0, 0, 0.05);
-    }
+    background: var(--nc-icon-hover);
   }
 
   svg {
@@ -713,13 +699,9 @@ const ExperienceIcon = styled.div`
   justify-content: center;
   font-family: 'Rammetto One', cursive;
   font-size: 1rem;
-  background: ${props => props.$variant === 'volunteer' ? 'rgba(92, 213, 176, 0.2)' : 'rgba(255, 255, 255, 0.1)'};
+  background: ${props => props.$variant === 'volunteer' ? 'rgba(92, 213, 176, 0.2)' : 'var(--nc-icon-bg)'};
   border-radius: 8px;
   transition: transform 0.25s ease;
-
-  @media (prefers-color-scheme: light) {
-    background: ${props => props.$variant === 'volunteer' ? 'rgba(92, 213, 176, 0.15)' : 'rgba(0, 0, 0, 0.05)'};
-  }
 
   ${ExperienceGroup}:hover & {
     transform: scale(1.1);
@@ -741,11 +723,7 @@ const ExperienceLocation = styled.span`
 const PositionsList = styled.div`
   margin-left: ${props => props.$connected ? '1.25rem' : '0'};
   padding-left: ${props => props.$connected ? '2.25rem' : '3.5rem'};
-  border-left: ${props => props.$connected ? '2px solid rgba(255, 255, 255, 0.15)' : 'none'};
-
-  @media (prefers-color-scheme: light) {
-    border-color: rgba(0, 0, 0, 0.1);
-  }
+  border-left: ${props => props.$connected ? '2px solid var(--nc-border)' : 'none'};
 `;
 
 const PositionItem = styled.div`
@@ -764,11 +742,7 @@ const PositionConnector = styled.div`
   top: 50%;
   width: 1rem;
   height: 2px;
-  background: rgba(255, 255, 255, 0.15);
-
-  @media (prefers-color-scheme: light) {
-    background: rgba(0, 0, 0, 0.1);
-  }
+  background: var(--nc-connector);
 
   &::before {
     content: '';
@@ -778,12 +752,8 @@ const PositionConnector = styled.div`
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: ${props => props.$isFirst ? '#5cd5b0' : 'rgba(255, 255, 255, 0.3)'};
+    background: ${props => props.$isFirst ? '#5cd5b0' : 'var(--nc-connector-dot)'};
     transition: all 0.25s ease;
-
-    @media (prefers-color-scheme: light) {
-      background: ${props => props.$isFirst ? '#5cd5b0' : 'rgba(0, 0, 0, 0.15)'};
-    }
   }
 
   ${PositionItem}:hover &::before {
@@ -986,21 +956,13 @@ const TagsGrid = styled.div`
 
 const TagItem = styled.div`
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--nc-tag-bg);
   border-radius: 8px;
   transition: all 0.25s ease;
 
-  @media (prefers-color-scheme: light) {
-    background: rgba(0, 0, 0, 0.03);
-  }
-
   &:hover {
     transform: translateY(-2px);
-    background: rgba(255, 255, 255, 0.08);
-
-    @media (prefers-color-scheme: light) {
-      background: rgba(0, 0, 0, 0.05);
-    }
+    background: var(--nc-tag-hover);
   }
 `;
 
@@ -1025,11 +987,7 @@ const SkillsGrid = styled.div`
 
 const SkillCategory = styled.div`
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-
-  @media (prefers-color-scheme: light) {
-    border-color: rgba(0, 0, 0, 0.1);
-  }
+  border-bottom: 1px solid var(--nc-skill-border);
 
   &:last-child {
     border-bottom: none;

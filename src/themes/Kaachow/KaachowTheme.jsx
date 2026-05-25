@@ -27,8 +27,8 @@ const Page = styled.div`
   position: relative;
   height: 100vh;
   width: 100%;
-  background: #f5f5f5;
-  color: #2a2a2e;
+  background: ${p => p.$dark ? '#1a1a1e' : '#f5f5f5'};
+  color: ${p => p.$dark ? '#d8d8d8' : '#2a2a2e'};
   font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   overflow: hidden;
 `;
@@ -53,7 +53,7 @@ const HeroCopy = styled.div`
   align-items: center;
   gap: 10px;
   text-align: center;
-  color: #464646;
+  color: ${p => p.$dark ? '#c8c8c8' : '#464646'};
   pointer-events: none;
 `;
 
@@ -104,17 +104,17 @@ const IconButton = styled.a`
   justify-content: center;
   padding: 8.068px;
   border-radius: 8.068px;
-  background: #dfdfdf;
+  background: ${p => p.$dark ? '#2e2e32' : '#dfdfdf'};
   line-height: 0;
   text-decoration: none;
   color: inherit;
   transition: background 0.2s ease, transform 0.2s ease;
 
   &:hover {
-    background: #d2d2d2;
+    background: ${p => p.$dark ? '#3a3a3f' : '#d2d2d2'};
   }
   &:focus-visible {
-    outline: 2px solid #464646;
+    outline: 2px solid ${p => p.$dark ? '#c8c8c8' : '#464646'};
     outline-offset: 2.4px;
   }
 
@@ -131,7 +131,7 @@ const IconLabel = styled.span`
   font-size: 12px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #464646;
+  color: inherit;
   white-space: nowrap;
   position: absolute;
   top: calc(100% + 8px);
@@ -200,7 +200,7 @@ const Cursor = styled.div`
   background: transparent;
   border: none;
   padding: 0;
-  color: #464646;
+  color: ${p => p.$dark ? '#c8c8c8' : '#464646'};
   opacity: 0;
   transition: opacity 0.2s ease;
   will-change: transform;
@@ -217,8 +217,8 @@ const Cursor = styled.div`
     width: 11.2px;
     height: 11.2px;
     border-radius: 50%;
-    border: 1.2px solid #464646;
-    background: rgba(245, 245, 245, 0.9);
+    border: 1.2px solid ${p => p.$dark ? '#c8c8c8' : '#464646'};
+    background: ${p => p.$dark ? 'rgba(26, 26, 30, 0.9)' : 'rgba(245, 245, 245, 0.9)'};
     box-sizing: border-box;
     flex-shrink: 0;
     transition:
@@ -235,7 +235,7 @@ const Cursor = styled.div`
     font-size: 12px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #464646;
+    color: ${p => p.$dark ? '#c8c8c8' : '#464646'};
     white-space: nowrap;
     opacity: 0;
     max-width: 0;
@@ -246,8 +246,8 @@ const Cursor = styled.div`
   &.is-pill {
     padding: 6.4px 14px;
     border-radius: 999px;
-    border: 1.2px solid #464646;
-    background: rgba(245, 245, 245, 0.92);
+    border: 1.2px solid ${p => p.$dark ? '#c8c8c8' : '#464646'};
+    background: ${p => p.$dark ? 'rgba(26, 26, 30, 0.92)' : 'rgba(245, 245, 245, 0.92)'};
   }
   &.is-pill .cursor-mark {
     width: 0;
@@ -321,7 +321,7 @@ function buildIcons(cv) {
   return icons;
 }
 
-export function KaachowTheme() {
+export function KaachowTheme({ darkMode = false }) {
   const cv = useCV();
 
   const { eyebrow, heading, icons } = useMemo(() => {
@@ -775,9 +775,9 @@ export function KaachowTheme() {
   return (
     <>
       <FontLoader />
-      <Page>
+      <Page $dark={darkMode}>
         <Hero aria-label="Introduction">
-          <HeroCopy>
+          <HeroCopy $dark={darkMode}>
             <Eyebrow>{eyebrow}</Eyebrow>
             <Heading>{heading}</Heading>
           </HeroCopy>
@@ -785,6 +785,7 @@ export function KaachowTheme() {
             {icons.map((icon) => (
               <IconItem key={icon.key}>
                 <IconButton
+                  $dark={darkMode}
                   data-kaachow-btn
                   href={icon.href}
                   target="_blank"
@@ -816,7 +817,7 @@ export function KaachowTheme() {
           <div ref={hitRef} id="kaachow-hit" aria-label="Drag to move the trash can" />
         </Stage>
 
-        <Cursor ref={cursorRef} aria-hidden="true">
+        <Cursor $dark={darkMode} ref={cursorRef} aria-hidden="true">
           <span className="cursor-mark" aria-hidden="true" />
           <span className="cursor-text">Find me here instead</span>
         </Cursor>

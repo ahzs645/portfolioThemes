@@ -8,13 +8,13 @@ const crosshairSvg = (
   </svg>
 );
 
-export function MobileProjectCard({ project, onClick }) {
+export function MobileProjectCard({ project, onClick, darkMode = false }) {
   return (
     <CardDiv onClick={onClick}>
       <CardBar>
         <CardInfo>
           <CardLabel>{project.label}</CardLabel>
-          <CardMeta>{project.meta}</CardMeta>
+          <CardMeta $dark={darkMode}>{project.meta}</CardMeta>
         </CardInfo>
         <IconBox $accent={project.id === 'ramp'}>
           {crosshairSvg}
@@ -79,7 +79,7 @@ const CardLabel = styled.span`
 const CardMeta = styled.span`
   font-family: 'Inter', sans-serif;
   font-size: 14px;
-  color: rgba(0, 0, 0, 0.5);
+  color: ${(p) => (p.$dark ? 'rgba(200, 215, 220, 0.45)' : 'rgba(0, 0, 0, 0.5)')};
 `;
 
 const IconBox = styled.div`

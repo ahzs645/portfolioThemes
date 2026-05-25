@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 
-export default function BottomBar({ location }) {
+export default function BottomBar({ location, $dark = false }) {
   const [time, setTime] = useState('');
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -49,7 +49,7 @@ export default function BottomBar({ location }) {
     : 'ONLINE';
 
   return (
-    <Bar>
+    <Bar $dark={$dark}>
       <audio
         ref={audioRef}
         loop
@@ -58,30 +58,30 @@ export default function BottomBar({ location }) {
       />
       <BarContent>
         <TimeRow>
-          <Mono>{time}</Mono>
-          <Mono>| {locationLabel}</Mono>
+          <Mono $dark={$dark}>{time}</Mono>
+          <Mono $dark={$dark}>| {locationLabel}</Mono>
         </TimeRow>
 
         <AudioPlayer>
           <PlayBtn onClick={togglePlay} aria-label={playing ? 'Pause' : 'Play'}>
             {playing ? (
               <svg width="12" height="14" viewBox="0 0 12 14" fill="none">
-                <rect x="0" y="0" width="4" height="14" rx="1" fill="rgb(41, 73, 111)" />
-                <rect x="8" y="0" width="4" height="14" rx="1" fill="rgb(41, 73, 111)" />
+                <rect x="0" y="0" width="4" height="14" rx="1" fill={$dark ? 'rgb(140, 175, 220)' : 'rgb(41, 73, 111)'} />
+                <rect x="8" y="0" width="4" height="14" rx="1" fill={$dark ? 'rgb(140, 175, 220)' : 'rgb(41, 73, 111)'} />
               </svg>
             ) : (
               <svg width="12" height="14" viewBox="0 0 12 14" fill="none">
-                <path d="M0 0L12 7L0 14V0Z" fill="rgb(41, 73, 111)" />
+                <path d="M0 0L12 7L0 14V0Z" fill={$dark ? 'rgb(140, 175, 220)' : 'rgb(41, 73, 111)'} />
               </svg>
             )}
           </PlayBtn>
           <Track ref={trackRef} onClick={handleTrackClick}>
-            <TrackBg />
-            <TrackFill style={{ width: `${progress}%` }} />
+            <TrackBg $dark={$dark} />
+            <TrackFill $dark={$dark} style={{ width: `${progress}%` }} />
           </Track>
         </AudioPlayer>
 
-        <Mono>&copy; {new Date().getFullYear()}</Mono>
+        <Mono $dark={$dark}>&copy; {new Date().getFullYear()}</Mono>
       </BarContent>
     </Bar>
   );
@@ -94,12 +94,10 @@ const Bar = styled.footer`
   right: 0;
   z-index: 10;
   height: 87px;
-  background: linear-gradient(
-    180deg,
-    rgba(249, 248, 247, 0) 0%,
-    rgb(229, 235, 243) 64%,
-    rgb(236, 240, 246) 100%
-  );
+  background: ${p => p.$dark
+    ? 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(10,12,20,0.85) 64%, rgba(10,12,20,0.95) 100%)'
+    : 'linear-gradient(180deg, rgba(249, 248, 247, 0) 0%, rgb(229, 235, 243) 64%, rgb(236, 240, 246) 100%)'
+  };
   pointer-events: none;
 `;
 
@@ -132,7 +130,7 @@ const Mono = styled.span`
   font-size: 14px;
   font-weight: 400;
   letter-spacing: -0.03em;
-  color: rgb(41, 73, 111);
+  color: ${p => p.$dark ? 'rgb(140, 175, 220)' : 'rgb(41, 73, 111)'};
 `;
 
 const AudioPlayer = styled.div`
@@ -170,7 +168,7 @@ const Track = styled.div`
 const TrackBg = styled.div`
   position: absolute;
   inset: 0;
-  background: rgb(211, 216, 224);
+  background: ${p => p.$dark ? 'rgb(60, 75, 100)' : 'rgb(211, 216, 224)'};
   border-radius: 2px;
 `;
 
@@ -179,7 +177,7 @@ const TrackFill = styled.div`
   top: 0;
   left: 0;
   bottom: 0;
-  background: rgb(41, 73, 111);
+  background: ${p => p.$dark ? 'rgb(140, 175, 220)' : 'rgb(41, 73, 111)'};
   border-radius: 2px;
   transition: width 0.1s linear;
 `;

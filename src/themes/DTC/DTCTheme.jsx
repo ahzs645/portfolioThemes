@@ -122,7 +122,7 @@ const COLORS = [
   { bg: '#455a64', fg: '#fff' }, // Blue Grey
 ];
 
-export function DTCTheme() {
+export function DTCTheme({ darkMode = false }) {
   const cv = useCV() || {};
 
   const fullName = cv?.name || 'Your Name';
@@ -222,13 +222,10 @@ export function DTCTheme() {
     return (cv?.sections?.professional_development || []).filter(e => !isArchived(e));
   }, [cv]);
 
-  // Theme state
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
-    return true; // Default to dark for this theme
-  });
+  // Theme state — seeded from the prop, togglable locally
+  const [isDark, setIsDark] = useState(darkMode);
+
+  useEffect(() => { setIsDark(darkMode); }, [darkMode]);
 
   const toggleDarkMode = () => setIsDark(prev => !prev);
   const theme = { isDark };
@@ -783,8 +780,8 @@ const ThemeToggle = styled.button`
 `;
 
 const Section = styled.div`
-  background: ${props => props.theme.isDark ? '#fff' : '#fff'};
-  color: ${props => props.theme.isDark ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.8)'};
+  background: ${props => props.theme.isDark ? '#242424' : '#fff'};
+  color: ${props => props.theme.isDark ? 'rgba(230,230,230,0.9)' : 'rgba(0,0,0,0.8)'};
   padding: 24px 0;
   box-shadow: 0 2px 4px -1px rgba(0,0,0,0.2), 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12);
   position: relative;
@@ -1002,12 +999,12 @@ const TimelineIcon = styled.span`
 
 const TimelineContent = styled.div`
   box-shadow: 0 2px 4px -1px rgba(0,0,0,0.2), 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12);
-  background: #fff;
+  background: ${props => props.theme.isDark ? '#2c2c2c' : '#fff'};
   border-radius: 0.25em;
   margin-left: 60px;
   padding: 1em;
   position: relative;
-  color: #333;
+  color: ${props => props.theme.isDark ? '#e0e0e0' : '#333'};
 
   @media (min-width: 1170px) {
     margin-left: 0;
@@ -1021,7 +1018,7 @@ const TimelineTitle = styled.h4`
   font-weight: 500;
   line-height: 1.334;
   margin: 0;
-  color: #333;
+  color: ${props => props.theme.isDark ? '#e0e0e0' : '#333'};
 `;
 
 const TimelineSubtitle = styled.h5`
@@ -1029,7 +1026,7 @@ const TimelineSubtitle = styled.h5`
   font-weight: 400;
   line-height: 1.6;
   margin: 4px 0 0;
-  color: #666;
+  color: ${props => props.theme.isDark ? '#aaa' : '#666'};
 
   a {
     color: inherit;
@@ -1046,11 +1043,11 @@ const TimelineDescription = styled.p`
   font-weight: 400;
   line-height: 1.6;
   margin: 1em 0 0;
-  color: #555;
+  color: ${props => props.theme.isDark ? '#bbb' : '#555'};
 `;
 
 const TimelineDate = styled.span`
-  color: #333;
+  color: ${props => props.theme.isDark ? '#ccc' : '#333'};
   font-size: 0.8125rem;
   font-weight: 500;
   display: inline-block;
@@ -1072,7 +1069,7 @@ const TimelineCompany = styled.h4`
   font-weight: 500;
   line-height: 1.334;
   margin: 0 0 0.5rem;
-  color: #333;
+  color: ${props => props.theme.isDark ? '#e0e0e0' : '#333'};
 
   a {
     color: inherit;
@@ -1087,7 +1084,7 @@ const TimelineCompany = styled.h4`
 const TimelineLocation = styled.span`
   font-size: 0.875rem;
   font-weight: 400;
-  color: #888;
+  color: ${props => props.theme.isDark ? '#888' : '#888'};
   margin-left: 0.5rem;
 
   &::before {
@@ -1102,7 +1099,7 @@ const NestedPositions = styled.div`
   gap: 1rem;
   margin-top: 0.5rem;
   padding-left: 1rem;
-  border-left: 2px solid #e5e5e5;
+  border-left: 2px solid ${props => props.theme.isDark ? '#444' : '#e5e5e5'};
 `;
 
 const NestedPosition = styled.div`
@@ -1115,7 +1112,7 @@ const NestedPosition = styled.div`
     top: 0.5rem;
     width: 8px;
     height: 8px;
-    background: #999;
+    background: ${props => props.theme.isDark ? '#777' : '#999'};
     border-radius: 50%;
     transform: translateX(-50%);
   }
@@ -1126,13 +1123,13 @@ const NestedPositionTitle = styled.h5`
   font-weight: 500;
   line-height: 1.4;
   margin: 0;
-  color: #333;
+  color: ${props => props.theme.isDark ? '#e0e0e0' : '#333'};
 `;
 
 const NestedPositionDate = styled.span`
   font-size: 0.8125rem;
   font-weight: 400;
-  color: #666;
+  color: ${props => props.theme.isDark ? '#aaa' : '#666'};
   display: block;
   margin-top: 2px;
 `;

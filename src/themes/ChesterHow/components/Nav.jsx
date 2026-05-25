@@ -21,7 +21,7 @@ const Pill = styled(motion.div)`
   position: relative;
   display: flex;
   pointer-events: auto;
-  background: hsla(0, 0%, 100%, 0.7);
+  background: var(--ch-nav-bg, hsla(0, 0%, 100%, 0.7));
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid ${colors.border};

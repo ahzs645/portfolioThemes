@@ -41,7 +41,7 @@ const ArrowLink = styled.a`
 
   .group:hover &,
   .group:focus-within & {
-    background: #ffffff;
+    background: var(--ch-arrow-hover-bg, #ffffff);
     color: ${colors.text900};
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 1px 0 0 rgba(0, 0, 0, 0.1);
   }

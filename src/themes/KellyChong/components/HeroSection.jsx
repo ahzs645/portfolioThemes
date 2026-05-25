@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import gsap from 'gsap';
 
-export default function HeroSection({ name, title, company, summary, email, location, website }) {
+export default function HeroSection({ name, title, company, summary, email, location, website, $dark = false }) {
   const sectionRef = useRef(null);
 
   useEffect(() => {
@@ -20,42 +20,42 @@ export default function HeroSection({ name, title, company, summary, email, loca
       <HeroContent>
         <TaglineCol data-animate>
           <Tagline>
-            <TaglineName>{name} </TaglineName>
-            <TaglineRegular>is crafting{'\n'}experiences for </TaglineRegular>
-            <TaglineName>play </TaglineName>
-            <TaglineRegular>and</TaglineRegular>
+            <TaglineName $dark={$dark}>{name} </TaglineName>
+            <TaglineRegular $dark={$dark}>is crafting{'\n'}experiences for </TaglineRegular>
+            <TaglineName $dark={$dark}>play </TaglineName>
+            <TaglineRegular $dark={$dark}>and</TaglineRegular>
             {'\n'}
-            <TaglineName>possibilities.</TaglineName>
+            <TaglineName $dark={$dark}>possibilities.</TaglineName>
           </Tagline>
         </TaglineCol>
 
         <InfoCol data-animate>
           <InfoBlock>
             <InfoLine>
-              <InfoMuted>Prototyping interfaces that inspire @</InfoMuted>
+              <InfoMuted $dark={$dark}>Prototyping interfaces that inspire @</InfoMuted>
             </InfoLine>
             {company && (
               <InfoLine>
-                <InfoLink href={website || '#'} target="_blank" rel="noreferrer" data-cursor-hover>
+                <InfoLink $dark={$dark} href={website || '#'} target="_blank" rel="noreferrer" data-cursor-hover>
                   {company}.
                 </InfoLink>
               </InfoLine>
             )}
             {location && (
               <InfoLine>
-                <InfoMuted>Living, laughing, loving in {location}.</InfoMuted>
+                <InfoMuted $dark={$dark}>Living, laughing, loving in {location}.</InfoMuted>
               </InfoLine>
             )}
             {!company && summary && (
               <InfoLine>
-                <InfoMuted>{summary}</InfoMuted>
+                <InfoMuted $dark={$dark}>{summary}</InfoMuted>
               </InfoLine>
             )}
           </InfoBlock>
 
           <ActionBlock>
-            <ActionLink href="#" data-cursor-hover>Reach out</ActionLink>
-            <InfoMuted> for questions or collaborations.</InfoMuted>
+            <ActionLink $dark={$dark} href="#" data-cursor-hover>Reach out</ActionLink>
+            <InfoMuted $dark={$dark}> for questions or collaborations.</InfoMuted>
           </ActionBlock>
         </InfoCol>
       </HeroContent>
@@ -117,14 +117,14 @@ const TaglineName = styled.span`
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
   font-weight: 500;
-  color: rgb(41, 72, 110);
+  color: ${p => p.$dark ? 'rgb(140, 175, 220)' : 'rgb(41, 72, 110)'};
 `;
 
 const TaglineRegular = styled.span`
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: normal;
   font-weight: 400;
-  color: rgb(146, 159, 176);
+  color: ${p => p.$dark ? 'rgb(120, 135, 155)' : 'rgb(146, 159, 176)'};
 `;
 
 const InfoCol = styled.div`
@@ -150,7 +150,7 @@ const InfoMuted = styled.span`
   font-size: 16px;
   letter-spacing: -0.01em;
   line-height: 1.4;
-  color: rgb(115, 131, 153);
+  color: ${p => p.$dark ? 'rgb(110, 125, 148)' : 'rgb(115, 131, 153)'};
 `;
 
 const InfoLink = styled.a`
@@ -158,13 +158,13 @@ const InfoLink = styled.a`
   font-size: 16px;
   letter-spacing: -0.01em;
   line-height: 1.4;
-  color: rgb(115, 131, 153);
+  color: ${p => p.$dark ? 'rgb(110, 125, 148)' : 'rgb(115, 131, 153)'};
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.15em;
 
   &:hover {
-    color: rgb(41, 72, 110);
+    color: ${p => p.$dark ? 'rgb(140, 175, 220)' : 'rgb(41, 72, 110)'};
   }
 `;
 
@@ -179,12 +179,12 @@ const ActionLink = styled.a`
   font-size: 16px;
   letter-spacing: -0.01em;
   line-height: 1.4;
-  color: rgb(119, 111, 100);
+  color: ${p => p.$dark ? 'rgb(140, 130, 115)' : 'rgb(119, 111, 100)'};
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.15em;
 
   &:hover {
-    color: rgb(41, 72, 110);
+    color: ${p => p.$dark ? 'rgb(140, 175, 220)' : 'rgb(41, 72, 110)'};
   }
 `;

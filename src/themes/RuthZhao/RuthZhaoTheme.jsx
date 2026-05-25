@@ -35,7 +35,7 @@ function getSocialEntries(cv) {
   return [];
 }
 
-export function RuthZhaoTheme() {
+export function RuthZhaoTheme({ darkMode = false }) {
   const cv = useCV();
   const [selectedProject, setSelectedProject] = useState(null);
 
@@ -74,6 +74,7 @@ export function RuthZhaoTheme() {
           cv={cv}
           onBack={() => setSelectedProject(null)}
           onSelectProject={setSelectedProject}
+          darkMode={darkMode}
         />
       </>
     );
@@ -82,35 +83,37 @@ export function RuthZhaoTheme() {
   return (
     <>
       <FontLoader />
-      <Page>
+      <Page $dark={darkMode}>
         {/* Desktop layout */}
         <DesktopLayout>
           <LeftColumn>
-            <IntroPanel cv={cv} />
+            <IntroPanel cv={cv} darkMode={darkMode} />
           </LeftColumn>
           <MapColumn>
             <TopographicMap
               projects={projects}
               onSelectProject={(project) => setSelectedProject(project)}
+              darkMode={darkMode}
             />
           </MapColumn>
         </DesktopLayout>
 
         {/* Mobile layout */}
-        <MobileLayout>
-          <IntroPanel cv={cv} />
+        <MobileLayout $dark={darkMode}>
+          <IntroPanel cv={cv} darkMode={darkMode} />
           <MobileCards>
             {mobileProjects.map((project) => (
               <MobileProjectCard
                 key={project.id}
                 project={project}
                 onClick={() => setSelectedProject(project)}
+                darkMode={darkMode}
               />
             ))}
           </MobileCards>
           <MobileFooter>
             {socialEntries.slice(0, 4).map((link) => (
-              <FooterLink href={link.url} key={link.url} target="_blank" rel="noreferrer">
+              <FooterLink $dark={darkMode} href={link.url} key={link.url} target="_blank" rel="noreferrer">
                 {link.label}
               </FooterLink>
             ))}
@@ -123,8 +126,8 @@ export function RuthZhaoTheme() {
 
 const Page = styled.div`
   min-height: 100%;
-  background: #fff;
-  color: #1f2328;
+  background: ${(p) => (p.$dark ? '#111415' : '#fff')};
+  color: ${(p) => (p.$dark ? '#d8dfe0' : '#1f2328')};
   font-family: 'Inter', sans-serif;
 `;
 
@@ -161,7 +164,7 @@ const MobileLayout = styled.div`
   flex-direction: column;
   gap: 50px;
   padding: 150px 20px 20px 20px;
-  background: #f7fafa;
+  background: ${(p) => (p.$dark ? '#161c1e' : '#f7fafa')};
 
   @media (max-width: 1104px) {
     display: flex;
@@ -184,7 +187,7 @@ const MobileFooter = styled.div`
 `;
 
 const FooterLink = styled.a`
-  color: #8a8e90;
+  color: ${(p) => (p.$dark ? '#6a7275' : '#8a8e90')};
   text-decoration: none;
   font-size: 0.9rem;
 

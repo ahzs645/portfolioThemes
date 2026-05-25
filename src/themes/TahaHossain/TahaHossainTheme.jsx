@@ -11,11 +11,11 @@ const GlobalStyles = createGlobalStyle`
 `;
 
 const Page = styled.div`
-  --th-bg: #f6f5f1;
-  --th-text: #000;
-  --th-line-red: #bb5e5e;
-  --th-line-green: #1d8341;
-  --th-line-blue: #3d60dc;
+  --th-bg: ${p => p.$dark ? '#15181d' : '#f6f5f1'};
+  --th-text: ${p => p.$dark ? '#d4d0c8' : '#000'};
+  --th-line-red: ${p => p.$dark ? '#9b4e4e' : '#bb5e5e'};
+  --th-line-green: ${p => p.$dark ? '#1a6e37' : '#1d8341'};
+  --th-line-blue: ${p => p.$dark ? '#3250b8' : '#3d60dc'};
 
   min-height: 100vh;
   width: 100vw;
@@ -41,12 +41,12 @@ const Grid = styled.div`
   }
 `;
 
-export function TahaHossainTheme() {
+export function TahaHossainTheme({ darkMode = false }) {
   const cv = useCV();
   if (!cv) return null;
 
   return (
-    <Page>
+    <Page $dark={darkMode}>
       <GlobalStyles />
       <BorderFrame />
       <Grid>

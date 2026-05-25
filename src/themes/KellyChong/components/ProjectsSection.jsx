@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import gsap from 'gsap';
 import ProjectCard from './ProjectCard';
 
-export default function ProjectsSection({ cv }) {
+export default function ProjectsSection({ cv, $dark = false }) {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -35,15 +35,15 @@ export default function ProjectsSection({ cv }) {
   return (
     <TabPage ref={ref}>
       <Inner>
-        <SectionLabel>PROJECTS</SectionLabel>
+        <SectionLabel $dark={$dark}>PROJECTS</SectionLabel>
 
         {experience.length > 0 && (
           <Group>
-            <GroupLabel>Select Clients</GroupLabel>
+            <GroupLabel $dark={$dark}>Select Clients</GroupLabel>
             <CardGrid>
               {experience.map((item, i) => (
                 <div key={`exp-${i}`} data-card>
-                  <ProjectCard {...item} />
+                  <ProjectCard {...item} $dark={$dark} />
                 </div>
               ))}
             </CardGrid>
@@ -52,11 +52,11 @@ export default function ProjectsSection({ cv }) {
 
         {projects.length > 0 && (
           <Group>
-            <GroupLabel>Featured Work</GroupLabel>
+            <GroupLabel $dark={$dark}>Featured Work</GroupLabel>
             <CardGrid>
               {projects.map((item, i) => (
                 <div key={`proj-${i}`} data-card>
-                  <ProjectCard {...item} />
+                  <ProjectCard {...item} $dark={$dark} />
                 </div>
               ))}
             </CardGrid>
@@ -90,7 +90,7 @@ const SectionLabel = styled.h2`
   font-size: 13px;
   font-weight: 400;
   letter-spacing: 0.08em;
-  color: rgb(119, 111, 100);
+  color: ${p => p.$dark ? 'rgb(140, 130, 115)' : 'rgb(119, 111, 100)'};
   text-transform: uppercase;
 `;
 
@@ -103,7 +103,7 @@ const GroupLabel = styled.h3`
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
   font-size: 22px;
-  color: rgb(41, 72, 110);
+  color: ${p => p.$dark ? 'rgb(140, 175, 220)' : 'rgb(41, 72, 110)'};
   letter-spacing: -0.02em;
 `;
 

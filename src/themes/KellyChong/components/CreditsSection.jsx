@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import gsap from 'gsap';
 
-export default function CreditsSection({ cv }) {
+export default function CreditsSection({ cv, $dark = false }) {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -28,18 +28,19 @@ export default function CreditsSection({ cv }) {
   return (
     <TabPage ref={ref}>
       <Inner>
-        <SectionLabel data-fade>CREDITS</SectionLabel>
+        <SectionLabel $dark={$dark} data-fade>CREDITS</SectionLabel>
 
-        <CreditText data-fade>
+        <CreditText $dark={$dark} data-fade>
           Built from CV.yaml data and restyled after kellychong.ca&apos;s
           paper-texture Framer portfolio.
         </CreditText>
 
         <CreditList>
           {credits.map((item) => (
-            <CreditItem key={`${item.label}-${item.meta}`} data-fade>
+            <CreditItem $dark={$dark} key={`${item.label}-${item.meta}`} data-fade>
               {item.href ? (
                 <CreditLink
+                  $dark={$dark}
                   href={item.href}
                   target={item.href.startsWith('mailto:') ? undefined : '_blank'}
                   rel="noreferrer"
@@ -50,7 +51,7 @@ export default function CreditsSection({ cv }) {
               ) : (
                 <span>{item.label}</span>
               )}
-              <CreditMeta>{item.meta}</CreditMeta>
+              <CreditMeta $dark={$dark}>{item.meta}</CreditMeta>
             </CreditItem>
           ))}
         </CreditList>
@@ -82,7 +83,7 @@ const SectionLabel = styled.h2`
   font-size: 13px;
   font-weight: 400;
   letter-spacing: 0.08em;
-  color: rgb(119, 111, 100);
+  color: ${p => p.$dark ? 'rgb(140, 130, 115)' : 'rgb(119, 111, 100)'};
   text-transform: uppercase;
 `;
 
@@ -92,7 +93,7 @@ const CreditText = styled.p`
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 17px;
   line-height: 1.7;
-  color: rgb(115, 131, 153);
+  color: ${p => p.$dark ? 'rgb(110, 125, 148)' : 'rgb(115, 131, 153)'};
 `;
 
 const CreditList = styled.ul`
@@ -111,22 +112,22 @@ const CreditItem = styled.li`
   align-items: baseline;
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 16px;
-  color: rgb(41, 72, 110);
+  color: ${p => p.$dark ? 'rgb(140, 175, 220)' : 'rgb(41, 72, 110)'};
 `;
 
 const CreditLink = styled.a`
-  color: rgb(41, 72, 110);
+  color: ${p => p.$dark ? 'rgb(140, 175, 220)' : 'rgb(41, 72, 110)'};
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.15em;
 
   &:hover {
-    color: rgb(74, 88, 189);
+    color: ${p => p.$dark ? 'rgb(180, 210, 250)' : 'rgb(74, 88, 189)'};
   }
 `;
 
 const CreditMeta = styled.small`
   font-family: 'Server Mono', 'IBM Plex Mono', monospace;
   font-size: 13px;
-  color: rgb(175, 184, 196);
+  color: ${p => p.$dark ? 'rgb(100, 115, 135)' : 'rgb(175, 184, 196)'};
 `;

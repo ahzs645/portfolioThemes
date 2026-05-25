@@ -4,13 +4,13 @@ import { ImageWithCrosshair } from './ImageWithCrosshair';
 import { ProjectMarker } from './ProjectMarker';
 import { MAP_BACKGROUND_IMAGE } from '../themeData';
 
-function CoordinateScale({ axis }) {
+function CoordinateScale({ axis, darkMode = false }) {
   if (axis === 'left') {
     const values = [0, 100, 200, 300, 400, 500, 600, 700, 800];
     return (
       <LeftIndex>
         {values.map((v, i) => (
-          <ScaleLabel key={v} $first={i === 0}>
+          <ScaleLabel key={v} $first={i === 0} $dark={darkMode}>
             {v.toFixed(2)}
           </ScaleLabel>
         ))}
@@ -22,7 +22,7 @@ function CoordinateScale({ axis }) {
   return (
     <TopIndex>
       {values.map((v, i) => (
-        <ScaleLabel key={v} $first={i === 0}>
+        <ScaleLabel key={v} $first={i === 0} $dark={darkMode}>
           {v.toFixed(2)}
         </ScaleLabel>
       ))}
@@ -30,14 +30,14 @@ function CoordinateScale({ axis }) {
   );
 }
 
-export function TopographicMap({ projects = [], mapRef, onSelectProject }) {
+export function TopographicMap({ projects = [], mapRef, onSelectProject, darkMode = false }) {
   const [lockedPos, setLockedPos] = useState(null);
 
   return (
     <MapWrap ref={mapRef}>
-      <CoordinateScale axis="left" />
+      <CoordinateScale axis="left" darkMode={darkMode} />
       <MapArea>
-        <CoordinateScale axis="top" />
+        <CoordinateScale axis="top" darkMode={darkMode} />
         <MapContainer>
           <ImageWithCrosshair
             image={MAP_BACKGROUND_IMAGE}
@@ -92,7 +92,7 @@ const TopIndex = styled.div`
 const ScaleLabel = styled.span`
   font-family: 'IBM Plex Mono', monospace;
   font-size: 13px;
-  color: ${(p) => (p.$first ? '#f77c11' : 'rgba(0, 0, 0, 0.5)')};
+  color: ${(p) => (p.$first ? '#f77c11' : p.$dark ? 'rgba(200, 215, 220, 0.45)' : 'rgba(0, 0, 0, 0.5)')};
   white-space: pre;
 `;
 

@@ -37,9 +37,12 @@ const darkTheme = {
   underline: 'rgba(128, 128, 128, 0.5)',
 };
 
-export function GerhardTheme() {
+export function GerhardTheme({ darkMode = false }) {
   const cv = useCV() || {};
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(darkMode);
+
+  // Sync with external darkMode prop
+  React.useEffect(() => { setIsDark(darkMode); }, [darkMode]);
 
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;

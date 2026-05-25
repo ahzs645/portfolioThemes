@@ -30,7 +30,7 @@ const Panel = styled(motion.div)`
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: #ffffff;
+  background: ${colors.bg};
   border: 1px solid ${colors.border};
   border-radius: 0.75rem;
   box-shadow:
@@ -95,7 +95,7 @@ const Body = styled.div`
   &::-webkit-scrollbar-thumb {
     background: ${colors.bg200};
     border-radius: 9999px;
-    border: 3px solid #ffffff;
+    border: 3px solid var(--ch-bg, #ffffff);
   }
 `;
 
@@ -179,7 +179,7 @@ const ExternalLink = styled.a`
   padding: 0.625rem 1rem;
   border-radius: 9999px;
   background: ${colors.text900};
-  color: #ffffff;
+  color: var(--ch-bg, #ffffff);
   font-size: 0.875rem;
   letter-spacing: -0.025em;
   cursor: alias;

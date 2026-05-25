@@ -5,7 +5,7 @@ import { useCV } from '../../contexts/ConfigContext';
 // Global styles for background
 const GlobalStyle = createGlobalStyle`
   html, body {
-    background-color: #eeeeee !important;
+    background-color: ${p => p.$dark ? '#111111' : '#eeeeee'} !important;
   }
 `;
 
@@ -15,7 +15,7 @@ const isArchived = (entry) => Array.isArray(entry?.tags) && entry.tags.includes(
 // Helper to check if present
 const isPresent = (value) => String(value || '').trim().toLowerCase() === 'present';
 
-export function KubreTheme() {
+export function KubreTheme({ darkMode = false }) {
   const cv = useCV();
   const [activeTab, setActiveTab] = useState('profile');
 
@@ -65,31 +65,34 @@ export function KubreTheme() {
   };
 
   return (
-    <PageWrapper>
-      <GlobalStyle />
-      <Container>
+    <PageWrapper $dark={darkMode}>
+      <GlobalStyle $dark={darkMode} />
+      <Container $dark={darkMode}>
 
       {/* Navigation */}
-      <Nav>
+      <Nav $dark={darkMode}>
         <NavHeader>
           <NameTitle>█▓▒░ {name || 'Your Name'}</NameTitle>
-          <ProdBadge href="#about">⌥ PROD</ProdBadge>
+          <ProdBadge $dark={darkMode} href="#about">⌥ PROD</ProdBadge>
         </NavHeader>
         <NavLinks>
           <NavItem
             $active={activeTab === 'profile'}
+            $dark={darkMode}
             onClick={() => setActiveTab('profile')}
           >
             ✦ PROFILE
           </NavItem>
           <NavItem
             $active={activeTab === 'projects'}
+            $dark={darkMode}
             onClick={() => setActiveTab('projects')}
           >
             ¶ PROJECTS
           </NavItem>
           <NavItem
             $active={activeTab === 'work'}
+            $dark={darkMode}
             onClick={() => setActiveTab('work')}
           >
             ≥ WORK
@@ -97,6 +100,7 @@ export function KubreTheme() {
           {(awardItems.length > 0 || presentationItems.length > 0 || publicationItems.length > 0 || professionalDevItems.length > 0 || volunteerItems.length > 0) && (
             <NavItem
               $active={activeTab === 'more'}
+              $dark={darkMode}
               onClick={() => setActiveTab('more')}
             >
               ◆ MORE
@@ -406,15 +410,15 @@ export function KubreTheme() {
 const PageWrapper = styled.div`
   height: 100%;
   width: 100%;
-  background: #eeeeee;
+  background: ${p => p.$dark ? '#111111' : '#eeeeee'};
   overflow-y: auto;
   overflow-x: hidden;
 `;
 
 const Container = styled.div`
   width: 100%;
-  background: #eeeeee;
-  color: #222222;
+  background: ${p => p.$dark ? '#111111' : '#eeeeee'};
+  color: ${p => p.$dark ? '#dddddd' : '#222222'};
   font-family: 'Departure Mono', 'JetBrains Mono', monospace;
   font-size: 0.875rem;
   line-height: 1.5;
@@ -434,13 +438,26 @@ const Container = styled.div`
 
   a {
     color: inherit;
-    text-decoration-color: #666666;
+    text-decoration-color: ${p => p.$dark ? '#888888' : '#666666'};
   }
 
   a:hover {
     background: #facc15;
     color: #000;
   }
+
+  --kb-surface: ${p => p.$dark ? '#1e1e1e' : 'white'};
+  --kb-border: ${p => p.$dark ? '#333333' : '#999999'};
+  --kb-border-soft: ${p => p.$dark ? '#2a2a2a' : '#eeeeee'};
+  --kb-muted: ${p => p.$dark ? '#aaaaaa' : '#666666'};
+  --kb-muted2: ${p => p.$dark ? '#888888' : '#444444'};
+  --kb-dots-bg: ${p => p.$dark ? '#111111' : '#eeeeee'};
+  --kb-legend-bg: ${p => p.$dark ? '#555555' : '#999999'};
+  --kb-resume-bg: ${p => p.$dark ? '#3a3000' : '#fef08a'};
+  --kb-resume-hover-bg: ${p => p.$dark ? '#facc15' : '#facc15'};
+  --kb-timeline-line: ${p => p.$dark ? '#555555' : '#666666'};
+  --kb-pos-border: ${p => p.$dark ? '#333333' : '#cccccc'};
+  --kb-pos-dashed: ${p => p.$dark ? '#2a2a2a' : '#dddddd'};
 `;
 
 const Nav = styled.nav`
@@ -474,12 +491,12 @@ const NameTitle = styled.span`
 `;
 
 const ProdBadge = styled.a`
-  color: #222222;
+  color: ${p => p.$dark ? '#dddddd' : '#222222'};
   margin-left: auto;
   padding: 0 0.5rem;
   font-size: 0.75rem;
   transform: rotate(-90deg);
-  background: #eeeeee;
+  background: ${p => p.$dark ? '#111111' : '#eeeeee'};
   position: absolute;
   right: -1.25rem;
   top: 1.5rem;
@@ -493,8 +510,8 @@ const ProdBadge = styled.a`
   }
 
   &:hover {
-    background: #222222;
-    color: #eeeeee;
+    background: ${p => p.$dark ? '#dddddd' : '#222222'};
+    color: ${p => p.$dark ? '#111111' : '#eeeeee'};
   }
 `;
 
@@ -514,8 +531,8 @@ const NavItem = styled.button`
   font-size: 0.875rem;
   cursor: pointer;
   transition: background-color 0.15s ease;
-  background: ${({ $active }) => $active ? '#facc15' : 'transparent'};
-  color: ${({ $active }) => $active ? '#000' : '#222222'};
+  background: ${({ $active, $dark }) => $active ? '#facc15' : 'transparent'};
+  color: ${({ $active, $dark }) => $active ? '#000' : ($dark ? '#dddddd' : '#222222')};
   border: none;
   font-family: inherit;
 
@@ -538,7 +555,7 @@ const Main = styled.main`
 
 const ProfileSection = styled.div`
   position: relative;
-  background: white;
+  background: var(--kb-surface);
   max-width: 48rem;
 `;
 
@@ -562,15 +579,15 @@ const NotebookDots = styled.div`
 const Dot = styled.div`
   width: 1.5rem;
   height: 1.5rem;
-  background: #eeeeee;
+  background: var(--kb-dots-bg);
   border-radius: 50%;
 `;
 
 const ProfileContent = styled.div`
   margin: 0 3rem;
   padding: 3rem 1rem;
-  border-left: 1px solid #eeeeee;
-  border-right: 1px solid #eeeeee;
+  border-left: 1px solid var(--kb-border-soft);
+  border-right: 1px solid var(--kb-border-soft);
   font-size: 0.75rem;
   line-height: 1.5rem;
 
@@ -599,18 +616,18 @@ const SectionTitle = styled.h2`
 `;
 
 const NoteBox = styled.fieldset`
-  background: white;
+  background: var(--kb-surface);
   font-size: 0.875rem;
   padding: 0.5rem 0.75rem;
   margin: 1rem 0 2rem;
-  border: 1px solid #999999;
+  border: 1px solid var(--kb-border);
   max-width: 48rem;
 `;
 
 const NoteLegend = styled.legend`
   margin-left: auto;
   padding: 0 0.5rem;
-  background: #999999;
+  background: var(--kb-legend-bg);
   color: white;
   font-size: 0.75rem;
 `;
@@ -633,7 +650,7 @@ const TimelineLine = styled.div`
   right: 100%;
   margin-right: 1.75rem;
   width: 1px;
-  background: #666666;
+  background: var(--kb-timeline-line);
 
   @media (min-width: 640px) {
     display: block;
@@ -660,7 +677,7 @@ const TimelineDiamond = styled.span`
   right: 100%;
   margin-right: 1.5rem;
   top: 0;
-  color: #666666;
+  color: var(--kb-muted);
   font-size: 0.75rem;
 
   @media (min-width: 640px) {
@@ -679,7 +696,7 @@ const TimelineDate = styled.dl`
   white-space: nowrap;
   font-size: 0.75rem;
   line-height: 1.5;
-  color: #666666;
+  color: var(--kb-muted);
 
   @media (min-width: 1024px) {
     left: auto;
@@ -699,7 +716,7 @@ const TimelineCard = styled.div`
 const TimelineTitle = styled.h3`
   font-size: 1.125rem;
   letter-spacing: -0.025em;
-  color: #222222;
+  color: inherit;
   padding-top: 2rem;
 
   @media (min-width: 1024px) {
@@ -709,14 +726,14 @@ const TimelineTitle = styled.h3`
 
 const TimelineMeta = styled.div`
   font-size: 0.75rem;
-  color: #666666;
+  color: var(--kb-muted);
   margin-top: 0.25rem;
 `;
 
 const TimelineDescription = styled.p`
   margin-top: 0.5rem;
   margin-bottom: 1rem;
-  color: #444444;
+  color: var(--kb-muted2);
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -726,7 +743,7 @@ const TimelineDescription = styled.p`
 const TimelineHighlights = styled.ul`
   list-style: disc;
   list-style-position: inside;
-  color: #444444;
+  color: var(--kb-muted2);
   margin-bottom: 1rem;
 
   li {
@@ -736,13 +753,13 @@ const TimelineHighlights = styled.ul`
 
 const TimelineReadMore = styled.span`
   font-size: 0.875rem;
-  color: #666666;
+  color: var(--kb-muted);
 `;
 
 const PositionsList = styled.div`
   margin-top: ${({ $nested }) => $nested ? '1rem' : '0.5rem'};
   ${({ $nested }) => $nested && `
-    border-left: 1px solid #cccccc;
+    border-left: 1px solid var(--kb-pos-border);
     padding-left: 1rem;
     margin-left: 0.25rem;
   `}
@@ -752,7 +769,7 @@ const PositionItem = styled.div`
   ${({ $nested }) => $nested && `
     padding: 0.75rem 0;
     &:not(:last-child) {
-      border-bottom: 1px dashed #dddddd;
+      border-bottom: 1px dashed var(--kb-pos-dashed);
     }
   `}
 `;
@@ -760,20 +777,20 @@ const PositionItem = styled.div`
 const PositionTitle = styled.h4`
   font-size: 1rem;
   font-weight: 500;
-  color: #222222;
+  color: inherit;
 `;
 
 const PositionMeta = styled.div`
   font-size: 0.75rem;
-  color: #666666;
+  color: var(--kb-muted);
   margin-top: 0.125rem;
   margin-bottom: 0.5rem;
 `;
 
 const StyledLink = styled.a`
   text-decoration: underline;
-  text-decoration-color: #666666;
-  color: #222222;
+  text-decoration-color: var(--kb-muted);
+  color: inherit;
 
   &:hover {
     background: #facc15;
@@ -794,7 +811,7 @@ const EducationItem = styled.li`
 const EducationDate = styled.span`
   float: right;
   font-size: 0.875rem;
-  color: rgba(34, 34, 34, 0.8);
+  color: var(--kb-muted);
   padding-top: 0.25rem;
 `;
 
@@ -804,7 +821,7 @@ const EducationDegree = styled.span`
 
 const EducationSchool = styled.div`
   margin-left: 1.25rem;
-  color: #222222;
+  color: inherit;
 `;
 
 const ResumeLink = styled.div`
@@ -815,10 +832,10 @@ const ResumeLink = styled.div`
 const ResumeLinkButton = styled.button`
   margin-left: auto;
   padding: 0 0.5rem;
-  background: #fef08a;
+  background: var(--kb-resume-bg);
   text-decoration: underline;
-  text-decoration-color: #666666;
-  color: #222222;
+  text-decoration-color: var(--kb-muted);
+  color: inherit;
   border: none;
   font-family: inherit;
   font-size: inherit;
@@ -845,8 +862,8 @@ const ContactLinks = styled.div`
 
 const ContactLink = styled.a`
   text-decoration: underline;
-  text-decoration-color: #666666;
-  color: #222222;
+  text-decoration-color: var(--kb-muted);
+  color: inherit;
   padding: 0 0.5rem;
 
   &:hover {
@@ -859,5 +876,5 @@ const Copyright = styled.div`
   padding: 2rem 0.5rem;
   text-align: center;
   font-size: 0.75rem;
-  color: #222222;
+  color: inherit;
 `;

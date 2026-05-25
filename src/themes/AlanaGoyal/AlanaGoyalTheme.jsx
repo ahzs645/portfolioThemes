@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 
@@ -44,9 +44,13 @@ const darkTheme = {
   searchBorder: '#444444',
 };
 
-export function AlanaGoyalTheme() {
+export function AlanaGoyalTheme({ darkMode = false }) {
   const cv = useCV() || {};
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(darkMode);
+
+  // Sync with external darkMode prop
+  React.useEffect(() => { setIsDark(darkMode); }, [darkMode]);
+
   const [activeNote, setActiveNote] = useState('about');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(true);

@@ -17,7 +17,7 @@ const BAR_GRADIENTS = {
   credits: 'linear-gradient(180deg, rgb(60, 38, 80) 0%, rgb(130, 95, 170) 49%, rgba(130, 95, 170, 0) 100%)',
 };
 
-export default function TopBar({ activeTab, onTabChange }) {
+export default function TopBar({ activeTab, onTabChange, $dark = false }) {
   return (
     <>
       <Bar>
@@ -54,7 +54,7 @@ export default function TopBar({ activeTab, onTabChange }) {
         </NavContent>
       </Bar>
 
-      <MobileNav>
+      <MobileNav $dark={$dark}>
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
@@ -154,7 +154,7 @@ const MobileNav = styled.nav`
   left: 50%;
   transform: translateX(-50%);
   z-index: 12;
-  background: rgba(255, 255, 255, 0.75);
+  background: ${p => p.$dark ? 'rgba(20, 20, 30, 0.75)' : 'rgba(255, 255, 255, 0.75)'};
   backdrop-filter: blur(8px);
   border-radius: 24px;
   padding: 8px 16px;

@@ -33,8 +33,8 @@ const LiveBadge = styled.div`
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: ${palette.liveBg};
-  color: ${palette.live};
+  background: var(--ttd-live-bg);
+  color: var(--ttd-live);
   font-size: 13px;
   font-weight: 500;
   padding: 6px 14px;
@@ -47,7 +47,7 @@ const Dot = styled.span`
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: ${palette.live};
+  background: var(--ttd-live);
   animation: pulse 1.6s ease-in-out infinite;
 
   @keyframes pulse {
@@ -65,9 +65,9 @@ const List = styled.div`
 const Line = styled.p`
   font-size: 18px;
   font-weight: 400;
-  color: ${palette.textDark};
+  color: var(--ttd-text-dark);
   margin: 0;
 
   strong { font-weight: 500; }
-  span { color: ${palette.text}; }
+  span { color: var(--ttd-text); }
 `;

@@ -35,7 +35,7 @@ const Sub = styled.p`
 export function SectionHeader({ title, description }) {
   return (
     <Wrap>
-      <Title>{title}<span style={{ color: colors.text400 }}>.</span></Title>
+      <Title>{title}<span style={{ color: 'var(--ch-text400, rgb(163 163 163))' }}>.</span></Title>
       {description && <Sub>{description}</Sub>}
     </Wrap>
   );

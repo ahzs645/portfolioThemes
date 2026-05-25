@@ -38,7 +38,7 @@ export function FileTab({ label, sub, index = 0, total = 1 }) {
             />
           </filter>
         </defs>
-        <path d={FILE_TAB_PATH} fill={palette.white} filter={`url(#ftsh-${index})`} />
+        <path d={FILE_TAB_PATH} fill="var(--ttd-white)" filter={`url(#ftsh-${index})`} />
       </Shape>
 
       <Content>
@@ -99,7 +99,7 @@ const Content = styled.div`
 const Title = styled.div`
   font-size: 14px;
   font-weight: 500;
-  color: ${palette.textDark};
+  color: var(--ttd-text-dark);
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;

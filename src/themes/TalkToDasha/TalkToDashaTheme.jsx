@@ -10,7 +10,7 @@ import { DevelopmentSection } from './components/DevelopmentSection';
 import { VolunteerSection } from './components/VolunteerSection';
 import { SocialSection } from './components/SocialSection';
 
-export function TalkToDashaTheme() {
+export function TalkToDashaTheme({ darkMode = false }) {
   const cv = useCV();
 
   const data = useMemo(() => {
@@ -41,7 +41,7 @@ export function TalkToDashaTheme() {
 
   return (
     <>
-      <Page>
+      <Page $dark={darkMode}>
         <Container>
           <Hero name={data.name} title={data.title} location={data.location} />
           <CurrentStatus jobs={data.currentJobs} />

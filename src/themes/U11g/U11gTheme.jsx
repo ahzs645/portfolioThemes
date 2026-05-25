@@ -61,17 +61,27 @@ const tileConfig = [
   { id: 'education', number: '05', title: 'Education', accent: '#ec4899' },
 ];
 
-export function U11gTheme() {
+export function U11gTheme({ darkMode = false }) {
   const cv = useCV() || {};
   const [activePage, setActivePage] = useState(null);
   const [hoveredTile, setHoveredTile] = useState(null);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [theme, setTheme] = useState(() => {
-    if (typeof localStorage === 'undefined') return 'default';
+    if (typeof localStorage === 'undefined') return darkMode ? 'default' : 'nexus';
     const stored = localStorage.getItem(STORAGE_KEY);
-    return THEME_NAMES.includes(stored) ? stored : 'default';
+    return THEME_NAMES.includes(stored) ? stored : (darkMode ? 'default' : 'nexus');
   });
+
+  // Sync with external darkMode prop: switch between dark 'default' and light 'nexus'
+  React.useEffect(() => {
+    setTheme(prev => {
+      const isDarkTheme = prev !== 'nexus';
+      if (darkMode && !isDarkTheme) return 'default';
+      if (!darkMode && isDarkTheme) return 'nexus';
+      return prev;
+    });
+  }, [darkMode]);
 
   useEffect(() => {
     if (typeof localStorage !== 'undefined') {

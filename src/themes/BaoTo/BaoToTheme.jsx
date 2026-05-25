@@ -13,19 +13,51 @@ import { DuckRace } from './components/DuckRace';
 /* ── Constants ── */
 
 const C = {
-  bg: '#f5f1ec',
-  text: '#2a2520',
-  t90: 'rgba(42,37,32,0.90)',
-  t80: 'rgba(42,37,32,0.80)',
-  t60: 'rgba(42,37,32,0.60)',
-  t55: 'rgba(42,37,32,0.55)',
-  t50: 'rgba(42,37,32,0.50)',
-  t40: 'rgba(42,37,32,0.40)',
-  t35: 'rgba(42,37,32,0.35)',
-  t20: 'rgba(42,37,32,0.20)',
-  t10: 'rgba(42,37,32,0.10)',
-  t04: 'rgba(42,37,32,0.04)',
+  bg: 'var(--bt-bg, #f5f1ec)',
+  text: 'var(--bt-text, #2a2520)',
+  t90: 'var(--bt-t90, rgba(42,37,32,0.90))',
+  t80: 'var(--bt-t80, rgba(42,37,32,0.80))',
+  t60: 'var(--bt-t60, rgba(42,37,32,0.60))',
+  t55: 'var(--bt-t55, rgba(42,37,32,0.55))',
+  t50: 'var(--bt-t50, rgba(42,37,32,0.50))',
+  t40: 'var(--bt-t40, rgba(42,37,32,0.40))',
+  t35: 'var(--bt-t35, rgba(42,37,32,0.35))',
+  t20: 'var(--bt-t20, rgba(42,37,32,0.20))',
+  t10: 'var(--bt-t10, rgba(42,37,32,0.10))',
+  t04: 'var(--bt-t04, rgba(42,37,32,0.04))',
   white: '#ffffff',
+};
+
+const LIGHT_VARS = {
+  '--bt-bg': '#f5f1ec',
+  '--bt-text': '#2a2520',
+  '--bt-t90': 'rgba(42,37,32,0.90)',
+  '--bt-t80': 'rgba(42,37,32,0.80)',
+  '--bt-t60': 'rgba(42,37,32,0.60)',
+  '--bt-t55': 'rgba(42,37,32,0.55)',
+  '--bt-t50': 'rgba(42,37,32,0.50)',
+  '--bt-t40': 'rgba(42,37,32,0.40)',
+  '--bt-t35': 'rgba(42,37,32,0.35)',
+  '--bt-t20': 'rgba(42,37,32,0.20)',
+  '--bt-t10': 'rgba(42,37,32,0.10)',
+  '--bt-t04': 'rgba(42,37,32,0.04)',
+  '--bt-chip-hover': '#ffffff',
+};
+
+const DARK_VARS = {
+  '--bt-bg': '#15181d',
+  '--bt-text': '#e8e4de',
+  '--bt-t90': 'rgba(232,228,222,0.90)',
+  '--bt-t80': 'rgba(232,228,222,0.80)',
+  '--bt-t60': 'rgba(232,228,222,0.60)',
+  '--bt-t55': 'rgba(232,228,222,0.55)',
+  '--bt-t50': 'rgba(232,228,222,0.50)',
+  '--bt-t40': 'rgba(232,228,222,0.40)',
+  '--bt-t35': 'rgba(232,228,222,0.35)',
+  '--bt-t20': 'rgba(232,228,222,0.20)',
+  '--bt-t10': 'rgba(232,228,222,0.10)',
+  '--bt-t04': 'rgba(232,228,222,0.05)',
+  '--bt-chip-hover': '#21262d',
 };
 
 const ANIM = {
@@ -529,7 +561,7 @@ const ContactChip = styled.a`
   &:hover {
     color: ${C.t80};
     border-color: ${C.t20};
-    background: ${C.white};
+    background: var(--bt-chip-hover, #ffffff);
     box-shadow: 0 2px 8px rgba(42,37,32,0.05);
   }
 `;
@@ -585,7 +617,7 @@ const PAGES = [
   { key: 'about', label: 'ABOUT' },
 ];
 
-export function BaoToTheme() {
+export function BaoToTheme({ darkMode = false }) {
   const cv = useCV();
   const [page, setPage] = useState('home');
   const [mobileNav, setMobileNav] = useState(false);
@@ -671,7 +703,7 @@ export function BaoToTheme() {
   return (
     <>
       <FontLoader />
-      <PageRoot>
+      <PageRoot style={darkMode ? DARK_VARS : LIGHT_VARS}>
         {/* Paper texture overlay */}
         <PaperOverlay />
 

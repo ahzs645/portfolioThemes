@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import gsap from 'gsap';
 
-export default function InfoSection({ cv }) {
+export default function InfoSection({ cv, $dark = false }) {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -36,15 +36,15 @@ export default function InfoSection({ cv }) {
   return (
     <TabPage ref={ref}>
       <Inner>
-        <SectionLabel data-fade>INFO</SectionLabel>
+        <SectionLabel $dark={$dark} data-fade>INFO</SectionLabel>
 
         <Grid>
           <Column data-fade>
-            <AboutText>{about}</AboutText>
+            <AboutText $dark={$dark}>{about}</AboutText>
             {info.length > 0 && (
               <Block>
-                <BlockLabel>Outside the main thread</BlockLabel>
-                <BulletList>
+                <BlockLabel $dark={$dark}>Outside the main thread</BlockLabel>
+                <BulletList $dark={$dark}>
                   {info.map((item) => <li key={item}>{item}</li>)}
                 </BulletList>
               </Block>
@@ -54,14 +54,14 @@ export default function InfoSection({ cv }) {
           <Column data-fade>
             {elsewhere.length > 0 && (
               <Block>
-                <BlockLabel>Elsewhere on the web...</BlockLabel>
+                <BlockLabel $dark={$dark}>Elsewhere on the web...</BlockLabel>
                 <LinkList>
                   {elsewhere.map((item) => (
                     <LinkRow key={`${item.label}-${item.href}`}>
-                      <ExtLink href={item.href} target={item.href?.startsWith('mailto:') ? undefined : '_blank'} rel="noreferrer" data-cursor-hover>
+                      <ExtLink $dark={$dark} href={item.href} target={item.href?.startsWith('mailto:') ? undefined : '_blank'} rel="noreferrer" data-cursor-hover>
                         {item.label}
                       </ExtLink>
-                      {item.detail && <LinkDetail>{item.detail}</LinkDetail>}
+                      {item.detail && <LinkDetail $dark={$dark}>{item.detail}</LinkDetail>}
                     </LinkRow>
                   ))}
                 </LinkList>
@@ -97,7 +97,7 @@ const SectionLabel = styled.h2`
   font-size: 13px;
   font-weight: 400;
   letter-spacing: 0.08em;
-  color: rgb(119, 111, 100);
+  color: ${p => p.$dark ? 'rgb(140, 130, 115)' : 'rgb(119, 111, 100)'};
   text-transform: uppercase;
 `;
 
@@ -123,7 +123,7 @@ const AboutText = styled.p`
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 18px;
   line-height: 1.7;
-  color: rgb(41, 72, 110);
+  color: ${p => p.$dark ? 'rgb(140, 175, 220)' : 'rgb(41, 72, 110)'};
   letter-spacing: -0.01em;
 `;
 
@@ -137,7 +137,7 @@ const BlockLabel = styled.div`
   font-family: 'Server Mono', 'IBM Plex Mono', monospace;
   font-size: 13px;
   letter-spacing: -0.01em;
-  color: rgb(119, 111, 100);
+  color: ${p => p.$dark ? 'rgb(140, 130, 115)' : 'rgb(119, 111, 100)'};
 `;
 
 const BulletList = styled.ul`
@@ -146,7 +146,7 @@ const BulletList = styled.ul`
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 16px;
   line-height: 1.8;
-  color: rgb(115, 131, 153);
+  color: ${p => p.$dark ? 'rgb(110, 125, 148)' : 'rgb(115, 131, 153)'};
 `;
 
 const LinkList = styled.div`
@@ -164,18 +164,18 @@ const LinkRow = styled.div`
 const ExtLink = styled.a`
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 16px;
-  color: rgb(41, 72, 110);
+  color: ${p => p.$dark ? 'rgb(140, 175, 220)' : 'rgb(41, 72, 110)'};
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.15em;
 
   &:hover {
-    color: rgb(74, 88, 189);
+    color: ${p => p.$dark ? 'rgb(180, 210, 250)' : 'rgb(74, 88, 189)'};
   }
 `;
 
 const LinkDetail = styled.span`
   font-family: 'Server Mono', 'IBM Plex Mono', monospace;
   font-size: 13px;
-  color: rgb(175, 184, 196);
+  color: ${p => p.$dark ? 'rgb(100, 115, 135)' : 'rgb(175, 184, 196)'};
 `;

@@ -70,9 +70,11 @@ function AnimatedRow({ children, index = 0, isDark }) {
   );
 }
 
-export function FelixDornerTheme() {
+export function FelixDornerTheme({ darkMode = false }) {
   const cv = useCV() || {};
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(darkMode);
+
+  useEffect(() => { setIsDark(darkMode); }, [darkMode]);
 
   const fullName = cv?.name || 'Your Name';
   const firstName = fullName.split(' ')[0];

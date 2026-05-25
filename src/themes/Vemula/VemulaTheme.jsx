@@ -49,7 +49,7 @@ function useIsMobile() {
 const SWIPE_THRESHOLD = 70;
 const TAP_THRESHOLD = 6;
 
-export function VemulaTheme() {
+export function VemulaTheme({ darkMode = false }) {
   const cv = useCV();
   const containerRef = useRef(null);
   const [overlap, setOverlap] = useState(180);
@@ -196,9 +196,9 @@ export function VemulaTheme() {
   return (
     <>
       <FontLoader />
-      <Page className="vemula-theme">
+      <Page className="vemula-theme" $dark={darkMode}>
         <div>
-          <Title>
+          <Title $dark={darkMode}>
             Hey there, I am {firstName}
             {avatar && (
               <img className="avatar" src={avatar} alt={`${firstName}'s profile`} />
@@ -208,7 +208,7 @@ export function VemulaTheme() {
               <Sparkle />
             </span>
           </Title>
-          <Subtitle>
+          <Subtitle $dark={darkMode}>
             <span className="dot" aria-hidden="true" />
             {current ? (
               <span>

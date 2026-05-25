@@ -207,7 +207,7 @@ function useTypedText(text, active = true, delay = 0, speed = 72) {
   return typed;
 }
 
-export function FloperillatChatTheme() {
+export function FloperillatChatTheme({ darkMode = false }) {
   const cv = useCV();
   const profile = useMemo(() => makeProfile(cv), [cv]);
   const heroText = 'Hello, world.';
@@ -267,12 +267,12 @@ export function FloperillatChatTheme() {
     .toUpperCase();
 
   return (
-    <Page>
-      <TopNav aria-label="Profile links" $show={introDone}>
-        <MutedNavItem>{profile.location || 'About'}</MutedNavItem>
-        {profile.email && <TextLink href={`mailto:${profile.email}`}>Contact</TextLink>}
-        {profile.socials.github && <TextLink href={profile.socials.github}>GitHub</TextLink>}
-        {profile.socials.linkedin && <TextLink href={profile.socials.linkedin}>LinkedIn</TextLink>}
+    <Page $dark={darkMode}>
+      <TopNav aria-label="Profile links" $show={introDone} $dark={darkMode}>
+        <MutedNavItem $dark={darkMode}>{profile.location || 'About'}</MutedNavItem>
+        {profile.email && <TextLink href={`mailto:${profile.email}`} $dark={darkMode}>Contact</TextLink>}
+        {profile.socials.github && <TextLink href={profile.socials.github} $dark={darkMode}>GitHub</TextLink>}
+        {profile.socials.linkedin && <TextLink href={profile.socials.linkedin} $dark={darkMode}>LinkedIn</TextLink>}
       </TopNav>
 
       <Hero $settled={introDone}>
@@ -288,20 +288,20 @@ export function FloperillatChatTheme() {
         <Transcript ref={transcriptRef} aria-live="polite">
           {introActive && (
             <MessageRow $from="bot" $visible={Boolean(typedIntro)}>
-              <Avatar>{initials}</Avatar>
-              <Bubble $from="bot">{typedIntro || ' '}</Bubble>
+              <Avatar $dark={darkMode}>{initials}</Avatar>
+              <Bubble $from="bot" $dark={darkMode}>{typedIntro || ' '}</Bubble>
             </MessageRow>
           )}
           {messages.map((message) => (
             <MessageRow key={message.id} $from={message.from}>
-              {message.from === 'bot' && <Avatar>{initials}</Avatar>}
-              <Bubble $from={message.from}>{message.text}</Bubble>
+              {message.from === 'bot' && <Avatar $dark={darkMode}>{initials}</Avatar>}
+              <Bubble $from={message.from} $dark={darkMode}>{message.text}</Bubble>
             </MessageRow>
           ))}
           {isTyping && (
             <MessageRow $from="bot">
-              <Avatar>{initials}</Avatar>
-              <TypingBubble aria-label={`${profile.firstName} is typing`}>
+              <Avatar $dark={darkMode}>{initials}</Avatar>
+              <TypingBubble aria-label={`${profile.firstName} is typing`} $dark={darkMode}>
                 <span />
                 <span />
                 <span />
@@ -319,18 +319,20 @@ export function FloperillatChatTheme() {
               type="button"
               onClick={() => sendPrompt(topic.prompt)}
               disabled={isTyping}
+              $dark={darkMode}
             >
               {topic.label}
             </SuggestionButton>
           ))}
         </Suggestions>
 
-        <Composer onSubmit={handleSubmit}>
+        <Composer onSubmit={handleSubmit} $dark={darkMode}>
           <ComposerInput
             value={input}
             onChange={(event) => setInput(event.target.value)}
             placeholder="Ask about the resume"
             aria-label="Ask about the resume"
+            $dark={darkMode}
           />
           <SendButton type="submit" disabled={!input.trim() || isTyping} aria-label="Send message">
             <ArrowUp size={18} strokeWidth={3} />
@@ -363,9 +365,10 @@ const Page = styled.main`
   align-items: center;
   justify-content: center;
   padding: 96px 18px 210px;
-  background: #fff;
-  color: #0b0b0c;
+  background: ${({ $dark }) => ($dark ? '#0f1115' : '#fff')};
+  color: ${({ $dark }) => ($dark ? '#e6e6e6' : '#0b0b0c')};
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Helvetica, Arial, sans-serif;
+  transition: background 0.25s ease, color 0.25s ease;
 
   @media (max-width: 680px) {
     padding: 82px 14px 188px;
@@ -387,7 +390,7 @@ const TopNav = styled.nav`
 `;
 
 const MutedNavItem = styled.span`
-  color: rgba(0, 0, 0, 0.4);
+  color: ${({ $dark }) => ($dark ? 'rgba(255,255,255,0.38)' : 'rgba(0,0,0,0.4)')};
   font-size: 14px;
   font-weight: 500;
   padding: 8px 14px;
@@ -398,7 +401,7 @@ const MutedNavItem = styled.span`
 `;
 
 const TextLink = styled.a`
-  color: rgba(0, 0, 0, 0.72);
+  color: ${({ $dark }) => ($dark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.72)')};
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
@@ -407,8 +410,8 @@ const TextLink = styled.a`
   transition: background-color 180ms ease, color 180ms ease;
 
   &:hover {
-    background: rgba(0, 0, 0, 0.06);
-    color: #000;
+    background: ${({ $dark }) => ($dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)')};
+    color: ${({ $dark }) => ($dark ? '#fff' : '#000')};
   }
 `;
 
@@ -490,7 +493,7 @@ const Avatar = styled.div`
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: linear-gradient(145deg, #111, #565656);
+  background: ${({ $dark }) => ($dark ? 'linear-gradient(145deg, #2a2d35, #4a4f5a)' : 'linear-gradient(145deg, #111, #565656)')};
   color: #fff;
   font-size: 12px;
   font-weight: 700;
@@ -502,8 +505,10 @@ const Bubble = styled.div`
   max-width: 100%;
   padding: 10px 15px;
   border-radius: 22px;
-  background: ${({ $from }) => ($from === 'user' ? '#1a89ff' : '#efefef')};
-  color: ${({ $from }) => ($from === 'user' ? '#fff' : '#0b0b0c')};
+  background: ${({ $from, $dark }) =>
+    $from === 'user' ? '#1a89ff' : ($dark ? '#252830' : '#efefef')};
+  color: ${({ $from, $dark }) =>
+    $from === 'user' ? '#fff' : ($dark ? '#e6e6e6' : '#0b0b0c')};
   font-size: 15px;
   line-height: 1.38;
   word-break: break-word;
@@ -550,7 +555,7 @@ const TypingBubble = styled(Bubble)`
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.42);
+    background: ${({ $dark }) => ($dark ? 'rgba(255,255,255,0.42)' : 'rgba(0,0,0,0.42)')};
     animation: ${typingDot} 1.1s ease-in-out infinite;
   }
 
@@ -576,8 +581,8 @@ const SuggestionButton = styled.button`
   border: 0;
   border-radius: 999px;
   padding: 9px 14px;
-  background: #efefef;
-  color: #1a73d9;
+  background: ${({ $dark }) => ($dark ? '#1e2129' : '#efefef')};
+  color: ${({ $dark }) => ($dark ? '#5ba7f5' : '#1a73d9')};
   font: inherit;
   font-size: 14px;
   font-weight: 600;
@@ -585,7 +590,7 @@ const SuggestionButton = styled.button`
   transition: background 160ms ease, transform 160ms ease;
 
   &:hover:not(:disabled) {
-    background: #e7e7e7;
+    background: ${({ $dark }) => ($dark ? '#262b36' : '#e7e7e7')};
     transform: translateY(-1px);
   }
 
@@ -603,8 +608,8 @@ const Composer = styled.form`
   min-height: 48px;
   padding: 5px 5px 5px 18px;
   border-radius: 999px;
-  background: rgba(239, 239, 239, 0.92);
-  box-shadow: inset 0 0 0 1px #f8f8f8;
+  background: ${({ $dark }) => ($dark ? 'rgba(30,33,41,0.92)' : 'rgba(239,239,239,0.92)')};
+  box-shadow: inset 0 0 0 1px ${({ $dark }) => ($dark ? '#2e3240' : '#f8f8f8')};
   backdrop-filter: blur(20px) saturate(160%);
 `;
 
@@ -614,12 +619,12 @@ const ComposerInput = styled.input`
   border: 0;
   outline: 0;
   background: transparent;
-  color: #111;
+  color: ${({ $dark }) => ($dark ? '#e6e6e6' : '#111')};
   font: inherit;
   font-size: 15px;
 
   &::placeholder {
-    color: rgba(0, 0, 0, 0.44);
+    color: ${({ $dark }) => ($dark ? 'rgba(255,255,255,0.38)' : 'rgba(0,0,0,0.44)')};
   }
 `;
 

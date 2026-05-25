@@ -38,7 +38,7 @@ function pickSocialUrl(socials, networkNames = []) {
   return found?.url || null;
 }
 
-export function StefanZweifelTheme() {
+export function StefanZweifelTheme({ darkMode = false }) {
   const cv = useCV() || {};
 
   const fullName = cv?.name || 'Your Name';
@@ -143,7 +143,7 @@ export function StefanZweifelTheme() {
   }, [cv]);
 
   return (
-    <Container>
+    <Container $dark={darkMode}>
       <PrideBarWrapper>
         <PrideBar $blur="4px" />
         <PrideBar $blur="1px" />
@@ -151,8 +151,8 @@ export function StefanZweifelTheme() {
 
       <Content>
         <Header>
-          <HeaderName href="#">{fullName}</HeaderName>
-          <Nav>
+          <HeaderName href="#" $dark={darkMode}>{fullName}</HeaderName>
+          <Nav $dark={darkMode}>
             <NavLink href="#about">About</NavLink>
             <NavLink href="#experience">Experience</NavLink>
             <NavLink href="#projects">Projects</NavLink>
@@ -162,18 +162,18 @@ export function StefanZweifelTheme() {
         <Main>
           <IntroSection>
             <PrideSquare />
-            <IntroName>{fullName}</IntroName>
-            <IntroTitle>{currentPosition}</IntroTitle>
+            <IntroName $dark={darkMode}>{fullName}</IntroName>
+            <IntroTitle $dark={darkMode}>{currentPosition}</IntroTitle>
           </IntroSection>
 
           {aboutText && (
             <ProseSection id="about">
-              <Prose>{aboutText}</Prose>
+              <Prose $dark={darkMode}>{aboutText}</Prose>
             </ProseSection>
           )}
 
           <Section>
-            <SectionTitle>On the web</SectionTitle>
+            <SectionTitle $dark={darkMode}>On the web</SectionTitle>
             <SocialList>
               {mastodonUrl && (
                 <SocialItem>
@@ -210,11 +210,11 @@ export function StefanZweifelTheme() {
 
           {experienceItems.length > 0 && (
             <Section id="experience">
-              <SectionTitle>Experience</SectionTitle>
+              <SectionTitle $dark={darkMode}>Experience</SectionTitle>
               <ItemList>
                 {experienceItems.map((exp, idx) => (
                   <NestedExperience key={`exp-${idx}`}>
-                    <CompanyHeader>
+                    <CompanyHeader $dark={darkMode}>
                       {exp.url ? (
                         <ItemLink href={exp.url} target="_blank" rel="noopener">
                           {exp.company}
@@ -223,18 +223,18 @@ export function StefanZweifelTheme() {
                         exp.company
                       )}
                     </CompanyHeader>
-                    <NestedPositions>
+                    <NestedPositions $dark={darkMode}>
                       {exp.type === 'nested' ? (
                         exp.positions.map((pos, posIdx) => (
                           <PositionRow key={`pos-${posIdx}`}>
-                            <ItemDate>{pos.startDate}</ItemDate>
-                            <ItemContent>{pos.title}</ItemContent>
+                            <ItemDate $dark={darkMode}>{pos.startDate}</ItemDate>
+                            <ItemContent $dark={darkMode}>{pos.title}</ItemContent>
                           </PositionRow>
                         ))
                       ) : (
                         <PositionRow>
-                          <ItemDate>{exp.startDate}</ItemDate>
-                          <ItemContent>{exp.title}</ItemContent>
+                          <ItemDate $dark={darkMode}>{exp.startDate}</ItemDate>
+                          <ItemContent $dark={darkMode}>{exp.title}</ItemContent>
                         </PositionRow>
                       )}
                     </NestedPositions>
@@ -246,12 +246,12 @@ export function StefanZweifelTheme() {
 
           {projectItems.length > 0 && (
             <Section id="projects">
-              <SectionTitle>Projects</SectionTitle>
+              <SectionTitle $dark={darkMode}>Projects</SectionTitle>
               <ItemList>
                 {projectItems.map((project, idx) => (
                   <ListItem key={`proj-${idx}`}>
-                    <ItemDate></ItemDate>
-                    <ItemContent>
+                    <ItemDate $dark={darkMode}></ItemDate>
+                    <ItemContent $dark={darkMode}>
                       {project.url ? (
                         <ItemLink href={project.url} target="_blank" rel="noopener">
                           {project.name}
@@ -259,7 +259,7 @@ export function StefanZweifelTheme() {
                       ) : (
                         <span>{project.name}</span>
                       )}
-                      {project.summary && <ItemSummary> — {project.summary}</ItemSummary>}
+                      {project.summary && <ItemSummary $dark={darkMode}> — {project.summary}</ItemSummary>}
                     </ItemContent>
                   </ListItem>
                 ))}
@@ -269,12 +269,12 @@ export function StefanZweifelTheme() {
 
           {educationItems.length > 0 && (
             <Section id="education">
-              <SectionTitle>Education</SectionTitle>
+              <SectionTitle $dark={darkMode}>Education</SectionTitle>
               <ItemList>
                 {educationItems.map((edu, idx) => (
                   <ListItem key={`edu-${idx}`}>
-                    <ItemDate>{formatDateShort(edu.end_date || edu.graduation_date)}</ItemDate>
-                    <ItemContent>
+                    <ItemDate $dark={darkMode}>{formatDateShort(edu.end_date || edu.graduation_date)}</ItemDate>
+                    <ItemContent $dark={darkMode}>
                       {edu.url ? (
                         <ItemLink href={edu.url} target="_blank" rel="noopener">
                           {edu.degree || edu.area} at {edu.institution}
@@ -291,12 +291,12 @@ export function StefanZweifelTheme() {
 
           {volunteerItems.length > 0 && (
             <Section id="volunteer">
-              <SectionTitle>Volunteer</SectionTitle>
+              <SectionTitle $dark={darkMode}>Volunteer</SectionTitle>
               <ItemList>
                 {volunteerItems.map((vol, idx) => (
                   <ListItem key={`vol-${idx}`}>
-                    <ItemDate>{vol.startDate}</ItemDate>
-                    <ItemContent>
+                    <ItemDate $dark={darkMode}>{vol.startDate}</ItemDate>
+                    <ItemContent $dark={darkMode}>
                       {vol.url ? (
                         <ItemLink href={vol.url} target="_blank" rel="noopener">
                           {vol.position} at {vol.organization}
@@ -313,12 +313,12 @@ export function StefanZweifelTheme() {
 
           {publicationItems.length > 0 && (
             <Section id="publications">
-              <SectionTitle>Publications</SectionTitle>
+              <SectionTitle $dark={darkMode}>Publications</SectionTitle>
               <ItemList>
                 {publicationItems.map((pub, idx) => (
                   <ListItem key={`pub-${idx}`}>
-                    <ItemDate>{formatDateShort(pub.date || pub.releaseDate)}</ItemDate>
-                    <ItemContent>
+                    <ItemDate $dark={darkMode}>{formatDateShort(pub.date || pub.releaseDate)}</ItemDate>
+                    <ItemContent $dark={darkMode}>
                       {(pub.url || pub.doi) ? (
                         <ItemLink href={pub.url || `https://doi.org/${pub.doi}`} target="_blank" rel="noopener">
                           {pub.name || pub.title}
@@ -327,7 +327,7 @@ export function StefanZweifelTheme() {
                         <span>{pub.name || pub.title}</span>
                       )}
                       {(pub.publisher || pub.journal) && (
-                        <ItemSummary> — {pub.publisher || pub.journal}</ItemSummary>
+                        <ItemSummary $dark={darkMode}> — {pub.publisher || pub.journal}</ItemSummary>
                       )}
                     </ItemContent>
                   </ListItem>
@@ -338,14 +338,14 @@ export function StefanZweifelTheme() {
 
           {awardItems.length > 0 && (
             <Section id="awards">
-              <SectionTitle>Awards</SectionTitle>
+              <SectionTitle $dark={darkMode}>Awards</SectionTitle>
               <ItemList>
                 {awardItems.map((award, idx) => (
                   <ListItem key={`award-${idx}`}>
-                    <ItemDate>{formatDateShort(award.date)}</ItemDate>
-                    <ItemContent>
+                    <ItemDate $dark={darkMode}>{formatDateShort(award.date)}</ItemDate>
+                    <ItemContent $dark={darkMode}>
                       <span>{award.name}</span>
-                      {award.summary && <ItemSummary> — {award.summary}</ItemSummary>}
+                      {award.summary && <ItemSummary $dark={darkMode}> — {award.summary}</ItemSummary>}
                     </ItemContent>
                   </ListItem>
                 ))}
@@ -355,14 +355,14 @@ export function StefanZweifelTheme() {
 
           {presentationItems.length > 0 && (
             <Section id="presentations">
-              <SectionTitle>Presentations</SectionTitle>
+              <SectionTitle $dark={darkMode}>Presentations</SectionTitle>
               <ItemList>
                 {presentationItems.map((pres, idx) => (
                   <ListItem key={`pres-${idx}`}>
-                    <ItemDate>{formatDateShort(pres.date)}</ItemDate>
-                    <ItemContent>
+                    <ItemDate $dark={darkMode}>{formatDateShort(pres.date)}</ItemDate>
+                    <ItemContent $dark={darkMode}>
                       <span>{pres.name}</span>
-                      {pres.location && <ItemSummary> — {pres.location}</ItemSummary>}
+                      {pres.location && <ItemSummary $dark={darkMode}> — {pres.location}</ItemSummary>}
                     </ItemContent>
                   </ListItem>
                 ))}
@@ -372,14 +372,14 @@ export function StefanZweifelTheme() {
 
           {professionalDevItems.length > 0 && (
             <Section id="professional-development">
-              <SectionTitle>Professional Development</SectionTitle>
+              <SectionTitle $dark={darkMode}>Professional Development</SectionTitle>
               <ItemList>
                 {professionalDevItems.map((item, idx) => (
                   <ListItem key={`profdev-${idx}`}>
-                    <ItemDate>{formatDateShort(item.date)}</ItemDate>
-                    <ItemContent>
+                    <ItemDate $dark={darkMode}>{formatDateShort(item.date)}</ItemDate>
+                    <ItemContent $dark={darkMode}>
                       <span>{item.name}</span>
-                      {item.location && <ItemSummary> — {item.location}</ItemSummary>}
+                      {item.location && <ItemSummary $dark={darkMode}> — {item.location}</ItemSummary>}
                     </ItemContent>
                   </ListItem>
                 ))}
@@ -388,8 +388,8 @@ export function StefanZweifelTheme() {
           )}
         </Main>
 
-        <Footer>
-          <FooterText>
+        <Footer $dark={darkMode}>
+          <FooterText $dark={darkMode}>
             {location && <span>Based in {location}. </span>}
             <span>© {new Date().getFullYear()} {fullName}</span>
           </FooterText>
@@ -402,16 +402,16 @@ export function StefanZweifelTheme() {
 const Container = styled.div`
   min-height: 100vh;
   width: 100%;
-  background-color: #ffffff;
-  color: #0f172a;
+  background-color: ${p => p.$dark ? '#15181d' : '#ffffff'};
+  color: ${p => p.$dark ? '#e2e8f0' : '#0f172a'};
   font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 
   ::selection {
-    background-color: #fef4ad;
-    color: #160404;
+    background-color: ${p => p.$dark ? '#334155' : '#fef4ad'};
+    color: ${p => p.$dark ? '#e2e8f0' : '#160404'};
   }
 `;
 
@@ -483,7 +483,7 @@ const HeaderName = styled.a`
   transition: background-color 0.15s ease;
 
   &:hover {
-    background-color: #f3f4f6;
+    background-color: ${p => p.$dark ? '#1e2530' : '#f3f4f6'};
   }
 `;
 
@@ -491,7 +491,7 @@ const Nav = styled.nav`
   display: flex;
   gap: 1rem;
   font-size: 0.875rem;
-  color: #475569;
+  color: ${p => p.$dark ? '#94a3b8' : '#475569'};
   font-weight: 500;
 `;
 
@@ -547,14 +547,14 @@ const PrideSquare = styled.div`
 const IntroName = styled.h1`
   font-size: 1rem;
   font-weight: 500;
-  color: #0f172a;
+  color: ${p => p.$dark ? '#e2e8f0' : '#0f172a'};
   margin: 0;
 `;
 
 const IntroTitle = styled.h2`
   font-size: 1rem;
   font-weight: 500;
-  color: #475569;
+  color: ${p => p.$dark ? '#94a3b8' : '#475569'};
   margin: 0;
 `;
 
@@ -563,11 +563,11 @@ const ProseSection = styled.section`
 `;
 
 const Prose = styled.div`
-  color: #374151;
+  color: ${p => p.$dark ? '#cbd5e1' : '#374151'};
   line-height: 1.75;
 
   a {
-    color: #0f172a;
+    color: ${p => p.$dark ? '#e2e8f0' : '#0f172a'};
     text-decoration: underline;
 
     &:hover {
@@ -575,7 +575,7 @@ const Prose = styled.div`
     }
 
     &:visited {
-      color: #0f172a;
+      color: ${p => p.$dark ? '#94a3b8' : '#0f172a'};
     }
   }
 `;
@@ -587,7 +587,7 @@ const Section = styled.section`
 const SectionTitle = styled.h3`
   font-size: 1rem;
   font-weight: 500;
-  color: #0f172a;
+  color: ${p => p.$dark ? '#e2e8f0' : '#0f172a'};
   margin: 0 0 0.5rem;
 `;
 
@@ -633,13 +633,13 @@ const PositionRow = styled.div`
 const ItemDate = styled.span`
   flex-shrink: 0;
   width: 5rem;
-  color: #6b7280;
+  color: ${p => p.$dark ? '#64748b' : '#6b7280'};
   font-variant-numeric: tabular-nums;
   font-size: 0.875rem;
 `;
 
 const ItemContent = styled.div`
-  color: #1e293b;
+  color: ${p => p.$dark ? '#e2e8f0' : '#1e293b'};
 `;
 
 const ItemLink = styled.a`
@@ -652,7 +652,7 @@ const ItemLink = styled.a`
 `;
 
 const ItemSummary = styled.span`
-  color: #6b7280;
+  color: ${p => p.$dark ? '#64748b' : '#6b7280'};
 `;
 
 const NestedExperience = styled.li`
@@ -663,7 +663,7 @@ const NestedExperience = styled.li`
 
 const CompanyHeader = styled.div`
   font-weight: 500;
-  color: #0f172a;
+  color: ${p => p.$dark ? '#e2e8f0' : '#0f172a'};
 `;
 
 const NestedPositions = styled.div`
@@ -671,18 +671,18 @@ const NestedPositions = styled.div`
   flex-direction: column;
   gap: 0.25rem;
   padding-left: 1rem;
-  border-left: 2px solid #e5e7eb;
+  border-left: 2px solid ${p => p.$dark ? '#334155' : '#e5e7eb'};
 `;
 
 const Footer = styled.footer`
   margin-top: 6rem;
   margin-bottom: 3rem;
   padding-top: 2rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid ${p => p.$dark ? '#1e293b' : '#e5e7eb'};
 `;
 
 const FooterText = styled.p`
   font-size: 0.875rem;
-  color: #6b7280;
+  color: ${p => p.$dark ? '#64748b' : '#6b7280'};
   margin: 0;
 `;

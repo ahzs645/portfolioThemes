@@ -31,9 +31,16 @@ export const FILE_TAB_PATH =
 export const FILE_TAB_VIEWBOX = '0 0 230 56';
 
 export const Page = styled.div`
+  --ttd-bg: ${p => p.$dark ? '#1a1a1f' : palette.bg};
+  --ttd-text: ${p => p.$dark ? '#a8a8a8' : palette.text};
+  --ttd-text-dark: ${p => p.$dark ? '#e6e6e6' : palette.textDark};
+  --ttd-live: ${p => p.$dark ? '#4caf50' : palette.live};
+  --ttd-live-bg: ${p => p.$dark ? '#1c2e1c' : palette.liveBg};
+  --ttd-white: ${p => p.$dark ? '#242428' : palette.white};
+
   min-height: 100vh;
-  background: ${palette.bg};
-  color: ${palette.text};
+  background: var(--ttd-bg);
+  color: var(--ttd-text);
   font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   padding: 80px 24px 120px;
@@ -61,6 +68,6 @@ export const FolderGrid = styled.section`
 
 export const Footer = styled.footer`
   font-size: 13px;
-  color: ${palette.text};
+  color: var(--ttd-text);
   margin-top: 8px;
 `;

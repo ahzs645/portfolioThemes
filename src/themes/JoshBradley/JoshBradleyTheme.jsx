@@ -69,7 +69,7 @@ const NAV_ITEMS = [
   { id: 'prof-dev', label: 'prof. dev.' },
 ];
 
-export function JoshBradleyTheme() {
+export function JoshBradleyTheme({ darkMode = false }) {
   const cv = useCV() || {};
   const [activeSection, setActiveSection] = useState('about');
 
@@ -327,9 +327,9 @@ export function JoshBradleyTheme() {
   };
 
   return (
-    <Container>
+    <Container $dark={darkMode}>
       <Layout>
-        <Nav>
+        <Nav $dark={darkMode}>
           <NavMenu>
             {visibleNavItems.map(item => (
               <NavItem key={item.id}>
@@ -337,6 +337,7 @@ export function JoshBradleyTheme() {
                   href="#"
                   onClick={(e) => { e.preventDefault(); setActiveSection(item.id); }}
                   $active={activeSection === item.id}
+                  $dark={darkMode}
                 >
                   <em>{item.label}</em>
                 </NavLink>
@@ -345,7 +346,7 @@ export function JoshBradleyTheme() {
           </NavMenu>
         </Nav>
         <Main>
-          <VerticalLine />
+          <VerticalLine $dark={darkMode} />
           <ArticleWrapper key={activeSection}>
             {renderContent()}
           </ArticleWrapper>
@@ -358,14 +359,21 @@ export function JoshBradleyTheme() {
 const Container = styled.div`
   height: 100%;
   width: 100%;
-  background-color: #faf9f5;
-  color: #3e3d3b;
+  background-color: ${p => p.$dark ? '#15181d' : '#faf9f5'};
+  color: ${p => p.$dark ? '#d4d2cb' : '#3e3d3b'};
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-size: 14px;
   line-height: 1.6;
   overflow: auto;
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
+
+  --jb-heading: ${p => p.$dark ? '#ccc9c0' : '#1f1e1d'};
+  --jb-muted: ${p => p.$dark ? '#6b6860' : '#adaba2'};
+  --jb-border: ${p => p.$dark ? '#2d2f33' : '#e8e6dc'};
+  --jb-dots: ${p => p.$dark ? '#4a4843' : '#d4d2c9'};
+  --jb-desc: ${p => p.$dark ? '#9a9890' : '#5e5d59'};
+  --jb-hover: ${p => p.$dark ? '#e6e4dc' : '#000'};
 `;
 
 const Layout = styled.div`
@@ -391,7 +399,7 @@ const Layout = styled.div`
 const Nav = styled.nav`
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e8e6dc;
+  border-bottom: 1px solid ${p => p.$dark ? '#2d2f33' : '#e8e6dc'};
   font-size: 1rem;
   line-height: 1.25;
 
@@ -441,14 +449,16 @@ const NavMenu = styled.menu`
 const NavItem = styled.li``;
 
 const NavLink = styled.a`
-  color: ${props => props.$active ? '#1f1e1d' : '#adaba2'};
+  color: ${props => props.$active
+    ? (props.$dark ? '#e6e4dc' : '#1f1e1d')
+    : (props.$dark ? '#6b6860' : '#adaba2')};
   text-decoration: none;
   transition: color 0.2s ease;
   font-style: italic;
   font-family: 'Lora', Georgia, 'Times New Roman', serif;
 
   &:hover {
-    color: #1f1e1d;
+    color: ${props => props.$dark ? '#e6e4dc' : '#1f1e1d'};
   }
 `;
 
@@ -482,7 +492,7 @@ const VerticalLine = styled.div`
     top: 0;
     left: 0;
     height: 100%;
-    border-left: 1px solid #e8e6dc;
+    border-left: 1px solid ${p => p.$dark ? '#2d2f33' : '#e8e6dc'};
   }
 `;
 
@@ -493,7 +503,7 @@ const Article = styled.article`
 const SectionTitle = styled.h1`
   font-size: 0.875rem;
   font-weight: 500;
-  color: #1f1e1d;
+  color: var(--jb-heading);
   margin: 0 0 2rem;
   text-align: left;
 `;
@@ -501,7 +511,7 @@ const SectionTitle = styled.h1`
 const PageTitle = styled.h1`
   font-size: 0.875rem;
   font-weight: 500;
-  color: #1f1e1d;
+  color: var(--jb-heading);
   margin: 0 0 1.5rem;
   text-align: left;
 `;
@@ -509,7 +519,7 @@ const PageTitle = styled.h1`
 const SubTitle = styled.h2`
   font-size: 0.875rem;
   font-weight: 500;
-  color: #1f1e1d;
+  color: var(--jb-heading);
   margin: 2rem 0 1rem;
   text-align: left;
 `;
@@ -531,14 +541,14 @@ const Prose = styled.div`
     transition: color 0.2s ease;
 
     &:hover {
-      color: #000;
+      color: var(--jb-hover);
     }
   }
 `;
 
 const Divider = styled.hr`
   border: none;
-  border-top: 1px solid #e8e6dc;
+  border-top: 1px solid var(--jb-border);
   margin: 2rem 0;
 `;
 
@@ -555,7 +565,7 @@ const SocialLink = styled.a`
   transition: color 0.2s ease;
 
   &:hover {
-    color: #000;
+    color: var(--jb-hover);
   }
 `;
 
@@ -582,13 +592,13 @@ const LeaderTitle = styled.span`
 
 const LeaderDots = styled.span`
   flex: 1;
-  border-bottom: 1px dotted #d4d2c9;
+  border-bottom: 1px dotted var(--jb-dots);
   min-width: 1rem;
   margin-bottom: 0.25rem;
 `;
 
 const LeaderDate = styled.span`
-  color: #adaba2;
+  color: var(--jb-muted);
   white-space: nowrap;
   flex-shrink: 0;
 `;
@@ -612,7 +622,7 @@ const ProjectTitle = styled.h3`
   font-weight: 600;
   margin: 0 0 1rem;
   text-align: left;
-  color: #1f1e1d;
+  color: var(--jb-heading);
 `;
 
 const ProjectLink = styled.a`
@@ -621,13 +631,13 @@ const ProjectLink = styled.a`
   transition: color 0.2s ease;
 
   &:hover {
-    color: #000;
+    color: var(--jb-hover);
   }
 `;
 
 const ProjectDesc = styled.p`
   margin: 0;
-  color: #5e5d59;
+  color: var(--jb-desc);
   text-align: justify;
   hyphens: auto;
 `;
@@ -662,7 +672,7 @@ const CompanyName = styled.h3`
   font-weight: 500;
   margin: 0 0 0.5rem;
   text-align: left;
-  color: #1f1e1d;
+  color: var(--jb-heading);
 `;
 
 const PositionsList = styled.div`

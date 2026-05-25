@@ -44,18 +44,19 @@ export const Page = styled.div`
   width: 100%;
   min-height: 100vh;
   padding: 20px 20px 50vh;
-  background: #ffffff;
-  color: #4E4E4E;
+  background: ${({ $dark }) => ($dark ? '#111214' : '#ffffff')};
+  color: ${({ $dark }) => ($dark ? '#c8c8c8' : '#4E4E4E')};
   font-family: 'awesomeSerif', Georgia, 'Times New Roman', serif;
   box-sizing: border-box;
   overflow-x: hidden;
+  transition: background 0.25s ease, color 0.25s ease;
 
   @media (min-width: 768px) { padding: 30px 30px 55vh; }
   @media (min-width: 1024px) { padding: 47px 47px 60vh; }
 `;
 
 export const Title = styled.h1`
-  color: #4E4E4E;
+  color: ${({ $dark }) => ($dark ? '#e0e0e0' : '#4E4E4E')};
   font-family: 'awesomeSerif', Georgia, serif;
   font-size: 2.5rem;
   font-weight: 600;
@@ -96,7 +97,7 @@ export const Title = styled.h1`
 `;
 
 export const Subtitle = styled.div`
-  color: #878787;
+  color: ${({ $dark }) => ($dark ? '#888' : '#878787')};
   font-family: 'gtFlexaMono', ui-monospace, 'SF Mono', Menlo, monospace;
   font-size: 0.875rem;
   font-weight: 400;

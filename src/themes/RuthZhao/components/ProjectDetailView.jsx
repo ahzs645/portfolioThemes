@@ -46,7 +46,7 @@ function formatRange(start, end) {
   return `${l} – ${r}`;
 }
 
-export function ProjectDetailView({ project, allProjects, cv, onBack, onSelectProject }) {
+export function ProjectDetailView({ project, allProjects, cv, onBack, onSelectProject, darkMode = false }) {
   const cvProject = (cv?.projects || []).find(
     (p) => p.name?.toUpperCase() === project?.label
   );
@@ -63,33 +63,34 @@ export function ProjectDetailView({ project, allProjects, cv, onBack, onSelectPr
   const type = cvProject?.type || '';
 
   return (
-    <Page>
-      <Sidebar>
+    <Page $dark={darkMode}>
+      <Sidebar $dark={darkMode}>
         <LogoLink onClick={onBack} type="button" title="Back to map">
           {glyphSvg}
-          <LogoName>RUTH ZHAO</LogoName>
+          <LogoName $dark={darkMode}>RUTH ZHAO</LogoName>
         </LogoLink>
 
-        <Divider />
+        <Divider $dark={darkMode} />
 
         <DiagramWrap>
           {triangleDiagramSvg}
           <DiagramDot />
-          <DiagramLabel style={{ top: '28%', right: '-10px' }}>RESEARCH</DiagramLabel>
-          <DiagramLabel style={{ bottom: '-4px', left: '50%', transform: 'translateX(-50%)' }}>CASE STUDY</DiagramLabel>
-          <DiagramLabel style={{ top: '28%', left: '-10px' }}>ART</DiagramLabel>
+          <DiagramLabel $dark={darkMode} style={{ top: '28%', right: '-10px' }}>RESEARCH</DiagramLabel>
+          <DiagramLabel $dark={darkMode} style={{ bottom: '-4px', left: '50%', transform: 'translateX(-50%)' }}>CASE STUDY</DiagramLabel>
+          <DiagramLabel $dark={darkMode} style={{ top: '28%', left: '-10px' }}>ART</DiagramLabel>
         </DiagramWrap>
 
         <NavSections>
           {CATEGORIES.map((cat) => (
             <NavSection key={cat.id}>
-              <NavCategoryLabel>{cat.label}</NavCategoryLabel>
+              <NavCategoryLabel $dark={darkMode}>{cat.label}</NavCategoryLabel>
               {(allProjects || [])
                 .filter((p) => cat.projectIds.includes(p.id))
                 .map((p) => (
                   <NavItem
                     key={p.id}
                     $active={p.id === project?.id}
+                    $dark={darkMode}
                     onClick={() => onSelectProject?.(p)}
                     type="button"
                   >
@@ -103,7 +104,7 @@ export function ProjectDetailView({ project, allProjects, cv, onBack, onSelectPr
 
       <Content>
         <Header>
-          <ProjectTitle>{title}</ProjectTitle>
+          <ProjectTitle $dark={darkMode}>{title}</ProjectTitle>
           {url && (
             <ProjectLink href={url} target="_blank" rel="noreferrer">
               Visit project ↗
@@ -111,37 +112,37 @@ export function ProjectDetailView({ project, allProjects, cv, onBack, onSelectPr
           )}
         </Header>
 
-        <MetaGrid>
+        <MetaGrid $dark={darkMode}>
           {date && (
             <MetaItem>
-              <MetaLabel>Time</MetaLabel>
-              <MetaValue>{date}</MetaValue>
+              <MetaLabel $dark={darkMode}>Time</MetaLabel>
+              <MetaValue $dark={darkMode}>{date}</MetaValue>
             </MetaItem>
           )}
           {type && (
             <MetaItem>
-              <MetaLabel>Genre</MetaLabel>
-              <MetaValue>{type}</MetaValue>
+              <MetaLabel $dark={darkMode}>Genre</MetaLabel>
+              <MetaValue $dark={darkMode}>{type}</MetaValue>
             </MetaItem>
           )}
           {roles.length > 0 && (
             <MetaItem>
-              <MetaLabel>Context</MetaLabel>
-              <MetaValue>{roles.join(', ')}</MetaValue>
+              <MetaLabel $dark={darkMode}>Context</MetaLabel>
+              <MetaValue $dark={darkMode}>{roles.join(', ')}</MetaValue>
             </MetaItem>
           )}
           {keywords.length > 0 && (
             <MetaItem>
-              <MetaLabel>Skills</MetaLabel>
-              <MetaValue>{keywords.join(', ')}</MetaValue>
+              <MetaLabel $dark={darkMode}>Skills</MetaLabel>
+              <MetaValue $dark={darkMode}>{keywords.join(', ')}</MetaValue>
             </MetaItem>
           )}
         </MetaGrid>
 
         {summary && (
           <Section>
-            <SectionLabel>Body</SectionLabel>
-            <BodyText>{summary}</BodyText>
+            <SectionLabel $dark={darkMode}>Body</SectionLabel>
+            <BodyText $dark={darkMode}>{summary}</BodyText>
           </Section>
         )}
 
@@ -149,7 +150,7 @@ export function ProjectDetailView({ project, allProjects, cv, onBack, onSelectPr
           <Section>
             <HighlightList>
               {highlights.map((h, i) => (
-                <HighlightItem key={i}>{h}</HighlightItem>
+                <HighlightItem $dark={darkMode} key={i}>{h}</HighlightItem>
               ))}
             </HighlightList>
           </Section>
@@ -163,7 +164,8 @@ const Page = styled.div`
   display: flex;
   flex-direction: row;
   min-height: 100vh;
-  background: #f7fafa;
+  background: ${(p) => (p.$dark ? '#161c1e' : '#f7fafa')};
+  color: ${(p) => (p.$dark ? '#d0d9dc' : 'inherit')};
   font-family: 'Inter', sans-serif;
   animation: fadeIn 0.3s ease;
 
@@ -184,12 +186,12 @@ const Sidebar = styled.nav`
   display: flex;
   flex-direction: column;
   gap: 24px;
-  border-right: 1px solid rgb(223, 232, 232);
+  border-right: 1px solid ${(p) => (p.$dark ? 'rgb(40, 55, 60)' : 'rgb(223, 232, 232)')};
 
   @media (max-width: 768px) {
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid rgb(223, 232, 232);
+    border-bottom: 1px solid ${(p) => (p.$dark ? 'rgb(40, 55, 60)' : 'rgb(223, 232, 232)')};
     padding: 20px;
   }
 `;
@@ -209,14 +211,14 @@ const LogoLink = styled.button`
 const LogoName = styled.span`
   font-family: 'IBM Plex Mono', monospace;
   font-size: 18px;
-  color: rgb(128, 140, 146);
+  color: ${(p) => (p.$dark ? 'rgb(100, 115, 122)' : 'rgb(128, 140, 146)')};
   letter-spacing: 0.04em;
 `;
 
 const Divider = styled.div`
   width: 100%;
   height: 1px;
-  background: rgb(223, 232, 232);
+  background: ${(p) => (p.$dark ? 'rgb(40, 55, 60)' : 'rgb(223, 232, 232)')};
 `;
 
 const DiagramWrap = styled.div`
@@ -240,7 +242,7 @@ const DiagramLabel = styled.span`
   position: absolute;
   font-family: 'IBM Plex Mono', monospace;
   font-size: 10px;
-  color: rgb(126, 138, 143);
+  color: ${(p) => (p.$dark ? 'rgb(90, 105, 112)' : 'rgb(126, 138, 143)')};
   white-space: nowrap;
 `;
 
@@ -259,7 +261,7 @@ const NavSection = styled.div`
 const NavCategoryLabel = styled.span`
   font-family: 'IBM Plex Mono', monospace;
   font-size: 12px;
-  color: rgb(197, 207, 212);
+  color: ${(p) => (p.$dark ? 'rgb(65, 82, 88)' : 'rgb(197, 207, 212)')};
   letter-spacing: 0.04em;
   margin-bottom: 4px;
 `;
@@ -268,7 +270,7 @@ const NavItem = styled.button`
   display: block;
   font-family: 'IBM Plex Mono', monospace;
   font-size: 14px;
-  color: ${(p) => (p.$active ? '#fff' : 'rgb(81, 93, 98)')};
+  color: ${(p) => (p.$active ? '#fff' : p.$dark ? 'rgb(130, 148, 155)' : 'rgb(81, 93, 98)')};
   background: ${(p) => (p.$active ? '#ff8012' : 'transparent')};
   border: none;
   border-radius: 0;
@@ -279,8 +281,8 @@ const NavItem = styled.button`
   transition: color 0.2s ease, background-color 0.2s ease;
 
   &:hover {
-    color: ${(p) => (p.$active ? '#fff' : '#000')};
-    background: ${(p) => (p.$active ? '#ff8012' : 'rgba(0, 0, 0, 0.04)')};
+    color: ${(p) => (p.$active ? '#fff' : p.$dark ? '#d0d9dc' : '#000')};
+    background: ${(p) => (p.$active ? '#ff8012' : p.$dark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.04)')};
   }
 `;
 
@@ -311,7 +313,7 @@ const ProjectTitle = styled.h1`
   font-family: 'Instrument Serif', 'Georgia', serif;
   font-size: clamp(2rem, 4vw, 3.5rem);
   font-weight: 400;
-  color: #000;
+  color: ${(p) => (p.$dark ? '#e0e8ea' : '#000')};
   margin: 0;
   line-height: 1.1;
 `;
@@ -332,8 +334,8 @@ const MetaGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 24px;
-  border-top: 1px solid rgb(223, 232, 232);
-  border-bottom: 1px solid rgb(223, 232, 232);
+  border-top: 1px solid ${(p) => (p.$dark ? 'rgb(40, 55, 60)' : 'rgb(223, 232, 232)')};
+  border-bottom: 1px solid ${(p) => (p.$dark ? 'rgb(40, 55, 60)' : 'rgb(223, 232, 232)')};
   padding: 24px 0;
 `;
 
@@ -346,7 +348,7 @@ const MetaItem = styled.div`
 const MetaLabel = styled.span`
   font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
-  color: rgb(128, 140, 146);
+  color: ${(p) => (p.$dark ? 'rgb(95, 112, 118)' : 'rgb(128, 140, 146)')};
   text-transform: uppercase;
   letter-spacing: 0.08em;
 `;
@@ -354,7 +356,7 @@ const MetaLabel = styled.span`
 const MetaValue = styled.span`
   font-family: 'Geist', 'Inter', sans-serif;
   font-size: 14px;
-  color: rgb(81, 93, 98);
+  color: ${(p) => (p.$dark ? 'rgb(140, 158, 165)' : 'rgb(81, 93, 98)')};
   line-height: 1.5;
 `;
 
@@ -367,7 +369,7 @@ const Section = styled.div`
 const SectionLabel = styled.span`
   font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
-  color: rgb(128, 140, 146);
+  color: ${(p) => (p.$dark ? 'rgb(95, 112, 118)' : 'rgb(128, 140, 146)')};
   text-transform: uppercase;
   letter-spacing: 0.08em;
 `;
@@ -375,7 +377,7 @@ const SectionLabel = styled.span`
 const BodyText = styled.p`
   font-family: 'Geist', 'Inter', sans-serif;
   font-size: 16px;
-  color: rgb(81, 93, 98);
+  color: ${(p) => (p.$dark ? 'rgb(155, 172, 178)' : 'rgb(81, 93, 98)')};
   line-height: 1.65;
   margin: 0;
   max-width: 600px;
@@ -392,6 +394,6 @@ const HighlightList = styled.ul`
 const HighlightItem = styled.li`
   font-family: 'Geist', 'Inter', sans-serif;
   font-size: 14px;
-  color: rgb(81, 93, 98);
+  color: ${(p) => (p.$dark ? 'rgb(140, 158, 165)' : 'rgb(81, 93, 98)')};
   line-height: 1.55;
 `;

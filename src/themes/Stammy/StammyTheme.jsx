@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 
@@ -75,9 +75,14 @@ const themes = {
   },
 };
 
-export function StammyTheme() {
+export function StammyTheme({ darkMode = false }) {
   const cv = useCV();
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(darkMode);
+
+  // Sync with the global top-bar toggle; the in-theme button can still override afterward
+  useEffect(() => {
+    setIsDark(darkMode);
+  }, [darkMode]);
 
   // Refs for scrolling
   const headerRef = useRef(null);

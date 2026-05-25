@@ -305,7 +305,7 @@ const itemCardStyles = css`
   right: ${(p) => `${p.$right ?? 18}px`};
   border: 0;
   border-radius: 6px;
-  background: #fff;
+  background: var(--ttd-white, #fff);
   box-shadow: 0 -4px 20px 0 ${(p) => p.$shadow};
   color: inherit;
   cursor: pointer;
@@ -330,7 +330,7 @@ const ItemTitle = styled.div`
   right: 11px;
   font-size: 14px;
   font-weight: 500;
-  color: #1e1e1e;
+  color: var(--ttd-text-dark, #1e1e1e);
   line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;

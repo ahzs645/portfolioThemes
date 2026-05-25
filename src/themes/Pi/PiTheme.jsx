@@ -111,7 +111,7 @@ function TimelineList({ items }) {
   );
 }
 
-export function PiTheme() {
+export function PiTheme({ darkMode = false }) {
   const cv = useCV() || {};
 
   const fullName = cv?.name || 'Your Name';
@@ -244,7 +244,7 @@ export function PiTheme() {
   }, [cv]);
 
   return (
-    <Container>
+    <Container $dark={darkMode}>
       <ContentWrapper>
         <Header>
           <Logo>{fullName}</Logo>
@@ -414,14 +414,24 @@ export function PiTheme() {
 const Container = styled.div`
   height: 100%;
   width: 100%;
-  background-color: #f5f4ef;
-  color: #000;
+  background-color: ${(p) => (p.$dark ? '#141413' : '#f5f4ef')};
+  color: ${(p) => (p.$dark ? '#d8d7d2' : '#000')};
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', 'Droid Sans Mono', 'Source Code Pro', monospace;
   font-size: 14px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   overflow-y: auto;
   overflow-x: hidden;
+
+  --pi-bg: ${(p) => (p.$dark ? '#141413' : '#f5f4ef')};
+  --pi-bg-card: ${(p) => (p.$dark ? '#1e1e1c' : '#fff')};
+  --pi-border: ${(p) => (p.$dark ? '#2e2e2b' : '#000')};
+  --pi-border-subtle: ${(p) => (p.$dark ? '#2a2a27' : '#d1d5db')};
+  --pi-dot-main: ${(p) => (p.$dark ? '#b0afa8' : '#111')};
+  --pi-dot-small: ${(p) => (p.$dark ? '#666560' : '#686868')};
+  --pi-muted: ${(p) => (p.$dark ? '#888782' : '#686868')};
+  --pi-shadow: ${(p) => (p.$dark ? '#000' : '#000')};
+  --pi-footer-border: ${(p) => (p.$dark ? '#2e2e2b' : '#000')};
 `;
 
 const ContentWrapper = styled.div`
@@ -503,7 +513,7 @@ const Timeline = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  border-left: 1px solid #d1d5db;
+  border-left: 1px solid var(--pi-border-subtle);
   padding: 1rem 0;
 
   &::before {
@@ -513,7 +523,7 @@ const Timeline = styled.div`
     top: 0;
     height: 1.5rem;
     width: 1px;
-    background: linear-gradient(to bottom, #f5f4ef, transparent);
+    background: linear-gradient(to bottom, var(--pi-bg), transparent);
   }
 
   &::after {
@@ -523,7 +533,7 @@ const Timeline = styled.div`
     bottom: 0;
     height: 1.5rem;
     width: 1px;
-    background: linear-gradient(to top, #f5f4ef, transparent);
+    background: linear-gradient(to top, var(--pi-bg), transparent);
   }
 `;
 
@@ -538,9 +548,9 @@ const TimelineDot = styled.div`
   top: 0.5rem;
   width: ${props => props.$small ? '5px' : '7px'};
   height: ${props => props.$small ? '5px' : '7px'};
-  background-color: ${props => props.$small ? '#686868' : '#111'};
+  background-color: ${props => props.$small ? 'var(--pi-dot-small)' : 'var(--pi-dot-main)'};
   border-radius: 2px;
-  outline: 2px solid #f5f4ef;
+  outline: 2px solid var(--pi-bg);
 `;
 
 const TimelineCard = styled.div`
@@ -548,14 +558,14 @@ const TimelineCard = styled.div`
   flex-direction: column;
   gap: 0.5rem;
   padding: ${props => props.$nested ? '0.5rem 0.75rem' : '0.75rem'};
-  background-color: ${props => props.$featured ? '#fff' : 'transparent'};
-  border: ${props => props.$featured ? '1px solid #000' : 'none'};
-  box-shadow: ${props => props.$featured ? '3px 3px 0px #000' : 'none'};
+  background-color: ${props => props.$featured ? 'var(--pi-bg-card)' : 'transparent'};
+  border: ${props => props.$featured ? '1px solid var(--pi-border)' : 'none'};
+  box-shadow: ${props => props.$featured ? '3px 3px 0px var(--pi-shadow)' : 'none'};
   transition: box-shadow 0.2s ease, background-color 0.2s ease;
 
   &:hover {
-    background-color: ${props => props.$featured ? '#fff' : 'rgba(0, 0, 0, 0.02)'};
-    box-shadow: ${props => props.$featured ? '5px 5px 0px #000' : 'none'};
+    background-color: ${props => props.$featured ? 'var(--pi-bg-card)' : 'rgba(128, 128, 128, 0.06)'};
+    box-shadow: ${props => props.$featured ? '5px 5px 0px var(--pi-shadow)' : 'none'};
   }
 `;
 
@@ -593,14 +603,14 @@ const TimelineTitleLink = styled.a`
 
 const TimelineDate = styled.span`
   font-size: 12px;
-  color: #686868;
+  color: var(--pi-muted);
   white-space: nowrap;
   flex-shrink: 0;
 `;
 
 const TimelineDesc = styled.p`
   font-size: 12px;
-  color: #686868;
+  color: var(--pi-muted);
   margin: 0;
 `;
 
@@ -634,7 +644,7 @@ const ContactLink = styled.a`
 const Footer = styled.footer`
   margin-top: 3rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #000;
+  border-top: 1px solid var(--pi-footer-border);
   display: flex;
   justify-content: space-between;
   align-items: baseline;

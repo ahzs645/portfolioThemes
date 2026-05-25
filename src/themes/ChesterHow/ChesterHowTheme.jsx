@@ -8,7 +8,7 @@ import { Grid } from './components/Grid';
 import { Card } from './components/Card';
 import { Footer } from './components/Footer';
 import { Modal } from './components/Modal';
-import { FRAUNCES_HREF, GlobalReset, colors, fonts } from './styles';
+import { FRAUNCES_HREF, GlobalReset, colors, fonts, CHESTER_LIGHT_VARS, CHESTER_DARK_VARS } from './styles';
 import { buildCards, loadFraunces } from './utils';
 
 const SECTION_DEFS = [
@@ -52,7 +52,7 @@ function readOpenId() {
   return params.get('open') || null;
 }
 
-export function ChesterHowTheme() {
+export function ChesterHowTheme({ darkMode = false }) {
   const cv = useCV();
   const [activeId, setActiveId] = useState(() => readHashSection() || 'about');
   const [openCard, setOpenCard] = useState(null);
@@ -140,7 +140,7 @@ export function ChesterHowTheme() {
   return (
     <>
       <GlobalReset />
-      <Main className="chester-how-main">
+      <Main className="chester-how-main" style={darkMode ? CHESTER_DARK_VARS : CHESTER_LIGHT_VARS}>
         <Container>
           <Nav
             sections={availableSections}

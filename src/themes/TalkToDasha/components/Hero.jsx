@@ -27,12 +27,12 @@ const Wrap = styled.header`
 const Greeting = styled.h1`
   font-size: clamp(32px, 5vw, 44px);
   font-weight: 500;
-  color: ${palette.textDark};
+  color: var(--ttd-text-dark);
   margin: 0;
   line-height: 1.15;
 
   span {
-    color: ${palette.textDark};
+    color: var(--ttd-text-dark);
     text-decoration: underline;
     text-decoration-color: ${cards.terracotta.bg};
     text-decoration-thickness: 3px;
@@ -43,13 +43,13 @@ const Greeting = styled.h1`
 const Role = styled.p`
   font-size: clamp(20px, 3vw, 26px);
   font-weight: 400;
-  color: ${palette.text};
+  color: var(--ttd-text);
   margin: 0;
 `;
 
 const Location = styled.p`
   font-size: 16px;
-  color: ${palette.text};
+  color: var(--ttd-text);
   margin: 4px 0 0;
   font-style: italic;
 `;

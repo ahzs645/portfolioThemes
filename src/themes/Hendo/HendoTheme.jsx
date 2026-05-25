@@ -83,10 +83,13 @@ const NAV_ITEMS = [
   { id: 'professional-development', label: 'Prof. Dev.' },
 ];
 
-export function HendoTheme() {
+export function HendoTheme({ darkMode = false }) {
   const cv = useCV() || {};
   const [activeSection, setActiveSection] = useState('about');
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(darkMode);
+
+  // Sync with external darkMode prop
+  React.useEffect(() => { setIsDark(darkMode); }, [darkMode]);
 
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;

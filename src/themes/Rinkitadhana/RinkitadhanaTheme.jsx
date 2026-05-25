@@ -24,10 +24,15 @@ function pickSocialUrl(socials, networkNames = []) {
   return found?.url || null;
 }
 
-export function RinkitadhanaTheme() {
+export function RinkitadhanaTheme({ darkMode = false }) {
   const cv = useCV() || {};
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(darkMode);
   const [expandedExp, setExpandedExp] = useState({});
+
+  // Default to the global dark/light setting, but allow the in-theme toggle to override it
+  useEffect(() => {
+    setIsDark(darkMode);
+  }, [darkMode]);
   // Inject view transition CSS into document head
   useEffect(() => {
     const styleId = 'rinkitadhana-view-transition-styles';

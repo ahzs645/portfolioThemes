@@ -65,7 +65,7 @@ function InlinePhrase({ label, children, colorIndex = 0 }) {
   );
 }
 
-export function SebastianBernsTheme() {
+export function SebastianBernsTheme({ darkMode = false }) {
   const cv = useCV();
 
   if (!cv) return null;
@@ -87,8 +87,8 @@ export function SebastianBernsTheme() {
   const secondaryProject = projectItems[1];
 
   return (
-    <ThemeRoot>
-      <SebastianGlobalStyle />
+    <ThemeRoot $dark={darkMode}>
+      <SebastianGlobalStyle $dark={darkMode} />
       <Main id="main" role="main">
         <header className="section">
           <article className="subsection cols">
@@ -261,14 +261,14 @@ export function SebastianBernsTheme() {
 
 const SebastianGlobalStyle = createGlobalStyle`
   body {
-    background: #eeede9;
+    background: ${(p) => (p.$dark ? '#151410' : '#eeede9')};
   }
 `;
 
 const ThemeRoot = styled.div`
   min-height: 100vh;
-  background: #eeede9;
-  color: #111;
+  background: ${(p) => (p.$dark ? '#151410' : '#eeede9')};
+  color: ${(p) => (p.$dark ? '#d6d4cc' : '#111')};
   font-family: "Work Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: clamp(18px, 1.7vw, 23px);
   line-height: 1.4;
@@ -311,7 +311,7 @@ const ThemeRoot = styled.div`
 
   a:hover,
   a:focus {
-    background-color: #fff;
+    background-color: ${(p) => (p.$dark ? '#2a2926' : '#fff')};
   }
 
   a:focus {
@@ -348,13 +348,16 @@ const ThemeRoot = styled.div`
     font-family: "Newsreader Display", "Iowan Old Style", "Cormorant Garamond", Garamond, "Times New Roman", Times, serif;
   }
 
-  .blue { color: #44f; }
+  .blue { color: ${(p) => (p.$dark ? '#7a7aff' : '#44f')}; }
   .green { color: #1cd961; }
   .red { color: #ff665e; }
-  .ibm2 { color: #785ef0; }
+  .ibm2 { color: ${(p) => (p.$dark ? '#9d83f5' : '#785ef0')}; }
   .ibm4 { color: #fe6100; }
   .ibm5 { color: #f5a900; }
-  .fullblue { color: #2020bc; }
+  .fullblue { color: ${(p) => (p.$dark ? '#6e6ee8' : '#2020bc')}; }
+
+  --sb-fullblue: ${(p) => (p.$dark ? '#6e6ee8' : '#2020bc')};
+  --sb-bg-hover: ${(p) => (p.$dark ? '#2a2926' : '#fff')};
 
   .section {
     padding-top: 4em;
@@ -496,7 +499,7 @@ const EntryList = styled.ul`
 
 const EntryKicker = styled.span`
   display: block;
-  color: #2020bc;
+  color: var(--sb-fullblue, #2020bc);
   font-family: "Newsreader Display", "Iowan Old Style", Garamond, "Times New Roman", Times, serif;
   font-size: 1.35em;
   line-height: 1.15;
