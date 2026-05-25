@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
 import styled from 'styled-components';
 
-export const ImageWithCrosshair = forwardRef(function ImageWithCrosshair({ image, focalX = 30, focalY = 50, lockedPos }, ref) {
+export const ImageWithCrosshair = forwardRef(function ImageWithCrosshair({ image, focalX = 30, focalY = 50, lockedPos, darkMode = false }, ref) {
   const containerRef = useRef(null);
   const [targetPos, setTargetPos] = useState(null);
   const [displayPos, setDisplayPos] = useState(null);
@@ -66,6 +66,7 @@ export const ImageWithCrosshair = forwardRef(function ImageWithCrosshair({ image
   return (
     <Container
       ref={containerRef}
+      $dark={darkMode}
       onMouseEnter={() => setIsHovering(true)}
       onMouseMove={handleMove}
       onMouseLeave={handleLeave}
@@ -74,8 +75,8 @@ export const ImageWithCrosshair = forwardRef(function ImageWithCrosshair({ image
 
       {displayPos && (
         <>
-          <CrosshairV style={{ left: displayPos.x, opacity: isHovering ? 1 : 0 }} />
-          <CrosshairH style={{ top: displayPos.y, opacity: isHovering ? 1 : 0 }} />
+          <CrosshairV $dark={darkMode} style={{ left: displayPos.x, opacity: isHovering ? 1 : 0 }} />
+          <CrosshairH $dark={darkMode} style={{ top: displayPos.y, opacity: isHovering ? 1 : 0 }} />
           <CoordLabel style={{ left: displayPos.x + 20, top: displayPos.y - 40 }}>
             [{Math.round(displayPos.x)}, {Math.round(displayPos.y)}]
           </CoordLabel>
@@ -83,21 +84,25 @@ export const ImageWithCrosshair = forwardRef(function ImageWithCrosshair({ image
       )}
 
       {topTickPositions.map((pos, i) => (
-        <TopTick key={`top-${i}`} style={{ left: `${pos * 100}%` }} />
+        <TopTick key={`top-${i}`} $dark={darkMode} style={{ left: `${pos * 100}%` }} />
       ))}
       {leftTickPositions.map((pos, i) => (
-        <LeftTick key={`left-${i}`} style={{ top: `${pos * 100}%` }} />
+        <LeftTick key={`left-${i}`} $dark={darkMode} style={{ top: `${pos * 100}%` }} />
       ))}
     </Container>
   );
 });
+
+// Grid/crosshair line color — white in dark mode so the topology lines stay visible,
+// muted gray in light mode. (Orange accents are handled elsewhere and left untouched.)
+const lineColor = (p) => (p.$dark ? 'rgba(255, 255, 255, 0.85)' : '#898d90');
 
 const Container = styled.div`
   width: 100%;
   height: 100%;
   position: relative;
   overflow: hidden;
-  border: 1px solid #898d90;
+  border: 1px solid ${lineColor};
   box-sizing: border-box;
   cursor: crosshair;
 `;
@@ -116,7 +121,7 @@ const CrosshairV = styled.div`
   top: 0;
   width: 1px;
   height: 100%;
-  background: #898d90;
+  background: ${lineColor};
   transition: opacity 0.25s ease;
   pointer-events: none;
 `;
@@ -126,7 +131,7 @@ const CrosshairH = styled.div`
   left: 0;
   width: 100%;
   height: 1px;
-  background: #898d90;
+  background: ${lineColor};
   transition: opacity 0.25s ease;
   pointer-events: none;
 `;
@@ -147,7 +152,7 @@ const TopTick = styled.div`
   top: 0;
   width: 1px;
   height: 10px;
-  background: #898d90;
+  background: ${lineColor};
   pointer-events: none;
 `;
 
@@ -156,6 +161,6 @@ const LeftTick = styled.div`
   left: 0;
   width: 10px;
   height: 1px;
-  background: #898d90;
+  background: ${lineColor};
   pointer-events: none;
 `;

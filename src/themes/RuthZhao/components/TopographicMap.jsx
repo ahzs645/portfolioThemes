@@ -44,6 +44,7 @@ export function TopographicMap({ projects = [], mapRef, onSelectProject, darkMod
             focalX={30}
             focalY={50}
             lockedPos={lockedPos}
+            darkMode={darkMode}
           />
 
           {projects.map((project) => (
