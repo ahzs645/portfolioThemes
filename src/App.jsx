@@ -129,6 +129,7 @@ export default function App() {
   const searchInputRef = useRef(null);
   const browseButtonRef = useRef(null);
   const [hoveredThemeId, setHoveredThemeId] = useState(null);
+  const [previewThemeId, setPreviewThemeId] = useState(null);
   const [previewPos, setPreviewPos] = useState({ top: 0, left: 0 });
   const previewTimeoutRef = useRef(null);
   const tableContainerRef = useRef(null);
@@ -189,6 +190,7 @@ export default function App() {
   const selectTheme = useCallback((themeId) => {
     setCurrentThemeId(themeId);
     setHoveredThemeId(null);
+    setPreviewThemeId(null);
     setShowCatalog(false);
     browseButtonRef.current?.focus();
   }, []);
@@ -201,6 +203,10 @@ export default function App() {
   }, [filteredThemes.length]);
 
   const handleCatalogKeyDown = useCallback((e) => {
+    if (previewThemeId) {
+      if (e.key === 'Escape') setPreviewThemeId(null);
+      return;
+    }
     if (e.key === 'Escape') {
       setHoveredThemeId(null);
       setShowCatalog(false);
@@ -219,7 +225,7 @@ export default function App() {
       e.preventDefault();
       selectTheme(filteredThemes[focusedThemeIndex].id);
     }
-  }, [filteredThemes, focusedThemeIndex, focusThemeByDelta, selectTheme]);
+  }, [filteredThemes, focusedThemeIndex, focusThemeByDelta, selectTheme, previewThemeId]);
 
   // Cleanup timeout and rAF on unmount
   useEffect(() => {
@@ -504,12 +510,13 @@ export default function App() {
                 $darkMode={darkMode}
                 role="button"
                 tabIndex={0}
+                aria-label={`Preview ${theme.name} theme`}
                 aria-current={theme.id === currentThemeId ? 'true' : undefined}
-                onClick={() => selectTheme(theme.id)}
+                onClick={() => setPreviewThemeId(theme.id)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    selectTheme(theme.id);
+                    setPreviewThemeId(theme.id);
                   }
                 }}
               >
@@ -527,10 +534,54 @@ export default function App() {
                     <CardDescription $darkMode={darkMode}>{theme.description}</CardDescription>
                   )}
                 </CardInfo>
+                <CardPreviewHint $darkMode={darkMode}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  Tap to preview
+                </CardPreviewHint>
               </MobileCard>
             );
           })}
         </MobileCardList>
+
+        {previewThemeId && (() => {
+          const previewTheme = getPortfolioTheme(previewThemeId);
+          const PreviewComponent = previewTheme?.Component;
+          const isActive = previewThemeId === currentThemeId;
+          return (
+            <MobilePreviewOverlay $darkMode={darkMode} role="dialog" aria-modal="true" aria-label={`${previewTheme?.name} preview`}>
+              <MobilePreviewHeader $darkMode={darkMode}>
+                <PreviewBackButton $darkMode={darkMode} onClick={() => setPreviewThemeId(null)} aria-label="Back to themes">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                  </svg>
+                </PreviewBackButton>
+                <PreviewHeaderName $darkMode={darkMode}>{previewTheme?.name}</PreviewHeaderName>
+                {isActive && <ActiveBadge $darkMode={darkMode}>Active</ActiveBadge>}
+              </MobilePreviewHeader>
+              <MobilePreviewBody>
+                <IsolatedPreview width="100%" height="100%">
+                  <PreviewErrorBoundary themeId={previewThemeId}>
+                    <Suspense fallback={<ThemeLoading label="Loading preview..." />}>
+                      {PreviewComponent && <PreviewComponent darkMode={darkMode} />}
+                    </Suspense>
+                  </PreviewErrorBoundary>
+                </IsolatedPreview>
+              </MobilePreviewBody>
+              <MobilePreviewFooter $darkMode={darkMode}>
+                <UseThemeButton
+                  $darkMode={darkMode}
+                  $active={isActive}
+                  onClick={() => selectTheme(previewThemeId)}
+                >
+                  {isActive ? 'Back to this theme' : 'Use this theme'}
+                </UseThemeButton>
+              </MobilePreviewFooter>
+            </MobilePreviewOverlay>
+          );
+        })()}
 
         {hoveredThemeId && HoveredComponent && (
           <PreviewFloater
@@ -1256,26 +1307,33 @@ const MobileCardList = styled.div`
   display: none;
 
   @media (max-width: 768px) {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
     padding: 0 12px 12px;
     overflow: auto;
     flex: 1;
+    align-content: start;
   }
 `;
 
 const MobileCard = styled.div`
-  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#e5e7eb')};
-  border-radius: 10px;
+  border: 1px solid ${({ $active, $darkMode }) => {
+    if ($active) return $darkMode ? '#1e3a5f' : '#bfdbfe';
+    return $darkMode ? '#1f1f1f' : '#e5e7eb';
+  }};
+  border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 116px;
   background: ${({ $active, $darkMode }) => {
     if ($active) return $darkMode ? '#162032' : '#eff6ff';
     return $darkMode ? '#141414' : '#ffffff';
   }};
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s;
 
   &:active {
     background: ${({ $active, $darkMode }) => {
@@ -1285,13 +1343,128 @@ const MobileCard = styled.div`
   }
 `;
 
+const CardPreviewHint = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: ${({ $darkMode }) => ($darkMode ? '#60a5fa' : '#3b82f6')};
+
+  svg {
+    flex-shrink: 0;
+  }
+`;
+
 const EmptyMobileState = styled.div`
+  grid-column: 1 / -1;
   border: 1px solid ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#e5e7eb')};
   border-radius: 10px;
   padding: 28px 16px;
   text-align: center;
   color: ${({ $darkMode }) => ($darkMode ? '#737373' : '#6b7280')};
   background: ${({ $darkMode }) => ($darkMode ? '#141414' : '#ffffff')};
+`;
+
+const MobilePreviewOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  background: ${({ $darkMode }) => ($darkMode ? '#0b0b0b' : '#f9fafb')};
+  animation: previewSlideUp 0.2s ease-out;
+
+  @keyframes previewSlideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+`;
+
+const MobilePreviewHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  flex-shrink: 0;
+  border-bottom: 1px solid ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#e5e7eb')};
+  background: ${({ $darkMode }) => ($darkMode ? '#0f0f0f' : '#ffffff')};
+`;
+
+const PreviewBackButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#f3f4f6')};
+  color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#374151')};
+  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#333' : '#d1d5db')};
+  cursor: pointer;
+
+  &:active {
+    background: ${({ $darkMode }) => ($darkMode ? '#2a2a2a' : '#e5e7eb')};
+  }
+`;
+
+const PreviewHeaderName = styled.span`
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#111827')};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const MobilePreviewBody = styled.div`
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  background: ${({ $darkMode }) => ($darkMode ? '#000' : '#fff')};
+
+  iframe {
+    width: 100%;
+    height: 100%;
+  }
+`;
+
+const MobilePreviewFooter = styled.div`
+  flex-shrink: 0;
+  padding: 12px 14px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  border-top: 1px solid ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#e5e7eb')};
+  background: ${({ $darkMode }) => ($darkMode ? '#0f0f0f' : '#ffffff')};
+`;
+
+const UseThemeButton = styled.button`
+  width: 100%;
+  height: 46px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: ${({ $active, $darkMode }) => {
+    if ($active) return $darkMode ? '#1f1f1f' : '#f3f4f6';
+    return $darkMode ? '#3b82f6' : '#2563eb';
+  }};
+  color: ${({ $active, $darkMode }) => {
+    if ($active) return $darkMode ? '#f5f5f5' : '#374151';
+    return '#ffffff';
+  }};
+  border-color: ${({ $active, $darkMode }) => {
+    if ($active) return $darkMode ? '#333' : '#d1d5db';
+    return 'transparent';
+  }};
+
+  &:active {
+    opacity: 0.85;
+  }
 `;
 
 const CardInfo = styled.div`
