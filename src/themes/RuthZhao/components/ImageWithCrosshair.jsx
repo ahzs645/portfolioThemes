@@ -71,7 +71,7 @@ export const ImageWithCrosshair = forwardRef(function ImageWithCrosshair({ image
       onMouseMove={handleMove}
       onMouseLeave={handleLeave}
     >
-      <MapImage src={image} alt="" style={{ objectPosition: `${focalX}% ${focalY}%` }} />
+      <MapImage src={image} alt="" $dark={darkMode} style={{ objectPosition: `${focalX}% ${focalY}%` }} />
 
       {displayPos && (
         <>
@@ -93,8 +93,8 @@ export const ImageWithCrosshair = forwardRef(function ImageWithCrosshair({ image
   );
 });
 
-// Grid/crosshair line color — white in dark mode so the topology lines stay visible,
-// muted gray in light mode. (Orange accents are handled elsewhere and left untouched.)
+// Grid/crosshair line color — white in dark mode (so the ticks/border match the recolored
+// white contour lines of the dark map image), muted gray in light mode.
 const lineColor = (p) => (p.$dark ? 'rgba(255, 255, 255, 0.85)' : '#898d90');
 
 const Container = styled.div`

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { ImageWithCrosshair } from './ImageWithCrosshair';
 import { ProjectMarker } from './ProjectMarker';
-import { MAP_BACKGROUND_IMAGE } from '../themeData';
+import { MAP_BACKGROUND_IMAGE, MAP_BACKGROUND_IMAGE_DARK } from '../themeData';
 
 function CoordinateScale({ axis, darkMode = false }) {
   if (axis === 'left') {
@@ -40,7 +40,7 @@ export function TopographicMap({ projects = [], mapRef, onSelectProject, darkMod
         <CoordinateScale axis="top" darkMode={darkMode} />
         <MapContainer>
           <ImageWithCrosshair
-            image={MAP_BACKGROUND_IMAGE}
+            image={darkMode ? MAP_BACKGROUND_IMAGE_DARK : MAP_BACKGROUND_IMAGE}
             focalX={30}
             focalY={50}
             lockedPos={lockedPos}
