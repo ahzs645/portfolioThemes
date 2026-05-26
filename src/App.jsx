@@ -201,9 +201,9 @@ export default function App() {
     previewTimeoutRef.current = setTimeout(() => setHoveredThemeId(null), 80);
   }, []);
 
-  // Reserve exactly the TopBar's rendered height beneath the fixed bar, so the
-  // theme starts flush against it regardless of whether the bar wraps to one or
-  // more rows (the row count varies with viewport width and upload errors).
+  // Publish the TopBar's real height as --app-top-offset for themes that anchor
+  // their own fixed/sticky elements to it. Re-runs when the bar mounts/unmounts
+  // (loading + catalog gates) so it measures the actual node, not a stale null.
   useLayoutEffect(() => {
     const el = topBarRef.current;
     if (!el) return undefined;
@@ -212,7 +212,7 @@ export default function App() {
     const observer = new ResizeObserver(measure);
     observer.observe(el);
     return () => observer.disconnect();
-  }, [showCatalog]);
+  }, [showCatalog, loading, error]);
 
   const selectTheme = useCallback((themeId) => {
     setCurrentThemeId(themeId);
@@ -837,17 +837,14 @@ const AppContainer = styled.div`
 `;
 
 const TopBar = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  position: relative;
+  z-index: 1000;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 12px 20px;
   background: ${({ $darkMode }) => ($darkMode ? '#0f0f0f' : '#ffffff')};
   border-bottom: 1px solid ${({ $darkMode }) => ($darkMode ? '#262626' : '#e5e7eb')};
-  z-index: 1000;
   flex-shrink: 0;
 
   @media (max-width: 640px) {
@@ -1060,12 +1057,15 @@ const ThemeContainer = styled.div`
   flex-direction: column;
   overflow: auto;
   box-sizing: border-box;
-  padding-top: var(--app-top-offset);
+  /* The TopBar is in normal flow, so the theme already starts below it — no
+     padding needed here. --app-top-offset is still published for themes that
+     position their own fixed/sticky elements relative to the bar; it's set
+     precisely from the measured bar height (inline style) with these fallbacks. */
   --app-top-offset: ${({ $hasTopBar }) => $hasTopBar ? '61px' : '0px'};
   --initial-display: ${({ $hideInitials }) => $hideInitials ? 'none' : 'flex'};
 
   @media (max-width: 640px) {
-    --app-top-offset: ${({ $hasTopBar }) => $hasTopBar ? '104px' : '0px'};
+    --app-top-offset: ${({ $hasTopBar }) => $hasTopBar ? '57px' : '0px'};
   }
 `;
 
