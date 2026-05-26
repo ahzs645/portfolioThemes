@@ -101,12 +101,12 @@ function loadCSS(href) {
   document.head.appendChild(link);
 }
 
-export function TerminalMasterTheme() {
+export function TerminalMasterTheme({ darkMode = false, onDarkModeChange }) {
   const cv = useCV();
   const containerRef = useRef(null);
   const terminalRef = useRef(null);
   const [dependencyError, setDependencyError] = useState('');
-  const [light, setLight] = useState(false);
+  const light = !darkMode;
 
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' && window.matchMedia
@@ -194,7 +194,7 @@ export function TerminalMasterTheme() {
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
         <button
           type="button"
-          onClick={() => setLight((v) => !v)}
+          onClick={() => onDarkModeChange?.(!darkMode)}
           style={toggleButtonStyle(light)}
           aria-label={light ? 'Switch to dark mode' : 'Switch to light mode'}
         >

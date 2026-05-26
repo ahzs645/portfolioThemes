@@ -38,6 +38,8 @@ export const Page = styled.div`
   --ttd-live-bg: ${p => p.$dark ? '#1c2e1c' : palette.liveBg};
   --ttd-white: ${p => p.$dark ? '#242428' : palette.white};
 
+  flex: 0 0 auto;
+  width: 100%;
   min-height: 100vh;
   background: var(--ttd-bg);
   color: var(--ttd-text);

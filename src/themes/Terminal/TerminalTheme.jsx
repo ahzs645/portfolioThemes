@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 
@@ -23,10 +23,10 @@ const isArchived = (entry) => Array.isArray(entry?.tags) && entry.tags.includes(
 // Helper to check if present
 const isPresent = (value) => String(value || '').trim().toLowerCase() === 'present';
 
-export function TerminalTheme() {
+export function TerminalTheme({ darkMode = false, onDarkModeChange }) {
   const cv = useCV();
   useGeistMonoFont();
-  const [light, setLight] = useState(false);
+  const light = !darkMode;
 
   if (!cv) return null;
 
@@ -58,7 +58,7 @@ export function TerminalTheme() {
       {/* Light/dark toggle */}
       <ThemeToggle
         type="button"
-        onClick={() => setLight((v) => !v)}
+        onClick={() => onDarkModeChange?.(!darkMode)}
         aria-label={light ? 'Switch to dark mode' : 'Switch to light mode'}
       >
         [{light ? 'DARK' : 'LIGHT'}]

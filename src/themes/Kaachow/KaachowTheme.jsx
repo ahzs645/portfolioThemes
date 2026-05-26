@@ -122,6 +122,10 @@ const IconButton = styled.a`
     width: 26.894px;
     height: 26.894px;
     display: block;
+    filter: ${p => p.$dark
+      ? 'brightness(0) saturate(100%) invert(87%) sepia(7%) saturate(81%) hue-rotate(202deg) brightness(99%) contrast(91%)'
+      : 'none'};
+    opacity: ${p => p.$dark ? 0.92 : 1};
   }
 `;
 

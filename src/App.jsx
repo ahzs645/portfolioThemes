@@ -1,4 +1,4 @@
-import { Suspense, useState, useMemo, useEffect, useRef, useCallback, Component } from 'react';
+import { Suspense, useState, useMemo, useEffect, useLayoutEffect, useRef, useCallback, Component } from 'react';
 import { createPortal } from 'react-dom';
 import styled, { StyleSheetManager } from 'styled-components';
 import { useConfig } from './contexts/ConfigContext';
@@ -114,6 +114,16 @@ const getInitialThemeId = () => {
   return resolveThemeIdForPath(window.location.pathname);
 };
 
+// Short, human-readable host for a theme's source URL (e.g. "ansub.com").
+function sourceDomain(url) {
+  if (!url) return null;
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return null;
+  }
+}
+
 const enableReactGrab = import.meta.env.VITE_ENABLE_REACT_GRAB === 'true';
 
 export default function App() {
@@ -128,8 +138,12 @@ export default function App() {
   const fileInputRef = useRef(null);
   const searchInputRef = useRef(null);
   const browseButtonRef = useRef(null);
+  const topBarRef = useRef(null);
+  const [topBarHeight, setTopBarHeight] = useState(null);
   const [hoveredThemeId, setHoveredThemeId] = useState(null);
-  const [previewThemeId, setPreviewThemeId] = useState(null);
+  const [inspectThemeId, setInspectThemeId] = useState(null);
+  const pressTimerRef = useRef(null);
+  const didLongPressRef = useRef(false);
   const [previewPos, setPreviewPos] = useState({ top: 0, left: 0 });
   const previewTimeoutRef = useRef(null);
   const tableContainerRef = useRef(null);
@@ -187,13 +201,50 @@ export default function App() {
     previewTimeoutRef.current = setTimeout(() => setHoveredThemeId(null), 80);
   }, []);
 
+  // Reserve exactly the TopBar's rendered height beneath the fixed bar, so the
+  // theme starts flush against it regardless of whether the bar wraps to one or
+  // more rows (the row count varies with viewport width and upload errors).
+  useLayoutEffect(() => {
+    const el = topBarRef.current;
+    if (!el) return undefined;
+    const measure = () => setTopBarHeight(el.offsetHeight);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [showCatalog]);
+
   const selectTheme = useCallback((themeId) => {
     setCurrentThemeId(themeId);
     setHoveredThemeId(null);
-    setPreviewThemeId(null);
+    setInspectThemeId(null);
     setShowCatalog(false);
     browseButtonRef.current?.focus();
   }, []);
+
+  // Mobile cards: a quick tap selects the theme; a long press (~450ms) opens an
+  // inspect popup with a live preview. didLongPressRef stops the trailing click
+  // (fired on touch release) from also selecting the theme.
+  const startCardPress = useCallback((themeId) => {
+    didLongPressRef.current = false;
+    clearTimeout(pressTimerRef.current);
+    pressTimerRef.current = setTimeout(() => {
+      didLongPressRef.current = true;
+      setInspectThemeId(themeId);
+    }, 450);
+  }, []);
+
+  const cancelCardPress = useCallback(() => {
+    clearTimeout(pressTimerRef.current);
+  }, []);
+
+  const handleCardClick = useCallback((themeId) => {
+    if (didLongPressRef.current) {
+      didLongPressRef.current = false;
+      return;
+    }
+    selectTheme(themeId);
+  }, [selectTheme]);
 
   const focusThemeByDelta = useCallback((delta) => {
     setFocusedThemeIndex((index) => {
@@ -203,8 +254,8 @@ export default function App() {
   }, [filteredThemes.length]);
 
   const handleCatalogKeyDown = useCallback((e) => {
-    if (previewThemeId) {
-      if (e.key === 'Escape') setPreviewThemeId(null);
+    if (inspectThemeId) {
+      if (e.key === 'Escape') setInspectThemeId(null);
       return;
     }
     if (e.key === 'Escape') {
@@ -225,12 +276,13 @@ export default function App() {
       e.preventDefault();
       selectTheme(filteredThemes[focusedThemeIndex].id);
     }
-  }, [filteredThemes, focusedThemeIndex, focusThemeByDelta, selectTheme, previewThemeId]);
+  }, [filteredThemes, focusedThemeIndex, focusThemeByDelta, selectTheme, inspectThemeId]);
 
   // Cleanup timeout and rAF on unmount
   useEffect(() => {
     return () => {
       clearTimeout(previewTimeoutRef.current);
+      clearTimeout(pressTimerRef.current);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, []);
@@ -501,8 +553,7 @@ export default function App() {
             <EmptyMobileState $darkMode={darkMode}>
               No themes found for "{searchQuery}".
             </EmptyMobileState>
-          ) : filteredThemes.map((theme, index) => {
-            const globalIndex = PORTFOLIO_THEMES.indexOf(theme);
+          ) : filteredThemes.map((theme) => {
             return (
               <MobileCard
                 key={theme.id}
@@ -510,76 +561,98 @@ export default function App() {
                 $darkMode={darkMode}
                 role="button"
                 tabIndex={0}
-                aria-label={`Preview ${theme.name} theme`}
+                aria-label={`Use ${theme.name} theme. Long-press to preview.`}
                 aria-current={theme.id === currentThemeId ? 'true' : undefined}
-                onClick={() => setPreviewThemeId(theme.id)}
+                onClick={() => handleCardClick(theme.id)}
+                onTouchStart={() => startCardPress(theme.id)}
+                onTouchEnd={cancelCardPress}
+                onTouchMove={cancelCardPress}
+                onContextMenu={(e) => e.preventDefault()}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    setPreviewThemeId(theme.id);
+                    selectTheme(theme.id);
                   }
                 }}
               >
-                <CardInfo>
-                  <CardHeader>
-                    <CardNameRow>
-                      <CardIndex $darkMode={darkMode}>{globalIndex + 1}</CardIndex>
-                      <CardName $darkMode={darkMode}>{theme.name}</CardName>
-                    </CardNameRow>
-                    {theme.id === currentThemeId && (
-                      <ActiveBadge $darkMode={darkMode}>Active</ActiveBadge>
-                    )}
-                  </CardHeader>
-                  {theme.description && (
-                    <CardDescription $darkMode={darkMode}>{theme.description}</CardDescription>
-                  )}
-                </CardInfo>
-                <CardPreviewHint $darkMode={darkMode}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                  </svg>
-                  Tap to preview
-                </CardPreviewHint>
+                <CardName $darkMode={darkMode}>{theme.name}</CardName>
+                {sourceDomain(theme.source) && (
+                  <CardSource $darkMode={darkMode}>{sourceDomain(theme.source)}</CardSource>
+                )}
+                {theme.id === currentThemeId && (
+                  <CardActiveBadge $darkMode={darkMode}>Active</CardActiveBadge>
+                )}
               </MobileCard>
             );
           })}
         </MobileCardList>
 
-        {previewThemeId && (() => {
-          const previewTheme = getPortfolioTheme(previewThemeId);
-          const PreviewComponent = previewTheme?.Component;
-          const isActive = previewThemeId === currentThemeId;
+        {inspectThemeId && (() => {
+          const inspectTheme = getPortfolioTheme(inspectThemeId);
+          const InspectComponent = inspectTheme?.Component;
+          const domain = sourceDomain(inspectTheme?.source);
+          const isActive = inspectThemeId === currentThemeId;
           return (
-            <MobilePreviewOverlay $darkMode={darkMode} role="dialog" aria-modal="true" aria-label={`${previewTheme?.name} preview`}>
-              <MobilePreviewHeader $darkMode={darkMode}>
-                <PreviewBackButton $darkMode={darkMode} onClick={() => setPreviewThemeId(null)} aria-label="Back to themes">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="15 18 9 12 15 6"/>
-                  </svg>
-                </PreviewBackButton>
-                <PreviewHeaderName $darkMode={darkMode}>{previewTheme?.name}</PreviewHeaderName>
-                {isActive && <ActiveBadge $darkMode={darkMode}>Active</ActiveBadge>}
-              </MobilePreviewHeader>
-              <MobilePreviewBody>
-                <IsolatedPreview width="100%" height="100%">
-                  <PreviewErrorBoundary themeId={previewThemeId}>
-                    <Suspense fallback={<ThemeLoading label="Loading preview..." />}>
-                      {PreviewComponent && <PreviewComponent darkMode={darkMode} />}
-                    </Suspense>
-                  </PreviewErrorBoundary>
-                </IsolatedPreview>
-              </MobilePreviewBody>
-              <MobilePreviewFooter $darkMode={darkMode}>
-                <UseThemeButton
+            <MobileInspectOverlay
+              $darkMode={darkMode}
+              role="dialog"
+              aria-modal="true"
+              aria-label={`${inspectTheme?.name} preview`}
+              onClick={() => setInspectThemeId(null)}
+            >
+              <MobileInspectCard $darkMode={darkMode} onClick={(e) => e.stopPropagation()}>
+                <InspectHeader $darkMode={darkMode}>
+                  <InspectName $darkMode={darkMode}>{inspectTheme?.name}</InspectName>
+                  {isActive && <ActiveBadge $darkMode={darkMode}>Active</ActiveBadge>}
+                  <InspectCloseButton
+                    $darkMode={darkMode}
+                    onClick={() => setInspectThemeId(null)}
+                    aria-label="Close preview"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18"/>
+                      <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </InspectCloseButton>
+                </InspectHeader>
+                <InspectPreview
                   $darkMode={darkMode}
-                  $active={isActive}
-                  onClick={() => selectTheme(previewThemeId)}
+                  role="button"
+                  aria-label={`Use ${inspectTheme?.name} theme`}
+                  onClick={() => selectTheme(inspectThemeId)}
                 >
-                  {isActive ? 'Back to this theme' : 'Use this theme'}
-                </UseThemeButton>
-              </MobilePreviewFooter>
-            </MobilePreviewOverlay>
+                  <IsolatedPreview width="100%" height="100%">
+                    <PreviewErrorBoundary themeId={inspectThemeId}>
+                      <Suspense fallback={<ThemeLoading label="Loading preview..." />}>
+                        {InspectComponent && <InspectComponent darkMode={darkMode} />}
+                      </Suspense>
+                    </PreviewErrorBoundary>
+                  </IsolatedPreview>
+                  <InspectTapHint $darkMode={darkMode}>
+                    {isActive ? 'Current theme — tap to keep' : 'Tap preview to use this theme'}
+                  </InspectTapHint>
+                </InspectPreview>
+                <InspectBody>
+                  {inspectTheme?.description && (
+                    <InspectDescription $darkMode={darkMode}>{inspectTheme.description}</InspectDescription>
+                  )}
+                  {domain && (
+                    <InspectSourceLink
+                      $darkMode={darkMode}
+                      href={inspectTheme.source}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {domain}
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                      </svg>
+                    </InspectSourceLink>
+                  )}
+                </InspectBody>
+              </MobileInspectCard>
+            </MobileInspectOverlay>
           );
         })()}
 
@@ -613,7 +686,7 @@ export default function App() {
       onDrop={handleDrop}
     >
       {showThemeBar && (
-        <TopBar $darkMode={darkMode}>
+        <TopBar ref={topBarRef} $darkMode={darkMode}>
           <ThemeInfo>
             <ThemeLabel $darkMode={darkMode}>Theme:</ThemeLabel>
             <CurrentThemeName $darkMode={darkMode}>{currentTheme?.name}</CurrentThemeName>
@@ -705,12 +778,17 @@ export default function App() {
           </TopBarActions>
         </TopBar>
       )}
-      <ThemeContainer $hasTopBar={showThemeBar} $hideInitials={hideInitials}>
+      <ThemeContainer
+        $hasTopBar={showThemeBar}
+        $hideInitials={hideInitials}
+        style={showThemeBar && topBarHeight != null ? { '--app-top-offset': `${topBarHeight}px` } : undefined}
+      >
         {ThemeComponent ? (
           <Suspense fallback={<ThemeLoading />}>
             <ThemeComponent
               key={currentThemeId}
               darkMode={darkMode}
+              onDarkModeChange={setDarkMode}
               enableReactGrab={enableReactGrab && currentThemeId === 'aiden-bai'}
             />
           </Suspense>
@@ -1318,42 +1396,33 @@ const MobileCardList = styled.div`
 `;
 
 const MobileCard = styled.div`
+  position: relative;
   border: 1px solid ${({ $active, $darkMode }) => {
     if ($active) return $darkMode ? '#1e3a5f' : '#bfdbfe';
     return $darkMode ? '#1f1f1f' : '#e5e7eb';
   }};
   border-radius: 12px;
-  overflow: hidden;
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  min-height: 116px;
+  justify-content: center;
+  gap: 3px;
+  min-height: 60px;
+  padding: 12px 14px;
   background: ${({ $active, $darkMode }) => {
     if ($active) return $darkMode ? '#162032' : '#eff6ff';
     return $darkMode ? '#141414' : '#ffffff';
   }};
   transition: background 0.15s, border-color 0.15s;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 
   &:active {
     background: ${({ $active, $darkMode }) => {
       if ($darkMode) return $active ? '#1a2840' : '#1a1a1a';
       return $active ? '#e8f1fd' : '#f3f4f6';
     }};
-  }
-`;
-
-const CardPreviewHint = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 8px 16px 12px;
-  font-size: 12px;
-  font-weight: 500;
-  color: ${({ $darkMode }) => ($darkMode ? '#60a5fa' : '#3b82f6')};
-
-  svg {
-    flex-shrink: 0;
   }
 `;
 
@@ -1367,50 +1436,79 @@ const EmptyMobileState = styled.div`
   background: ${({ $darkMode }) => ($darkMode ? '#141414' : '#ffffff')};
 `;
 
-const MobilePreviewOverlay = styled.div`
+const CardName = styled.span`
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#111827')};
+`;
+
+const CardSource = styled.span`
+  font-size: 12px;
+  color: ${({ $darkMode }) => ($darkMode ? '#737373' : '#9ca3af')};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const CardActiveBadge = styled.span`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 1px 7px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 600;
+  background: ${({ $darkMode }) => ($darkMode ? '#1e3a5f' : '#dbeafe')};
+  color: ${({ $darkMode }) => ($darkMode ? '#60a5fa' : '#2563eb')};
+`;
+
+const MobileInspectOverlay = styled.div`
   position: fixed;
   inset: 0;
-  z-index: 10000;
+  z-index: 10001;
   display: flex;
-  flex-direction: column;
-  background: ${({ $darkMode }) => ($darkMode ? '#0b0b0b' : '#f9fafb')};
-  animation: previewSlideUp 0.2s ease-out;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  animation: inspectFade 0.15s ease-out;
 
-  @keyframes previewSlideUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
+  @keyframes inspectFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 `;
 
-const MobilePreviewHeader = styled.div`
+const MobileInspectCard = styled.div`
+  width: 100%;
+  max-width: 360px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 16px;
+  background: ${({ $darkMode }) => ($darkMode ? '#141414' : '#ffffff')};
+  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#262626' : '#e5e7eb')};
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+  animation: inspectPop 0.18s ease-out;
+
+  @keyframes inspectPop {
+    from { opacity: 0; transform: scale(0.94) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+`;
+
+const InspectHeader = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 12px 14px;
   flex-shrink: 0;
-  border-bottom: 1px solid ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#e5e7eb')};
-  background: ${({ $darkMode }) => ($darkMode ? '#0f0f0f' : '#ffffff')};
+  border-bottom: 1px solid ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#f0f0f0')};
 `;
 
-const PreviewBackButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  flex-shrink: 0;
-  background: ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#f3f4f6')};
-  color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#374151')};
-  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#333' : '#d1d5db')};
-  cursor: pointer;
-
-  &:active {
-    background: ${({ $darkMode }) => ($darkMode ? '#2a2a2a' : '#e5e7eb')};
-  }
-`;
-
-const PreviewHeaderName = styled.span`
+const InspectName = styled.span`
   flex: 1;
   font-size: 16px;
   font-weight: 600;
@@ -1420,87 +1518,79 @@ const PreviewHeaderName = styled.span`
   text-overflow: ellipsis;
 `;
 
-const MobilePreviewBody = styled.div`
-  flex: 1;
-  min-height: 0;
+const InspectCloseButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#f3f4f6')};
+  color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#374151')};
+  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#333' : '#e5e7eb')};
+  cursor: pointer;
+
+  &:active { opacity: 0.8; }
+`;
+
+const InspectPreview = styled.div`
   position: relative;
+  width: 100%;
+  height: 260px;
+  flex-shrink: 0;
   overflow: hidden;
+  cursor: pointer;
   background: ${({ $darkMode }) => ($darkMode ? '#000' : '#fff')};
+  border-bottom: 1px solid ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#f0f0f0')};
 
   iframe {
-    width: 100%;
-    height: 100%;
+    pointer-events: none;
   }
 `;
 
-const MobilePreviewFooter = styled.div`
-  flex-shrink: 0;
-  padding: 12px 14px;
-  padding-bottom: max(12px, env(safe-area-inset-bottom));
-  border-top: 1px solid ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#e5e7eb')};
-  background: ${({ $darkMode }) => ($darkMode ? '#0f0f0f' : '#ffffff')};
-`;
-
-const UseThemeButton = styled.button`
-  width: 100%;
-  height: 46px;
-  border-radius: 10px;
-  font-size: 15px;
+const InspectTapHint = styled.div`
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
   font-weight: 600;
-  cursor: pointer;
-  border: 1px solid transparent;
-  background: ${({ $active, $darkMode }) => {
-    if ($active) return $darkMode ? '#1f1f1f' : '#f3f4f6';
-    return $darkMode ? '#3b82f6' : '#2563eb';
-  }};
-  color: ${({ $active, $darkMode }) => {
-    if ($active) return $darkMode ? '#f5f5f5' : '#374151';
-    return '#ffffff';
-  }};
-  border-color: ${({ $active, $darkMode }) => {
-    if ($active) return $darkMode ? '#333' : '#d1d5db';
-    return 'transparent';
-  }};
-
-  &:active {
-    opacity: 0.85;
-  }
+  white-space: nowrap;
+  pointer-events: none;
+  background: ${({ $darkMode }) => ($darkMode ? 'rgba(20, 20, 20, 0.85)' : 'rgba(255, 255, 255, 0.92)')};
+  color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#111827')};
+  border: 1px solid ${({ $darkMode }) => ($darkMode ? '#333' : '#e5e7eb')};
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 `;
 
-const CardInfo = styled.div`
-  padding: 14px 16px 10px;
+const InspectBody = styled.div`
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 10px;
+  overflow-y: auto;
 `;
 
-const CardHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`;
-
-const CardNameRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const CardIndex = styled.span`
-  font-size: 12px;
-  color: ${({ $darkMode }) => ($darkMode ? '#525252' : '#9ca3af')};
-  min-width: 20px;
-`;
-
-const CardName = styled.span`
-  font-size: 15px;
-  font-weight: 600;
-  color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#111827')};
-`;
-
-const CardDescription = styled.p`
-  font-size: 13px;
-  color: ${({ $darkMode }) => ($darkMode ? '#737373' : '#9ca3af')};
+const InspectDescription = styled.p`
   margin: 0;
-  line-height: 1.5;
+  font-size: 13px;
+  line-height: 1.55;
+  color: ${({ $darkMode }) => ($darkMode ? '#a3a3a3' : '#4b5563')};
+`;
+
+const InspectSourceLink = styled.a`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  color: ${({ $darkMode }) => ($darkMode ? '#60a5fa' : '#2563eb')};
+
+  svg { flex-shrink: 0; }
+  &:active { opacity: 0.8; }
 `;
