@@ -23,6 +23,7 @@ const GlobalStyle = createGlobalStyle`
     --lightblue: #dae3e9;
     --body: #dae3e9;
     --separator-border: #66666666;
+    --hc-ticker-height: 20px;
     position: relative;
     min-height: 100vh;
     padding-top: 16px;
@@ -650,17 +651,17 @@ export function HeyThisIsChrisTheme() {
 
           .hc-ticker {
             position: fixed;
-            top: 0;
+            top: var(--app-top-offset, 0px);
             left: 0;
             right: 0;
             z-index: 10;
-            height: 20px;
+            height: var(--hc-ticker-height);
             overflow: hidden;
             border-bottom: 1px solid var(--border);
             background: var(--card);
             color: var(--text);
             font-size: 12px;
-            line-height: 20px;
+            line-height: var(--hc-ticker-height);
             white-space: nowrap;
           }
 
@@ -691,6 +692,7 @@ export function HeyThisIsChrisTheme() {
             width: min(1024px, 100%);
             min-height: 100vh;
             margin: 0 auto;
+            padding-top: var(--hc-ticker-height);
             padding-bottom: 48px;
             background: var(--background);
             border-left: 1px solid var(--border);
