@@ -43,12 +43,30 @@ function normalizeHideInitials(value) {
 
 export const hideInitialsSetting = normalizeHideInitials(import.meta.env.VITE_HIDE_INITIALS);
 
+function normalizeLockRoute(value) {
+  if (value === 'true' || value === '1') return true;
+  return false; // off by default: theme slugs are reflected in the URL
+}
+
+// When true, the app stays pinned at the root URL and never reflects the theme
+// slug in the path (no sub-pages). In random mode this means every visit shows
+// a random theme at "/" without navigating to "/<slug>".
+export const lockRoute = normalizeLockRoute(import.meta.env.VITE_LOCK_ROUTE);
+
 export function pickRandomThemeId() {
   const randomIndex = Math.floor(Math.random() * PORTFOLIO_THEMES.length);
   return PORTFOLIO_THEMES[randomIndex].id;
 }
 
 export function resolveThemeIdForPath(pathname) {
+  // Locked-route mode ignores the path entirely: random mode always picks a new
+  // random theme, fixed mode always uses the default. No slug-based sub-pages.
+  if (lockRoute) {
+    return themeSelectionMode === THEME_SELECTION_MODES.RANDOM
+      ? pickRandomThemeId()
+      : defaultThemeId;
+  }
+
   const themeIdFromPath = getThemeIdFromPath(pathname);
   if (themeIdFromPath) return themeIdFromPath;
 

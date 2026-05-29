@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { PORTFOLIO_THEMES, getPortfolioTheme } from '../themes';
-import { resolveThemeIdForPath, resolveThemePath } from '../config/themeSelection';
+import { resolveThemeIdForPath, resolveThemePath, lockRoute } from '../config/themeSelection';
 
 const getInitialThemeId = () => resolveThemeIdForPath(window.location.pathname);
 
@@ -9,8 +9,10 @@ const getInitialThemeId = () => resolveThemeIdForPath(window.location.pathname);
 export function useThemeRouting() {
   const [currentThemeId, setCurrentThemeId] = useState(getInitialThemeId);
 
-  // Update URL when theme changes
+  // Update URL when theme changes. Skipped in locked-route mode so the URL
+  // stays pinned at the root and no theme slug ever appears in the path.
   useEffect(() => {
+    if (lockRoute) return;
     const newPath = resolveThemePath(currentThemeId, window.location.pathname);
     if (window.location.pathname !== newPath) {
       window.history.pushState({ themeId: currentThemeId }, '', newPath);
