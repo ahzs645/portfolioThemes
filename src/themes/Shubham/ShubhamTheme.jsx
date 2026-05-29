@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 
@@ -155,6 +155,28 @@ export function ShubhamTheme({ darkMode }) {
     return (cv?.sections?.professional_development || []).filter(e => !isArchived(e));
   }, [cv]);
 
+  const hasResume = experienceItems.length > 0 ||
+    volunteerItems.length > 0 ||
+    educationItems.length > 0 ||
+    skills.length > 0 ||
+    professionalDevItems.length > 0;
+  const hasProjects = projectItems.length > 0;
+  const hasAchievements = awardItems.length > 0 ||
+    presentationItems.length > 0 ||
+    publicationItems.length > 0;
+  const availablePages = useMemo(() => [
+    'home',
+    hasResume ? 'resume' : null,
+    hasProjects ? 'projects' : null,
+    hasAchievements ? 'achievements' : null,
+  ].filter(Boolean), [hasResume, hasProjects, hasAchievements]);
+
+  useEffect(() => {
+    if (!availablePages.includes(activePage)) {
+      setActivePage('home');
+    }
+  }, [activePage, availablePages]);
+
   const theme = darkMode ? darkTheme : lightTheme;
 
   const renderBreadcrumbs = (currentPage) => (
@@ -174,9 +196,9 @@ export function ShubhamTheme({ darkMode }) {
       {renderBreadcrumbs('home')}
       <Title>Home</Title>
       {aboutText && <Paragraph>{aboutText}</Paragraph>}
-      <NavLink onClick={() => setActivePage('resume')}>resume</NavLink>
-      <NavLink onClick={() => setActivePage('projects')}>projects</NavLink>
-      {(awardItems.length > 0 || presentationItems.length > 0 || publicationItems.length > 0) && (
+      {hasResume && <NavLink onClick={() => setActivePage('resume')}>resume</NavLink>}
+      {hasProjects && <NavLink onClick={() => setActivePage('projects')}>projects</NavLink>}
+      {hasAchievements && (
         <NavLink onClick={() => setActivePage('achievements')}>achievements</NavLink>
       )}
       <Divider />
@@ -526,9 +548,9 @@ export function ShubhamTheme({ darkMode }) {
         <Container>
           <Pages>
             {activePage === 'home' && renderHomePage()}
-            {activePage === 'resume' && renderResumePage()}
-            {activePage === 'projects' && renderProjectsPage()}
-            {activePage === 'achievements' && renderAchievementsPage()}
+            {activePage === 'resume' && hasResume && renderResumePage()}
+            {activePage === 'projects' && hasProjects && renderProjectsPage()}
+            {activePage === 'achievements' && hasAchievements && renderAchievementsPage()}
           </Pages>
         </Container>
       </Wrapper>

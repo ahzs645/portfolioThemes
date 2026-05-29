@@ -1,4 +1,4 @@
-import React, { useState, useMemo, memo } from 'react';
+import React, { useEffect, useState, useMemo, memo } from 'react';
 import styled, { createGlobalStyle, keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { ClockWidget } from './components/ClockWidget';
@@ -104,8 +104,21 @@ export function LiamMattesonTheme({ darkMode }) {
   const intro = firstSentence(cv.about) || 'Software designed with creativity and care through relentless iteration and meticulous detail.';
   const introWords = intro.split(' ');
   const currentRole = cv.experience[0];
-  const navItems = ['Work', 'Projects', 'Connect'];
+  const hasWork = (cv.experience || []).length > 0;
+  const hasProjects = (cv.projects || []).length > 0;
+  const hasConnect = Boolean(cv.email || cv.website || (cv.socialRaw || []).some((entry) => entry?.url));
+  const navItems = useMemo(() => [
+    hasWork ? 'Work' : null,
+    hasProjects ? 'Projects' : null,
+    hasConnect ? 'Connect' : null,
+  ].filter(Boolean), [hasWork, hasProjects, hasConnect]);
   const handleNav = (label) => setView(label.toLowerCase());
+
+  useEffect(() => {
+    if (view !== 'home' && !navItems.some((label) => label.toLowerCase() === view)) {
+      setView('home');
+    }
+  }, [navItems, view]);
 
   const header = (
     <Header>
@@ -129,9 +142,9 @@ export function LiamMattesonTheme({ darkMode }) {
   /* ── Sub-page views ── */
   if (view !== 'home') {
     const pages = {
-      work:     { title: 'Work', subtitle: 'Selected experience', content: <WorkPage theme={theme} experience={cv.experience} /> },
-      projects: { title: 'Projects', subtitle: 'Selected projects and work', content: <ProjectsPage theme={theme} projects={cv.projects} /> },
-      connect:  { title: 'Connect', subtitle: 'Get in touch', content: <ConnectPage theme={theme} cv={cv} /> },
+      ...(hasWork ? { work: { title: 'Work', subtitle: 'Selected experience', content: <WorkPage theme={theme} experience={cv.experience} /> } } : {}),
+      ...(hasProjects ? { projects: { title: 'Projects', subtitle: 'Selected projects and work', content: <ProjectsPage theme={theme} projects={cv.projects} /> } } : {}),
+      ...(hasConnect ? { connect: { title: 'Connect', subtitle: 'Get in touch', content: <ConnectPage theme={theme} cv={cv} /> } } : {}),
     };
     const page = pages[view];
     if (!page) { setView('home'); return null; }

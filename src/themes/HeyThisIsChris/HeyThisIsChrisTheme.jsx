@@ -549,12 +549,27 @@ export function HeyThisIsChrisTheme() {
   const githubLink = socialLinks.find((link) => link?.url && /github/i.test(link.network || link.url || ''));
   const funnyArticles = useMemo(() => buildFunnyArticles(cv), [cv]);
 
+  const hasArticles = funnyArticles.length > 0 || (cv?.publications || []).length > 0 || (cv?.presentations || []).length > 0;
+  const hasPortfolio = (cv?.projects || []).length > 0;
+  const hasResume = (cv?.experience || []).length > 0 ||
+    (cv?.education || []).length > 0 ||
+    (cv?.skills || []).length > 0 ||
+    (cv?.awards || []).length > 0 ||
+    (cv?.volunteer || []).length > 0;
+  const hasContact = Boolean(cv?.email || cv?.website || socialLinks.length > 0);
+
   const tabs = useMemo(() => [
-    { id: 'articles', label: 'Articles' },
-    { id: 'portfolio', label: 'Portfolio' },
-    { id: 'resume', label: 'Resume' },
-    { id: 'contact', label: 'Contact' },
-  ], []);
+    hasArticles ? { id: 'articles', label: 'Articles' } : null,
+    hasPortfolio ? { id: 'portfolio', label: 'Portfolio' } : null,
+    hasResume ? { id: 'resume', label: 'Resume' } : null,
+    hasContact ? { id: 'contact', label: 'Contact' } : null,
+  ].filter(Boolean), [hasArticles, hasContact, hasPortfolio, hasResume]);
+
+  useEffect(() => {
+    if (tabs.length && !tabs.some((tab) => tab.id === view)) {
+      setView(tabs[0].id);
+    }
+  }, [tabs, view]);
 
   if (!cv) {
     return (
@@ -588,12 +603,12 @@ export function HeyThisIsChrisTheme() {
         <Ticker items={funnyArticles.length ? funnyArticles : articles} />
         <main className="hc-shell">
           <motion.header className="hc-header" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <button className="hc-logo-button" type="button" onClick={() => setView('articles')}>
+            <button className="hc-logo-button" type="button" onClick={() => setView(tabs[0]?.id || 'articles')}>
               {avatar ? <img src={avatar} alt="" /> : <span className="hc-logo-initial">{initial}</span>}
             </button>
             <div className="hc-heading">
               <div className="hc-title-row">
-                <button className="hc-title" type="button" onClick={() => setView('articles')}>{title}</button>
+                <button className="hc-title" type="button" onClick={() => setView(tabs[0]?.id || 'articles')}>{title}</button>
                 <button
                   className="hc-toggle"
                   type="button"
@@ -628,10 +643,10 @@ export function HeyThisIsChrisTheme() {
             )}
           </motion.header>
 
-          {view === 'resume' && <ResumeView cv={cv} />}
-          {view === 'portfolio' && <PortfolioView projects={cv.projects || []} />}
-          {view === 'articles' && <ArticlesView cv={cv} funnyArticles={funnyArticles} />}
-          {view === 'contact' && <ContactView cv={cv} />}
+          {view === 'resume' && hasResume && <ResumeView cv={cv} />}
+          {view === 'portfolio' && hasPortfolio && <PortfolioView projects={cv.projects || []} />}
+          {view === 'articles' && hasArticles && <ArticlesView cv={cv} funnyArticles={funnyArticles} />}
+          {view === 'contact' && hasContact && <ContactView cv={cv} />}
         </main>
 
         <style>{`

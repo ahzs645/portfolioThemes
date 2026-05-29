@@ -50,7 +50,7 @@ const NavLink = styled.a`
   }
 `;
 
-export default function Header({ name, scrollContainerRef }) {
+export default function Header({ name, scrollContainerRef, hasAbout = true }) {
   const firstName = name?.split(' ')[0] || 'Portfolio';
 
   const scrollTo = (id) => (e) => {
@@ -75,7 +75,7 @@ export default function Header({ name, scrollContainerRef }) {
         {firstName}
       </Logo>
       <NavLinks>
-        <NavLink href="#bio" onClick={scrollTo('bio')}>About</NavLink>
+        {hasAbout && <NavLink href="#bio" onClick={scrollTo('bio')}>About</NavLink>}
         <NavLink href="#experience" onClick={scrollTo('experience')}>Experience</NavLink>
         <NavLink href="#projects" onClick={scrollTo('projects')}>Projects</NavLink>
         <NavLink href="#skills" onClick={scrollTo('skills')}>Skills</NavLink>

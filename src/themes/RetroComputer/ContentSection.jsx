@@ -245,6 +245,7 @@ export default function ContentSection({ cv }) {
   const socialLinks = cv.socialLinks || {};
   const allSkills = flatSkills(cv.skills);
   const languages = (cv.languages || []).map(formatLanguage).filter(Boolean);
+  const hasContact = Boolean(cv.email || cv.website || socialLinks.linkedin || socialLinks.github);
 
   return (
     <>
@@ -461,41 +462,43 @@ export default function ContentSection({ cv }) {
           </Section>
         )}
 
-        <Section id="retro-contact">
-          <H1>Contact</H1>
-          {cv.email && (
-            <P style={{ textAlign: 'center' }}>
-              <Btn href={`mailto:${cv.email}`}>{cv.email}</Btn>
-            </P>
-          )}
-          {socialLinks.linkedin && (
-            <P style={{ textAlign: 'center' }}>
-              Reach out on{' '}
-              <Link href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer">
-                <u>
-                  <b>LinkedIn</b>
-                </u>
-              </Link>
-            </P>
-          )}
-          {socialLinks.github && (
-            <P style={{ textAlign: 'center' }}>
-              Explore{' '}
-              <Link href={socialLinks.github} target="_blank" rel="noopener noreferrer">
-                <u>
-                  <b>GitHub</b>
-                </u>
-              </Link>
-            </P>
-          )}
-          {cv.website && (
-            <P style={{ textAlign: 'center' }}>
-              <Link href={cv.website} target="_blank" rel="noopener noreferrer">
-                <u>{displayUrl(cv.website)}</u>
-              </Link>
-            </P>
-          )}
-        </Section>
+        {hasContact && (
+          <Section id="retro-contact">
+            <H1>Contact</H1>
+            {cv.email && (
+              <P style={{ textAlign: 'center' }}>
+                <Btn href={`mailto:${cv.email}`}>{cv.email}</Btn>
+              </P>
+            )}
+            {socialLinks.linkedin && (
+              <P style={{ textAlign: 'center' }}>
+                Reach out on{' '}
+                <Link href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer">
+                  <u>
+                    <b>LinkedIn</b>
+                  </u>
+                </Link>
+              </P>
+            )}
+            {socialLinks.github && (
+              <P style={{ textAlign: 'center' }}>
+                Explore{' '}
+                <Link href={socialLinks.github} target="_blank" rel="noopener noreferrer">
+                  <u>
+                    <b>GitHub</b>
+                  </u>
+                </Link>
+              </P>
+            )}
+            {cv.website && (
+              <P style={{ textAlign: 'center' }}>
+                <Link href={cv.website} target="_blank" rel="noopener noreferrer">
+                  <u>{displayUrl(cv.website)}</u>
+                </Link>
+              </P>
+            )}
+          </Section>
+        )}
       </Main>
 
       <Footer>

@@ -3,6 +3,7 @@ import yaml from 'js-yaml';
 import {
   flattenExperience,
   normalizeSocialLinks,
+  normalizeHighlights,
   filterActive,
   getCurrentJobTitle,
 } from '../utils/cvHelpers';
@@ -24,6 +25,22 @@ function pickFirstString(...values) {
 function parsePositiveNumber(value) {
   const parsed = Number.parseFloat(String(value ?? ''));
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function normalizeEntry(entry) {
+  if (!entry || typeof entry !== 'object') return entry;
+
+  return {
+    ...entry,
+    highlights: normalizeHighlights(entry.highlights),
+    positions: Array.isArray(entry.positions)
+      ? entry.positions.map((position) => normalizeEntry(position))
+      : entry.positions,
+  };
+}
+
+function normalizeSectionEntries(entries = []) {
+  return Array.isArray(entries) ? entries.map((entry) => normalizeEntry(entry)) : [];
 }
 
 export function ConfigProvider({ children }) {
@@ -74,6 +91,18 @@ export function ConfigProvider({ children }) {
 
     const raw = cvData.cv;
     const sections = raw.sections || {};
+    const normalizedSections = {
+      ...sections,
+      experience: normalizeSectionEntries(sections.experience),
+      projects: normalizeSectionEntries(sections.projects),
+      education: normalizeSectionEntries(sections.education),
+      awards: normalizeSectionEntries(sections.awards),
+      publications: normalizeSectionEntries(sections.publications),
+      presentations: normalizeSectionEntries(sections.presentations),
+      volunteer: normalizeSectionEntries(sections.volunteer),
+      certifications: normalizeSectionEntries(sections.certifications),
+      professional_development: normalizeSectionEntries(sections.professional_development),
+    };
     const avatar = pickFirstString(
       raw.avatar,
       raw.avatar_url,
@@ -112,28 +141,28 @@ export function ConfigProvider({ children }) {
       about: sections.about || '',
 
       // Normalized social links
-      socialLinks: normalizeSocialLinks(raw.social || [], raw.email),
+      socialLinks: normalizeSocialLinks(raw.social || raw.social_networks || [], raw.email),
 
       // Raw social array (for themes that need custom handling)
-      social: raw.social || [],
-      socialRaw: raw.social || [],
+      social: raw.social || raw.social_networks || [],
+      socialRaw: raw.social || raw.social_networks || [],
 
       // Current job title (derived)
-      currentJobTitle: getCurrentJobTitle(sections.experience),
+      currentJobTitle: getCurrentJobTitle(normalizedSections.experience),
 
       // Pre-processed sections
-      experience: flattenExperience(sections.experience || []),
-      projects: filterActive(sections.projects || []),
-      education: filterActive(sections.education || []),
-      skills: sections.skills || [],
-      languages: sections.languages || [],
-      awards: filterActive(sections.awards || []),
-      publications: filterActive(sections.publications || []),
-      presentations: filterActive(sections.presentations || []),
-      volunteer: flattenExperience(sections.volunteer || []),
-      certifications: filterActive(sections.certifications || []),
-      professionalDevelopment: filterActive(sections.professional_development || []),
-      certificationsSkills: sections.certifications_skills || [],
+      experience: flattenExperience(normalizedSections.experience || []),
+      projects: filterActive(normalizedSections.projects || []),
+      education: filterActive(normalizedSections.education || []),
+      skills: normalizedSections.skills || [],
+      languages: normalizedSections.languages || [],
+      awards: filterActive(normalizedSections.awards || []),
+      publications: filterActive(normalizedSections.publications || []),
+      presentations: filterActive(normalizedSections.presentations || []),
+      volunteer: flattenExperience(normalizedSections.volunteer || []),
+      certifications: filterActive(normalizedSections.certifications || []),
+      professionalDevelopment: filterActive(normalizedSections.professional_development || []),
+      certificationsSkills: normalizedSections.certifications_skills || [],
 
       // Raw sections
       sections,

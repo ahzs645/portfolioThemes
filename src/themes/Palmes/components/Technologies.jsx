@@ -155,6 +155,28 @@ function isArchived(entry) {
   return Array.isArray(entry?.tags) && entry.tags.includes('archived');
 }
 
+function splitSkillDetails(value) {
+  if (typeof value !== 'string') return [];
+
+  return value
+    .split(/[;,]/)
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+function getSkillName(skill) {
+  if (typeof skill === 'string') return skill.trim();
+  return (skill?.name || skill?.skill || skill?.label || '').trim();
+}
+
+function getFlatSkills(skills) {
+  return skills.flatMap(skill => {
+    if (typeof skill === 'string') return [skill.trim()].filter(Boolean);
+    if (typeof skill?.details === 'string') return splitSkillDetails(skill.details);
+    return [getSkillName(skill)].filter(Boolean);
+  });
+}
+
 export default function Technologies({ skills = [] }) {
   // Handle both array of skills and categorized skills
   const filteredSkills = skills.filter(s => !isArchived(s));
@@ -169,44 +191,51 @@ export default function Technologies({ skills = [] }) {
   );
 
   if (isCategorized) {
+    const categories = filteredSkills
+      .map(category => ({
+        ...category,
+        items: (category.keywords || category.items || category.skills || [])
+          .map(getSkillName)
+          .filter(Boolean),
+      }))
+      .filter(category => category.items.length > 0);
+
+    if (categories.length === 0) return null;
+
     return (
       <Section id="skills">
         <SectionTitle>Technologies</SectionTitle>
-        {filteredSkills.map((category, idx) => {
-          const items = category.keywords || category.items || category.skills || [];
-          if (items.length === 0) return null;
+        {categories.map((category, idx) => (
+          <SkillCategory key={idx}>
+            <CategoryTitle>{category.name || category.category || category.label || 'Skills'}</CategoryTitle>
+            <SkillsGrid>
+              {category.items.map((skillName, index) => {
+                const iconClass = getDeviconClass(skillName);
 
-          return (
-            <SkillCategory key={idx}>
-              <CategoryTitle>{category.name || category.category || 'Skills'}</CategoryTitle>
-              <SkillsGrid>
-                {items.map((skill, index) => {
-                  const skillName = typeof skill === 'string' ? skill : skill.name;
-                  const iconClass = getDeviconClass(skillName);
-
-                  return (
-                    <SkillCard key={index}>
-                      <SkillIcon>
-                        {iconClass ? (
-                          <i className={iconClass}></i>
-                        ) : (
-                          <span style={{ fontSize: '1.5rem' }}>💻</span>
-                        )}
-                      </SkillIcon>
-                      <SkillName>{skillName}</SkillName>
-                    </SkillCard>
-                  );
-                })}
-              </SkillsGrid>
-            </SkillCategory>
-          );
-        })}
+                return (
+                  <SkillCard key={index}>
+                    <SkillIcon>
+                      {iconClass ? (
+                        <i className={iconClass}></i>
+                      ) : (
+                        <span style={{ fontSize: '1.5rem' }}>💻</span>
+                      )}
+                    </SkillIcon>
+                    <SkillName>{skillName}</SkillName>
+                  </SkillCard>
+                );
+              })}
+            </SkillsGrid>
+          </SkillCategory>
+        ))}
       </Section>
     );
   }
 
   // Flat list of skills
-  const allSkills = filteredSkills.map(s => typeof s === 'string' ? s : s.name || s.skill);
+  const allSkills = getFlatSkills(filteredSkills);
+
+  if (allSkills.length === 0) return null;
 
   return (
     <Section id="skills">

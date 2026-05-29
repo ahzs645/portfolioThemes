@@ -18,10 +18,34 @@ export function isArchived(entry) {
 }
 
 /**
+ * Normalize highlights into a plain string array.
+ * Supports the standard array shape plus flavor maps such as:
+ * { flavors: { main: [...], swe: [...] } }
+ */
+export function normalizeHighlights(highlights, preferredFlavor = 'main') {
+  if (!highlights) return [];
+  if (Array.isArray(highlights)) return highlights.filter(Boolean);
+  if (typeof highlights === 'string') return [highlights];
+
+  if (typeof highlights === 'object') {
+    const flavors = highlights.flavors && typeof highlights.flavors === 'object'
+      ? highlights.flavors
+      : highlights;
+    const preferred = flavors?.[preferredFlavor];
+    const fallback = Object.values(flavors || {}).find(Array.isArray);
+
+    if (Array.isArray(preferred)) return preferred.filter(Boolean);
+    if (Array.isArray(fallback)) return fallback.filter(Boolean);
+  }
+
+  return [];
+}
+
+/**
  * Flatten experience entries that have nested positions into flat list
  */
 export function flattenExperience(experience = [], options = {}) {
-  const { excludeArchived = true, limit = null } = options;
+  const { excludeArchived = true, limit = null, preferredFlavor = 'main' } = options;
   const items = [];
 
   for (const entry of experience) {
@@ -36,7 +60,7 @@ export function flattenExperience(experience = [], options = {}) {
           startDate: position?.start_date ?? entry.start_date,
           endDate: position?.end_date ?? entry.end_date ?? null,
           isCurrent: isPresent(position?.end_date ?? entry.end_date),
-          highlights: position?.highlights || entry.highlights || [],
+          highlights: normalizeHighlights(position?.highlights || entry.highlights, preferredFlavor),
         });
       }
     } else {
@@ -46,7 +70,7 @@ export function flattenExperience(experience = [], options = {}) {
         startDate: entry.start_date,
         endDate: entry.end_date ?? null,
         isCurrent: isPresent(entry.end_date),
-        highlights: entry.highlights || [],
+        highlights: normalizeHighlights(entry.highlights, preferredFlavor),
       });
     }
   }

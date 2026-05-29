@@ -220,6 +220,16 @@ export function FloperillatChatTheme({ darkMode = false }) {
   const [isTyping, setIsTyping] = useState(false);
   const [messages, setMessages] = useState([]);
   const transcriptRef = useRef(null);
+  const topics = useMemo(() => TOPICS.filter((topic) => {
+    if (topic.id === 'current') return Boolean(profile.primaryCurrent || profile.currentRoles.length);
+    if (topic.id === 'education') return profile.education.length > 0;
+    if (topic.id === 'projects') return profile.projects.length > 0;
+    if (topic.id === 'skills') return profile.skills.length > 0;
+    if (topic.id === 'contact') {
+      return Boolean(profile.email || profile.website || profile.socials.linkedin || profile.socials.github);
+    }
+    return true;
+  }), [profile]);
 
   useEffect(() => {
     setMessages([]);
@@ -313,7 +323,7 @@ export function FloperillatChatTheme({ darkMode = false }) {
 
       <BottomStack $show={introDone}>
         <Suggestions aria-label="Suggested questions">
-          {TOPICS.map((topic) => (
+          {topics.map((topic) => (
             <SuggestionButton
               key={topic.id}
               type="button"

@@ -49,7 +49,7 @@ const SearchIcon = (
   </svg>
 );
 
-const TABS = [
+const TAB_DEFS = [
   { id: 'experience', label: 'Experience' },
   { id: 'work', label: 'Work' },
   { id: 'articles', label: 'Articles' },
@@ -128,6 +128,23 @@ export function BenIssenTheme() {
     if (!cv?.about) return [];
     return cv.about.split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
   }, [cv?.about]);
+
+  const tabs = useMemo(() => TAB_DEFS.filter((item) => {
+    if (item.id === 'experience') return experience.length > 0;
+    if (item.id === 'work') return projects.length > 0;
+    if (item.id === 'articles') return articles.length > 0;
+    if (item.id === 'contact') return contacts.length > 0;
+    if (item.id === 'more') return moreSections.length > 0;
+    return true;
+  }), [articles.length, contacts.length, experience.length, moreSections.length, projects.length]);
+
+  useEffect(() => {
+    if (tabs.length && !tabs.some((item) => item.id === tab)) {
+      setTab(tabs[0].id);
+      setShowBio(false);
+      setSelectedKey(null);
+    }
+  }, [tab, tabs]);
 
   useEffect(() => {
     if (rightScrollRef.current) rightScrollRef.current.scrollTop = 0;
@@ -237,7 +254,7 @@ export function BenIssenTheme() {
 
                 <ToolsRow>
                   <TabsScroll>
-                    {TABS.map((t) => (
+                    {tabs.map((t) => (
                       <Tab
                         key={t.id}
                         $active={tab === t.id}

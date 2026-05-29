@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import styled, { css } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import * as THREE from 'three';
@@ -117,6 +117,13 @@ void main() {
   gl_FragColor = vec4(result, blurAlpha);
 }
 `;
+
+function formatSkillEntry(skillGroup) {
+  if (!skillGroup) return '';
+  if (typeof skillGroup === 'string') return skillGroup;
+  if (Array.isArray(skillGroup.items)) return skillGroup.items.slice(0, 5).join(', ');
+  return skillGroup.name || skillGroup.label || skillGroup.bullet || skillGroup.details || '';
+}
 
 // WebGL Canvas Component - matching original implementation
 function BackgroundCanvas({ darkMode, isMonospace }) {
@@ -337,8 +344,6 @@ export function P5aholicTheme({ darkMode }) {
     });
   }, [activePage, isTransitioning]);
 
-  if (!cv) return null;
-
   const {
     name,
     email,
@@ -357,7 +362,7 @@ export function P5aholicTheme({ darkMode }) {
     volunteer,
     professionalDevelopment,
     sectionsRaw,
-  } = cv;
+  } = cv || {};
 
   const awards = (sectionsRaw?.awards || []).filter(e => !Array.isArray(e?.tags) || !e.tags.includes('archived'));
   const activeProjects = projects?.slice(0, 12) || [];
@@ -368,13 +373,35 @@ export function P5aholicTheme({ darkMode }) {
   const recentCertifications = certifications?.slice(0, 3) || [];
   const recentVolunteer = volunteer?.slice(0, 3) || [];
   const recentProfDev = professionalDevelopment?.slice(0, 3) || [];
+  const hasProjects = activeProjects.length > 0;
+  const hasLinks = Boolean(socialLinks?.twitter || socialLinks?.linkedin || socialLinks?.github);
+  const hasInfo = hasLinks ||
+    recentExperience.length > 0 ||
+    awards.length > 0 ||
+    recentEducation.length > 0 ||
+    recentPublications.length > 0 ||
+    recentPresentations.length > 0 ||
+    recentCertifications.length > 0 ||
+    (skills || []).length > 0 ||
+    (languages || []).length > 0 ||
+    recentVolunteer.length > 0 ||
+    recentProfDev.length > 0;
+  const hasContact = Boolean(email || socialLinks?.linkedin);
 
-  const pages = [
+  const pages = useMemo(() => [
     { id: 'home', label: 'Home' },
-    { id: 'projects', label: 'Projects' },
-    { id: 'info', label: 'Info' },
-    { id: 'contact', label: 'Contact' },
-  ];
+    hasProjects ? { id: 'projects', label: 'Projects' } : null,
+    hasInfo ? { id: 'info', label: 'Info' } : null,
+    hasContact ? { id: 'contact', label: 'Contact' } : null,
+  ].filter(Boolean), [hasProjects, hasInfo, hasContact]);
+
+  useEffect(() => {
+    if (!pages.some((page) => page.id === activePage)) {
+      setActivePage('home');
+    }
+  }, [activePage, pages]);
+
+  if (!cv) return null;
 
   return (
     <PageWrapper $darkMode={darkMode} $isMonospace={isMonospace}>
@@ -465,7 +492,7 @@ export function P5aholicTheme({ darkMode }) {
           )}
 
           {/* Projects Page */}
-          {activePage === 'projects' && (
+          {activePage === 'projects' && hasProjects && (
             <Page>
               <ProjectsContent $isMonospace={isMonospace}>
                 <ProjectList>
@@ -494,36 +521,38 @@ export function P5aholicTheme({ darkMode }) {
           )}
 
           {/* Info Page */}
-          {activePage === 'info' && (
+          {activePage === 'info' && hasInfo && (
             <Page>
               <InfoContent>
                 {/* Social Links */}
-                <InfoItem>
-                  <InfoSectionLabel>Links</InfoSectionLabel>
-                  <InfoList>
-                    {socialLinks.twitter && (
-                      <li>
-                        <InfoLink href={socialLinks.twitter} target="_blank" rel="noreferrer">
-                          Twitter/X ↗
-                        </InfoLink>
-                      </li>
-                    )}
-                    {socialLinks.linkedin && (
-                      <li>
-                        <InfoLink href={socialLinks.linkedin} target="_blank" rel="noreferrer">
-                          LinkedIn ↗
-                        </InfoLink>
-                      </li>
-                    )}
-                    {socialLinks.github && (
-                      <li>
-                        <InfoLink href={socialLinks.github} target="_blank" rel="noreferrer">
-                          GitHub ↗
-                        </InfoLink>
-                      </li>
-                    )}
-                  </InfoList>
-                </InfoItem>
+                {hasLinks && (
+                  <InfoItem>
+                    <InfoSectionLabel>Links</InfoSectionLabel>
+                    <InfoList>
+                      {socialLinks?.twitter && (
+                        <li>
+                          <InfoLink href={socialLinks.twitter} target="_blank" rel="noreferrer">
+                            Twitter/X ↗
+                          </InfoLink>
+                        </li>
+                      )}
+                      {socialLinks?.linkedin && (
+                        <li>
+                          <InfoLink href={socialLinks.linkedin} target="_blank" rel="noreferrer">
+                            LinkedIn ↗
+                          </InfoLink>
+                        </li>
+                      )}
+                      {socialLinks?.github && (
+                        <li>
+                          <InfoLink href={socialLinks.github} target="_blank" rel="noreferrer">
+                            GitHub ↗
+                          </InfoLink>
+                        </li>
+                      )}
+                    </InfoList>
+                  </InfoItem>
+                )}
 
                 {/* Experience */}
                 {recentExperience.length > 0 && (
@@ -601,8 +630,8 @@ export function P5aholicTheme({ darkMode }) {
                     <InfoList>
                       {recentCertifications.map((cert, idx) => (
                         <li key={idx}>
-                          {cert.name}
-                          {cert.issuer && <span className="light"> — {cert.issuer}</span>}
+                          {cert.name || cert.label}
+                          {(cert.issuer || cert.details) && <span className="light"> — {cert.issuer || cert.details}</span>}
                         </li>
                       ))}
                     </InfoList>
@@ -616,7 +645,7 @@ export function P5aholicTheme({ darkMode }) {
                     <InfoList>
                       {skills.slice(0, 4).map((skillGroup, idx) => (
                         <li key={idx}>
-                          {Array.isArray(skillGroup.items) ? skillGroup.items.slice(0, 5).join(', ') : skillGroup.name}
+                          {formatSkillEntry(skillGroup)}
                           {skillGroup.category && <span className="light"> — {skillGroup.category}</span>}
                         </li>
                       ))}
@@ -673,7 +702,7 @@ export function P5aholicTheme({ darkMode }) {
           )}
 
           {/* Contact Page */}
-          {activePage === 'contact' && (
+          {activePage === 'contact' && hasContact && (
             <Page>
               <ContactContent>
                 {email && (
@@ -681,7 +710,7 @@ export function P5aholicTheme({ darkMode }) {
                     {email} ↗
                   </ContactLink>
                 )}
-                {socialLinks.linkedin && (
+                {socialLinks?.linkedin && (
                   <ContactLink href={socialLinks.linkedin} target="_blank" rel="noreferrer">
                     Connect on LinkedIn ↗
                   </ContactLink>

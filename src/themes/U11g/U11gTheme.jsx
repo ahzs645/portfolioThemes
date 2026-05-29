@@ -181,6 +181,38 @@ export function U11gTheme({ darkMode = false }) {
     return cv?.sections?.certifications_skills || [];
   }, [cv]);
 
+  const hasMore = volunteerItems.length > 0 ||
+    publicationItems.length > 0 ||
+    presentationItems.length > 0 ||
+    professionalDevItems.length > 0 ||
+    certificationsSkillsItems.length > 0;
+  const hasContact = Boolean(email || githubUrl || linkedinUrl || twitterUrl);
+  const availableTiles = useMemo(() => tileConfig.filter((tile) => {
+    if (tile.id === 'projects') return projectItems.length > 0;
+    if (tile.id === 'work') return experienceItems.length > 0;
+    if (tile.id === 'skills') return skills.length > 0;
+    if (tile.id === 'education') return educationItems.length > 0;
+    if (tile.id === 'awards') return awardItems.length > 0;
+    if (tile.id === 'more') return hasMore;
+    if (tile.id === 'contact') return hasContact;
+    if (tile.id === 'about') return true;
+    return true;
+  }), [
+    awardItems.length,
+    educationItems.length,
+    experienceItems.length,
+    hasContact,
+    hasMore,
+    projectItems.length,
+    skills.length,
+  ]);
+
+  useEffect(() => {
+    if (activePage && !availableTiles.some((tile) => tile.id === activePage)) {
+      setActivePage(null);
+    }
+  }, [activePage, availableTiles]);
+
   // Live feed items — recent projects + experience
   const feedItems = useMemo(() => {
     const items = [];
@@ -235,14 +267,14 @@ export function U11gTheme({ darkMode = false }) {
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) {
       return [
-        ...tileConfig.map(t => ({ type: 'NAVIGATE', label: t.title, id: t.id })),
+        ...availableTiles.map(t => ({ type: 'NAVIGATE', label: t.title, id: t.id })),
         ...projectItems.slice(0, 5).map(p => ({ type: 'PROJECT', label: p.name, url: p.url })),
       ];
     }
     const q = searchQuery.toLowerCase();
     const results = [];
 
-    tileConfig.forEach(t => {
+    availableTiles.forEach(t => {
       if (t.title.toLowerCase().includes(q)) {
         results.push({ type: 'NAVIGATE', label: t.title, id: t.id });
       }
@@ -255,7 +287,7 @@ export function U11gTheme({ darkMode = false }) {
     });
 
     return results.slice(0, 10);
-  }, [searchQuery, projectItems]);
+  }, [searchQuery, projectItems, availableTiles]);
 
   const handleResultClick = (result) => {
     if (result.type === 'NAVIGATE') {
@@ -273,7 +305,8 @@ export function U11gTheme({ darkMode = false }) {
   const renderSubpage = () => {
     if (!activePage) return null;
 
-    const tile = tileConfig.find(t => t.id === activePage);
+    const tile = availableTiles.find(t => t.id === activePage);
+    if (!tile) return null;
 
     return (
       <SubpageOverlay onClick={() => setActivePage(null)}>
@@ -468,7 +501,7 @@ export function U11gTheme({ darkMode = false }) {
 
       <Dashboard>
         {/* Render tiles dynamically from config */}
-        {tileConfig.map((tile) => {
+        {availableTiles.map((tile) => {
           const isHovered = hoveredTile === tile.id;
 
           // Split tile: "about" is a half-tile on top with LiveFeed on bottom

@@ -421,14 +421,6 @@ export function SaintAngelsTheme({ darkMode = false }) {
 
   const palette = isDark ? darkPalette : lightPalette;
 
-  const pages = useMemo(() => ([
-    { id: 'home', label: 'Home' },
-    { id: 'writing', label: 'Notes' },
-    { id: 'projects', label: 'Projects' },
-    { id: 'experience', label: 'Experience' },
-    { id: 'education', label: 'Education' },
-  ]), []);
-
   const socialLinks = useMemo(() => {
     const items = [];
     if (cv?.website) items.push({ label: 'website', url: cv.website });
@@ -477,6 +469,26 @@ export function SaintAngelsTheme({ darkMode = false }) {
     return [...publications, ...presentations, ...awards, ...development];
   }, [cv]);
 
+  const hasProjects = (cv?.projects || []).length > 0;
+  const hasExperience = (cv?.experience || []).length > 0 || (cv?.volunteer || []).length > 0;
+  const hasEducation = (cv?.education || []).length > 0 ||
+    (cv?.skills || []).length > 0 ||
+    (cv?.certificationsSkills || []).length > 0 ||
+    socialLinks.length > 0;
+  const pages = useMemo(() => ([
+    { id: 'home', label: 'Home' },
+    noteItems.length > 0 ? { id: 'writing', label: 'Notes' } : null,
+    hasProjects ? { id: 'projects', label: 'Projects' } : null,
+    hasExperience ? { id: 'experience', label: 'Experience' } : null,
+    hasEducation ? { id: 'education', label: 'Education' } : null,
+  ].filter(Boolean)), [hasEducation, hasExperience, hasProjects, noteItems.length]);
+
+  useEffect(() => {
+    if (!pages.some((item) => item.id === page)) {
+      setPage('home');
+    }
+  }, [page, pages]);
+
   if (!cv) return null;
 
   const featuredProject = cv.projects?.[0];
@@ -512,16 +524,16 @@ export function SaintAngelsTheme({ darkMode = false }) {
                   onToggleTheme={() => setIsDark((current) => !current)}
                 />
               )}
-              {page === 'writing' && <WritingSection items={noteItems} palette={palette} />}
-              {page === 'projects' && <ProjectsSection items={cv.projects || []} palette={palette} />}
-              {page === 'experience' && (
+              {page === 'writing' && noteItems.length > 0 && <WritingSection items={noteItems} palette={palette} />}
+              {page === 'projects' && hasProjects && <ProjectsSection items={cv.projects || []} palette={palette} />}
+              {page === 'experience' && hasExperience && (
                 <ExperienceSection
                   experience={cv.experience || []}
                   volunteer={cv.volunteer || []}
                   palette={palette}
                 />
               )}
-              {page === 'education' && (
+              {page === 'education' && hasEducation && (
                 <EducationSection
                   education={cv.education || []}
                   skills={cv.skills || []}

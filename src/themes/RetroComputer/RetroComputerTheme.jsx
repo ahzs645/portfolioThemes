@@ -401,19 +401,23 @@ export function RetroComputerTheme({ darkMode }) {
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     setMenuOpen(false);
   };
+  const hasCredentials = (cv.certificationsSkills || []).length > 0 ||
+    (cv.certifications || []).length > 0 ||
+    (cv.languages || []).length > 0;
+  const hasContact = Boolean(cv.email || cv.website || sl.linkedin || sl.github);
   const navItems = [
     { id: 'retro-about', label: 'About' },
-    { id: 'retro-experience', label: 'Experience' },
-    { id: 'retro-projects', label: 'Projects' },
-    { id: 'retro-education', label: 'Education' },
-    { id: 'retro-volunteer', label: 'Volunteer' },
-    { id: 'retro-awards', label: 'Awards' },
-    { id: 'retro-publications', label: 'Publications' },
-    { id: 'retro-presentations', label: 'Presentations' },
-    { id: 'retro-professional-development', label: 'Development' },
-    { id: 'retro-credentials', label: 'Credentials' },
-    { id: 'retro-contact', label: 'Contact' },
-  ];
+    (cv.experience || []).length > 0 ? { id: 'retro-experience', label: 'Experience' } : null,
+    (cv.projects || []).length > 0 ? { id: 'retro-projects', label: 'Projects' } : null,
+    (cv.education || []).length > 0 ? { id: 'retro-education', label: 'Education' } : null,
+    (cv.volunteer || []).length > 0 ? { id: 'retro-volunteer', label: 'Volunteer' } : null,
+    (cv.awards || []).length > 0 ? { id: 'retro-awards', label: 'Awards' } : null,
+    (cv.publications || []).length > 0 ? { id: 'retro-publications', label: 'Publications' } : null,
+    (cv.presentations || []).length > 0 ? { id: 'retro-presentations', label: 'Presentations' } : null,
+    (cv.professionalDevelopment || []).length > 0 ? { id: 'retro-professional-development', label: 'Development' } : null,
+    hasCredentials ? { id: 'retro-credentials', label: 'Credentials' } : null,
+    hasContact ? { id: 'retro-contact', label: 'Contact' } : null,
+  ].filter(Boolean);
 
   return (
     <Wrapper ref={wrapperRef}>

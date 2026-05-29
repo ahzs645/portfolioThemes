@@ -100,15 +100,15 @@ const SocialLink = styled.a`
 `;
 
 export default function Bio({ about, email, socials = [] }) {
+  const hasAbout = typeof about === 'string' && about.trim().length > 0;
+
+  if (!hasAbout) return null;
+
   return (
     <Section id="bio">
       <SectionTitle>About Me</SectionTitle>
       <Content>
-        {about ? (
-          <div dangerouslySetInnerHTML={{ __html: about.replace(/\n/g, '<br/>') }} />
-        ) : (
-          <p>No bio available.</p>
-        )}
+        <div dangerouslySetInnerHTML={{ __html: about.replace(/\n/g, '<br/>') }} />
       </Content>
 
       <ContactInfo>

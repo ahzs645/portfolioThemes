@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 
@@ -19,8 +19,6 @@ export function KubreTheme({ darkMode = false }) {
   const cv = useCV();
   const [activeTab, setActiveTab] = useState('profile');
 
-  if (!cv) return null;
-
   const {
     name,
     email,
@@ -33,7 +31,7 @@ export function KubreTheme({ darkMode = false }) {
     education,
     skills,
     sectionsRaw,
-  } = cv;
+  } = cv || {};
 
   // Get raw experience data
   const experienceRaw = (sectionsRaw?.experience || []).filter(e => !isArchived(e));
@@ -47,6 +45,27 @@ export function KubreTheme({ darkMode = false }) {
 
   // Get first name
   const firstName = name?.split(' ')[0] || 'User';
+  const hasProjects = (projects || []).length > 0;
+  const hasWork = experienceRaw.length > 0;
+  const hasMore = awardItems.length > 0 ||
+    presentationItems.length > 0 ||
+    publicationItems.length > 0 ||
+    professionalDevItems.length > 0 ||
+    volunteerItems.length > 0;
+  const availableTabs = useMemo(() => [
+    'profile',
+    hasProjects ? 'projects' : null,
+    hasWork ? 'work' : null,
+    hasMore ? 'more' : null,
+  ].filter(Boolean), [hasProjects, hasWork, hasMore]);
+
+  useEffect(() => {
+    if (!availableTabs.includes(activeTab)) {
+      setActiveTab('profile');
+    }
+  }, [activeTab, availableTabs]);
+
+  if (!cv) return null;
 
   // Format date
   const formatDate = (dateStr) => {
@@ -83,21 +102,25 @@ export function KubreTheme({ darkMode = false }) {
           >
             ✦ PROFILE
           </NavItem>
-          <NavItem
-            $active={activeTab === 'projects'}
-            $dark={darkMode}
-            onClick={() => setActiveTab('projects')}
-          >
-            ¶ PROJECTS
-          </NavItem>
-          <NavItem
-            $active={activeTab === 'work'}
-            $dark={darkMode}
-            onClick={() => setActiveTab('work')}
-          >
-            ≥ WORK
-          </NavItem>
-          {(awardItems.length > 0 || presentationItems.length > 0 || publicationItems.length > 0 || professionalDevItems.length > 0 || volunteerItems.length > 0) && (
+          {hasProjects && (
+            <NavItem
+              $active={activeTab === 'projects'}
+              $dark={darkMode}
+              onClick={() => setActiveTab('projects')}
+            >
+              ¶ PROJECTS
+            </NavItem>
+          )}
+          {hasWork && (
+            <NavItem
+              $active={activeTab === 'work'}
+              $dark={darkMode}
+              onClick={() => setActiveTab('work')}
+            >
+              ≥ WORK
+            </NavItem>
+          )}
+          {hasMore && (
             <NavItem
               $active={activeTab === 'more'}
               $dark={darkMode}
@@ -123,14 +146,26 @@ export function KubreTheme({ darkMode = false }) {
               </NotebookDots>
 
               <ProfileContent>
-                <ProfileLine>## Profile: {currentJobTitle || 'Software Engineer'}</ProfileLine>
-                <br />
-                <ProfileLine>## Skills (in their own words):</ProfileLine>
-                <ProfileLine>"{about || 'Passionate about building great software.'}"</ProfileLine>
-                <br />
-                <ProfileLine>## Location:</ProfileLine>
-                <ProfileLine>"{location || 'Earth'}"</ProfileLine>
-                <br />
+                {currentJobTitle && (
+                  <>
+                    <ProfileLine>## Profile: {currentJobTitle}</ProfileLine>
+                    <br />
+                  </>
+                )}
+                {about && (
+                  <>
+                    <ProfileLine>## Skills (in their own words):</ProfileLine>
+                    <ProfileLine>"{about}"</ProfileLine>
+                    <br />
+                  </>
+                )}
+                {location && (
+                  <>
+                    <ProfileLine>## Location:</ProfileLine>
+                    <ProfileLine>"{location}"</ProfileLine>
+                    <br />
+                  </>
+                )}
                 {skills && skills.length > 0 && (
                   <>
                     <ProfileLine>## Technologies:</ProfileLine>
@@ -165,16 +200,18 @@ export function KubreTheme({ darkMode = false }) {
             )}
 
             {/* Resume Link */}
-            <ResumeLink>
-              <ResumeLinkButton onClick={() => setActiveTab('work')}>
-                Complete Resume →
-              </ResumeLinkButton>
-            </ResumeLink>
+            {hasWork && (
+              <ResumeLink>
+                <ResumeLinkButton onClick={() => setActiveTab('work')}>
+                  Complete Resume →
+                </ResumeLinkButton>
+              </ResumeLink>
+            )}
           </>
         )}
 
         {/* Projects Tab */}
-        {activeTab === 'projects' && (
+        {activeTab === 'projects' && hasProjects && (
           <Section>
             <NoteBox>
               <NoteLegend>Note</NoteLegend>
@@ -213,7 +250,7 @@ export function KubreTheme({ darkMode = false }) {
         )}
 
         {/* Work Tab */}
-        {activeTab === 'work' && (
+        {activeTab === 'work' && hasWork && (
           <Section>
             <NoteBox>
               <NoteLegend>Note</NoteLegend>
@@ -286,7 +323,7 @@ export function KubreTheme({ darkMode = false }) {
         )}
 
         {/* More Tab - Awards, Presentations, Publications, Prof Dev */}
-        {activeTab === 'more' && (
+        {activeTab === 'more' && hasMore && (
           <Section>
             {awardItems.length > 0 && (
               <>

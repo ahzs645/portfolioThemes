@@ -17,14 +17,14 @@ const BAR_GRADIENTS = {
   credits: 'linear-gradient(180deg, rgb(60, 38, 80) 0%, rgb(130, 95, 170) 49%, rgba(130, 95, 170, 0) 100%)',
 };
 
-export default function TopBar({ activeTab, onTabChange, $dark = false }) {
+export default function TopBar({ activeTab, onTabChange, items = navItems, showCredits = true, $dark = false }) {
   return (
     <>
       <Bar>
         <GradientBg style={{ background: BAR_GRADIENTS[activeTab] || BAR_GRADIENTS.home }} />
         <NavContent>
           <NavLinks>
-            {navItems.map((item) => {
+            {items.map((item) => {
               const isActive = activeTab === item.id;
               const iconColor = isActive ? 'rgb(194, 255, 97)' : 'rgb(255, 255, 255)';
               return (
@@ -40,22 +40,24 @@ export default function TopBar({ activeTab, onTabChange, $dark = false }) {
               );
             })}
           </NavLinks>
-          <NavLink
-            $active={activeTab === 'credits'}
-            onClick={() => onTabChange('credits')}
-            data-cursor-hover
-          >
-            <CreditsIcon
-              color={activeTab === 'credits' ? 'rgb(194, 255, 97)' : 'rgb(255, 255, 255)'}
-              size={16}
-            />
-            <NavLabel $active={activeTab === 'credits'}>CREDITS</NavLabel>
-          </NavLink>
+          {showCredits && (
+            <NavLink
+              $active={activeTab === 'credits'}
+              onClick={() => onTabChange('credits')}
+              data-cursor-hover
+            >
+              <CreditsIcon
+                color={activeTab === 'credits' ? 'rgb(194, 255, 97)' : 'rgb(255, 255, 255)'}
+                size={16}
+              />
+              <NavLabel $active={activeTab === 'credits'}>CREDITS</NavLabel>
+            </NavLink>
+          )}
         </NavContent>
       </Bar>
 
       <MobileNav $dark={$dark}>
-        {navItems.map((item) => {
+        {items.map((item) => {
           const isActive = activeTab === item.id;
           return (
             <MobileNavItem
@@ -66,12 +68,14 @@ export default function TopBar({ activeTab, onTabChange, $dark = false }) {
             </MobileNavItem>
           );
         })}
-        <MobileNavItem onClick={() => onTabChange('credits')}>
-          <CreditsIcon
-            color={activeTab === 'credits' ? 'rgb(41, 73, 111)' : 'rgb(175, 184, 196)'}
-            size={20}
-          />
-        </MobileNavItem>
+        {showCredits && (
+          <MobileNavItem onClick={() => onTabChange('credits')}>
+            <CreditsIcon
+              color={activeTab === 'credits' ? 'rgb(41, 73, 111)' : 'rgb(175, 184, 196)'}
+              size={20}
+            />
+          </MobileNavItem>
+        )}
       </MobileNav>
     </>
   );

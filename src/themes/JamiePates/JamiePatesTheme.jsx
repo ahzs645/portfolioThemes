@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useCV } from '../../contexts/ConfigContext';
 import { ShadowRoot } from '../../ui/ShadowRoot';
-import { formatDateRange, formatMonthYear } from '../../utils/cvHelpers';
+import { formatDateRange, formatMonthYear, normalizeHighlights } from '../../utils/cvHelpers';
 import { withBase } from '../../utils/assetPath';
 
 import rawStyles from './jamiePates.css?raw';
@@ -206,7 +206,7 @@ function splitDetails(details = '') {
 }
 
 function parseProjectTech(project) {
-  const techLine = (project?.highlights || []).find((item) => /^technologies\s*-/i.test(item || ''));
+  const techLine = normalizeHighlights(project?.highlights).find((item) => /^technologies\s*-/i.test(item || ''));
   if (!techLine) return [];
   return techLine
     .replace(/^technologies\s*-\s*/i, '')
@@ -334,7 +334,7 @@ function buildHistoryRecords(cv, mode, level) {
       name: item.institution,
       role: item.degree || item.area || 'Education',
       year: formatDateRange(item.start_date || item.startDate, item.end_date || item.endDate),
-      summary: item.highlights?.[0] || item.area || '',
+      summary: normalizeHighlights(item.highlights)[0] || item.area || '',
       link: item.url || null,
       level: Math.max(12, level - index * 4),
       imagePath: imagePool[index] || null,
@@ -350,8 +350,8 @@ function buildHistoryRecords(cv, mode, level) {
       item.end_date || item.positions?.[item.positions?.length - 1]?.end_date
     ),
     summary:
-      item.highlights?.[0] ||
-      item.positions?.[0]?.highlights?.[0] ||
+      normalizeHighlights(item.highlights)[0] ||
+      normalizeHighlights(item.positions?.[0]?.highlights)[0] ||
       item.location ||
       '',
     link: item.url || null,

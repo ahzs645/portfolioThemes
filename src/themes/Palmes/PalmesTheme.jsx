@@ -156,6 +156,7 @@ export function PalmesTheme() {
   const email = cv?.email || null;
   const socials = cv?.social || [];
   const aboutText = cv?.about || '';
+  const hasAbout = typeof aboutText === 'string' && aboutText.trim().length > 0;
 
   // Get current job title
   const currentTitle = useMemo(() => {
@@ -188,10 +189,10 @@ export function PalmesTheme() {
       <Wrapper>
         <ThreeView scrollPercent={scrollPercent} isScrolling={isScrolling} />
         <ScrollContainer ref={scrollContainerRef}>
-          <Header name={fullName} scrollContainerRef={scrollContainerRef} />
+          <Header name={fullName} scrollContainerRef={scrollContainerRef} hasAbout={hasAbout} />
           <Content>
             <Welcome name={fullName} title={currentTitle} />
-            <Bio about={aboutText} email={email} socials={socials} />
+            {hasAbout && <Bio about={aboutText} email={email} socials={socials} />}
             <Experience experiences={experiences} />
             <Projects projects={projects} />
             <Technologies skills={skills} />
