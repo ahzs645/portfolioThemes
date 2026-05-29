@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import gsap from 'gsap';
 import { useCV } from '../../contexts/ConfigContext';
@@ -43,6 +43,20 @@ export function KellyChongTheme({ darkMode = false }) {
   const bgBackRef = useRef(null);
 
   const backgrounds = darkMode ? TAB_BACKGROUNDS_DARK : TAB_BACKGROUNDS;
+  const hasInfo = Boolean(cv?.about || cv?.location || cv?.currentJobTitle || (cv?.education || []).length || (cv?.volunteer || []).length || cv?.email || (cv?.socialRaw || []).length);
+  const hasProjects = (cv?.projects || []).length > 0;
+  const hasLogs = (cv?.experience || []).length > 0;
+  const hasCredits = Boolean(cv?.website || cv?.email || (cv?.socialRaw || []).length);
+  const topNavItems = useMemo(() => [
+    { id: 'home', label: 'HOME' },
+    hasInfo ? { id: 'info', label: 'INFO' } : null,
+    hasProjects ? { id: 'projects', label: 'PROJECTS' } : null,
+    hasLogs ? { id: 'logs', label: 'LOGS' } : null,
+  ].filter(Boolean), [hasInfo, hasLogs, hasProjects]);
+  const availableTabs = useMemo(() => [
+    ...topNavItems.map((item) => item.id),
+    hasCredits ? 'credits' : null,
+  ].filter(Boolean), [hasCredits, topNavItems]);
 
   const handleTabChange = useCallback((tab) => {
     if (tab === activeTab) return;
@@ -99,6 +113,12 @@ export function KellyChongTheme({ darkMode = false }) {
     }
   }, []);
 
+  useEffect(() => {
+    if (!availableTabs.includes(activeTab)) {
+      setActiveTab('home');
+    }
+  }, [activeTab, availableTabs]);
+
   if (!cv) return null;
 
   const currentRole = cv.experience[0];
@@ -147,7 +167,7 @@ export function KellyChongTheme({ darkMode = false }) {
         <CustomCursor />
 
         {/* Fixed UI */}
-        <TopBar activeTab={activeTab} onTabChange={handleTabChange} $dark={darkMode} />
+        <TopBar activeTab={activeTab} onTabChange={handleTabChange} items={topNavItems} showCredits={hasCredits} $dark={darkMode} />
         <BottomBar location={cv.location} $dark={darkMode} />
 
         {/* Tab content */}

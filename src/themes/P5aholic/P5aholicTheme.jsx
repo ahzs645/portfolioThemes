@@ -971,14 +971,18 @@ const Content = styled.main`
   position: absolute;
   z-index: 2;
   inset: var(--pad);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
   mix-blend-mode: difference;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 
   @media (max-width: 768px) {
     inset: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
     padding-left: 120px;
     padding-top: calc(var(--pad) * 1.5 + 75px);
     padding-right: var(--pad);

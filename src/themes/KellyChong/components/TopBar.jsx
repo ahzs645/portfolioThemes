@@ -18,13 +18,17 @@ const BAR_GRADIENTS = {
 };
 
 export default function TopBar({ activeTab, onTabChange, items = navItems, showCredits = true, $dark = false }) {
+  const visibleItems = items
+    .map((item) => ({ ...navItems.find((base) => base.id === item.id), ...item }))
+    .filter((item) => item.Icon);
+
   return (
     <>
       <Bar>
         <GradientBg style={{ background: BAR_GRADIENTS[activeTab] || BAR_GRADIENTS.home }} />
         <NavContent>
           <NavLinks>
-            {items.map((item) => {
+            {visibleItems.map((item) => {
               const isActive = activeTab === item.id;
               const iconColor = isActive ? 'rgb(194, 255, 97)' : 'rgb(255, 255, 255)';
               return (
@@ -57,7 +61,7 @@ export default function TopBar({ activeTab, onTabChange, items = navItems, showC
       </Bar>
 
       <MobileNav $dark={$dark}>
-        {items.map((item) => {
+        {visibleItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
             <MobileNavItem

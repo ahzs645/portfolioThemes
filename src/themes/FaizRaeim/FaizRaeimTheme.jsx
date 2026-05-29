@@ -26,19 +26,27 @@ export function FaizRaeimTheme() {
   const cv = useCV();
   if (!cv) return null;
 
+  const navItems = [
+    { name: 'Home', href: '#fr-home' },
+    (cv.about || cv.location) ? { name: 'About', href: '#fr-about' } : null,
+    (cv.experience || []).length > 0 ? { name: 'Experience', href: '#fr-experience' } : null,
+    (cv.projects || []).length > 0 ? { name: 'Projects', href: '#fr-projects' } : null,
+    (cv.email || cv.website || cv.socialLinks?.github || cv.socialLinks?.linkedin) ? { name: 'Contact', href: '#fr-contact' } : null,
+  ].filter(Boolean);
+
   return (
     <Page>
       <FontLoader />
       <GlobalReset />
-      <Navigation />
+      <Navigation items={navItems} />
       <Hero cv={cv} />
-      <About cv={cv} />
+      {(cv.about || cv.location) && <About cv={cv} />}
       <Experience cv={cv} />
       <Skills cv={cv} />
       <Projects cv={cv} />
       <Education cv={cv} />
       <Languages cv={cv} />
-      <Contact cv={cv} />
+      {(cv.email || cv.website || cv.socialLinks?.github || cv.socialLinks?.linkedin) && <Contact cv={cv} />}
       <Footer cv={cv} />
     </Page>
   );

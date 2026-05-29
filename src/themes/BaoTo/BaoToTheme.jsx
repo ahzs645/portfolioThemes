@@ -652,15 +652,27 @@ export function BaoToTheme({ darkMode = false }) {
     mainRef.current?.scrollTo({ top: 0 });
   }, []);
 
-  if (!cv) return null;
-
   const {
     name, email, phone, location, about,
     currentJobTitle, projects, experience,
     education, skills, certificationsSkills,
     awards, publications, presentations,
     volunteer, professionalDevelopment,
-  } = cv;
+  } = cv || {};
+  const pages = useMemo(() => [
+    { key: 'home', label: 'HOME' },
+    (projects || []).length > 0 ? { key: 'work', label: 'WORK' } : null,
+    { key: 'about', label: 'ABOUT' },
+  ].filter(Boolean), [projects]);
+
+  useEffect(() => {
+    if (!pages.some((item) => item.key === page)) {
+      setPage('home');
+      setSelectedProject(null);
+    }
+  }, [page, pages]);
+
+  if (!cv) return null;
 
   function fmtDate(d) {
     if (!d) return '';
@@ -672,7 +684,7 @@ export function BaoToTheme({ darkMode = false }) {
   const sidebarContent = (
     <>
       <SidebarSection>
-        {PAGES.map(p => (
+        {pages.map(p => (
           <PageNavBtn key={p.key} $active={page === p.key} onClick={() => navigate(p.key)}>
             {p.label}
           </PageNavBtn>
@@ -1071,7 +1083,7 @@ export function BaoToTheme({ darkMode = false }) {
 
           {/* Footer */}
           <FooterNav>
-            {PAGES.map(p => (
+            {pages.map(p => (
               <FooterLink key={p.key} $active={page === p.key} onClick={() => navigate(p.key)}>
                 {p.label}
               </FooterLink>

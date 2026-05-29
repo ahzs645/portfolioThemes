@@ -10,7 +10,7 @@ const NAV_ITEMS = [
   { name: 'Contact', href: '#fr-contact' },
 ];
 
-export default function Navigation() {
+export default function Navigation({ items = NAV_ITEMS }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -34,7 +34,7 @@ export default function Navigation() {
       <Nav $scrolled={isScrolled}>
         <NavInner>
           <DesktopLinks>
-            {NAV_ITEMS.map((item) => (
+            {items.map((item) => (
               <NavLink key={item.name} href={item.href} onClick={(e) => scrollTo(e, item.href)}>
                 {item.name}
               </NavLink>
@@ -49,7 +49,7 @@ export default function Navigation() {
 
       {mobileOpen && (
         <MobileDropdown>
-          {NAV_ITEMS.map((item) => (
+          {items.map((item) => (
             <MobileLink key={item.name} href={item.href} onClick={(e) => scrollTo(e, item.href)}>
               {item.name}
             </MobileLink>

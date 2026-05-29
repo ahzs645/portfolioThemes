@@ -53,7 +53,7 @@ function makeProfile(cv) {
   const skills = [
     ...(cv?.skills || []).flatMap((group) => {
       if (typeof group === 'string') return [group];
-      return [group?.label, group?.details, ...(group?.keywords || [])];
+      return [group?.label, group?.details, group?.name, group?.bullet, ...(group?.keywords || [])];
     }),
     ...(cv?.certificationsSkills || []).flatMap((group) => [group?.label, group?.details]),
   ].filter(Boolean);
