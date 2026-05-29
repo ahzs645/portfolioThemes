@@ -29,6 +29,20 @@ function formatDateRange(start, end) {
   return `${s} – ${e}`;
 }
 
+const careerConnectors = [
+  'Subsequently, they worked as ',
+  'They also served as ',
+  'In another role, they worked as ',
+  'Their experience includes serving as ',
+  'They later held the position of ',
+  'They have also worked as ',
+];
+
+function getCareerConnector(index) {
+  if (index === 0) return null;
+  return careerConnectors[(index - 1) % careerConnectors.length];
+}
+
 export function RashadWikiTheme({ darkMode }) {
   const cv = useCV();
 
@@ -256,7 +270,7 @@ export function RashadWikiTheme({ darkMode }) {
                 </SectionHeading>
                 {experience.map((job, i) => (
                   <Paragraph key={i}>
-                    {i === 0 ? `${cv.name?.split(' ')[0]}'s career includes work as ` : 'Subsequently, they worked as '}
+                    {i === 0 ? `${cv.name?.split(' ')[0]}'s career includes work as ` : getCareerConnector(i)}
                     <strong>{job.title}</strong> at <a href={job.url || '#'}>{job.company}</a>{' '}
                     ({formatDateRange(job.startDate, job.endDate)}).
                     {job.description && (
