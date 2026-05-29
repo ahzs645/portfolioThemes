@@ -1,0 +1,20 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: "Theme:"
+      - generic [ref=e7]: Orbital Notes
+    - generic [ref=e8]:
+      - button "Upload CV" [ref=e9] [cursor=pointer]:
+        - img [ref=e10]
+        - generic [ref=e13]: Upload CV
+      - generic [ref=e15]:
+        - button "Previous theme" [ref=e16] [cursor=pointer]:
+          - img [ref=e17]
+        - button "Next theme" [ref=e19] [cursor=pointer]:
+          - img [ref=e20]
+      - button "Browse Themes" [ref=e23] [cursor=pointer]:
+        - img [ref=e24]
+        - generic [ref=e29]: Browse Themes
+      - button "Switch to light mode" [ref=e30] [cursor=pointer]:
+        - img [ref=e31]
+  - generic [ref=e36]: Loading theme...

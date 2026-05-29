@@ -1,39 +1,14 @@
-import React, { Suspense, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, useGLTF } from '@react-three/drei';
-import * as THREE from 'three';
+import { FileText } from 'lucide-react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { withBase } from '../../utils/assetPath';
 import { canUseWebGL, usePrefersReducedMotion } from '../../utils/rendering';
 
 const MESHES = ['tie', 'folder', 'cup', 'backpack', 'keyboard'];
-
-const vertexShader = `
-  attribute float scale;
-  uniform float uTime;
-  varying float vPulse;
-
-  void main() {
-    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    float twinkle = sin(uTime * 1.8 + position.x * 0.015 + position.y * 0.01) * 0.5 + 0.5;
-    vPulse = twinkle;
-    gl_PointSize = scale * (0.65 + twinkle * 0.55) * (420.0 / -mvPosition.z);
-    gl_Position = projectionMatrix * mvPosition;
-  }
-`;
-
-const fragmentShader = `
-  varying float vPulse;
-
-  void main() {
-    vec2 center = gl_PointCoord - vec2(0.5);
-    float dist = length(center);
-    float alpha = smoothstep(0.5, 0.04, dist);
-    vec3 color = mix(vec3(0.58, 0.68, 1.0), vec3(1.0), vPulse);
-    gl_FragColor = vec4(color, alpha);
-  }
-`;
+const PLANET_GAP = 500;
 
 const GlobalStyles = createGlobalStyle`
   @font-face {
@@ -47,34 +22,18 @@ const GlobalStyles = createGlobalStyle`
 
 function orbitalProfile(index) {
   return {
-    radius: 480 * (index + 1),
-    rotationSpeed: 0.004 + index * 0.0015,
-    orbitSpeed: 0.045 + index * 0.018,
-    offset: index * 1.38,
-    inclination: 0.22 + index * 0.12,
+    radius: PLANET_GAP * (index + 1),
+    rotationSpeed: Math.random() * 0.01,
+    orbitSpeed: Math.random() * 0.2,
+    offset: Math.random() * 2 * Math.PI,
+    inclination: Math.random() * Math.PI / 3,
   };
 }
 
 function Planet({ name, index }) {
-  const { scene } = useGLTF(withBase(`norman-ponte/meshes/${name}.glb`));
+  const { nodes } = useGLTF(withBase(`norman-ponte/meshes/${name}.glb`));
   const ref = useRef();
   const profile = useMemo(() => orbitalProfile(index), [index]);
-  const object = useMemo(() => {
-    const clone = scene.clone(true);
-    clone.traverse((child) => {
-      if (!child.isMesh) return;
-      child.castShadow = false;
-      child.receiveShadow = false;
-      child.material = new THREE.MeshStandardMaterial({
-        color: '#eef2ff',
-        roughness: 0.52,
-        metalness: 0.08,
-        emissive: '#18224c',
-        emissiveIntensity: 0.18,
-      });
-    });
-    return clone;
-  }, [scene]);
 
   useFrame(({ clock }) => {
     if (!ref.current) return;
@@ -89,70 +48,62 @@ function Planet({ name, index }) {
     );
   });
 
-  return <primitive ref={ref} object={object} scale={66} />;
+  return (
+    <mesh ref={ref} scale={70} geometry={nodes.item.geometry}>
+      <meshBasicMaterial color="white" />
+    </mesh>
+  );
 }
 
-function Stars({ count = 14000 }) {
-  const materialRef = useRef();
-  const { positions, scales } = useMemo(() => {
+function Stars({ count = 20000 }) {
+  const positions = useMemo(() => {
     const nextPositions = [];
-    const nextScales = [];
 
     for (let i = 0; i < count; i += 1) {
-      const radius = 4200;
+      const radius = 4000;
       const theta = 2 * Math.PI * Math.random();
       const phi = Math.acos(2 * Math.random() - 1);
       nextPositions.push(
-        radius * Math.cos(theta) * Math.sin(phi) + (-2400 + Math.random() * 4800),
-        radius * Math.sin(theta) * Math.sin(phi) + (-2400 + Math.random() * 4800),
-        radius * Math.cos(phi) + (-1200 + Math.random() * 2400)
+        radius * Math.cos(theta) * Math.sin(phi) + (-2500 + Math.random() * 5000),
+        radius * Math.sin(theta) * Math.sin(phi) + (-2500 + Math.random() * 5000),
+        radius * Math.cos(phi) + (-1000 + Math.random() * 2000)
       );
-      nextScales.push(2.4 + Math.random() * 5.2);
     }
 
-    return {
-      positions: new Float32Array(nextPositions),
-      scales: new Float32Array(nextScales),
-    };
+    return new Float32Array(nextPositions);
   }, [count]);
-
-  useFrame(({ clock }) => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.uTime.value = clock.getElapsedTime();
-    }
-  });
 
   return (
     <points>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
-        <bufferAttribute attach="attributes-scale" count={scales.length} array={scales} itemSize={1} />
       </bufferGeometry>
-      <shaderMaterial
-        ref={materialRef}
-        vertexShader={vertexShader}
-        fragmentShader={fragmentShader}
-        uniforms={{ uTime: { value: 0 } }}
-        transparent
-        depthWrite={false}
-        blending={THREE.AdditiveBlending}
-      />
+      <pointsMaterial size={8} sizeAttenuation color="white" />
     </points>
   );
 }
 
-function SpaceScene() {
-  const cameraPosition = useMemo(() => [2350, 1640, 2740], []);
+function CameraScroller({ scrollDepth }) {
+  useFrame(({ camera }) => {
+    camera.position.z += (scrollDepth - camera.position.z) * 0.035;
+    camera.lookAt(0, 0, 0);
+  });
+
+  return null;
+}
+
+function SpaceScene({ scrollProgress = 0 }) {
+  const cameraPosition = useMemo(() => [
+    1000 + Math.random() * 3000,
+    1000 + Math.random() * 3000,
+    1000 + Math.random() * 3000,
+  ], []);
 
   return (
     <SceneLayer aria-hidden="true">
-      <Canvas camera={{ position: cameraPosition, near: 0.1, far: 100000 }} gl={{ antialias: true, alpha: false }}>
-        <color attach="background" args={['#000000']} />
-        <ambientLight intensity={0.58} />
-        <directionalLight position={[800, 1200, 600]} intensity={1.25} />
-        <pointLight position={[-1200, 700, 1100]} intensity={1.5} color="#9fb7ff" />
-        <fog attach="fog" args={['#000000', 1800, 7600]} />
-        <OrbitControls target={[0, 0, 0]} enablePan={false} maxDistance={4200} minDistance={700} autoRotate autoRotateSpeed={0.18} />
+      <Canvas camera={{ position: cameraPosition, near: 0.1, far: 100000 }}>
+        <OrbitControls target={[0, 0, 0]} maxDistance={4000} minDistance={1} />
+        <CameraScroller scrollDepth={cameraPosition[2] - scrollProgress * 3200} />
         <Stars />
         {MESHES.map((mesh, index) => (
           <Suspense key={mesh} fallback={null}>
@@ -202,11 +153,40 @@ function Entry({ item, fallbackTitle }) {
   );
 }
 
+function GitHubMark() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M12 1.27a11 11 0 0 0-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 0 1 .64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 0 1 0-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 0 1 0 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0 0 12 1.27"
+      />
+    </svg>
+  );
+}
+
 export function NormanPonteTheme() {
   const cv = useCV();
   const reducedMotion = usePrefersReducedMotion();
   const [webglAvailable] = React.useState(() => canUseWebGL());
   const [activeView, setActiveView] = useState(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    const updateScrollProgress = () => {
+      const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      setScrollProgress(Math.min(1, Math.max(0, window.scrollY / maxScroll)));
+    };
+
+    updateScrollProgress();
+    window.addEventListener('scroll', updateScrollProgress, { passive: true });
+    window.addEventListener('resize', updateScrollProgress);
+
+    return () => {
+      window.removeEventListener('scroll', updateScrollProgress);
+      window.removeEventListener('resize', updateScrollProgress);
+    };
+  }, []);
+
   if (!cv) return null;
   const showSpaceScene = webglAvailable && !reducedMotion;
 
@@ -228,19 +208,22 @@ export function NormanPonteTheme() {
   const openView = (event, view) => {
     event.preventDefault();
     setActiveView(view);
+    if (view === null) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   return (
     <>
       <GlobalStyles />
       <Page>
-        {showSpaceScene ? <SpaceScene /> : <StaticSceneLayer aria-hidden="true" />}
+        {showSpaceScene ? <SpaceScene scrollProgress={activeView ? 0 : scrollProgress} /> : <StaticSceneLayer aria-hidden="true" />}
         <Navigation>
           <Brand href="#start" onClick={(event) => openView(event, null)}>{cv.name || 'Portfolio'}</Brand>
           <NavLinks aria-label="Theme sections">
-            <a href="#about" onClick={(event) => openView(event, 'about')}>About</a>
-            <a href="#notes" onClick={(event) => openView(event, 'notes')}>Notes</a>
-            <a href="#reviews" onClick={(event) => openView(event, 'reviews')}>Reviews</a>
+            <a href="#about" data-active={activeView === 'about'} onClick={(event) => openView(event, 'about')}>About</a>
+            <a href="#notes" data-active={activeView === 'notes'} onClick={(event) => openView(event, 'notes')}>Notes</a>
+            <a href="#reviews" data-active={activeView === 'reviews'} onClick={(event) => openView(event, 'reviews')}>Reviews</a>
           </NavLinks>
         </Navigation>
 
@@ -254,11 +237,14 @@ export function NormanPonteTheme() {
                 <p>{cv.about || `I spend most my time as ${cv.currentJobTitle || 'a builder of software systems'}. Opinions are regrettably my own.`}</p>
                 <p>Below are the best ways to reach me.</p>
                 <IconStack>
-                  {socialLinks.map((link) => (
-                    <IconLink key={link.label} href={link.href} target={link.href.startsWith('mailto:') ? undefined : '_blank'} rel="noreferrer" aria-label={link.label}>
-                      {link.label.slice(0, 2)}
+                  {socials.github && (
+                    <IconLink href={socials.github} target="_blank" rel="noreferrer" aria-label="GitHub">
+                      <GitHubMark />
                     </IconLink>
-                  ))}
+                  )}
+                  <IconLink href={cv.website || '#'} target={cv.website ? '_blank' : undefined} rel="noreferrer" aria-label="CV">
+                    <FileText size={23} strokeWidth={1.8} />
+                  </IconLink>
                 </IconStack>
               </AboutPaper>
             )}
@@ -314,7 +300,7 @@ const Page = styled.div`
 
 const SceneLayer = styled.div`
   position: fixed;
-  inset: var(--app-top-offset, 0px) 0 0;
+  inset: 0;
   z-index: 0;
   background: #000;
 `;
@@ -329,27 +315,29 @@ const StaticSceneLayer = styled(SceneLayer)`
 
 const Navigation = styled.nav`
   position: sticky;
-  top: var(--app-top-offset, 0px);
-  z-index: 3;
+  top: 0;
+  z-index: 1002;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  min-height: 54px;
-  padding: 0.5rem 1rem;
+  height: 54px;
+  padding: 0 1rem;
 
   a {
     color: #ecedff;
     text-decoration: none;
     background: rgba(0, 0, 0, 0.82);
-    border: 1px solid rgba(236, 237, 255, 0.16);
     border-radius: 4px;
-    padding: 0.38rem 0.58rem;
-    transition: border-color 160ms ease, background 160ms ease;
+    padding: 4px 8px;
+    transition: background 160ms ease, color 160ms ease;
+  }
+
+  a[data-active='true'] {
+    color: #fff;
+    font-weight: 700;
   }
 
   a:hover {
-    border-color: rgba(236, 237, 255, 0.48);
     background: rgba(0, 0, 0, 0.94);
   }
 
@@ -370,8 +358,11 @@ const NavLinks = styled.div`
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 0.34rem;
   font-size: 0.82rem;
+
+  a + a {
+    margin-left: 16px;
+  }
 `;
 
 const StartScreen = styled.div`
@@ -383,10 +374,10 @@ const StartScreen = styled.div`
 const Main = styled.main`
   position: relative;
   z-index: 2;
-  width: min(100%, 760px);
+  width: min(100%, 680px);
   min-height: calc(100vh - var(--app-top-offset, 0px));
   margin: 0 auto;
-  padding: 0 1rem 4rem;
+  padding: 0 0 4rem;
 `;
 
 const Hero = styled.header`
@@ -448,34 +439,33 @@ const Panel = styled.div`
 
 const AboutPaper = styled.article`
   padding: 1rem;
+  margin: 0.5rem;
   color: #fff;
-  background: rgba(18, 18, 18, 0.92);
+  background: rgb(18, 18, 18);
   border-radius: 4px;
   box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 0 1px 1px rgba(0, 0, 0, 0.14), 0 1px 3px rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(10px);
+  font-size: 1rem;
 
   p {
-    margin: 0 0 1rem;
-    line-height: 1.55;
+    margin: 0 0 1rem 0;
+    line-height: 1.5;
   }
 `;
 
 const IconStack = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  justify-content: center;
 `;
 
 const IconLink = styled.a`
   display: inline-grid;
   place-items: center;
-  width: 2.4rem;
-  height: 2.4rem;
+  width: 40px;
+  height: 40px;
   color: inherit;
   border-radius: 50%;
-  font-size: 0.72rem;
   text-decoration: none;
-  text-transform: uppercase;
   transition: background 140ms ease;
 
   &:hover {

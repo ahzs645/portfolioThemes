@@ -1832,10 +1832,25 @@
     },
     {
       "date": "2026-05-26",
-      "level": 1,
-      "count": 1
+      "level": 2,
+      "count": 36
+    },
+    {
+      "date": "2026-05-27",
+      "level": 3,
+      "count": 51
+    },
+    {
+      "date": "2026-05-28",
+      "level": 2,
+      "count": 29
+    },
+    {
+      "date": "2026-05-29",
+      "level": 0,
+      "count": 0
     }
   ],
-  "totalYear": 6883,
-  "fetchedAt": "2026-05-26T15:00:53.358Z"
+  "totalYear": 6998,
+  "fetchedAt": "2026-05-29T15:00:40.097Z"
 }

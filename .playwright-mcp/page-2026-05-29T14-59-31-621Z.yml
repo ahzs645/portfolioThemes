@@ -1,0 +1,42 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: "Theme:"
+      - generic [ref=e7]: Orbital Notes
+    - generic [ref=e8]:
+      - button "Upload CV" [ref=e9] [cursor=pointer]:
+        - img [ref=e10]
+        - generic [ref=e13]: Upload CV
+      - generic [ref=e15]:
+        - button "Previous theme" [ref=e16] [cursor=pointer]:
+          - img [ref=e17]
+        - button "Next theme" [ref=e19] [cursor=pointer]:
+          - img [ref=e20]
+      - button "Browse Themes" [ref=e23] [cursor=pointer]:
+        - img [ref=e24]
+        - generic [ref=e29]: Browse Themes
+      - button "Switch to light mode" [ref=e30] [cursor=pointer]:
+        - img [ref=e31]
+  - generic [ref=e35]:
+    - navigation [ref=e40]:
+      - link "Ahmad Jalil" [ref=e41] [cursor=pointer]:
+        - /url: "#start"
+      - generic "Theme sections" [ref=e42]:
+        - link "About" [active] [ref=e43] [cursor=pointer]:
+          - /url: "#about"
+        - link "Notes" [ref=e44] [cursor=pointer]:
+          - /url: "#notes"
+        - link "Reviews" [ref=e45] [cursor=pointer]:
+          - /url: "#reviews"
+    - main [ref=e47]:
+      - article [ref=e48]:
+        - paragraph [ref=e49]: Typing in Prince George, BC.
+        - paragraph [ref=e50]: I spend most my time as Research Assistant. Opinions are regrettably my own.
+        - paragraph [ref=e51]: Below are the best ways to reach me.
+        - generic [ref=e52]:
+          - link "GitHub" [ref=e53] [cursor=pointer]:
+            - /url: https://github.com/ahzs645
+            - img [ref=e54]
+          - link "CV" [ref=e56] [cursor=pointer]:
+            - /url: https://ahmadjalil.com
+            - img [ref=e57]
