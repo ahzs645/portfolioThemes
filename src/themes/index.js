@@ -496,6 +496,14 @@ export const PORTFOLIO_THEMES = [
     Component: lazyTheme(() => import('./AidenBai/AidenBaiTheme'), 'AidenBaiTheme'),
   },
   {
+    id: 'lochie-axon',
+    slug: 'markdown-fun',
+    name: 'Markdown Fun',
+    description: 'Tiny markdown-styled portfolio with default serif typography, dash lists, source favicon, bracketed links, and a deliberately goofy Comic Sans sign-off inspired by lochieaxon.com.',
+    source: 'https://lochieaxon.com',
+    Component: lazyTheme(() => import('./LochieAxon/LochieAxonTheme'), 'LochieAxonTheme'),
+  },
+  {
     id: 'sharon-zheng',
     slug: 'cobalt-fold',
     name: 'Cobalt Fold',

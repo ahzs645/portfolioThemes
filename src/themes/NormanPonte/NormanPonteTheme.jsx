@@ -1,4 +1,4 @@
-import React, { Suspense, useMemo, useRef } from 'react';
+import React, { Suspense, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
@@ -206,6 +206,7 @@ export function NormanPonteTheme() {
   const cv = useCV();
   const reducedMotion = usePrefersReducedMotion();
   const [webglAvailable] = React.useState(() => canUseWebGL());
+  const [activeView, setActiveView] = useState(null);
   if (!cv) return null;
   const showSpaceScene = webglAvailable && !reducedMotion;
 
@@ -224,6 +225,10 @@ export function NormanPonteTheme() {
     ...(cv.publications || []).slice(0, 2),
     ...(cv.awards || []).slice(0, 2),
   ];
+  const openView = (event, view) => {
+    event.preventDefault();
+    setActiveView(view);
+  };
 
   return (
     <>
@@ -231,80 +236,69 @@ export function NormanPonteTheme() {
       <Page>
         {showSpaceScene ? <SpaceScene /> : <StaticSceneLayer aria-hidden="true" />}
         <Navigation>
-          <Brand href="#top">{cv.name || 'Portfolio'}</Brand>
+          <Brand href="#start" onClick={(event) => openView(event, null)}>{cv.name || 'Portfolio'}</Brand>
           <NavLinks aria-label="Theme sections">
-            <a href="#about">About</a>
-            {projects.length > 0 && <a href="#projects">Projects</a>}
-            {experience.length > 0 && <a href="#experience">Experience</a>}
-            <a href="#contact">Contact</a>
+            <a href="#about" onClick={(event) => openView(event, 'about')}>About</a>
+            <a href="#notes" onClick={(event) => openView(event, 'notes')}>Notes</a>
+            <a href="#reviews" onClick={(event) => openView(event, 'reviews')}>Reviews</a>
           </NavLinks>
         </Navigation>
 
-        <Main id="top">
-          <Hero>
-            <Eyebrow>{[cv.currentJobTitle, cv.location].filter(Boolean).join(' / ') || 'Personal orbit'}</Eyebrow>
-            <h1>{cv.name}</h1>
-            <HeroCopy>{cv.about || `A portfolio system for ${cv.name}, rendered as a quiet field of orbiting artifacts and career notes.`}</HeroCopy>
-            <HeroLinks>
-              {socialLinks.map((link) => (
-                <a key={link.label} href={link.href} target={link.href.startsWith('mailto:') ? undefined : '_blank'} rel="noreferrer">
-                  {link.label}
-                </a>
-              ))}
-            </HeroLinks>
-          </Hero>
+        {!activeView && <StartScreen id="start" aria-label="Orbital start screen" />}
 
-          <Panel>
-            <Section id="about" title="About">
-              <Lead>{cv.about || `${cv.name} is ${cv.currentJobTitle || 'building across research, systems, and applied technology'}.`}</Lead>
-              <StatsGrid>
-                <Stat><span>{experience.length}</span><small>roles</small></Stat>
-                <Stat><span>{projects.length}</span><small>projects</small></Stat>
-                <Stat><span>{cv.location || 'Remote'}</span><small>base</small></Stat>
-              </StatsGrid>
-            </Section>
-
-            {projects.length > 0 && (
-              <Section id="projects" title="Projects">
-                <Entries>
-                  {projects.map((project, index) => (
-                    <Entry key={`${project.name}-${index}`} item={project} fallbackTitle="Project" />
+        {activeView && (
+          <Main id={activeView}>
+            {activeView === 'about' && (
+              <AboutPaper>
+                <p>{cv.location ? `Typing in ${cv.location}.` : 'Typing in Manhattan.'}</p>
+                <p>{cv.about || `I spend most my time as ${cv.currentJobTitle || 'a builder of software systems'}. Opinions are regrettably my own.`}</p>
+                <p>Below are the best ways to reach me.</p>
+                <IconStack>
+                  {socialLinks.map((link) => (
+                    <IconLink key={link.label} href={link.href} target={link.href.startsWith('mailto:') ? undefined : '_blank'} rel="noreferrer" aria-label={link.label}>
+                      {link.label.slice(0, 2)}
+                    </IconLink>
                   ))}
-                </Entries>
-              </Section>
+                </IconStack>
+              </AboutPaper>
             )}
 
-            {experience.length > 0 && (
-              <Section id="experience" title="Experience">
-                <Entries>
-                  {experience.map((item, index) => (
-                    <Entry key={`${item.company}-${item.title}-${index}`} item={item} fallbackTitle="Role" />
-                  ))}
-                </Entries>
-              </Section>
+            {activeView === 'notes' && (
+              <Panel>
+                {projects.length > 0 && (
+                  <Section id="projects" title="Notes">
+                    <Entries>
+                      {projects.map((project, index) => (
+                        <Entry key={`${project.name}-${index}`} item={project} fallbackTitle="Project" />
+                      ))}
+                    </Entries>
+                  </Section>
+                )}
+                {experience.length > 0 && (
+                  <Section id="experience" title="Experience">
+                    <Entries>
+                      {experience.map((item, index) => (
+                        <Entry key={`${item.company}-${item.title}-${index}`} item={item} fallbackTitle="Role" />
+                      ))}
+                    </Entries>
+                  </Section>
+                )}
+              </Panel>
             )}
 
-            {extras.length > 0 && (
-              <Section id="archive" title="Archive">
-                <Entries>
-                  {extras.map((item, index) => (
-                    <Entry key={`${item.name || item.institution || item.title}-${index}`} item={item} fallbackTitle="Item" />
-                  ))}
-                </Entries>
-              </Section>
+            {activeView === 'reviews' && extras.length > 0 && (
+              <Panel>
+                <Section id="archive" title="Reviews">
+                  <Entries>
+                    {extras.map((item, index) => (
+                      <Entry key={`${item.name || item.institution || item.title}-${index}`} item={item} fallbackTitle="Item" />
+                    ))}
+                  </Entries>
+                </Section>
+              </Panel>
             )}
-
-            <Section id="contact" title="Contact">
-              <ContactGrid>
-                {socialLinks.map((link) => (
-                  <a key={link.label} href={link.href} target={link.href.startsWith('mailto:') ? undefined : '_blank'} rel="noreferrer">
-                    {link.label}
-                  </a>
-                ))}
-              </ContactGrid>
-            </Section>
-          </Panel>
-        </Main>
+          </Main>
+        )}
       </Page>
     </>
   );
@@ -360,8 +354,8 @@ const Navigation = styled.nav`
   }
 
   @media (max-width: 680px) {
-    align-items: flex-start;
-    flex-direction: column;
+    align-items: center;
+    flex-direction: row;
   }
 `;
 
@@ -380,13 +374,19 @@ const NavLinks = styled.div`
   font-size: 0.82rem;
 `;
 
+const StartScreen = styled.div`
+  position: relative;
+  z-index: 1;
+  min-height: calc(160vh - var(--app-top-offset, 0px));
+`;
+
 const Main = styled.main`
   position: relative;
   z-index: 2;
   width: min(100%, 760px);
   min-height: calc(100vh - var(--app-top-offset, 0px));
   margin: 0 auto;
-  padding: 14vh 1rem 4rem;
+  padding: 0 1rem 4rem;
 `;
 
 const Hero = styled.header`
@@ -444,6 +444,43 @@ const HeroLinks = styled.div`
 const Panel = styled.div`
   display: grid;
   gap: 1rem;
+`;
+
+const AboutPaper = styled.article`
+  padding: 1rem;
+  color: #fff;
+  background: rgba(18, 18, 18, 0.92);
+  border-radius: 4px;
+  box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 0 1px 1px rgba(0, 0, 0, 0.14), 0 1px 3px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(10px);
+
+  p {
+    margin: 0 0 1rem;
+    line-height: 1.55;
+  }
+`;
+
+const IconStack = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+`;
+
+const IconLink = styled.a`
+  display: inline-grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  color: inherit;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background 140ms ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
 `;
 
 const ContentSection = styled.section`
