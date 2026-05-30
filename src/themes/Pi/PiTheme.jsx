@@ -240,7 +240,11 @@ export function PiTheme({ darkMode = false }) {
 
   // Professional development items
   const professionalDevItems = useMemo(() => {
-    return (cv?.sections?.professional_development || []).filter(e => !isArchived(e));
+    return (cv?.sections?.professional_development || []).filter((entry) => (
+      entry &&
+      !isArchived(entry) &&
+      (entry.name || entry.title || entry.summary || entry.location || entry.date)
+    ));
   }, [cv]);
 
   return (

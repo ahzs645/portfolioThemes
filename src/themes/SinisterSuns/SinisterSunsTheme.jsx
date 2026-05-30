@@ -65,6 +65,9 @@ export function SinisterSunsTheme() {
     () => normalizeSocialLinks(cv?.social || [], cv?.email || null),
     [cv]
   );
+  const hasRecords = experienceItems.length > 0 || educationItems.length > 0;
+  const hasWorkshop = projectItems.length > 0;
+  const hasSanctum = volunteerItems.length > 0 || professionalDevelopmentItems.length > 0;
 
   return (
     <>
@@ -99,9 +102,9 @@ export function SinisterSunsTheme() {
                   <NavSection>
                     <NavTitle>The Halls</NavTitle>
                     <NavLink href="#tavern">Tavern</NavLink>
-                    <NavLink href="#records">Records</NavLink>
-                    <NavLink href="#workshop">Workshop</NavLink>
-                    <NavLink href="#sanctum">Sanctum</NavLink>
+                    {hasRecords && <NavLink href="#records">Records</NavLink>}
+                    {hasWorkshop && <NavLink href="#workshop">Workshop</NavLink>}
+                    {hasSanctum && <NavLink href="#sanctum">Sanctum</NavLink>}
                   </NavSection>
 
                   <PortraitCard>
@@ -133,56 +136,63 @@ export function SinisterSunsTheme() {
                     </MetaGrid>
                   </Panel>
 
+                  {hasRecords && (
                   <Panel id="records">
                     <Divider src={`${ASSET_BASE}/assets/div6.png`} alt="" />
                     <PanelTitle>Library Records</PanelTitle>
-                    <SectionBlock>
-                      <SectionHeading>Experience</SectionHeading>
-                      <EntryList>
-                        {experienceItems.map((item, index) => (
-                          <EntryCard key={`${item.company}-${item.title}-${index}`}>
-                            <EntryHeader>
-                              <div>
-                                <EntryTitle>{item.title}</EntryTitle>
-                                <EntryMeta>{item.company}</EntryMeta>
-                              </div>
-                              <EntryDate>{formatRange(item.startDate, item.endDate)}</EntryDate>
-                            </EntryHeader>
-                            <BulletList>
-                              {getHighlights(item).slice(0, 4).map((highlight, highlightIndex) => (
-                                <li key={highlightIndex}>{highlight}</li>
-                              ))}
-                            </BulletList>
-                          </EntryCard>
-                        ))}
-                      </EntryList>
-                    </SectionBlock>
-
-                    <SectionBlock>
-                      <SectionHeading>Education</SectionHeading>
-                      <EntryList>
-                        {educationItems.map((item, index) => (
-                          <EntryCard key={`${item.institution}-${index}`}>
-                            <EntryHeader>
-                              <div>
-                                <EntryTitle>{item.degree} in {item.area}</EntryTitle>
-                                <EntryMeta>{item.institution}</EntryMeta>
-                              </div>
-                              <EntryDate>{formatRange(item.start_date, item.end_date)}</EntryDate>
-                            </EntryHeader>
-                            {item.highlights?.length > 0 && (
+                    {experienceItems.length > 0 && (
+                      <SectionBlock>
+                        <SectionHeading>Experience</SectionHeading>
+                        <EntryList>
+                          {experienceItems.map((item, index) => (
+                            <EntryCard key={`${item.company}-${item.title}-${index}`}>
+                              <EntryHeader>
+                                <div>
+                                  <EntryTitle>{item.title}</EntryTitle>
+                                  <EntryMeta>{item.company}</EntryMeta>
+                                </div>
+                                <EntryDate>{formatRange(item.startDate, item.endDate)}</EntryDate>
+                              </EntryHeader>
                               <BulletList>
-                                {item.highlights.slice(0, 3).map((highlight, highlightIndex) => (
+                                {getHighlights(item).slice(0, 4).map((highlight, highlightIndex) => (
                                   <li key={highlightIndex}>{highlight}</li>
                                 ))}
                               </BulletList>
-                            )}
-                          </EntryCard>
-                        ))}
-                      </EntryList>
-                    </SectionBlock>
-                  </Panel>
+                            </EntryCard>
+                          ))}
+                        </EntryList>
+                      </SectionBlock>
+                    )}
 
+                    {educationItems.length > 0 && (
+                      <SectionBlock>
+                        <SectionHeading>Education</SectionHeading>
+                        <EntryList>
+                          {educationItems.map((item, index) => (
+                            <EntryCard key={`${item.institution}-${index}`}>
+                              <EntryHeader>
+                                <div>
+                                  <EntryTitle>{item.degree} in {item.area}</EntryTitle>
+                                  <EntryMeta>{item.institution}</EntryMeta>
+                                </div>
+                                <EntryDate>{formatRange(item.start_date, item.end_date)}</EntryDate>
+                              </EntryHeader>
+                              {item.highlights?.length > 0 && (
+                                <BulletList>
+                                  {item.highlights.slice(0, 3).map((highlight, highlightIndex) => (
+                                    <li key={highlightIndex}>{highlight}</li>
+                                  ))}
+                                </BulletList>
+                              )}
+                            </EntryCard>
+                          ))}
+                        </EntryList>
+                      </SectionBlock>
+                    )}
+                  </Panel>
+                  )}
+
+                  {hasWorkshop && (
                   <Panel id="workshop">
                     <Divider src={`${ASSET_BASE}/assets/div6.png`} alt="" />
                     <PanelTitle>Workshop Ledger</PanelTitle>
@@ -205,11 +215,14 @@ export function SinisterSunsTheme() {
                       ))}
                     </CardGrid>
                   </Panel>
+                  )}
 
+                  {hasSanctum && (
                   <Panel id="sanctum">
                     <Divider src={`${ASSET_BASE}/assets/div6.png`} alt="" />
                     <PanelTitle>Sanctum Annex</PanelTitle>
                     <TwoColumnGrid>
+                      {volunteerItems.length > 0 && (
                       <SectionBlock>
                         <SectionHeading>Volunteer</SectionHeading>
                         <EntryList>
@@ -222,7 +235,9 @@ export function SinisterSunsTheme() {
                           ))}
                         </EntryList>
                       </SectionBlock>
+                      )}
 
+                      {professionalDevelopmentItems.length > 0 && (
                       <SectionBlock>
                         <SectionHeading>Professional Development</SectionHeading>
                         <EntryList>
@@ -235,8 +250,10 @@ export function SinisterSunsTheme() {
                           ))}
                         </EntryList>
                       </SectionBlock>
+                      )}
                     </TwoColumnGrid>
                   </Panel>
+                  )}
                 </ContentColumn>
               </MainFrame>
             </Page>
