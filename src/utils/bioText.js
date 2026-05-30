@@ -1,7 +1,10 @@
 const DEFAULT_BIO_TEXT = {
-  intro: 'A concise introduction for this portfolio.',
-  profile: 'A short personal introduction can go here.',
-  creative: 'A brief note about the work can go here.',
+  // intro: concise hero introduction fallback.
+  // profile: general about/profile fallback.
+  // creative: looser fallback for expressive layouts.
+  intro: 'Here is my portfolio.',
+  profile: 'Here is my portfolio.',
+  creative: 'Here is my portfolio.',
 };
 
 function readEnvString(key) {
