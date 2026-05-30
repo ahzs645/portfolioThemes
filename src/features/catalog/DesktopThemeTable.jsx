@@ -49,6 +49,7 @@ export function DesktopThemeTable({
               <TableRow
                 key={theme.id}
                 data-theme-index={index}
+                data-theme-id={theme.id}
                 $active={theme.id === currentThemeId}
                 $focused={index === focusedThemeIndex}
                 $darkMode={darkMode}

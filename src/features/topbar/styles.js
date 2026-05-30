@@ -96,9 +96,11 @@ export const SwitcherButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: 6px;
+  box-sizing: border-box;
   background: ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#f3f4f6')};
   color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#374151')};
   border: 1px solid ${({ $darkMode }) => ($darkMode ? '#333' : '#d1d5db')};
+  height: 36px;
   padding: 8px 14px;
   border-radius: 8px;
   font-size: 13px;
@@ -132,9 +134,11 @@ export const UploadButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: 6px;
+  box-sizing: border-box;
   background: ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#f3f4f6')};
   color: ${({ $darkMode }) => ($darkMode ? '#f5f5f5' : '#374151')};
   border: 1px solid ${({ $darkMode }) => ($darkMode ? '#333' : '#d1d5db')};
+  height: 36px;
   padding: 8px 14px;
   border-radius: 8px;
   font-size: 13px;
@@ -164,9 +168,11 @@ export const ClearButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: 6px;
+  box-sizing: border-box;
   background: ${({ $darkMode }) => ($darkMode ? '#7f1d1d' : '#fef2f2')};
   color: ${({ $darkMode }) => ($darkMode ? '#fca5a5' : '#dc2626')};
   border: 1px solid ${({ $darkMode }) => ($darkMode ? '#991b1b' : '#fecaca')};
+  height: 36px;
   padding: 8px 14px;
   border-radius: 8px;
   font-size: 13px;

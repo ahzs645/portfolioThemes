@@ -30,7 +30,7 @@ export function CatalogView({ darkMode, setDarkMode, currentThemeId, onSelectThe
   const pressTimerRef = useRef(null);
   const didLongPressRef = useRef(false);
 
-  const hover = useHoverPreview();
+  const hover = useHoverPreview(tableContainerRef);
 
   const filteredThemes = useMemo(() => {
     if (!searchQuery.trim()) return PORTFOLIO_THEMES;
