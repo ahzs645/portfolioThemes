@@ -6,7 +6,11 @@ const Container = styled.div`
   display: flex;
   gap: 24px;
   flex-wrap: wrap;
-  min-width: 300px;
+  min-width: 0;
+
+  @media (max-height: 720px) and (min-width: 901px) {
+    margin-top: 20px;
+  }
 `;
 
 const Group = styled.div``;
@@ -44,6 +48,11 @@ const Link = styled.a`
   font-size: 13px;
   line-height: 17px;
   transition: color 0.3s;
+  min-width: 0;
+
+  span {
+    overflow-wrap: anywhere;
+  }
 
   &:hover {
     opacity: 0.6;

@@ -1,6 +1,7 @@
 import React from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { getBioText } from '../../utils/bioText';
 
 export function PacoTheme({ darkMode }) {
   const cv = useCV();
@@ -295,7 +296,7 @@ export function PacoTheme({ darkMode }) {
           <AboutSection style={{ '--stagger': 5 }}>
             <SectionTitle $darkMode={darkMode}>Now</SectionTitle>
             <AboutText $darkMode={darkMode}>
-              {about || 'Passionate about building great software and solving complex problems.'}
+              {about || getBioText(cv, { type: 'profile' })}
             </AboutText>
           </AboutSection>
         </MainContent>

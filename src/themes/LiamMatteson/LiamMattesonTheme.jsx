@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, memo } from 'react';
 import styled, { createGlobalStyle, keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { getBioText } from '../../utils/bioText';
 import { ClockWidget } from './components/ClockWidget';
 import { SubPageHeaderBlock, WorkPage, ProjectsPage, ConnectPage } from './components/SubPages';
 
@@ -101,7 +102,7 @@ export function LiamMattesonTheme({ darkMode }) {
 
   if (!cv) return null;
 
-  const intro = firstSentence(cv.about) || 'Software designed with creativity and care through relentless iteration and meticulous detail.';
+  const intro = firstSentence(getBioText(cv, { type: 'intro' }));
   const introWords = intro.split(' ');
   const currentRole = cv.experience[0];
   const hasWork = (cv.experience || []).length > 0;

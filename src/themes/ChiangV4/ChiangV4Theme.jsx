@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import styled from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { getBioText } from '../../utils/bioText';
 
 const colors = {
   darkNavy: '#020c1b',
@@ -125,9 +126,9 @@ export function ChiangV4Theme() {
         <Hero>
           <HeroGreeting>Hi, my name is</HeroGreeting>
           <HeroName>{fullName}</HeroName>
-          <HeroTagline>I build things for the web.</HeroTagline>
+          <HeroTagline>{cv.headline || cv.tagline || 'Portfolio'}</HeroTagline>
           <HeroDescription>
-            I'm a software engineer specializing in building exceptional digital experiences.
+            {getBioText(cv, { type: 'intro' })}
           </HeroDescription>
           {email && (
             <HeroButton href={`mailto:${email}`} target="_blank" rel="noreferrer">

@@ -16,29 +16,29 @@ const Border = styled.div`
 `;
 
 const BorderTop = styled(Border)`
-  top: 24px;
+  top: clamp(12px, 2vw, 24px);
   left: 0;
-  width: 100vw;
+  width: 100%;
   height: 0.5px;
 `;
 
 const BorderBottom = styled(Border)`
-  bottom: 24px;
+  bottom: clamp(12px, 2vw, 24px);
   left: 0;
-  width: 100vw;
+  width: 100%;
   height: 0.5px;
 `;
 
 const BorderLeft = styled(Border)`
   top: 0;
-  left: 24px;
+  left: clamp(12px, 2vw, 24px);
   width: 0.5px;
   height: calc(100vh - var(--app-top-offset, 0px));
 `;
 
 const BorderRight = styled(Border)`
   top: 0;
-  right: 24px;
+  right: clamp(12px, 2vw, 24px);
   width: 0.5px;
   height: calc(100vh - var(--app-top-offset, 0px));
 `;

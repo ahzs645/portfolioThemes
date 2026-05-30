@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import styled from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { getBioText } from '../../utils/bioText';
 import { filterActive, flattenExperience } from '../../utils/cvHelpers';
 import faviconUrl from './assets/favicon.png';
 
@@ -39,7 +40,7 @@ export function LochieAxonTheme({ darkMode = false }) {
 
   const name = cv.name || 'Your Name';
   const title = cv.currentJobTitle || 'design engineer';
-  const about = cv.about || 'making the web fun again';
+  const about = getBioText(cv, { type: 'creative' });
 
   const experience = useMemo(() => (
     flattenExperience(cv.sections?.experience || [], { limit: 4 })

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styled, { createGlobalStyle, keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { getBioText } from '../../utils/bioText';
 import { withBase } from '../../utils/assetPath';
 import { canUseWebGL, usePrefersReducedMotion } from '../../utils/rendering';
 import { heroFrag, introFrag, miniFrag, titleFrag } from './shaders';
@@ -239,7 +240,7 @@ function HeroSection({ cv, onNavigate, shadersEnabled }) {
       title: 'It is*me',
       body: [
         `I am ${cv.name}.`,
-        [cv.currentJobTitle, cv.location].filter(Boolean).join(' in ') || cv.about || 'I build practical things with a careful eye for systems.',
+        [cv.currentJobTitle, cv.location].filter(Boolean).join(' in ') || getBioText(cv, { type: 'profile' }),
       ],
     },
     {

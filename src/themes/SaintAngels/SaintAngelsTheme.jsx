@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { getDefaultBioText } from '../../utils/bioText';
 import { withBase } from '../../utils/assetPath';
 
 const lightPalette = {
@@ -90,9 +91,9 @@ function makeHomeBlurb(cv) {
     parts.push(`based in ${cv.location}`);
   }
   if (!parts.length) {
-    return `I'm ${cv.name || 'a builder'} with a mix of technical, research, and community work.`;
+    return getDefaultBioText('profile');
   }
-  return `I'm ${cv.name || 'a builder'}, ${parts.join(' ')}.`;
+  return [cv.name, parts.join(' ')].filter(Boolean).join(', ') + '.';
 }
 
 function useWireCube(canvasRef, palette) {
@@ -211,7 +212,6 @@ function HomeSection({ cv, featuredProject, socialLinks, palette, onToggleTheme,
   const infoLines = [
     cv.about,
     makeHomeBlurb(cv),
-    'This theme borrows the spare structure of the original site and remaps it to resume content.',
   ].filter(Boolean);
 
   return (
@@ -261,8 +261,7 @@ function WritingSection({ items, palette }) {
     <>
       <PageTitle>Notes</PageTitle>
       <Paragraph>
-        A catch-all for research, talks, awards, and professional development. The original site used
-        essays here; this version adapts that idea to the sections available in your CV.
+        A catch-all for research, talks, awards, and professional development.
       </Paragraph>
       <SquareList>
         {items.map((item) => (

@@ -22,6 +22,7 @@ import {
   Empty,
 } from './styles';
 import { fmtRange, safeFmt, statusFor, flatSkills, C } from './helpers';
+import { getDefaultBioText } from '../../utils/bioText';
 
 function BackArrow() {
   return (
@@ -329,7 +330,7 @@ export function BioView({ cv, bioParagraphs }) {
         </BioText>
       ) : (
         <BioText>
-          <p>{cv.currentJobTitle || 'Designer and builder.'}</p>
+          <p>{cv.currentJobTitle || getDefaultBioText('profile')}</p>
         </BioText>
       )}
 

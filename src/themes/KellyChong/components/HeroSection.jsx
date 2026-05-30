@@ -32,7 +32,7 @@ export default function HeroSection({ name, title, company, summary, email, loca
         <InfoCol data-animate>
           <InfoBlock>
             <InfoLine>
-              <InfoMuted $dark={$dark}>Prototyping interfaces that inspire @</InfoMuted>
+              <InfoMuted $dark={$dark}>{summary || 'A brief note about the work can go here'}{company ? ' @' : '.'}</InfoMuted>
             </InfoLine>
             {company && (
               <InfoLine>

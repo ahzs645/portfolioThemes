@@ -9,6 +9,28 @@ function formatDate(dateStr) {
   return String(dateStr);
 }
 
+function formatSkill(skill) {
+  if (typeof skill === 'string') {
+    return { label: null, value: skill };
+  }
+
+  const label = skill.name || skill.category || skill.label || null;
+  const details = skill.keywords || skill.details || skill.bullets;
+  const value = Array.isArray(details) ? details.join(' \u22B9 ') : details || skill.bullet || '';
+
+  return { label, value };
+}
+
+function formatCertification(certification) {
+  if (typeof certification === 'string') return certification;
+
+  const name = certification.name || certification.label || certification.title || '';
+  const details = certification.details || certification.summary || certification.issuer || '';
+
+  if (name && details) return `${name} (${details})`;
+  return name || details;
+}
+
 export default function Skills({ cv, theme }) {
   const skills = cv?.skills || [];
   const certifications = cv?.certifications || [];
@@ -34,15 +56,15 @@ export default function Skills({ cv, theme }) {
           </ListTitle>
           <ListContent $theme={theme}>
             {skills.map((skill, i) => (
-              <SkillRow key={i}>
-                <Label>{skill.name || skill.category}:</Label>
-                <Value>{(skill.keywords || skill.details || []).join(' \u22B9 ')}</Value>
+              <SkillRow key={i} $compact={!formatSkill(skill).label}>
+                {formatSkill(skill).label && <Label>{formatSkill(skill).label}:</Label>}
+                <Value>{formatSkill(skill).value}</Value>
               </SkillRow>
             ))}
             {certifications.length > 0 && (
               <SkillRow>
                 <Label>CERTIFICATIONS:</Label>
-                <Value>{certifications.map(c => c.name || c).join(' \u22B9 ')}</Value>
+                <Value>{certifications.map(formatCertification).filter(Boolean).join(' \u22B9 ')}</Value>
               </SkillRow>
             )}
             {certificationsSkills.map((item, i) => (
@@ -193,7 +215,7 @@ const SectionLabel = styled.h2`
 
 const SkillRow = styled.div`
   display: grid;
-  grid-template-columns: 120px 1fr;
+  grid-template-columns: ${p => p.$compact ? '1fr' : '120px 1fr'};
   gap: 8px;
   margin-bottom: 8px;
   font-size: 15px;

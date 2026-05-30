@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { getBioText } from '../../utils/bioText';
 import { GlitchName } from './components/GlitchName';
 import { DuckPond } from './components/DuckPond';
 import { PaperOverlay } from './components/PaperOverlay';
@@ -961,7 +962,7 @@ export function BaoToTheme({ darkMode = false }) {
                 </AboutHeading>
 
                 <BioParagraph>
-                  {about || `${name || 'Your Name'} is a ${currentJobTitle || 'professional'} based in ${location || 'Earth'}.`}
+                  {about || getBioText(cv, { type: 'profile' })}
                 </BioParagraph>
 
                 {/* Stone Pond */}

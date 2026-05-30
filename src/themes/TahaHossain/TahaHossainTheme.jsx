@@ -17,11 +17,12 @@ const Page = styled.div`
   --th-line-green: ${p => p.$dark ? '#1a6e37' : '#1d8341'};
   --th-line-blue: ${p => p.$dark ? '#3250b8' : '#3d60dc'};
 
-  min-height: 100vh;
-  width: 100vw;
+  min-height: 100%;
+  width: 100%;
   background: var(--th-bg);
   color: var(--th-text);
   overflow: auto;
+  box-sizing: border-box;
 
   *::-webkit-scrollbar { display: none; }
   * {
@@ -31,13 +32,15 @@ const Page = styled.div`
 `;
 
 const Grid = styled.div`
-  display: flex;
-  gap: 24px;
-  padding: 24px;
-  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(12px, 2vw, 24px);
+  padding: clamp(12px, 2vw, 24px);
+  min-height: calc(100dvh - var(--app-top-offset, 0px));
+  box-sizing: border-box;
 
-  @media (max-width: 767px) {
-    flex-direction: column;
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
   }
 `;
 

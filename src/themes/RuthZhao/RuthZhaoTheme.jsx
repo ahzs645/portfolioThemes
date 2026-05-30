@@ -35,6 +35,57 @@ function getSocialEntries(cv) {
   return [];
 }
 
+function hasContent(value) {
+  if (Array.isArray(value)) return value.length > 0;
+  return Boolean(value);
+}
+
+function buildSectionItems(cv) {
+  const sectionDefinitions = [
+    { id: 'experience', label: 'EXPERIENCE', value: cv.experience },
+    { id: 'volunteer', label: 'VOLUNTEER', value: cv.volunteer },
+    { id: 'media', label: 'MEDIA', value: cv.sectionsRaw?.media },
+    { id: 'education', label: 'EDUCATION', value: cv.education },
+    { id: 'certifications', label: 'CERTIFICATIONS', value: cv.certifications },
+    { id: 'skills', label: 'SKILLS', value: cv.skills },
+    { id: 'awards', label: 'AWARDS', value: cv.awards },
+    { id: 'publications', label: 'PUBLICATIONS', value: cv.publications },
+    { id: 'presentations', label: 'PRESENTATIONS', value: cv.presentations },
+    { id: 'professional-development', label: 'PROFESSIONAL DEVELOPMENT', value: cv.professionalDevelopment },
+  ];
+
+  return sectionDefinitions
+    .filter((section) => hasContent(section.value))
+    .map((section, index) => {
+      const marker = PROJECT_MARKERS[index % PROJECT_MARKERS.length];
+      return {
+        ...marker,
+        id: section.id,
+        kind: 'section',
+        sectionId: section.id,
+        label: section.label,
+        meta: `${Array.isArray(section.value) ? section.value.length : 1} ${Array.isArray(section.value) && section.value.length === 1 ? 'entry' : 'entries'}`,
+        accent: index === 0,
+      };
+    });
+}
+
+function buildProjectItems(cv) {
+  const cvProjects = cv.projects || [];
+
+  if (cvProjects.length !== PROJECT_MARKERS.length) {
+    return buildSectionItems(cv);
+  }
+
+  return PROJECT_MARKERS.map((marker, i) => ({
+    ...marker,
+    kind: 'project',
+    label: cvProjects[i]?.name?.toUpperCase() || marker.label,
+    meta: cvProjects[i]?.date || marker.meta,
+    href: cvProjects[i]?.url || null,
+  }));
+}
+
 export function RuthZhaoTheme({ darkMode = false }) {
   const cv = useCV();
   const [selectedProject, setSelectedProject] = useState(null);
@@ -44,24 +95,21 @@ export function RuthZhaoTheme({ darkMode = false }) {
   const socialEntries = useMemo(() => getSocialEntries(cv), [cv]);
 
   const projects = useMemo(() => {
-    const cvProjects = cv.projects || [];
-    return PROJECT_MARKERS.map((marker, i) => ({
-      ...marker,
-      label: cvProjects[i]?.name?.toUpperCase() || marker.label,
-      meta: cvProjects[i]?.date || marker.meta,
-      href: cvProjects[i]?.url || null,
-    }));
-  }, [cv.projects]);
+    return buildProjectItems(cv);
+  }, [cv]);
 
   const mobileProjects = useMemo(() => {
+    if (projects.some((project) => project.kind === 'section')) return projects;
+
     const cvProjects = cv.projects || [];
-    return MOBILE_PROJECTS.map((card, i) => ({
+    return MOBILE_PROJECTS.slice(0, cvProjects.length).map((card, i) => ({
       ...card,
+      kind: 'project',
       label: cvProjects[i]?.name?.toUpperCase() || card.label,
       meta: cvProjects[i]?.date || card.meta,
       href: cvProjects[i]?.url || null,
     }));
-  }, [cv.projects]);
+  }, [cv.projects, projects]);
 
   // Show project detail view
   if (selectedProject) {

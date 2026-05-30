@@ -67,6 +67,19 @@ Use `.env.example` as the default setup, or build with the included random mode:
 npm run build:random
 ```
 
+## Default Bio Text
+
+Themes use `cv.sections.about` when it is present. If a CV does not include about text, the shared fallback copy can be overridden with Vite env vars:
+
+```bash
+VITE_PORTFOLIO_DEFAULT_BIO="A short personal introduction can go here."
+VITE_PORTFOLIO_DEFAULT_BIO_INTRO="A concise introduction for this portfolio."
+VITE_PORTFOLIO_DEFAULT_BIO_PROFILE="A short personal introduction can go here."
+VITE_PORTFOLIO_DEFAULT_BIO_CREATIVE="A brief note about the work can go here."
+```
+
+Type-specific keys take priority over the global default.
+
 ## Project Structure
 
 ```

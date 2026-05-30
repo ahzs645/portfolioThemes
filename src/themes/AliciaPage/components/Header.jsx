@@ -2,13 +2,14 @@ import React from 'react';
 import styled from 'styled-components';
 import { FONT } from '../utils/tokens';
 
-export default function Header({ theme, activeSection, onNavigate }) {
+export default function Header({ theme, activeSection, onNavigate, availableSections = [] }) {
+  const sectionSet = new Set(availableSections);
   const navItems = [
     { id: 'experience', label: 'experience' },
     { id: 'projects', label: 'projects' },
     { id: 'education', label: 'education' },
     { id: 'about', label: 'about' },
-  ];
+  ].filter((item) => sectionSet.has(item.id));
 
   return (
     <HeaderBar>

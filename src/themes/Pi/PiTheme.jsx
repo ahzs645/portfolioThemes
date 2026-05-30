@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import styled from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { getBioText } from '../../utils/bioText';
 
 function isArchived(entry) {
   return Array.isArray(entry?.tags) && entry.tags.includes('archived');
@@ -261,7 +262,7 @@ export function PiTheme({ darkMode = false }) {
         </Header>
 
         <AboutSection id="about">
-          <AboutText>{aboutText || `${fullName} is a software developer and builder.`}</AboutText>
+          <AboutText>{aboutText || getBioText(cv, { type: 'profile' })}</AboutText>
           {location && <AboutText>Based in {location}.</AboutText>}
         </AboutSection>
 

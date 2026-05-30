@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useCV } from '../../contexts/ConfigContext';
 import { ShadowRoot } from '../../ui/ShadowRoot';
+import { getBioText } from '../../utils/bioText';
 import { formatDateRange, formatMonthYear, normalizeHighlights } from '../../utils/cvHelpers';
 import { withBase } from '../../utils/assetPath';
 
@@ -216,11 +217,7 @@ function parseProjectTech(project) {
 }
 
 function buildSummary(cv) {
-  if (cv.about) return cv.about;
-  if (cv.currentJobTitle && cv.location) {
-    return `I'm a ${cv.currentJobTitle} based in ${cv.location}. Welcome to this personal sandbox. I plan to load an ever-growing collection of profile data here, built with PS1 aesthetics in mind.`;
-  }
-  return 'Welcome to this personal sandbox. Profile, projects, skills, history, and configuration are loaded from CV.yaml.';
+  return getBioText(cv, { type: 'profile' });
 }
 
 function buildWindowStyle(windowColor) {

@@ -1,6 +1,7 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { getBioText } from '../../utils/bioText';
 
 function isPresent(value) {
   return String(value || '').trim().toLowerCase() === 'present';
@@ -119,7 +120,7 @@ export function NickComputerTheme({ darkMode = false }) {
   const linkedinUrl = pickSocialUrl(socials, ['linkedin']);
   const twitterUrl = pickSocialUrl(socials, ['twitter', 'x']);
 
-  const aboutText = cv?.about || "I'm a developer who builds things for the web.";
+  const aboutText = getBioText(cv, { type: 'profile' });
 
   // Grouped experience (connected positions)
   const experienceGroups = useMemo(() => {

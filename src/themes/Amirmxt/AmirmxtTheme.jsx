@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { getBioText } from '../../utils/bioText';
 
 // Load Inter font
 const FontLoader = createGlobalStyle`
@@ -101,7 +102,7 @@ export function AmirmxtTheme({ darkMode }) {
 
               <BioText>
                 <BioDescription $theme={theme}>
-                  {about || "Hi, I'm a software developer focused on building great products."}
+                  {about || getBioText(cv, { type: 'profile' })}
                 </BioDescription>
                 {currentJobTitle && (
                   <BioDescription $theme={theme}>

@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { getBioText } from '../../../utils/bioText';
 
 const glyphSvg = (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 36" width="48" height="36">
@@ -24,7 +25,7 @@ export function IntroPanel({ cv, darkMode = false }) {
         </TextGroup>
       </TopSection>
       <Lead $dark={darkMode}>
-        {cv.about || `${cv.name || 'This person'} is building at the intersection of research, systems, and care.`}
+        {getBioText(cv, { type: 'profile' })}
       </Lead>
     </Panel>
   );

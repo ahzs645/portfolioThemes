@@ -3,10 +3,9 @@ import styled from 'styled-components';
 import ResumeColumn from './ResumeColumn';
 
 const Container = styled.div`
-  flex: 1;
-  min-width: 350px;
-  display: flex;
-  flex-wrap: wrap;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   position: relative;
 
   &::before {
@@ -15,9 +14,13 @@ const Container = styled.div`
     z-index: 0;
     height: 0.5px;
     width: 100%;
-    top: -24.5px;
+    top: calc(clamp(12px, 2vw, 24px) * -1 - 0.5px);
     left: 0;
     background: var(--th-line-red);
+  }
+
+  @media (max-width: 1100px) {
+    grid-template-columns: 1fr;
   }
 `;
 

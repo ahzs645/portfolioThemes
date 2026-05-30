@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { light, dark, FONT } from './utils/tokens';
@@ -21,6 +21,32 @@ export function AliciaPageTheme({ darkMode }) {
   const [page, setPage] = useState('home');
   const [activeSection, setActiveSection] = useState(null);
 
+  const hasProjects = (cv?.projects || []).length > 0;
+  const hasExperience = (cv?.experience || []).length > 0;
+  const hasEducation = (cv?.education || []).length > 0;
+  const hasSkills = (cv?.skills || []).length > 0;
+  const hasAboutContent = hasSkills ||
+    (cv?.certifications || []).length > 0 ||
+    (cv?.certificationsSkills || []).length > 0 ||
+    (cv?.volunteer || []).length > 0 ||
+    (cv?.awards || []).length > 0 ||
+    (cv?.publications || []).length > 0 ||
+    (cv?.presentations || []).length > 0 ||
+    (cv?.professionalDevelopment || []).length > 0;
+  const availableSections = [
+    hasExperience ? 'experience' : null,
+    hasProjects ? 'projects' : null,
+    hasEducation ? 'education' : null,
+    hasAboutContent ? 'about' : null,
+  ].filter(Boolean);
+
+  useEffect(() => {
+    if (page !== 'home' && !availableSections.includes(page)) {
+      setPage('home');
+      setActiveSection(null);
+    }
+  }, [availableSections, page]);
+
   const handleNavigate = useCallback((id) => {
     if (id === 'top' || id === 'home') {
       setPage('home');
@@ -28,10 +54,11 @@ export function AliciaPageTheme({ darkMode }) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
+    if (!availableSections.includes(id)) return;
     setPage(id);
     setActiveSection(id);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  }, [availableSections]);
 
   if (!cv) return null;
 
@@ -40,45 +67,52 @@ export function AliciaPageTheme({ darkMode }) {
       <ShaderBackground isDark={darkMode} />
       <Page $theme={theme}>
         <GlobalStyles />
-        <Header theme={theme} activeSection={activeSection} onNavigate={handleNavigate} />
+        <Header
+          theme={theme}
+          activeSection={activeSection}
+          onNavigate={handleNavigate}
+          availableSections={availableSections}
+        />
         <Main>
           <Container>
             {page === 'home' && (
               <>
                 <Hero cv={cv} theme={theme} onNavigate={handleNavigate} />
-                <RecentSection>
-                  <ListContainer>
-                    <ListTitle $theme={theme}>
-                      <SectionHeader>
-                        <ShuffleSectionLabel theme={theme}>recent projects</ShuffleSectionLabel>
-                        <ViewAll onClick={() => handleNavigate('projects')} $theme={theme}>
-                          View all
-                        </ViewAll>
-                      </SectionHeader>
-                    </ListTitle>
-                    <ListContent $theme={theme}>
-                      <ListWrapper>
-                        {(cv?.projects || []).slice(0, 4).map((project, i) => (
-                          <ProjectRow key={i} $theme={theme}>
-                            <ProjectGrid>
-                              <ProjectName
-                                href={project.url || project.link || '#'}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                $theme={theme}
-                              >
-                                {project.name || project.title}
-                              </ProjectName>
-                              <ProjectDate $theme={theme}>
-                                {project.startDate || ''}
-                              </ProjectDate>
-                            </ProjectGrid>
-                          </ProjectRow>
-                        ))}
-                      </ListWrapper>
-                    </ListContent>
-                  </ListContainer>
-                </RecentSection>
+                {hasProjects && (
+                  <RecentSection>
+                    <ListContainer>
+                      <ListTitle $theme={theme}>
+                        <SectionHeader>
+                          <ShuffleSectionLabel theme={theme}>recent projects</ShuffleSectionLabel>
+                          <ViewAll onClick={() => handleNavigate('projects')} $theme={theme}>
+                            View all
+                          </ViewAll>
+                        </SectionHeader>
+                      </ListTitle>
+                      <ListContent $theme={theme}>
+                        <ListWrapper>
+                          {(cv?.projects || []).slice(0, 4).map((project, i) => (
+                            <ProjectRow key={i} $theme={theme}>
+                              <ProjectGrid>
+                                <ProjectName
+                                  href={project.url || project.link || '#'}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  $theme={theme}
+                                >
+                                  {project.name || project.title}
+                                </ProjectName>
+                                <ProjectDate $theme={theme}>
+                                  {project.startDate || ''}
+                                </ProjectDate>
+                              </ProjectGrid>
+                            </ProjectRow>
+                          ))}
+                        </ListWrapper>
+                      </ListContent>
+                    </ListContainer>
+                  </RecentSection>
+                )}
               </>
             )}
             {page === 'projects' && (

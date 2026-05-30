@@ -804,6 +804,7 @@ const AboutText = styled.p`
 
 const SectionTitle = styled.div`
   padding: 75px 0;
+  background: ${props => props.theme.isDark ? '#1b1b1b' : '#f5f5f5'};
   color: ${props => props.theme.isDark ? '#fff' : '#333'};
   display: flex;
   align-items: center;

@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import styled, { createGlobalStyle } from 'styled-components';
 import gsap from 'gsap';
 import { useCV } from '../../contexts/ConfigContext';
+import { getBioText } from '../../utils/bioText';
 import NoiseCanvas from './components/NoiseCanvas';
 import DitherOverlay from './components/DitherOverlay';
 import TopBar from './components/TopBar';
@@ -131,7 +132,7 @@ export function KellyChongTheme({ darkMode = false }) {
             name={cv.name}
             title={currentRole?.title}
             company={currentRole?.company}
-            summary={cv.about}
+            summary={getBioText(cv, { type: 'creative' })}
             email={cv.email}
             location={cv.location}
             website={cv.website}

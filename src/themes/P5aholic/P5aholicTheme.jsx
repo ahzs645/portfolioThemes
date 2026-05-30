@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import styled, { css } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { getDefaultBioText } from '../../utils/bioText';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { withBase } from '../../utils/assetPath';
@@ -481,9 +482,8 @@ export function P5aholicTheme({ darkMode }) {
                     ))
                   ) : (
                     <>
-                      <span>Based in {location || 'Earth'}.</span>
-                      <span>Building digital experiences</span>
-                      <span>with code and creativity.</span>
+                      {location && <span>Based in {location}.</span>}
+                      <span>{getDefaultBioText('creative')}</span>
                     </>
                   )}
                 </AboutText>

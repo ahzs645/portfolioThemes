@@ -162,6 +162,12 @@ export function AnsubMinimalTheme({ darkMode }) {
 
   // Apply limits for display
   const projectItems = projects.slice(0, 4);
+  const contactLinks = [
+    socialLinks.twitter ? { label: 'X', href: socialLinks.twitter } : null,
+    socialLinks.github ? { label: 'GH', href: socialLinks.github } : null,
+    email ? { label: 'MAIL', href: `mailto:${email}` } : null,
+    socialLinks.linkedin ? { label: 'LI', href: socialLinks.linkedin } : null,
+  ].filter(Boolean);
 
   return (
     <div style={{ height: '100%', width: '100%', overflow: 'auto', overscrollBehavior: 'none', background: isDark ? '#171717' : '#fafafa' }}>
@@ -184,38 +190,14 @@ export function AnsubMinimalTheme({ darkMode }) {
                 <div className="flex flex-row justify-between items-center mt-4">
                   <div className="flex flex-row items-center justify-between w-full">
                     <div className="flex flex-row gap-x-3 text-xs tracking-tighter" style={{ color: isDark ? '#9ca3af' : '#4b5563' }}>
-                      {socialLinks.twitter ? (
-                        <>
-                          <a target="_blank" rel="noreferrer" href={socialLinks.twitter}>
-                            X
+                      {contactLinks.map((link, index) => (
+                        <React.Fragment key={link.label}>
+                          <a target="_blank" rel="noreferrer" href={link.href}>
+                            {link.label}
                           </a>
-                          <span className="mx-1">/</span>
-                        </>
-                      ) : null}
-
-                      {socialLinks.github ? (
-                        <>
-                          <a target="_blank" rel="noreferrer" href={socialLinks.github}>
-                            GH
-                          </a>
-                          <span className="mx-1">/</span>
-                        </>
-                      ) : null}
-
-                      {email ? (
-                        <>
-                          <a target="_blank" rel="noreferrer" href={`mailto:${email}`}>
-                            MAIL
-                          </a>
-                          <span className="mx-1">/</span>
-                        </>
-                      ) : null}
-
-                      {socialLinks.linkedin ? (
-                        <a target="_blank" rel="noreferrer" href={socialLinks.linkedin}>
-                          LI
-                        </a>
-                      ) : null}
+                          {index < contactLinks.length - 1 ? <span className="mx-1">/</span> : null}
+                        </React.Fragment>
+                      ))}
                     </div>
                   </div>
                 </div>

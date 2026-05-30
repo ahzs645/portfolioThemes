@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV, useConfig } from '../../contexts/ConfigContext';
+import { getBioText } from '../../utils/bioText';
 import { isArchived, isPresent } from '../../utils/cvHelpers';
 
 // Load Inter font (closest to Uncut Sans available on Google Fonts)
@@ -184,7 +185,7 @@ export function ChiziTheme({ darkMode }) {
             </SectionLeft>
             <SectionRight>
               <AboutText $theme={theme}>
-                {about || "Hi, I'm a software developer focused on building great products."}
+                {about || getBioText(cv, { type: 'profile' })}
               </AboutText>
               {(socialLinks.github || socialLinks.linkedin || socialLinks.twitter) && (
                 <SocialRow>

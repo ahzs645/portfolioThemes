@@ -46,12 +46,51 @@ function formatRange(start, end) {
   return `${l} – ${r}`;
 }
 
+function getEntryTitle(entry) {
+  return entry?.title || entry?.position || entry?.company || entry?.institution || entry?.name || entry?.label || 'Entry';
+}
+
+function getEntryMeta(entry) {
+  return entry?.company
+    || entry?.institution
+    || entry?.summary
+    || entry?.details
+    || formatRange(entry?.startDate || entry?.start_date, entry?.endDate || entry?.end_date)
+    || entry?.date
+    || entry?.area
+    || '';
+}
+
+function getEntrySummary(entry) {
+  return entry?.highlights?.[0] || entry?.description || entry?.url || entry?.bullet || '';
+}
+
+function getSectionEntries(cv, sectionId) {
+  const sectionMap = {
+    experience: cv?.experience,
+    volunteer: cv?.volunteer,
+    media: cv?.sectionsRaw?.media,
+    education: cv?.education,
+    certifications: cv?.certifications,
+    skills: cv?.skills,
+    awards: cv?.awards,
+    publications: cv?.publications,
+    presentations: cv?.presentations,
+    'professional-development': cv?.professionalDevelopment,
+  };
+
+  const entries = sectionMap[sectionId] || [];
+  return Array.isArray(entries) ? entries : [];
+}
+
 export function ProjectDetailView({ project, allProjects, cv, onBack, onSelectProject, darkMode = false }) {
+  const isSection = project?.kind === 'section';
   const cvProject = (cv?.projects || []).find(
     (p) => p.name?.toUpperCase() === project?.label
   );
 
-  const title = cvProject?.name || project?.label || 'Project';
+  const sectionEntries = isSection ? getSectionEntries(cv, project?.sectionId) : [];
+  const title = isSection ? project?.label : cvProject?.name || project?.label || 'Project';
   const summary = cvProject?.summary || cvProject?.description || '';
   const highlights = cvProject?.highlights || [];
   const keywords = cvProject?.keywords || [];
@@ -60,14 +99,15 @@ export function ProjectDetailView({ project, allProjects, cv, onBack, onSelectPr
     ? formatRange(cvProject.startDate, cvProject.endDate)
     : project?.meta || '';
   const roles = cvProject?.roles || [];
-  const type = cvProject?.type || '';
+  const type = isSection ? 'CV Section' : cvProject?.type || '';
+  const navUsesSections = (allProjects || []).some((item) => item.kind === 'section');
 
   return (
     <Page $dark={darkMode}>
       <Sidebar $dark={darkMode}>
         <LogoLink onClick={onBack} type="button" title="Back to map">
           {glyphSvg}
-          <LogoName $dark={darkMode}>RUTH ZHAO</LogoName>
+          <LogoName $dark={darkMode}>{(cv?.name || 'Portfolio').toUpperCase()}</LogoName>
         </LogoLink>
 
         <Divider $dark={darkMode} />
@@ -81,24 +121,41 @@ export function ProjectDetailView({ project, allProjects, cv, onBack, onSelectPr
         </DiagramWrap>
 
         <NavSections>
-          {CATEGORIES.map((cat) => (
-            <NavSection key={cat.id}>
-              <NavCategoryLabel $dark={darkMode}>{cat.label}</NavCategoryLabel>
-              {(allProjects || [])
-                .filter((p) => cat.projectIds.includes(p.id))
-                .map((p) => (
-                  <NavItem
-                    key={p.id}
-                    $active={p.id === project?.id}
-                    $dark={darkMode}
-                    onClick={() => onSelectProject?.(p)}
-                    type="button"
-                  >
-                    {p.label.charAt(0) + p.label.slice(1).toLowerCase()}
-                  </NavItem>
-                ))}
+          {navUsesSections ? (
+            <NavSection>
+              <NavCategoryLabel $dark={darkMode}>SECTIONS</NavCategoryLabel>
+              {(allProjects || []).map((p) => (
+                <NavItem
+                  key={p.id}
+                  $active={p.id === project?.id}
+                  $dark={darkMode}
+                  onClick={() => onSelectProject?.(p)}
+                  type="button"
+                >
+                  {p.label.charAt(0) + p.label.slice(1).toLowerCase()}
+                </NavItem>
+              ))}
             </NavSection>
-          ))}
+          ) : (
+            CATEGORIES.map((cat) => (
+              <NavSection key={cat.id}>
+                <NavCategoryLabel $dark={darkMode}>{cat.label}</NavCategoryLabel>
+                {(allProjects || [])
+                  .filter((p) => cat.projectIds.includes(p.id))
+                  .map((p) => (
+                    <NavItem
+                      key={p.id}
+                      $active={p.id === project?.id}
+                      $dark={darkMode}
+                      onClick={() => onSelectProject?.(p)}
+                      type="button"
+                    >
+                      {p.label.charAt(0) + p.label.slice(1).toLowerCase()}
+                    </NavItem>
+                  ))}
+              </NavSection>
+            ))
+          )}
         </NavSections>
       </Sidebar>
 
@@ -153,6 +210,32 @@ export function ProjectDetailView({ project, allProjects, cv, onBack, onSelectPr
                 <HighlightItem $dark={darkMode} key={i}>{h}</HighlightItem>
               ))}
             </HighlightList>
+          </Section>
+        )}
+
+        {isSection && sectionEntries.length > 0 && (
+          <Section>
+            <SectionLabel $dark={darkMode}>Entries</SectionLabel>
+            <EntryList>
+              {sectionEntries.map((entry, index) => {
+                const entryTitle = getEntryTitle(entry);
+                const entryMeta = getEntryMeta(entry);
+                const entrySummary = getEntrySummary(entry);
+
+                return (
+                  <EntryCard $dark={darkMode} key={`${entryTitle}-${index}`}>
+                    <EntryTitle $dark={darkMode}>{entryTitle}</EntryTitle>
+                    {entryMeta ? <EntryMeta $dark={darkMode}>{entryMeta}</EntryMeta> : null}
+                    {entrySummary ? <EntrySummary $dark={darkMode}>{entrySummary}</EntrySummary> : null}
+                    {entry?.url ? (
+                      <EntryLink href={entry.url} target="_blank" rel="noreferrer">
+                        Open link ↗
+                      </EntryLink>
+                    ) : null}
+                  </EntryCard>
+                );
+              })}
+            </EntryList>
           </Section>
         )}
       </Content>
@@ -396,4 +479,54 @@ const HighlightItem = styled.li`
   font-size: 14px;
   color: ${(p) => (p.$dark ? 'rgb(140, 158, 165)' : 'rgb(81, 93, 98)')};
   line-height: 1.55;
+`;
+
+const EntryList = styled.div`
+  display: grid;
+  gap: 14px;
+`;
+
+const EntryCard = styled.article`
+  border: 1px solid ${(p) => (p.$dark ? 'rgb(40, 55, 60)' : 'rgb(223, 232, 232)')};
+  background: ${(p) => (p.$dark ? 'rgba(255, 255, 255, 0.025)' : 'rgba(255, 255, 255, 0.66)')};
+  padding: 18px;
+`;
+
+const EntryTitle = styled.h2`
+  margin: 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 15px;
+  font-weight: 500;
+  color: ${(p) => (p.$dark ? '#e0e8ea' : '#1f2328')};
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+`;
+
+const EntryMeta = styled.div`
+  margin-top: 8px;
+  font-family: 'Geist', 'Inter', sans-serif;
+  font-size: 13px;
+  color: ${(p) => (p.$dark ? 'rgb(120, 138, 145)' : 'rgb(96, 108, 114)')};
+  line-height: 1.45;
+`;
+
+const EntrySummary = styled.p`
+  margin: 10px 0 0;
+  font-family: 'Geist', 'Inter', sans-serif;
+  font-size: 14px;
+  color: ${(p) => (p.$dark ? 'rgb(150, 168, 174)' : 'rgb(81, 93, 98)')};
+  line-height: 1.55;
+`;
+
+const EntryLink = styled.a`
+  display: inline-block;
+  margin-top: 10px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: #ff8012;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;

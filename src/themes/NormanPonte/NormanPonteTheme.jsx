@@ -4,6 +4,7 @@ import { OrbitControls, useGLTF } from '@react-three/drei';
 import { FileText } from 'lucide-react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { getBioText } from '../../utils/bioText';
 import { withBase } from '../../utils/assetPath';
 import { canUseWebGL, usePrefersReducedMotion } from '../../utils/rendering';
 
@@ -234,7 +235,7 @@ export function NormanPonteTheme() {
             {activeView === 'about' && (
               <AboutPaper>
                 <p>{cv.location ? `Typing in ${cv.location}.` : 'Typing in Manhattan.'}</p>
-                <p>{cv.about || `I spend most my time as ${cv.currentJobTitle || 'a builder of software systems'}. Opinions are regrettably my own.`}</p>
+                <p>{getBioText(cv, { type: 'profile' })}</p>
                 <p>Below are the best ways to reach me.</p>
                 <IconStack>
                   {socials.github && (

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import styled from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { getBioText } from '../../utils/bioText';
 import { BlendMode, Screen, globalDebugInfo, resetGlobalDebugInfo } from './engine.js';
 import { BrowserProgram, DebuggerProgram, PainterProgram, TextEditProgram } from './programs.js';
 import { defaultGlyphSet } from './glyphs.js';
@@ -98,7 +99,7 @@ function createBrowserPages(cv) {
   const intro = [
     `# ${cv?.name || 'Portfolio OS'}`,
     '',
-    cv?.about || 'A WebGL desktop driven by resume data.',
+    getBioText(cv, { type: 'profile' }),
     '',
     cv?.currentJobTitle ? `Current role: ${cv.currentJobTitle}` : null,
     cv?.location ? `Location: ${cv.location}` : null,

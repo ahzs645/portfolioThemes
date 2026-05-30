@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import gsap from 'gsap';
+import { getBioText } from '../../../utils/bioText';
 
 export default function InfoSection({ cv, $dark = false }) {
   const ref = useRef(null);
@@ -15,7 +16,7 @@ export default function InfoSection({ cv, $dark = false }) {
     );
   }, []);
 
-  const about = cv.about || `${cv.name} builds thoughtful, playful digital experiences.`;
+  const about = getBioText(cv, { type: 'profile' });
 
   const elsewhere = [
     ...(cv.socialRaw || []).slice(0, 8).map((s) => ({

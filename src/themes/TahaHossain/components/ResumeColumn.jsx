@@ -3,8 +3,7 @@ import styled from 'styled-components';
 import TechnicalDetails from './TechnicalDetails';
 
 const Column = styled.div`
-  flex: 1;
-  min-width: 280px;
+  min-width: 0;
   position: relative;
 
   &::before {
@@ -12,15 +11,15 @@ const Column = styled.div`
     position: absolute;
     z-index: 0;
     width: 0.5px;
-    height: calc(100% + 48px);
-    top: -24px;
+    height: calc(100% + clamp(24px, 4vw, 48px));
+    top: calc(clamp(12px, 2vw, 24px) * -1);
     left: 0;
     background: var(--th-line-green);
   }
 `;
 
 const BlockWrapper = styled.div`
-  padding: 24px;
+  padding: clamp(14px, 2vw, 24px);
   position: relative;
 
   &::before {
@@ -46,12 +45,17 @@ const SectionTitle = styled.div`
 const ItemsContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: clamp(14px, 2vh, 24px);
 `;
 
 const ItemRow = styled.div`
   display: flex;
   gap: ${p => p.$wide ? '24px' : '12px'};
+  min-width: 0;
+
+  @media (max-width: 520px) {
+    gap: 10px;
+  }
 `;
 
 const NumberBubble = styled.div`
@@ -75,10 +79,16 @@ const DateLabel = styled.div`
   text-transform: uppercase;
   flex-shrink: 0;
   min-width: 60px;
+
+  @media (max-width: 520px) {
+    min-width: 0;
+    width: 52px;
+  }
 `;
 
 const ItemInfo = styled.div`
   flex: 1;
+  min-width: 0;
 `;
 
 const ItemTitle = styled.div`
