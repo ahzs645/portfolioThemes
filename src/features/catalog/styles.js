@@ -126,6 +126,10 @@ export const SearchInput = styled.input`
   &:focus {
     border-color: ${({ $darkMode }) => ($darkMode ? '#404040' : '#93c5fd')};
   }
+
+  @media (max-width: 768px), (pointer: coarse) {
+    font-size: 16px;
+  }
 `;
 
 export const SearchClear = styled.button`

@@ -55,8 +55,13 @@ export function CatalogView({ darkMode, setDarkMode, currentThemeId, onSelectThe
     onClearHover: hover.clearHover,
   });
 
-  // Focus the search box when the catalog opens.
+  // Focus the search box on desktop only. Mobile Safari zooms the viewport when
+  // small text inputs receive focus, so opening the catalog should not jump in.
   useEffect(() => {
+    if (window.matchMedia('(max-width: 768px), (pointer: coarse)').matches) {
+      return;
+    }
+
     searchInputRef.current?.focus();
   }, []);
 
