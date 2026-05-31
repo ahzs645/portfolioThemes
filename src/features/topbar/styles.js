@@ -1,7 +1,8 @@
 import styled from 'styled-components';
 
 export const TopBar = styled.div`
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 1000;
   display: flex;
   justify-content: space-between;

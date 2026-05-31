@@ -279,7 +279,6 @@ export function SharonZhengTheme() {
     const originalBodyHeight = doc.body.style.height;
     const originalBodyOverflow = doc.body.style.overflow;
     let rafId = 0;
-    const mobileQuery = win.matchMedia('(max-width: 767px)');
 
     const clearFoldTransforms = () => {
       foldsContent.forEach((content) => {
@@ -288,25 +287,12 @@ export function SharonZhengTheme() {
     };
 
     const updateBodyHeight = () => {
-      if (mobileQuery.matches) {
-        doc.body.style.height = 'auto';
-        doc.body.style.overflow = 'auto';
-        clearFoldTransforms();
-        return;
-      }
-
       const overflowHeight = Math.max(0, centerContent.clientHeight - centerFold.clientHeight);
       doc.body.style.height = `${overflowHeight + win.innerHeight}px`;
       doc.body.style.overflow = 'auto';
     };
 
     const tick = () => {
-      if (mobileQuery.matches) {
-        clearFoldTransforms();
-        rafId = win.requestAnimationFrame(tick);
-        return;
-      }
-
       const scroll = -(win.scrollY || doc.documentElement.scrollTop || 0);
       foldsContent.forEach((content) => {
         content.style.transform = `translateY(${scroll}px)`;
@@ -315,13 +301,11 @@ export function SharonZhengTheme() {
     };
 
     win.addEventListener('resize', updateBodyHeight);
-    mobileQuery.addEventListener('change', updateBodyHeight);
     updateBodyHeight();
     tick();
 
     return () => {
       win.removeEventListener('resize', updateBodyHeight);
-      mobileQuery.removeEventListener('change', updateBodyHeight);
       win.cancelAnimationFrame(rafId);
       clearFoldTransforms();
       doc.body.style.height = originalBodyHeight;
@@ -385,15 +369,6 @@ const Stage = styled.div`
   line-height: 1.15;
 
   @media (max-width: 767px) {
-    position: relative;
-    top: auto;
-    right: auto;
-    bottom: auto;
-    left: auto;
-    align-items: flex-start;
-    justify-content: flex-start;
-    min-height: calc(100dvh - var(--app-top-offset, 0px));
-    overflow: visible;
     font-size: 1.35rem;
   }
 `;
@@ -404,9 +379,8 @@ const Wrapper3d = styled.div`
   transform-style: preserve-3d;
 
   @media (max-width: 767px) {
-    width: 100%;
-    perspective: none;
-    transform-style: flat;
+    width: 100vw;
+    perspective: 32vw;
   }
 `;
 
@@ -427,18 +401,8 @@ const Fold = styled.div`
   }
 
   @media (max-width: 767px) {
-    width: 100%;
-    height: auto;
-    min-height: calc(100dvh - var(--app-top-offset, 0px));
-    overflow: visible;
-
-    &.fold-top {
-      display: none;
-    }
-
-    &.fold-bottom {
-      display: none;
-    }
+    width: 100vw;
+    height: calc(100dvh - var(--app-top-offset, 0px));
   }
 `;
 
@@ -455,8 +419,7 @@ const FoldAlign = styled.div`
   }
 
   @media (max-width: 767px) {
-    height: auto;
-    min-height: calc(100dvh - var(--app-top-offset, 0px));
+    height: 100%;
   }
 `;
 
@@ -570,11 +533,10 @@ const Face = styled.main`
   }
 
   @media (max-width: 767px) {
-    min-height: calc(100dvh - var(--app-top-offset, 0px));
     padding: 28px 24px 72px;
 
     header {
-      height: 44dvh;
+      height: calc(100dvh - var(--app-top-offset, 0px) - 228px);
       min-height: 240px;
       margin-bottom: 44px;
     }
