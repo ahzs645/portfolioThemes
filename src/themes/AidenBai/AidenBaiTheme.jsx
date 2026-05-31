@@ -156,6 +156,34 @@ function SpeedHover() {
     setHovered(false);
   };
 
+  const toggleSonic = () => {
+    if (hovered) {
+      hideSonic();
+      return;
+    }
+
+    showSonic();
+  };
+
+  const handlePointerUp = (event) => {
+    if (event.pointerType !== 'mouse') {
+      toggleSonic();
+    }
+  };
+
+  const handlePointerDown = (event) => {
+    if (event.pointerType !== 'mouse') {
+      event.preventDefault();
+    }
+  };
+
+  const handleTriggerKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      toggleSonic();
+    }
+  };
+
   useEffect(() => {
     if (hovered) {
       intervalRef.current = window.setInterval(() => {
@@ -197,14 +225,40 @@ function SpeedHover() {
     };
   }, [hovered]);
 
+  useEffect(() => {
+    if (!hovered) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (!triggerRef.current?.contains(event.target)) {
+        hideSonic();
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') hideSonic();
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [hovered]);
+
   return (
     <SpeedWrap
       ref={triggerRef}
       onMouseEnter={showSonic}
       onMouseLeave={hideSonic}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onKeyDown={handleTriggerKeyDown}
       onFocus={showSonic}
       onBlur={hideSonic}
+      role="button"
       tabIndex={0}
+      aria-expanded={hovered}
       aria-label="speed"
     >
       <Shimmer>speed</Shimmer>

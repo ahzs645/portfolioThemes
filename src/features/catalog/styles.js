@@ -408,6 +408,10 @@ export const MobileInspectOverlay = styled.div`
   padding: 20px;
   background: rgba(0, 0, 0, 0.6);
   animation: inspectFade 0.15s ease-out;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
 
   @keyframes inspectFade {
     from { opacity: 0; }
@@ -427,6 +431,9 @@ export const MobileInspectCard = styled.div`
   border: 1px solid ${({ $darkMode }) => ($darkMode ? '#262626' : '#e5e7eb')};
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
   animation: inspectPop 0.18s ease-out;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 
   @keyframes inspectPop {
     from { opacity: 0; transform: scale(0.94) translateY(10px); }
@@ -478,6 +485,11 @@ export const InspectPreview = styled.div`
   cursor: pointer;
   background: ${({ $darkMode }) => ($darkMode ? '#000' : '#fff')};
   border-bottom: 1px solid ${({ $darkMode }) => ($darkMode ? '#1f1f1f' : '#f0f0f0')};
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
 
   iframe {
     pointer-events: none;

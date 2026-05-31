@@ -279,14 +279,34 @@ export function SharonZhengTheme() {
     const originalBodyHeight = doc.body.style.height;
     const originalBodyOverflow = doc.body.style.overflow;
     let rafId = 0;
+    const mobileQuery = win.matchMedia('(max-width: 767px)');
+
+    const clearFoldTransforms = () => {
+      foldsContent.forEach((content) => {
+        content.style.transform = '';
+      });
+    };
 
     const updateBodyHeight = () => {
+      if (mobileQuery.matches) {
+        doc.body.style.height = 'auto';
+        doc.body.style.overflow = 'auto';
+        clearFoldTransforms();
+        return;
+      }
+
       const overflowHeight = Math.max(0, centerContent.clientHeight - centerFold.clientHeight);
       doc.body.style.height = `${overflowHeight + win.innerHeight}px`;
       doc.body.style.overflow = 'auto';
     };
 
     const tick = () => {
+      if (mobileQuery.matches) {
+        clearFoldTransforms();
+        rafId = win.requestAnimationFrame(tick);
+        return;
+      }
+
       const scroll = -(win.scrollY || doc.documentElement.scrollTop || 0);
       foldsContent.forEach((content) => {
         content.style.transform = `translateY(${scroll}px)`;
@@ -295,12 +315,15 @@ export function SharonZhengTheme() {
     };
 
     win.addEventListener('resize', updateBodyHeight);
+    mobileQuery.addEventListener('change', updateBodyHeight);
     updateBodyHeight();
     tick();
 
     return () => {
       win.removeEventListener('resize', updateBodyHeight);
+      mobileQuery.removeEventListener('change', updateBodyHeight);
       win.cancelAnimationFrame(rafId);
+      clearFoldTransforms();
       doc.body.style.height = originalBodyHeight;
       doc.body.style.overflow = originalBodyOverflow;
     };
@@ -360,12 +383,31 @@ const Stage = styled.div`
   font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   font-size: clamp(1.35rem, 2vw, 2rem);
   line-height: 1.15;
+
+  @media (max-width: 767px) {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    align-items: flex-start;
+    justify-content: flex-start;
+    min-height: calc(100dvh - var(--app-top-offset, 0px));
+    overflow: visible;
+    font-size: 1.35rem;
+  }
 `;
 
 const Wrapper3d = styled.div`
   position: relative;
   perspective: 20vw;
   transform-style: preserve-3d;
+
+  @media (max-width: 767px) {
+    width: 100%;
+    perspective: none;
+    transform-style: flat;
+  }
 `;
 
 const Fold = styled.div`
@@ -385,15 +427,17 @@ const Fold = styled.div`
   }
 
   @media (max-width: 767px) {
-    width: min(88vw, calc(100vw - 24px));
-    height: min(80vh, calc(100dvh - var(--app-top-offset, 0px) - 28px));
+    width: 100%;
+    height: auto;
+    min-height: calc(100dvh - var(--app-top-offset, 0px));
+    overflow: visible;
 
     &.fold-top {
-      transform: rotateX(-140deg);
+      display: none;
     }
 
     &.fold-bottom {
-      transform: rotateX(140deg);
+      display: none;
     }
   }
 `;
@@ -408,6 +452,11 @@ const FoldAlign = styled.div`
 
   ${Fold}.fold-bottom & {
     transform: translateY(-100%);
+  }
+
+  @media (max-width: 767px) {
+    height: auto;
+    min-height: calc(100dvh - var(--app-top-offset, 0px));
   }
 `;
 
@@ -521,11 +570,13 @@ const Face = styled.main`
   }
 
   @media (max-width: 767px) {
-    padding: 18px;
-    font-size: 0.95rem;
+    min-height: calc(100dvh - var(--app-top-offset, 0px));
+    padding: 28px 24px 72px;
 
     header {
-      height: min(42vh, calc(80vh - 36px));
+      height: 44dvh;
+      min-height: 240px;
+      margin-bottom: 44px;
     }
 
     h1 {
@@ -542,6 +593,7 @@ const Face = styled.main`
     }
 
     footer {
+      margin-bottom: 0;
       padding-bottom: 120px;
     }
   }

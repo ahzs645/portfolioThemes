@@ -148,7 +148,7 @@ export const PORTFOLIO_THEMES = [
     slug: 'terminal-master',
     name: 'Terminal Master',
     description: 'Interactive green-screen shell adapted from a standalone jQuery terminal portfolio, rebuilt as a CV-driven command interface.',
-    source: null,
+    source: 'https://marwanebourdim.github.io/terminal/',
     Component: lazyTheme(() => import('./TerminalMaster/TerminalMasterTheme'), 'TerminalMasterTheme'),
   },
   {

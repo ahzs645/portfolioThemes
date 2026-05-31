@@ -209,6 +209,47 @@ function splitTitle(title) {
   return `${text.slice(0, midpoint)}*${text.slice(midpoint)}`;
 }
 
+function getFirstName(name = '') {
+  return name.trim().split(/\s+/)[0] || 'Noah';
+}
+
+function escapeSvgText(value) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function buildNameTexture(name = '') {
+  const firstName = getFirstName(name);
+  const isSourceName = /^noah$/i.test(firstName);
+  if (isSourceName) {
+    return { src: ASSETS.logo, width: 923.1, height: 934.1 };
+  }
+
+  const width = 923;
+  const height = 934;
+  const letters = firstName.split('');
+  const midpoint = Math.ceil(letters.length / 2);
+  const lines = [letters.slice(0, midpoint).join(''), letters.slice(midpoint).join('')].filter(Boolean);
+  const longest = lines.reduce((max, line) => Math.max(max, line.length), 1);
+  const fontSize = Math.max(170, Math.min(360, Math.floor((width * 0.72) / Math.max(longest * 0.58, 1))));
+  const lineHeight = fontSize * 0.92;
+  const totalHeight = lineHeight * lines.length;
+  const startY = (height - totalHeight) / 2 + fontSize * 0.78;
+  const text = lines.map((line, index) => (
+    `<text x="50%" y="${startY + index * lineHeight}" text-anchor="middle" fill="#000" font-family="Georgia, Times New Roman, serif" font-size="${fontSize}" font-weight="700">${escapeSvgText(line)}</text>`
+  )).join('');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${text}</svg>`;
+
+  return {
+    src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
+    width,
+    height,
+  };
+}
+
 function CoolTitle({ text }) {
   return (
     <>
@@ -234,6 +275,7 @@ function HeroSection({ cv, onNavigate, shadersEnabled }) {
   const [effect, setEffect] = useState(0);
   const [visibleIdx, setVisibleIdx] = useState(0);
   const [hideControls, setHideControls] = useState(false);
+  const heroNameTexture = useMemo(() => buildNameTexture(cv.name), [cv.name]);
   const intros = useMemo(() => [
     {
       id: 'about',
@@ -289,7 +331,12 @@ function HeroSection({ cv, onNavigate, shadersEnabled }) {
             frag={heroFrag}
             label="hero"
             disabled={!shadersEnabled}
-            uniforms={{ texture0: ASSETS.logo, u_textureX: 923.1, u_textureY: 934.1, u_effectType: effect }}
+            uniforms={{
+              texture0: heroNameTexture.src,
+              u_textureX: heroNameTexture.width,
+              u_textureY: heroNameTexture.height,
+              u_effectType: effect,
+            }}
           />
         </HeroShader>
         <HeroNav aria-label="Theme sections" $hidden={hideControls}>

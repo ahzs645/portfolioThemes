@@ -19,6 +19,11 @@ export function IsolatedPreview({ children, width, height }) {
       doc.body.style.height = '100%';
       doc.body.style.display = 'flex';
       doc.body.style.overflow = 'hidden';
+      doc.documentElement.style.userSelect = 'none';
+      doc.documentElement.style.webkitUserSelect = 'none';
+      doc.body.style.userSelect = 'none';
+      doc.body.style.webkitUserSelect = 'none';
+      doc.body.style.webkitTouchCallout = 'none';
       let mountEl = doc.getElementById('preview-root');
       if (!mountEl) {
         mountEl = doc.createElement('div');
@@ -30,6 +35,9 @@ export function IsolatedPreview({ children, width, height }) {
       mountEl.style.display = 'flex';
       mountEl.style.flex = '1';
       mountEl.style.flexDirection = 'column';
+      mountEl.style.userSelect = 'none';
+      mountEl.style.webkitUserSelect = 'none';
+      mountEl.style.webkitTouchCallout = 'none';
       setIframeState({ mountEl, head: doc.head });
     };
     iframe.addEventListener('load', handleLoad);
