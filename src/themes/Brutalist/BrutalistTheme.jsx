@@ -40,6 +40,12 @@ function formatDate(date) {
   return date;
 }
 
+const baseText = {
+  fontFamily: 'Arial, Helvetica, sans-serif',
+  fontSize: '18px',
+  lineHeight: 1.6,
+};
+
 export function BrutalistTheme({ darkMode = false }) {
   const cv = useCV() || {};
 
@@ -88,16 +94,29 @@ export function BrutalistTheme({ darkMode = false }) {
   return (
     <div
       style={{
-        height: '100%',
+        minHeight: '100%',
         width: '100%',
         overflow: 'auto',
-        colorScheme: darkMode ? 'dark' : 'light',
-        background: darkMode ? '#000' : '#fff',
-        color: darkMode ? '#fff' : '#000',
+        colorScheme: 'light',
+        background: '#fff',
+        color: '#111',
+        ...baseText,
       }}
     >
-      <div>
-        <h1>{fullName}</h1>
+      <main
+        style={{
+          maxWidth: '650px',
+          margin: '40px auto',
+          padding: '0 10px',
+        }}
+      >
+        <h1 style={{ fontSize: '2em', lineHeight: 1.1, margin: '0 0 0.67em' }}>
+          {fullName}
+        </h1>
+        <p>
+          This is a portfolio. It has text. It has links. It loads fast. It does not
+          need a hero animation to say I build useful software.
+        </p>
         <p>
           {location && <>{location}<br /></>}
           {email && <><a href={`mailto:${email}`}>{email}</a><br /></>}
@@ -250,8 +269,8 @@ export function BrutalistTheme({ darkMode = false }) {
         )}
 
         <hr />
-        <p><small>This is a resume. It's lightweight and loads fast.</small></p>
-      </div>
+        <p><small>No trackers. No canvas effect. No dark pattern. Just the work.</small></p>
+      </main>
     </div>
   );
 }
