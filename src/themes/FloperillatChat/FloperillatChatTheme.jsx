@@ -372,16 +372,17 @@ const Page = styled.main`
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 96px 18px 210px;
+  box-sizing: border-box;
+  padding: 96px 18px 176px;
   background: ${({ $dark }) => ($dark ? '#0f1115' : '#fff')};
   color: ${({ $dark }) => ($dark ? '#e6e6e6' : '#0b0b0c')};
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Helvetica, Arial, sans-serif;
   transition: background 0.25s ease, color 0.25s ease;
 
   @media (max-width: 680px) {
-    padding: 82px 14px 188px;
+    padding: 82px 14px 168px;
   }
 `;
 
@@ -427,12 +428,18 @@ const TextLink = styled.a`
 
 const Hero = styled.header`
   width: min(720px, 92vw);
+  min-height: calc(100dvh - 272px);
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: ${({ $settled }) => ($settled ? 'flex-start' : 'center')};
   gap: 36px;
   text-align: left;
-  transform: translateY(-5vh);
+
+  @media (max-width: 680px) {
+    min-height: calc(100dvh - 250px);
+    gap: 28px;
+  }
 `;
 
 const NameLine = styled.h1`
@@ -478,11 +485,24 @@ const Caret = styled.span`
 const Transcript = styled.div`
   width: 100%;
   max-width: 620px;
-  overflow: visible;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: calc(100dvh - 430px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 0 6px 4px;
+  padding: 0 6px 18px;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (max-width: 680px) {
+    max-height: calc(100dvh - 390px);
+  }
 `;
 
 const MessageRow = styled.div`
