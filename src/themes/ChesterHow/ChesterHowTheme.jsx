@@ -20,6 +20,7 @@ const SECTION_DEFS = [
 ];
 
 const Main = styled.main`
+  flex: 1 0 auto;
   min-height: 100vh;
   width: 100%;
   background: ${colors.bg};
@@ -28,6 +29,10 @@ const Main = styled.main`
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   padding: 0 2rem;
+
+  @supports (min-height: 100dvh) {
+    min-height: 100dvh;
+  }
 `;
 
 const Container = styled.div`

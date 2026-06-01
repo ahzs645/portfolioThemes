@@ -11,8 +11,10 @@ const Chip = styled.span`
   letter-spacing: -0.01em;
   text-transform: uppercase;
   background: ${(p) => p.$bg};
-  color: ${(p) => p.$color};
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1), inset 0 -2px 0 1px rgba(0, 0, 0, 0.1);
+  color: var(--ch-tag-text, ${(p) => p.$color});
+  box-shadow:
+    inset 0 0 0 1px var(--ch-tag-shadow, rgba(0, 0, 0, 0.1)),
+    inset 0 -2px 0 1px var(--ch-tag-shadow, rgba(0, 0, 0, 0.1));
 `;
 
 export function Tag({ label, color = 'orange' }) {

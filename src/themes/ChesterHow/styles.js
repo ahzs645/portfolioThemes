@@ -26,6 +26,7 @@ export const CHESTER_LIGHT_VARS = {
   '--ch-border': 'rgb(229 229 229)',
   '--ch-nav-bg': 'hsla(0, 0%, 100%, 0.7)',
   '--ch-arrow-hover-bg': '#ffffff',
+  '--ch-tag-shadow': 'rgba(0, 0, 0, 0.1)',
 };
 
 export const CHESTER_DARK_VARS = {
@@ -41,6 +42,8 @@ export const CHESTER_DARK_VARS = {
   '--ch-border': 'rgb(48 52 56)',
   '--ch-nav-bg': 'hsla(220, 13%, 12%, 0.85)',
   '--ch-arrow-hover-bg': 'rgb(30 33 36)',
+  '--ch-tag-text': 'rgb(246 246 246)',
+  '--ch-tag-shadow': 'rgba(255, 255, 255, 0.16)',
 };
 
 export const fonts = {
@@ -80,6 +83,9 @@ export const FRAUNCES_HREF =
 export const GlobalReset = createGlobalStyle`
   .chester-how-main, .chester-how-main *, .chester-how-main *::before, .chester-how-main *::after {
     box-sizing: border-box;
+  }
+  .chester-how-main {
+    min-height: 100%;
   }
   .chester-how-main a { color: inherit; text-decoration: none; }
 `;

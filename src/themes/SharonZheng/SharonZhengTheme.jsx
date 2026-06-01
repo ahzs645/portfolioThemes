@@ -367,21 +367,12 @@ const Stage = styled.div`
   font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   font-size: clamp(1.35rem, 2vw, 2rem);
   line-height: 1.15;
-
-  @media (max-width: 767px) {
-    font-size: 1.35rem;
-  }
 `;
 
 const Wrapper3d = styled.div`
   position: relative;
   perspective: 20vw;
   transform-style: preserve-3d;
-
-  @media (max-width: 767px) {
-    width: 100vw;
-    perspective: 32vw;
-  }
 `;
 
 const Fold = styled.div`
@@ -401,8 +392,8 @@ const Fold = styled.div`
   }
 
   @media (max-width: 767px) {
-    width: 100vw;
-    height: calc(100dvh - var(--app-top-offset, 0px));
+    width: min(80vw, calc(100vw - 40px));
+    height: min(80vh, calc(100dvh - var(--app-top-offset, 0px) - 48px));
   }
 `;
 
@@ -416,10 +407,6 @@ const FoldAlign = styled.div`
 
   ${Fold}.fold-bottom & {
     transform: translateY(-100%);
-  }
-
-  @media (max-width: 767px) {
-    height: 100%;
   }
 `;
 
@@ -530,34 +517,6 @@ const Face = styled.main`
   footer {
     margin: 100px 0 200px;
     padding-bottom: 300px;
-  }
-
-  @media (max-width: 767px) {
-    padding: 28px 24px 72px;
-
-    header {
-      height: calc(100dvh - var(--app-top-offset, 0px) - 228px);
-      min-height: 240px;
-      margin-bottom: 44px;
-    }
-
-    h1 {
-      max-width: 10ch;
-      word-spacing: 18px;
-    }
-
-    h1 span {
-      border-bottom-width: 2px;
-    }
-
-    h2 {
-      margin-top: 72px;
-    }
-
-    footer {
-      margin-bottom: 0;
-      padding-bottom: 120px;
-    }
   }
 `;
 
