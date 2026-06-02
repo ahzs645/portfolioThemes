@@ -149,6 +149,24 @@ export function filterActive(items = [], limit = null) {
 }
 
 /**
+ * Return unique items while preserving the first display value.
+ */
+export function uniqueByNormalizedValue(items = [], getValue = (item) => item) {
+  const seen = new Set();
+  const out = [];
+
+  for (const item of items) {
+    const value = getValue(item);
+    const key = String(value || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(item);
+  }
+
+  return out;
+}
+
+/**
  * Get the current job title from experience
  */
 export function getCurrentJobTitle(experience = []) {

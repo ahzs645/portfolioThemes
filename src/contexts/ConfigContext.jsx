@@ -27,6 +27,17 @@ function parsePositiveNumber(value) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
+function parseBoolean(value) {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (['true', '1', 'yes', 'on'].includes(normalized)) return true;
+    if (['false', '0', 'no', 'off'].includes(normalized)) return false;
+  }
+
+  return null;
+}
+
 function normalizeEntry(entry) {
   if (!entry || typeof entry !== 'object') return entry;
 
@@ -91,6 +102,7 @@ export function ConfigProvider({ children }) {
 
     const raw = cvData.cv;
     const sections = raw.sections || {};
+    const features = raw.features || {};
     const normalizedSections = {
       ...sections,
       experience: normalizeSectionEntries(sections.experience),
@@ -136,6 +148,12 @@ export function ConfigProvider({ children }) {
       website: raw.website || null,
       avatar,
       avatarAspect,
+      features: {
+        ...features,
+        gitContributionGraph: parseBoolean(
+          features.gitContributionGraph ?? features.git_contribution_graph,
+        ),
+      },
 
       // About/summary text
       about: sections.about || '',

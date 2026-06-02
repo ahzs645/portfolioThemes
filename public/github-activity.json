@@ -1158,7 +1158,7 @@
     {
       "date": "2026-01-18",
       "level": 1,
-      "count": 9
+      "count": 8
     },
     {
       "date": "2026-01-19",
@@ -1823,14 +1823,19 @@
     {
       "date": "2026-05-31",
       "level": 3,
-      "count": 51
+      "count": 64
     },
     {
       "date": "2026-06-01",
-      "level": 0,
-      "count": 0
+      "level": 2,
+      "count": 37
+    },
+    {
+      "date": "2026-06-02",
+      "level": 1,
+      "count": 1
     }
   ],
-  "totalYear": 7064,
-  "fetchedAt": "2026-06-01T05:18:09.550Z"
+  "totalYear": 7114,
+  "fetchedAt": "2026-06-02T06:49:56.213Z"
 }

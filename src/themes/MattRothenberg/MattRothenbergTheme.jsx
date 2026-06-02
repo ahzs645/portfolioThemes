@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { withBase } from '../../utils/assetPath';
+import { uniqueByNormalizedValue } from '../../utils/cvHelpers';
 
 function isArchived(entry) {
   return Array.isArray(entry?.tags) && entry.tags.includes('archived');
@@ -30,21 +31,8 @@ function pickSocial(socials, names) {
   return socials.find((s) => lowered.includes(String(s.network || '').toLowerCase()))?.url || null;
 }
 
-function dedupe(items) {
-  const seen = new Set();
-  const out = [];
-  for (const item of items) {
-    if (!item) continue;
-    const key = String(item).trim().toLowerCase();
-    if (!key || seen.has(key)) continue;
-    seen.add(key);
-    out.push(item);
-  }
-  return out;
-}
-
 function joinList(rawItems, sep = ', ', lastSep = ' and ') {
-  const items = dedupe(rawItems);
+  const items = uniqueByNormalizedValue(rawItems);
   if (items.length === 0) return '';
   if (items.length === 1) return items[0];
   if (items.length === 2) return items.join(lastSep);
@@ -132,7 +120,7 @@ export function MattRothenbergTheme({ darkMode }) {
         currents.push({ company: exp.company, url: exp.url });
       }
     }
-    return currents.slice(0, 4);
+    return uniqueByNormalizedValue(currents, (item) => item.company).slice(0, 4);
   }, [cv]);
 
   const pastExperiences = useMemo(() => {
@@ -147,7 +135,7 @@ export function MattRothenbergTheme({ darkMode }) {
         past.push({ company: exp.company, url: exp.url });
       }
     }
-    return past.slice(0, 6);
+    return uniqueByNormalizedValue(past, (item) => item.company).slice(0, 6);
   }, [cv]);
 
   const projectItems = useMemo(
@@ -161,7 +149,7 @@ export function MattRothenbergTheme({ darkMode }) {
   );
 
   const uniqueInstitutions = useMemo(
-    () => dedupe(educationItems.map((e) => e.institution).filter(Boolean)),
+    () => uniqueByNormalizedValue(educationItems.map((e) => e.institution).filter(Boolean)),
     [educationItems],
   );
 
@@ -170,8 +158,13 @@ export function MattRothenbergTheme({ darkMode }) {
       .map((e) => e.area || e.degree)
       .filter(Boolean)
       .map((a) => String(a).toLowerCase());
-    return dedupe(raw).slice(0, 3);
+    return uniqueByNormalizedValue(raw).slice(0, 3);
   }, [educationItems]);
+
+  const employmentOrganizations = useMemo(
+    () => uniqueByNormalizedValue([...currentExperiences, ...pastExperiences], (item) => item.company),
+    [currentExperiences, pastExperiences],
+  );
 
   const publicationItems = useMemo(
     () => (cv?.sections?.publications || []).filter((e) => !isArchived(e)).slice(0, 10),
@@ -181,6 +174,11 @@ export function MattRothenbergTheme({ darkMode }) {
   const volunteerItems = useMemo(
     () => (cv?.sections?.volunteer || []).filter((e) => !isArchived(e)).slice(0, 4),
     [cv],
+  );
+
+  const volunteerOrganizations = useMemo(
+    () => uniqueByNormalizedValue(volunteerItems, (item) => item.company || item.organization),
+    [volunteerItems],
   );
 
   const theme = isDark ? darkTheme : lightTheme;
@@ -273,7 +271,7 @@ export function MattRothenbergTheme({ darkMode }) {
               <Eyebrow>I'm employable</Eyebrow>
               <Prose>
                 I've had the privilege of working with{' '}
-                {[...currentExperiences, ...pastExperiences].map((e, i, arr) => (
+                {employmentOrganizations.map((e, i, arr) => (
                   <React.Fragment key={`emp-${i}`}>
                     <Pill href={e.url}>{e.company}</Pill>
                     {i < arr.length - 2 ? ', ' : i === arr.length - 2 ? ', and ' : ''}
@@ -347,12 +345,12 @@ export function MattRothenbergTheme({ darkMode }) {
             </Section>
           )}
 
-          {volunteerItems.length > 0 && (
+          {volunteerOrganizations.length > 0 && (
             <Section>
               <Eyebrow>I show up</Eyebrow>
               <Prose>
                 When I'm not in the lab or shipping code, I volunteer with{' '}
-                {volunteerItems.map((v, i, arr) => (
+                {volunteerOrganizations.map((v, i, arr) => (
                   <React.Fragment key={`vol-${i}`}>
                     <Pill>{v.company || v.organization}</Pill>
                     {i < arr.length - 2 ? ', ' : i === arr.length - 2 ? ' and ' : ''}

@@ -10,11 +10,13 @@ import { useCV } from './ConfigContext';
 
 const REFRESH_INTERVAL = 30 * 60 * 1000; // 30 minutes
 const ENABLE_LIVE_GITHUB = import.meta.env.VITE_ENABLE_GITHUB_LIVE === 'true';
+const ENABLE_GITHUB_CONTRIBUTIONS = import.meta.env.VITE_ENABLE_GITHUB_CONTRIBUTIONS !== 'false';
 
 const GitHubContext = createContext(null);
 
 export function GitHubProvider({ children }) {
   const cv = useCV();
+  const enableContributions = cv?.features?.gitContributionGraph ?? ENABLE_GITHUB_CONTRIBUTIONS;
   const username = useMemo(
     () => extractUsername(cv?.socialLinks?.github),
     [cv?.socialLinks?.github]
@@ -35,12 +37,12 @@ export function GitHubProvider({ children }) {
     try {
       setError(null);
       const result = ENABLE_LIVE_GITHUB
-        ? await fetchAllGitHubData(username)
+        ? await fetchAllGitHubData(username, { includeContributions: enableContributions })
         : {
           profile: null,
           repos: [],
           events: [],
-          contributions: await fetchContributions(),
+          contributions: enableContributions ? await fetchContributions() : null,
         };
       setData(result);
     } catch (err) {
@@ -48,7 +50,7 @@ export function GitHubProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, [username]);
+  }, [username, enableContributions]);
 
   // Initial load + 30-minute refresh
   useEffect(() => {

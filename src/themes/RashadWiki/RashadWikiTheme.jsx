@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { uniqueByNormalizedValue } from '../../utils/cvHelpers';
 import wikiGlobe from './assets/wikipedia-globe.svg';
 
 // Inline SVGs from actual Wikipedia assets (small enough to embed)
@@ -49,6 +50,7 @@ export function RashadWikiTheme({ darkMode }) {
   const socialLinks = cv.socialLinks || {};
   const experience = cv.experience || [];
   const education = cv.education || [];
+  const almaMaters = uniqueByNormalizedValue(education, (item) => item.institution);
   const projects = cv.projects || [];
   const volunteer = cv.volunteer || [];
   const publications = cv.publications || [];
@@ -180,11 +182,11 @@ export function RashadWikiTheme({ darkMode }) {
                       <InfoValue>{currentTitle}</InfoValue>
                     </InfoRow>
                   )}
-                  {education.length > 0 && (
+                  {almaMaters.length > 0 && (
                     <InfoRow $dark={darkMode}>
                       <InfoLabel $dark={darkMode}>Alma&nbsp;mater</InfoLabel>
                       <InfoValue>
-                        {education.map((e, i) => (
+                        {almaMaters.map((e, i) => (
                           <div key={i}>
                             <a href={e.url || '#'}>{e.institution}</a>
                             {e.studyType ? ` (${e.studyType})` : ''}

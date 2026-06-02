@@ -11,7 +11,7 @@ import { ThemeViewer } from './features/viewer/ThemeViewer';
 export default function App() {
   const { loading, error } = useConfig();
   const [darkMode, setDarkMode] = useDarkMode();
-  const { currentThemeId, setCurrentThemeId, currentTheme, goToPrevTheme, goToNextTheme } = useThemeRouting();
+  const { currentThemeId, themeRoutingLoading, setCurrentThemeId, currentTheme, goToPrevTheme, goToNextTheme } = useThemeRouting();
   const [showCatalog, setShowCatalog] = useState(false);
 
   const selectTheme = useCallback((themeId) => {
@@ -19,7 +19,7 @@ export default function App() {
     setShowCatalog(false);
   }, [setCurrentThemeId]);
 
-  if (loading) {
+  if (loading || themeRoutingLoading) {
     return <ThemeLoading label="Loading resume data..." />;
   }
 

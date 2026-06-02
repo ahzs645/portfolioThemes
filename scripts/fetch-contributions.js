@@ -7,16 +7,82 @@
  * If no username is given, extracts it from public/CV.yaml
  */
 
-import { readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import yaml from 'js-yaml';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 
+function parseBoolean(value) {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (['true', '1', 'yes', 'on'].includes(normalized)) return true;
+    if (['false', '0', 'no', 'off'].includes(normalized)) return false;
+  }
+
+  return null;
+}
+
+function getBuildMode() {
+  const lifecycle = process.env.npm_lifecycle_event || '';
+  if (lifecycle.includes('random-static')) return 'random-static';
+  if (lifecycle.includes('random')) return 'random';
+  if (lifecycle.includes('static')) return 'static';
+  return process.env.MODE || process.env.NODE_ENV || 'production';
+}
+
+function loadViteEnv() {
+  const env = {};
+  const files = ['.env', `.env.${getBuildMode()}`];
+
+  for (const file of files) {
+    const path = resolve(ROOT, file);
+    if (!existsSync(path)) continue;
+
+    for (const line of readFileSync(path, 'utf8').split(/\r?\n/)) {
+      const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+      if (!match) continue;
+      const [, key, rawValue] = match;
+      env[key] = rawValue.replace(/^['"]|['"]$/g, '');
+    }
+  }
+
+  return { ...env, ...process.env };
+}
+
+function getCVConfig() {
+  try {
+    const text = readFileSync(resolve(ROOT, 'public/CV.yaml'), 'utf8');
+    return yaml.load(text)?.cv || {};
+  } catch {
+    return {};
+  }
+}
+
+function shouldFetchContributions(cv) {
+  const env = loadViteEnv();
+  const envFlag = parseBoolean(env.VITE_ENABLE_GITHUB_CONTRIBUTIONS);
+  const features = cv.features || {};
+  const cvFlag = parseBoolean(features.gitContributionGraph ?? features.git_contribution_graph);
+
+  return cvFlag ?? envFlag ?? true;
+}
+
 // ── Extract username ───────────────────────────────────────
 
-function getUsernameFromCV() {
+function getUsernameFromCV(cv) {
+  const github = (cv.social || cv.social_networks || []).find((entry) => (
+    String(entry?.network || '').toLowerCase() === 'github'
+  ));
+  if (github?.username) return github.username;
+  if (github?.url) {
+    const urlMatch = String(github.url).match(/github\.com\/([a-zA-Z0-9._-]+)/);
+    if (urlMatch) return urlMatch[1];
+  }
+
   try {
     const yaml = readFileSync(resolve(ROOT, 'public/CV.yaml'), 'utf8');
 
@@ -84,7 +150,14 @@ function parseContributions(html) {
 // ── Main ───────────────────────────────────────────────────
 
 async function main() {
-  const username = process.argv[2] || getUsernameFromCV();
+  const cv = getCVConfig();
+
+  if (!shouldFetchContributions(cv)) {
+    console.log('GitHub contribution graph disabled; skipping contribution fetch.');
+    process.exit(0);
+  }
+
+  const username = process.argv[2] || getUsernameFromCV(cv);
 
   if (!username) {
     console.log('Could not determine GitHub username. Pass it as an argument or add a GitHub URL to CV.yaml.');

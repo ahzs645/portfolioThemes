@@ -4,6 +4,8 @@ cv:
   email: me@ahmadjalil.com
   phone: +1-778-267-9144
   website: https://ahmadjalil.com
+  features:
+    git_contribution_graph: true
   social:
     - network: LinkedIn
       username: ahmad-jalil-b00669197

@@ -810,7 +810,8 @@ const MoonIcon = () => (
 
 // Styled Components
 const Container = styled.div`
-  min-height: 100vh;
+  flex: 1 0 auto;
+  min-height: 100%;
   width: 100%;
   background-color: ${props => props.theme.isDark ? '#000000' : '#ffffff'};
   color: ${props => props.theme.isDark ? '#ecedee' : '#11181c'};
@@ -898,6 +899,7 @@ const ThemeToggle = styled.button`
 
 const MainLayout = styled.div`
   max-width: 1024px;
+  min-height: calc(100vh - var(--app-top-offset, 0px) - 4.25rem);
   margin: 0 auto;
   padding: 1.5rem 1rem;
   display: flex;

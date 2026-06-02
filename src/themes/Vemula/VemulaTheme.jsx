@@ -179,7 +179,7 @@ export function VemulaTheme({ darkMode = false }) {
 
   const name = cv.name || 'Your Name';
   const firstName = name.split(' ')[0];
-  const role = (cv.currentTitle || 'designer').toLowerCase();
+  const role = (cv.currentJobTitle || cv.currentTitle || 'professional').toLowerCase();
   const avatar = cv.avatar;
   const experience = cv.experience || [];
   const current = experience.find((e) => e?.isCurrent) || experience[0] || null;

@@ -53,12 +53,14 @@ Theme selection is configurable with Vite env vars:
 VITE_THEME_SELECTION_MODE=fixed
 VITE_DEFAULT_THEME_ID=ansub-minimal
 VITE_ENABLE_GITHUB_LIVE=false
+VITE_ENABLE_GITHUB_CONTRIBUTIONS=true
 VITE_ENABLE_REACT_GRAB=false
 ```
 
 - `fixed`: uses the theme from the URL, or falls back to `VITE_DEFAULT_THEME_ID` on `/`
-- `random`: keeps explicit theme URLs working, but picks a random theme on each fresh visit or refresh of `/`
+- `random`: keeps explicit theme URLs working, but picks a random theme for `/` and holds it in IndexedDB for `VITE_RANDOM_THEME_REFRESH_HOLD` refreshes (default `10`)
 - `VITE_ENABLE_GITHUB_LIVE=true`: enables unauthenticated live GitHub API reads. The default uses the static `github-activity.json` file to avoid rate-limit console noise.
+- `VITE_ENABLE_GITHUB_CONTRIBUTIONS=false`: disables the GitHub contribution graph and skips the build-time contribution fetch. Individual resumes can override this with `cv.features.git_contribution_graph`.
 - `VITE_ENABLE_REACT_GRAB=true`: enables the Aiden Bai visual-edit helper. It is disabled by default because it loads an external script.
 
 Use `.env.example` as the default setup, or build with the included random mode:
@@ -111,6 +113,8 @@ cv:
   location: City, Country
   email: you@example.com
   website: https://yoursite.com
+  features:
+    git_contribution_graph: true
   social:
     - network: GitHub
       username: yourusername

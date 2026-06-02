@@ -222,6 +222,16 @@ export function DTCTheme({ darkMode = false }) {
     return (cv?.sections?.professional_development || []).filter(e => !isArchived(e));
   }, [cv]);
 
+  const hasPortfolioContent =
+    projectItems.length > 0 ||
+    experienceItems.length > 0 ||
+    educationItems.length > 0 ||
+    volunteerItems.length > 0 ||
+    awardItems.length > 0 ||
+    presentationItems.length > 0 ||
+    publicationItems.length > 0 ||
+    professionalDevItems.length > 0;
+
   // Theme state — seeded from the prop, togglable locally
   const [isDark, setIsDark] = useState(darkMode);
 
@@ -293,33 +303,37 @@ export function DTCTheme({ darkMode = false }) {
           <h2>Portfolio</h2>
         </SectionTitle>
 
-        {projectItems.length > 0 && (
+        {hasPortfolioContent && (
           <Section>
             <SectionContainer>
-              <SectionHeading>Top Projects</SectionHeading>
-              <ProjectsGrid>
-                {projectItems.map((project, idx) => {
-                  const color = COLORS[idx % COLORS.length];
-                  return (
-                    <ProjectCard key={idx} $bg={color.bg} $fg={color.fg}>
-                      <ProjectCardContent>
-                        <ProjectIcon>{project.name?.charAt(0) || 'P'}</ProjectIcon>
-                        <ProjectName>{project.name}</ProjectName>
-                        {project.summary && (
-                          <ProjectDescription>{project.summary}</ProjectDescription>
-                        )}
-                      </ProjectCardContent>
-                      {project.url && (
-                        <ProjectCardActions>
-                          <ProjectButton href={project.url} target="_blank" rel="noopener">
-                            View Project
-                          </ProjectButton>
-                        </ProjectCardActions>
-                      )}
-                    </ProjectCard>
-                  );
-                })}
-              </ProjectsGrid>
+              {projectItems.length > 0 && (
+                <>
+                  <SectionHeading>Top Projects</SectionHeading>
+                  <ProjectsGrid>
+                    {projectItems.map((project, idx) => {
+                      const color = COLORS[idx % COLORS.length];
+                      return (
+                        <ProjectCard key={idx} $bg={color.bg} $fg={color.fg}>
+                          <ProjectCardContent>
+                            <ProjectIcon>{project.name?.charAt(0) || 'P'}</ProjectIcon>
+                            <ProjectName>{project.name}</ProjectName>
+                            {project.summary && (
+                              <ProjectDescription>{project.summary}</ProjectDescription>
+                            )}
+                          </ProjectCardContent>
+                          {project.url && (
+                            <ProjectCardActions>
+                              <ProjectButton href={project.url} target="_blank" rel="noopener">
+                                View Project
+                              </ProjectButton>
+                            </ProjectCardActions>
+                          )}
+                        </ProjectCard>
+                      );
+                    })}
+                  </ProjectsGrid>
+                </>
+              )}
 
               {/* Experience Timeline */}
               {experienceItems.length > 0 && (

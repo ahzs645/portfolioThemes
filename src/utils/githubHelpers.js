@@ -262,12 +262,13 @@ export async function fetchContributions() {
 /**
  * Fetch all GitHub data for a username in parallel
  */
-export async function fetchAllGitHubData(username) {
+export async function fetchAllGitHubData(username, options = {}) {
+  const { includeContributions = true } = options;
   const [profile, repos, events, contributions] = await Promise.all([
     fetchProfile(username),
     fetchRepos(username),
     fetchEvents(username),
-    fetchContributions(),
+    includeContributions ? fetchContributions() : Promise.resolve(null),
   ]);
 
   return { profile, repos, events, contributions };
