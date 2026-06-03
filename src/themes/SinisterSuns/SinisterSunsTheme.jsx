@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import {
@@ -19,6 +19,7 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 const ASSET_BASE = withBase('sinister-suns/images');
+const SECTION_HASHES = new Set(['#tavern', '#records', '#workshop', '#sanctum']);
 
 function formatRange(start, end) {
   const startText = formatMonthYear(start);
@@ -39,7 +40,9 @@ function getHighlights(item) {
 
 export function SinisterSunsTheme() {
   const cv = useCV() || {};
-  const [hasEntered, setHasEntered] = useState(false);
+  const [hasEntered, setHasEntered] = useState(() => (
+    typeof window !== 'undefined' && SECTION_HASHES.has(window.location.hash)
+  ));
 
   const experienceItems = useMemo(
     () => flattenExperience(cv?.sections?.experience || [], { excludeArchived: true }),
@@ -68,6 +71,16 @@ export function SinisterSunsTheme() {
   const hasRecords = experienceItems.length > 0 || educationItems.length > 0;
   const hasWorkshop = projectItems.length > 0;
   const hasSanctum = volunteerItems.length > 0 || professionalDevelopmentItems.length > 0;
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (!SECTION_HASHES.has(window.location.hash)) return;
+      setHasEntered(true);
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   return (
     <>

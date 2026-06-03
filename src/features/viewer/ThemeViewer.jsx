@@ -2,6 +2,7 @@ import { Suspense, useRef } from 'react';
 import { showThemeBar, hideInitialsSetting } from '../../config/themeSelection';
 import { useCvUpload } from '../../hooks/useCvUpload';
 import { useElementHeight } from '../../hooks/useElementHeight';
+import { useHashAnchorScroll } from '../../hooks/useHashAnchorScroll';
 import { TopBar } from '../topbar/TopBar';
 import { ThemeLoading } from '../preview/ThemeLoading';
 import { AppContainer, ThemeContainer } from './styles';
@@ -23,6 +24,7 @@ export function ThemeViewer({
   const topBarRef = useRef(null);
   const browseButtonRef = useRef(null);
   const topBarHeight = useElementHeight(topBarRef);
+  useHashAnchorScroll(currentThemeId);
 
   const ThemeComponent = currentTheme?.Component;
   const hideInitials = hideInitialsSetting;

@@ -80,7 +80,6 @@ function pickNextRandomThemeId(previousThemeId) {
 
 export function isRandomThemeGatePath(pathname) {
   if (themeSelectionMode !== THEME_SELECTION_MODES.RANDOM) return false;
-  if (lockRoute) return true;
   return !getThemeIdFromPath(pathname);
 }
 
@@ -118,16 +117,17 @@ export async function resolveThemeIdForPathWithGate(pathname) {
 }
 
 export function resolveThemeIdForPath(pathname) {
+  const themeIdFromPath = getThemeIdFromPath(pathname);
+  if (themeIdFromPath) return themeIdFromPath;
+
   // Locked-route mode ignores the path entirely: random mode always picks a new
-  // random theme, fixed mode always uses the default. No slug-based sub-pages.
+  // random theme, fixed mode always uses the default. Explicit theme slugs still
+  // resolve so shared/bookmarked theme URLs and hash anchors keep working.
   if (lockRoute) {
     return themeSelectionMode === THEME_SELECTION_MODES.RANDOM
       ? pickRandomThemeId()
       : defaultThemeId;
   }
-
-  const themeIdFromPath = getThemeIdFromPath(pathname);
-  if (themeIdFromPath) return themeIdFromPath;
 
   if (themeSelectionMode === THEME_SELECTION_MODES.RANDOM) {
     return pickRandomThemeId();
