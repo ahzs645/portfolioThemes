@@ -722,10 +722,12 @@ const InfoBox = styled.div`
   clear: right;
   margin: 0 0 12px 20px;
   width: 260px;
+  max-width: min(260px, 100%);
   border: 1px solid ${p => p.$dark ? '#3a3a3a' : '#a2a9b1'};
   background: ${p => p.$dark ? '#1d2125' : '#f8f9fa'};
   font-size: 13px;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 
   @media (max-width: 600px) {
     float: none;
@@ -753,6 +755,7 @@ const InfoBoxSubtitle = styled.div`
 
 const InfoTable = styled.table`
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 13px;
 `;
@@ -776,6 +779,9 @@ const InfoLabel = styled.th`
 const InfoValue = styled.td`
   padding: 4px 8px;
   font-size: 13px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 `;
 
 /* ── Footer ── */

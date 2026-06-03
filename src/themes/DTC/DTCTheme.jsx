@@ -972,11 +972,6 @@ const TimelineElement = styled.div`
       float: right;
     }
 
-    &:nth-child(2n) span:last-child {
-      left: auto;
-      right: 124%;
-      text-align: right;
-    }
   }
 `;
 
@@ -1065,17 +1060,13 @@ const TimelineDate = styled.span`
   color: ${props => props.theme.isDark ? '#ccc' : '#333'};
   font-size: 0.8125rem;
   font-weight: 500;
-  display: inline-block;
-  float: left;
+  display: block;
+  clear: both;
+  margin-top: 0.9rem;
   opacity: 0.7;
-  padding: 0.8em 0;
 
   @media (min-width: 1170px) {
-    font-size: 1rem;
-    left: 124%;
-    position: absolute;
-    top: 6px;
-    width: 100%;
+    font-size: 0.95rem;
   }
 `;
 
