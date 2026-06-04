@@ -276,9 +276,13 @@ export function SharonZhengTheme() {
 
     const doc = centerContent.ownerDocument;
     const win = doc.defaultView || window;
+    const viewport = win.visualViewport;
+    const originalHtmlHeight = doc.documentElement.style.height;
+    const originalHtmlOverflow = doc.documentElement.style.overflow;
     const originalBodyHeight = doc.body.style.height;
     const originalBodyOverflow = doc.body.style.overflow;
     let rafId = 0;
+    let resizeObserver;
 
     const clearFoldTransforms = () => {
       foldsContent.forEach((content) => {
@@ -288,26 +292,43 @@ export function SharonZhengTheme() {
 
     const updateBodyHeight = () => {
       const overflowHeight = Math.max(0, centerContent.clientHeight - centerFold.clientHeight);
-      doc.body.style.height = `${overflowHeight + win.innerHeight}px`;
+      const viewportHeight = viewport?.height || win.innerHeight;
+      const scrollHeight = `${overflowHeight + viewportHeight}px`;
+      doc.documentElement.style.height = scrollHeight;
+      doc.documentElement.style.overflow = 'auto';
+      doc.body.style.height = scrollHeight;
       doc.body.style.overflow = 'auto';
     };
 
     const tick = () => {
-      const scroll = -(win.scrollY || doc.documentElement.scrollTop || 0);
+      const scroll = -(win.scrollY || win.pageYOffset || doc.documentElement.scrollTop || 0);
       foldsContent.forEach((content) => {
-        content.style.transform = `translateY(${scroll}px)`;
+        content.style.transform = `translate3d(0, ${scroll}px, 0)`;
       });
       rafId = win.requestAnimationFrame(tick);
     };
 
+    win.scrollTo(0, 0);
     win.addEventListener('resize', updateBodyHeight);
+    viewport?.addEventListener('resize', updateBodyHeight);
+    viewport?.addEventListener('scroll', updateBodyHeight);
+    if ('ResizeObserver' in win) {
+      resizeObserver = new win.ResizeObserver(updateBodyHeight);
+      resizeObserver.observe(centerContent);
+      resizeObserver.observe(centerFold);
+    }
     updateBodyHeight();
     tick();
 
     return () => {
       win.removeEventListener('resize', updateBodyHeight);
+      viewport?.removeEventListener('resize', updateBodyHeight);
+      viewport?.removeEventListener('scroll', updateBodyHeight);
+      resizeObserver?.disconnect();
       win.cancelAnimationFrame(rafId);
       clearFoldTransforms();
+      doc.documentElement.style.height = originalHtmlHeight;
+      doc.documentElement.style.overflow = originalHtmlOverflow;
       doc.body.style.height = originalBodyHeight;
       doc.body.style.overflow = originalBodyOverflow;
     };
