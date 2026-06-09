@@ -447,7 +447,8 @@ function HomeView({ cv, work, titleRef, glowRef, shimmerRef, parallaxRef }) {
           <div className="sh-float">
             <div ref={parallaxRef} style={{ position: 'relative' }}>
               <h1 className="sh-title" ref={titleRef}>
-                {firstNameOf(cv.name)} is {articleFor(roleWord(cv.currentJobTitle))} {roleWord(cv.currentJobTitle)}
+                {firstNameOf(cv.name)} is {articleFor(cv.currentJobTitle || roleWord(cv.currentJobTitle))}{' '}
+                {cv.currentJobTitle || roleWord(cv.currentJobTitle)}
                 <br />
                 <em ref={shimmerRef}>in orbit</em>
               </h1>
