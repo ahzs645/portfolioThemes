@@ -543,6 +543,46 @@ export const PORTFOLIO_THEMES = [
     source: 'https://heythisischris.com',
     Component: lazyTheme(() => import('./HeyThisIsChris/HeyThisIsChrisTheme'), 'HeyThisIsChrisTheme'),
   },
+  {
+    id: 'daniel-petho',
+    slug: 'scramble',
+    name: 'Scramble',
+    description: 'Off-white editorial portfolio with right-aligned label columns, oversized clean sans type, and signature scramble-in-on-load plus scramble-on-hover text effects inspired by danielpetho.com.',
+    source: 'https://www.danielpetho.com',
+    Component: lazyTheme(() => import('./DanielPetho/DanielPethoTheme'), 'DanielPethoTheme'),
+  },
+  {
+    id: 'vibe-coded',
+    slug: 'vibe-coded',
+    name: 'Vibe Coded',
+    description: 'WebGPU ASCII-shader scene reproduced on canvas: a metaball fluid field of colorful glyph islands behind a glowing yellow box window with CONTACT/PROJECTS tabs, a "$ " prompt, a Tweakpane-style Shader Controls panel, and a /dice easter egg, faithful to vibe-coded.com.',
+    source: 'https://vibe-coded.com',
+    Component: lazyTheme(() => import('./VibeCoded/VibeCodedTheme'), 'VibeCodedTheme'),
+  },
+  {
+    id: 'terishim',
+    slug: 'in-orbit',
+    name: 'In Orbit',
+    description: 'Silvery instrument-panel portfolio with DM Mono micro-labels, a faded serif monogram, a drifting starfield, a floating glass device mockup, and work rows with animated double-arrows inspired by terishim.com.',
+    source: 'https://www.terishim.com',
+    Component: lazyTheme(() => import('./Terishim/TerishimTheme'), 'TerishimTheme'),
+  },
+  {
+    id: 'benson-yan',
+    slug: 'liquid-rose',
+    name: 'Liquid Rose',
+    description: 'Minimal near-black portfolio with a cursor-reactive rose-and-peach fluid canvas, Lora serif name, diamond-bullet credentials, and ↳-arrow project and experience lists inspired by 1800benson.ca.',
+    source: 'https://www.1800benson.ca',
+    Component: lazyTheme(() => import('./BensonYan/BensonYanTheme'), 'BensonYanTheme'),
+  },
+  {
+    id: 'win-tongtawee',
+    slug: 'mono-card',
+    name: 'Mono Card',
+    description: 'Pitch-dark Geist Mono single column capped at 480px with a hover-swap avatar, lowercase aesthetic, social glyphs, quiet year-labelled experience and education lists, and a project list that floats a preview card by the cursor — inspired by wintongtawee.dev.',
+    source: 'https://www.wintongtawee.dev',
+    Component: lazyTheme(() => import('./WinTongtawee/WinTongtaweeTheme'), 'WinTongtaweeTheme'),
+  },
 ];
 
 export function getPortfolioTheme(themeId) {
