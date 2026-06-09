@@ -2,51 +2,64 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { filterActive, formatDateRange } from '../../utils/cvHelpers';
-import { createFluidSimulation } from './fluidSimulation';
+import { createLiquidEther } from './liquidEther';
 
-// Palette lifted from 1800benson.ca: near-black surface and warm rose primary.
-// The source's fluid dye renders as a very dark brick/wine red (sampled lit
-// fluid ~rgb(61,37,37), R > G ≈ B), so the dye colours below are biased red
-// rather than the literal peach/rose source swatches — the rendered result is
-// what we're matching, weighted heavily toward the darkest tone.
+// Palette and props lifted verbatim from 1800benson.ca, which renders its
+// background with ReactBits' LiquidEther fluid. The colours map to velocity
+// magnitude over a transparent canvas, so the near-black page (BG) shows through
+// the low-motion areas — that compositing is what yields the dark wine-red look.
 const BG = '#111115';
 const PRIMARY = '#e8b4ab';
-// [highlight (rare), mid, dark base (dominant)] — emitters weight toward index 2.
-const FLUID_COLORS = ['#b9685a', '#7e3a33', '#5a2823'];
+const FLUID_COLORS = ['#FFD1CA', '#E8B4AB', '#4A3845'];
 
 /**
- * Real WebGL Navier–Stokes fluid sim (see ./fluidSimulation), matching the
- * source site: moving the cursor injects velocity + rose dye that swirls and
- * dissipates, and an idle wandering point keeps the field alive. Falls back to
- * a static dark background if WebGL/float textures are unavailable.
+ * The source's exact background: a faithful vanilla port of ReactBits'
+ * LiquidEther (see ./liquidEther), driven with 1800benson.ca's own props.
+ * Mounts into a fixed full-viewport container behind the content.
  */
 function FluidBackground() {
-  const canvasRef = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return undefined;
-    let destroy = () => {};
+    const container = containerRef.current;
+    if (!container) return undefined;
+    // Pin the container to the viewport via inline styles BEFORE LiquidEther
+    // runs — it sets `style.position ||= 'relative'`, which would otherwise win
+    // over our stylesheet and collapse the container to 0 height.
+    container.style.position = 'fixed';
+    container.style.top = '0';
+    container.style.left = '0';
+    container.style.width = '100vw';
+    container.style.height = '100vh';
+    let dispose = () => {};
     try {
-      destroy = createFluidSimulation(canvas, {
+      dispose = createLiquidEther(container, {
         colors: FLUID_COLORS,
-        // Dark wine-red base for the fluid field so it reads as deep red even
-        // with little dye (and never washes out bright). The page/body stays
-        // near-black (BG) as a fallback if the sim can't start.
-        background: '#1a1216',
         mouseForce: 20,
         cursorSize: 100,
+        isViscous: false,
+        viscous: 30,
+        iterationsViscous: 32,
+        iterationsPoisson: 32,
+        resolution: 0.5,
+        dt: 0.014,
+        BFECC: true,
+        isBounce: false,
+        autoDemo: true,
         autoSpeed: 0.3,
         autoIntensity: 1.5,
+        takeoverDuration: 0.25,
+        autoResumeDelay: 1000,
+        autoRampDuration: 0.6,
       });
     } catch (err) {
-      // Leave the dark body background in place if the sim can't start.
-      destroy = () => {};
+      // Leave the dark body background in place if WebGL can't start.
+      dispose = () => {};
     }
-    return () => destroy();
+    return () => dispose();
   }, []);
 
-  return <Canvas ref={canvasRef} aria-hidden="true" />;
+  return <Canvas ref={containerRef} aria-hidden="true" />;
 }
 
 function isExternal(url) {
@@ -306,13 +319,17 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
-const Canvas = styled.canvas`
+const Canvas = styled.div`
   position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  top: 0;
+  left: 0;
+  /* Viewport units so the container can't collapse to 0 height under a
+     transformed/overflow ancestor (which would give LiquidEther a 1px canvas). */
+  width: 100vw;
+  height: 100vh;
   z-index: 0;
   pointer-events: none;
+  overflow: hidden;
 `;
 
 const Page = styled.div`

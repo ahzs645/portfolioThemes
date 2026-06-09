@@ -19,7 +19,7 @@ export class Fluid {
     this.p = new Float32Array(n);
     this.div = new Float32Array(n);
     this.curl = new Float32Array(n);
-    this.iters = 18;
+    this.iters = 14;
     this.velDiss = 0.986;
     this.denDiss = 0.992;
   }

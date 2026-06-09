@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { filterActive, pickSocialUrl } from '../../utils/cvHelpers';
@@ -30,17 +30,17 @@ const WHITE = BUCKETS;
 const DARK = BUCKETS + 1;
 const DENSITY_GAIN = 0.5;
 
-// Shared colour gradient (green -> teal -> cyan -> blue -> violet -> magenta).
+// Source default colorMode is "vga-gradient": the density signal cycles through
+// the bright VGA/DOS 16-colour palette, giving the green/cyan/blue/magenta/red/
+// yellow rainbow rather than a single hand-picked ramp.
 const GRAD = [
-  [44, 255, 130],
-  [42, 232, 198],
-  [66, 196, 255],
-  [120, 132, 255],
-  [180, 92, 255],
-  [255, 72, 214],
+  [85, 255, 85], // VGA 10 light green
+  [85, 255, 255], // VGA 11 light cyan
+  [85, 85, 255], // VGA 9  light blue
+  [255, 85, 255], // VGA 13 light magenta
+  [255, 85, 85], // VGA 12 light red
+  [255, 255, 85], // VGA 14 yellow
 ];
-const ACCENT = '#74f0ff';
-const TEXT_DIM = '#5f8f7e';
 
 // Every glyph the scene can draw, so the atlas covers them.
 const CHARS = (() => {
@@ -72,9 +72,12 @@ function bucketColor(b) {
 function bucketOf(param) {
   return ((Math.floor(frac(param) * BUCKETS) % BUCKETS) + BUCKETS) % BUCKETS;
 }
+// Fast integer hash (no Math.sin) — vnoise only ever calls this on lattice ints.
 function hash2(x, y) {
-  const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
-  return s - Math.floor(s);
+  let h = (x | 0) * 374761393 + (y | 0) * 668265263;
+  h = (h ^ (h >>> 13)) * 1274126177;
+  h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
 }
 function vnoise(x, y) {
   const xi = Math.floor(x);
@@ -99,10 +102,6 @@ export function VibeCodedTheme() {
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
   const fontRef = useRef(null);
-
-  const [glyphMode, setGlyphMode] = useState('ascii');
-  const [gradientName, setGradientName] = useState('Vibe');
-  const [panelOpen, setPanelOpen] = useState(true);
 
   const data = useMemo(() => {
     const safe = cv || {};
@@ -135,8 +134,7 @@ export function VibeCodedTheme() {
 
   const stateRef = useRef({
     view: 'contact',
-    glyphMode,
-    ramp: RAMPS[glyphMode],
+    ramp: RAMPS.ascii,
     hover: null,
     inputValue: '',
     inputFocused: false,
@@ -148,11 +146,6 @@ export function VibeCodedTheme() {
   });
   const dataRef = useRef(data);
   dataRef.current = data;
-
-  useEffect(() => {
-    stateRef.current.glyphMode = glyphMode;
-    stateRef.current.ramp = RAMPS[glyphMode];
-  }, [glyphMode]);
 
   // Load the bitmap font atlas once.
   useEffect(() => {
@@ -176,6 +169,8 @@ export function VibeCodedTheme() {
     const ctx = canvas.getContext('2d', { alpha: false });
     const bloom = document.createElement('canvas');
     const bctx = bloom.getContext('2d');
+    // mip chain for UnrealBloom-style multi-scale glow (radius 0 => fine-weighted).
+    const mips = Array.from({ length: 4 }, () => document.createElement('canvas'));
 
     let raf = 0;
     let start = 0;
@@ -194,14 +189,18 @@ export function VibeCodedTheme() {
       const rect = wrap.getBoundingClientRect();
       cssW = Math.max(320, rect.width);
       cssH = Math.max(320, rect.height);
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = Math.floor(cssW * dpr);
       canvas.height = Math.floor(cssH * dpr);
       canvas.style.width = `${cssW}px`;
       canvas.style.height = `${cssH}px`;
       bloom.width = canvas.width;
       bloom.height = canvas.height;
-      cellW = Math.max(9, Math.min(13, cssW / 150));
+      mips.forEach((m, i) => {
+        m.width = Math.max(1, canvas.width >> (i + 1));
+        m.height = Math.max(1, canvas.height >> (i + 1));
+      });
+      cellW = Math.max(9, Math.min(13, cssW / 155));
       cellH = (cellW * 16) / 9; // match the 9x16 bitmap cell aspect
       cols = Math.ceil(cssW / cellW);
       rows = Math.ceil(cssH / cellH);
@@ -437,20 +436,36 @@ export function VibeCodedTheme() {
       });
       ctx.globalAlpha = 1;
 
-      // --- bloom ---
+      // --- bloom: UnrealBloom-style mip chain (strength 0.8, threshold 0) ---
       bctx.clearRect(0, 0, bloom.width, bloom.height);
       bctx.drawImage(canvas, 0, 0);
+      // progressive downsample + blur into the mip chain
+      let src = bloom;
+      for (let i = 0; i < mips.length; i += 1) {
+        const m = mips[i];
+        const mc = m.getContext('2d');
+        mc.clearRect(0, 0, m.width, m.height);
+        mc.imageSmoothingEnabled = true;
+        // bilinear half-downsample already blurs; one light blur on mip0 only
+        mc.filter = i === 0 ? 'blur(1px)' : 'none';
+        mc.drawImage(src, 0, 0, m.width, m.height);
+        mc.filter = 'none';
+        src = m;
+      }
+      // accumulate the blurred mips additively — fine mips dominate (radius 0),
+      // coarse mips contribute only a faint wide halo, scaled by strength 0.8.
       ctx.save();
       ctx.imageSmoothingEnabled = true;
       ctx.globalCompositeOperation = 'lighter';
-      ctx.globalAlpha = 0.42;
-      ctx.filter = 'blur(2.5px)';
-      ctx.drawImage(bloom, 0, 0, cssW, cssH);
-      ctx.globalAlpha = 0.22;
-      ctx.filter = 'blur(7px)';
-      ctx.drawImage(bloom, 0, 0, cssW, cssH);
+      const weights = [0.58, 0.36, 0.18, 0.09];
+      const strength = 1.05;
+      for (let i = 0; i < mips.length; i += 1) {
+        ctx.globalAlpha = Math.min(1, weights[i] * strength);
+        ctx.drawImage(mips[i], 0, 0, cssW, cssH);
+      }
       ctx.restore();
       ctx.filter = 'none';
+      ctx.globalAlpha = 1;
 
       // scanlines
       ctx.fillStyle = 'rgba(0,0,0,0.16)';
@@ -550,50 +565,11 @@ export function VibeCodedTheme() {
     };
   }, []);
 
-  const setView = (view) => {
-    stateRef.current.view = view;
-  };
-
   return (
     <>
       <GlobalStyle />
       <Wrap ref={wrapRef}>
         <Canvas ref={canvasRef} />
-
-        <Pane data-open={panelOpen ? '' : undefined}>
-          <PaneHead onClick={() => setPanelOpen((v) => !v)}>
-            <span>Shader Controls</span>
-            <span>{panelOpen ? '▾' : '▸'}</span>
-          </PaneHead>
-          {panelOpen && (
-            <PaneBody>
-              <PaneRow>
-                <label>glyphMode</label>
-                <select value={glyphMode} onChange={(e) => setGlyphMode(e.target.value)}>
-                  <option value="ascii">ASCII</option>
-                  <option value="block">Block</option>
-                </select>
-              </PaneRow>
-              <PaneRow>
-                <label>gradient</label>
-                <select value={gradientName} onChange={(e) => setGradientName(e.target.value)}>
-                  <option>Vibe</option>
-                  <option>DOS Warm</option>
-                  <option>VGA Cool</option>
-                </select>
-              </PaneRow>
-              <PaneRow>
-                <label>view</label>
-                <Seg>
-                  <button type="button" onClick={() => setView('contact')}>contact</button>
-                  <button type="button" onClick={() => setView('projects')}>projects</button>
-                </Seg>
-              </PaneRow>
-            </PaneBody>
-          )}
-        </Pane>
-
-        <Hint aria-hidden="true">move to stir · type <b>/dice</b> ↘</Hint>
       </Wrap>
     </>
   );
@@ -619,101 +595,6 @@ const Canvas = styled.canvas`
   height: 100%;
   touch-action: none;
   image-rendering: pixelated;
-`;
-
-const Pane = styled.aside`
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 10;
-  width: 176px;
-  font-size: 11px;
-  color: #cfffe0;
-  background: rgba(8, 12, 22, 0.9);
-  border: 1px solid rgba(116, 240, 255, 0.25);
-  border-radius: 6px;
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(6px);
-  user-select: none;
-  font-family: ui-monospace, monospace;
-
-  @media (max-width: 600px) { display: none; }
-`;
-
-const PaneHead = styled.button`
-  display: flex;
-  width: 100%;
-  align-items: center;
-  justify-content: space-between;
-  padding: 7px 10px;
-  background: rgba(116, 240, 255, 0.08);
-  border: none;
-  border-bottom: 1px solid rgba(116, 240, 255, 0.18);
-  border-radius: 6px 6px 0 0;
-  color: ${ACCENT};
-  font: inherit;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-`;
-
-const PaneBody = styled.div`
-  padding: 8px 10px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-`;
-
-const PaneRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-
-  label { color: ${TEXT_DIM}; }
-
-  select {
-    flex: 1;
-    max-width: 92px;
-    background: rgba(0, 0, 0, 0.4);
-    color: #cfffe0;
-    border: 1px solid rgba(116, 240, 255, 0.25);
-    border-radius: 3px;
-    font: inherit;
-    padding: 2px 4px;
-  }
-`;
-
-const Seg = styled.div`
-  display: flex;
-  gap: 4px;
-
-  button {
-    flex: 1;
-    background: rgba(0, 0, 0, 0.4);
-    color: #cfffe0;
-    border: 1px solid rgba(116, 240, 255, 0.25);
-    border-radius: 3px;
-    font: inherit;
-    font-size: 10px;
-    padding: 2px 0;
-    cursor: pointer;
-  }
-  button:hover { border-color: ${ACCENT}; color: ${ACCENT}; }
-`;
-
-const Hint = styled.div`
-  position: absolute;
-  left: 14px;
-  bottom: 12px;
-  z-index: 10;
-  font-size: 11px;
-  color: ${TEXT_DIM};
-  letter-spacing: 0.03em;
-  font-family: ui-monospace, monospace;
-
-  b { color: ${ACCENT}; }
-
-  @media (max-width: 600px) { display: none; }
 `;
 
 export default VibeCodedTheme;
