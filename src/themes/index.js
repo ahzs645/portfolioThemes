@@ -5,6 +5,21 @@ function lazyTheme(loader, exportName) {
   return lazy(() => loader().then((module) => ({ default: module[exportName] })));
 }
 
+function assertUniqueThemeField(field) {
+  const seen = new Map();
+
+  for (const theme of PORTFOLIO_THEMES) {
+    const value = theme[field];
+    if (!value) continue;
+
+    if (seen.has(value)) {
+      throw new Error(`Duplicate theme ${field} "${value}" in ${seen.get(value)} and ${theme.id}`);
+    }
+
+    seen.set(value, theme.id);
+  }
+}
+
 
 export const PORTFOLIO_THEMES = [
   {
@@ -448,6 +463,14 @@ export const PORTFOLIO_THEMES = [
     Component: lazyTheme(() => import('./FloperillatChat/FloperillatChatTheme'), 'FloperillatChatTheme'),
   },
   {
+    id: 'faiz-raeim',
+    slug: 'faiz-raeim',
+    name: 'Brutal Blocks',
+    description: 'Dark brutalist portfolio with block-based sections, Figtree display typography, animated accents, and CV-backed project and contact areas.',
+    source: 'https://faizraeim.com',
+    Component: lazyTheme(() => import('./FaizRaeim/FaizRaeimTheme'), 'FaizRaeimTheme'),
+  },
+  {
     id: 'kaachow',
     slug: 'threw-it-away',
     name: 'Threw It Away',
@@ -493,6 +516,7 @@ export const PORTFOLIO_THEMES = [
     name: 'Aiden Bai',
     description: 'Narrow text-only portfolio with stone neutrals, serif heading, understated underlined links, shimmer emphasis, and expandable lore inspired by aidenybai.com without the image strip.',
     source: 'https://www.aidenybai.com',
+    features: { reactGrab: true },
     Component: lazyTheme(() => import('./AidenBai/AidenBaiTheme'), 'AidenBaiTheme'),
   },
   {
@@ -585,12 +609,21 @@ export const PORTFOLIO_THEMES = [
   },
 ];
 
+if (import.meta.env?.DEV) {
+  assertUniqueThemeField('id');
+  assertUniqueThemeField('slug');
+}
+
+export const THEME_INDEX_BY_ID = new Map(PORTFOLIO_THEMES.map((theme, index) => [theme.id, index]));
+export const THEME_BY_ID = new Map(PORTFOLIO_THEMES.map((theme) => [theme.id, theme]));
+export const THEME_BY_SLUG = new Map(PORTFOLIO_THEMES.map((theme) => [theme.slug, theme]));
+
 export function getPortfolioTheme(themeId) {
-  return PORTFOLIO_THEMES.find((t) => t.id === themeId) || PORTFOLIO_THEMES[0];
+  return THEME_BY_ID.get(themeId) || PORTFOLIO_THEMES[0];
 }
 
 export function getThemeBySlug(slug) {
-  return PORTFOLIO_THEMES.find((t) => t.slug === slug);
+  return THEME_BY_SLUG.get(slug);
 }
 
 export function getThemeIdFromPath(pathname) {

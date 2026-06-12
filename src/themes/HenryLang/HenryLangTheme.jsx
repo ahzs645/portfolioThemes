@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import styled from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { getBioText } from '../../utils/bioText';
+import { isArchived } from '../../utils/cvHelpers';
 import { BlendMode, Screen, globalDebugInfo, resetGlobalDebugInfo } from './engine.js';
 import { BrowserProgram, DebuggerProgram, PainterProgram, TextEditProgram } from './programs.js';
 import { defaultGlyphSet } from './glyphs.js';
@@ -72,10 +73,6 @@ const palette = {
     disabled: [208 / 255, 238 / 255, 209 / 255, 1],
   },
 };
-
-function isArchived(entry) {
-  return Array.isArray(entry?.tags) && entry.tags.includes('archived');
-}
 
 function formatTime(date) {
   return [date.getHours(), date.getMinutes(), date.getSeconds()]

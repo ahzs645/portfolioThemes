@@ -1,25 +1,31 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import process from 'node:process';
 import { chromium } from 'playwright';
+import { createServer } from 'vite';
 
 const ROOT = resolve(import.meta.dirname, '..');
-const INDEX_FILE = resolve(ROOT, 'src/themes/index.js');
 const DEFAULT_PORT = 4175;
 
-function readThemes() {
-  const source = readFileSync(INDEX_FILE, 'utf8');
-  const blocks = source.match(/\{\n\s+id: '[^']+'[\s\S]*?\n\s+\},/g) || [];
+async function readThemes() {
+  const server = await createServer({
+    configFile: false,
+    root: ROOT,
+    logLevel: 'silent',
+    server: { middlewareMode: true },
+  });
 
-  return blocks.map((block) => {
-    const id = block.match(/id: '([^']+)'/)?.[1];
-    const slug = block.match(/slug: '([^']+)'/)?.[1];
-    const name = block.match(/name: '([^']+)'/)?.[1];
-    return { id, slug, name };
-  }).filter((theme) => theme.id && theme.slug);
+  try {
+    const mod = await server.ssrLoadModule('/src/themes/index.js');
+    return mod.PORTFOLIO_THEMES
+      .map(({ Component: _Component, ...theme }) => theme)
+      .filter((theme) => theme.id && theme.slug);
+  } finally {
+    await server.close();
+  }
 }
 
 function parseArgs() {
@@ -40,7 +46,14 @@ function startServer(port) {
     const child = spawn(
       process.platform === 'win32' ? 'npx.cmd' : 'npx',
       ['vite', '--host', '127.0.0.1', '--port', String(port)],
-      { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] }
+      {
+        cwd: ROOT,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env: {
+          ...process.env,
+          VITE_ENABLE_REACT_GRAB: 'false',
+        },
+      }
     );
     let settled = false;
     const timeout = setTimeout(() => {
@@ -206,7 +219,7 @@ async function main() {
   const limit = Number(args.get('limit') || 0);
   const baseUrl = args.get('base-url') || `http://127.0.0.1:${port}`;
   const shouldStartServer = args.get('start-server') !== 'false' && !args.has('base-url');
-  const themes = readThemes().slice(0, limit || undefined);
+  const themes = (await readThemes()).slice(0, limit || undefined);
   const viewports = [
     { width: 1280, height: 900 },
     { width: 390, height: 844 },

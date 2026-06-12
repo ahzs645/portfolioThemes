@@ -1,4 +1,4 @@
-import { formatDateRange, formatMonthYear } from '../../utils/cvHelpers';
+import { formatDateRange, formatMonthYear, getInitials } from '../../utils/cvHelpers';
 
 const TECHNOLOGY_LINE_RE = /^Technologies\s*-\s*(.+)$/i;
 
@@ -81,20 +81,6 @@ function toBase64(value) {
   return btoa(binary);
 }
 
-function getInitials(name) {
-  const words = String(name || '')
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-
-  if (words.length === 0) return 'CV';
-
-  return words
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() || '')
-    .join('');
-}
-
 export function getBootImageAspect(cv) {
   const rawAspect = Number.parseFloat(String(valueOr(cv?.avatarAspect) ?? ''));
   if (Number.isFinite(rawAspect) && rawAspect > 0) return rawAspect;
@@ -114,7 +100,7 @@ export function createGeneratedBootImageUrl(cv) {
   const name = valueOr(cv?.name, 'Visitor');
   const title = valueOr(cv?.currentJobTitle, 'Portfolio System');
   const location = valueOr(cv?.location, 'Open profile');
-  const initials = getInitials(name);
+  const initials = getInitials(name, 2, 'CV');
 
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 512">

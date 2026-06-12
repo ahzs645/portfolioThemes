@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { PORTFOLIO_THEMES, getPortfolioTheme } from '../themes';
+import { PORTFOLIO_THEMES, THEME_INDEX_BY_ID, getPortfolioTheme } from '../themes';
 import {
   isRandomThemeGatePath,
   resolveThemeIdForPath,
@@ -67,10 +67,7 @@ export function useThemeRouting() {
 
   const currentTheme = useMemo(() => getPortfolioTheme(currentThemeId), [currentThemeId]);
 
-  const currentThemeIndex = useMemo(
-    () => PORTFOLIO_THEMES.findIndex(t => t.id === currentThemeId),
-    [currentThemeId]
-  );
+  const currentThemeIndex = THEME_INDEX_BY_ID.get(currentThemeId) ?? 0;
 
   const changeThemeId = useCallback((themeId) => {
     setPreserveCurrentPath(false);

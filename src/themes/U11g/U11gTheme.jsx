@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { isArchived, pickSocialUrl } from '../../utils/cvHelpers';
 import {
   MatrixRain,
   InfoLogs,
@@ -15,16 +16,6 @@ import { TileIcon } from './components/TileIcons';
 import { LiveFeed } from './components/LiveFeed';
 import { ActionMenu } from './components/ActionMenu';
 import { THEME_NAMES, THEME_PALETTES, paletteToCssVars, STORAGE_KEY } from './themes';
-
-function isArchived(entry) {
-  return Array.isArray(entry?.tags) && entry.tags.includes('archived');
-}
-
-function pickSocialUrl(socials, networkNames = []) {
-  const lowered = networkNames.map((n) => n.toLowerCase());
-  const found = socials.find((s) => lowered.includes(String(s.network || '').toLowerCase()));
-  return found?.url || null;
-}
 
 function renderTileAnimation(tileId, accent, active) {
   switch (tileId) {

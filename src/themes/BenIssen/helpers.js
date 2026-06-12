@@ -1,5 +1,10 @@
 import { useEffect } from 'react';
-import { formatMonthYear, isPresent, isArchived } from '../../utils/cvHelpers';
+import {
+  formatMonthYear,
+  getInitials as getSharedInitials,
+  isPresent,
+  isArchived,
+} from '../../utils/cvHelpers';
 
 export const COLORS = ['#FFFFFF', '#FF5D0D', '#7A64FF'];
 
@@ -54,15 +59,7 @@ export function fmtRange(start, end) {
 }
 
 export function getInitials(name = '') {
-  return (
-    name
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((p) => p[0])
-      .join('')
-      .toUpperCase() || 'A'
-  );
+  return getSharedInitials(name, 2, 'A');
 }
 
 export function flatSkills(skills = []) {

@@ -92,6 +92,7 @@ const SubPageNav = memo(function SubPageNav({ navItems, activeView, theme, onNav
 /* ── Main Theme ────────────────────────────────────────── */
 export function LiamMattesonTheme({ darkMode }) {
   const cv = useCV();
+  const safeCv = cv || {};
   const [view, setView] = useState('home');
 
   const theme = useMemo(() => darkMode
@@ -100,14 +101,12 @@ export function LiamMattesonTheme({ darkMode }) {
     [darkMode]
   );
 
-  if (!cv) return null;
-
-  const intro = firstSentence(getBioText(cv, { type: 'intro' }));
+  const intro = firstSentence(getBioText(safeCv, { type: 'intro' }));
   const introWords = intro.split(' ');
-  const currentRole = cv.experience[0];
-  const hasWork = (cv.experience || []).length > 0;
-  const hasProjects = (cv.projects || []).length > 0;
-  const hasConnect = Boolean(cv.email || cv.website || (cv.socialRaw || []).some((entry) => entry?.url));
+  const currentRole = safeCv.experience?.[0];
+  const hasWork = (safeCv.experience || []).length > 0;
+  const hasProjects = (safeCv.projects || []).length > 0;
+  const hasConnect = Boolean(safeCv.email || safeCv.website || (safeCv.socialRaw || []).some((entry) => entry?.url));
   const navItems = useMemo(() => [
     hasWork ? 'Work' : null,
     hasProjects ? 'Projects' : null,
@@ -120,6 +119,8 @@ export function LiamMattesonTheme({ darkMode }) {
       setView('home');
     }
   }, [navItems, view]);
+
+  if (!cv) return null;
 
   const header = (
     <Header>

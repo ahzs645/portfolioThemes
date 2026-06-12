@@ -15,6 +15,8 @@ export class PreviewErrorBoundary extends Component {
 
   render() {
     if (this.state.hasError) {
+      const label = this.props.label || 'Preview unavailable';
+
       return (
         <div style={{
           width: '100%', height: '100%', display: 'flex',
@@ -27,7 +29,7 @@ export class PreviewErrorBoundary extends Component {
             <line x1="12" y1="8" x2="12" y2="12"/>
             <line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
-          Preview unavailable
+          {label}
         </div>
       );
     }

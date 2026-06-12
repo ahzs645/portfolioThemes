@@ -35,6 +35,10 @@ pnpm-debug.log*
 # Cache
 .cache/
 .eslintcache
+.playwright-mcp/
+test-results/
+extracted/
+.codex-temp-*
 
 # Generated data
 public/github-activity.json

@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { isArchived } from '../../../utils/cvHelpers';
 
 const Section = styled.section`
   min-height: 100vh;
@@ -102,10 +103,6 @@ const Tech = styled.span`
   color: #71717a;
   font-family: monospace;
 `;
-
-function isArchived(entry) {
-  return Array.isArray(entry?.tags) && entry.tags.includes('archived');
-}
 
 export default function Projects({ projects = [] }) {
   const filteredProjects = projects.filter(p => !isArchived(p));

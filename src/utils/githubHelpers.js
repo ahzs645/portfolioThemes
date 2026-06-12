@@ -10,6 +10,12 @@ const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
 
 // ── Cache helpers ──────────────────────────────────────────────
 
+function logCacheError(operation, error) {
+  if (import.meta.env?.DEV) {
+    console.warn(`GitHub cache ${operation} failed:`, error);
+  }
+}
+
 function cacheGet(key) {
   try {
     const raw = localStorage.getItem(key);
@@ -20,7 +26,8 @@ function cacheGet(key) {
       return null;
     }
     return data;
-  } catch {
+  } catch (error) {
+    logCacheError('read', error);
     return null;
   }
 }
@@ -28,8 +35,8 @@ function cacheGet(key) {
 function cacheSet(key, data) {
   try {
     localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() }));
-  } catch {
-    // Storage full or unavailable — silently continue
+  } catch (error) {
+    logCacheError('write', error);
   }
 }
 

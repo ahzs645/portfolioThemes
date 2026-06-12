@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { isArchived } from '../../utils/cvHelpers';
 
 import ThreeView from './components/ThreeView';
 import Header from './components/Header';
@@ -102,10 +103,6 @@ const FooterLink = styled.a`
     text-decoration: underline;
   }
 `;
-
-function isArchived(entry) {
-  return Array.isArray(entry?.tags) && entry.tags.includes('archived');
-}
 
 export function PalmesTheme() {
   const cv = useCV() || {};

@@ -1,14 +1,7 @@
 import React, { useMemo } from 'react';
 import styled from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-
-function isArchived(entry) {
-  return Array.isArray(entry?.tags) && entry.tags.includes('archived');
-}
-
-function isPresent(value) {
-  return String(value || '').trim().toLowerCase() === 'present';
-}
+import { isArchived, isPresent, pickSocialUrl } from '../../utils/cvHelpers';
 
 function formatDateShort(dateStr) {
   if (!dateStr) return '';
@@ -30,12 +23,6 @@ function formatDateShort(dateStr) {
   // Fallback: extract year
   const yearMatch = str.match(/\d{4}/);
   return yearMatch ? yearMatch[0] : str;
-}
-
-function pickSocialUrl(socials, networkNames = []) {
-  const lowered = networkNames.map((n) => n.toLowerCase());
-  const found = socials.find((s) => lowered.includes(String(s.network || '').toLowerCase()));
-  return found?.url || null;
 }
 
 export function StefanZweifelTheme({ darkMode = false }) {

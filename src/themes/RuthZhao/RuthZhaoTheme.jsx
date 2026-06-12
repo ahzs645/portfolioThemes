@@ -88,20 +88,19 @@ function buildProjectItems(cv) {
 
 export function RuthZhaoTheme({ darkMode = false }) {
   const cv = useCV();
+  const safeCv = cv || {};
   const [selectedProject, setSelectedProject] = useState(null);
 
-  if (!cv) return null;
-
-  const socialEntries = useMemo(() => getSocialEntries(cv), [cv]);
+  const socialEntries = useMemo(() => getSocialEntries(safeCv), [safeCv]);
 
   const projects = useMemo(() => {
-    return buildProjectItems(cv);
-  }, [cv]);
+    return buildProjectItems(safeCv);
+  }, [safeCv]);
 
   const mobileProjects = useMemo(() => {
     if (projects.some((project) => project.kind === 'section')) return projects;
 
-    const cvProjects = cv.projects || [];
+    const cvProjects = safeCv.projects || [];
     return MOBILE_PROJECTS.slice(0, cvProjects.length).map((card, i) => ({
       ...card,
       kind: 'project',
@@ -109,7 +108,9 @@ export function RuthZhaoTheme({ darkMode = false }) {
       meta: cvProjects[i]?.date || card.meta,
       href: cvProjects[i]?.url || null,
     }));
-  }, [cv.projects, projects]);
+  }, [safeCv.projects, projects]);
+
+  if (!cv) return null;
 
   // Show project detail view
   if (selectedProject) {

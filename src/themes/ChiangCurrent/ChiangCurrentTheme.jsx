@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { isPresent, pickSocialUrl } from '../../utils/cvHelpers';
 import tardisGif from './assets/tardis-rotate.gif';
 
 const colors = {
@@ -16,10 +17,6 @@ const colors = {
   teal400: '#2dd4bf',
   teal900: '#134e4a',
 };
-
-function isPresent(value) {
-  return String(value || '').trim().toLowerCase() === 'present';
-}
 
 function flattenExperience(experience = []) {
   const items = [];
@@ -65,12 +62,6 @@ function formatDateRange(start, end) {
     return str;
   };
   return `${formatDate(start)} — ${formatDate(end)}`;
-}
-
-function pickSocialUrl(socials, networkNames = []) {
-  const lowered = networkNames.map((n) => n.toLowerCase());
-  const found = socials.find((s) => lowered.includes(String(s.network || '').toLowerCase()));
-  return found?.url || null;
 }
 
 export function ChiangCurrentTheme() {

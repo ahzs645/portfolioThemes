@@ -1,14 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-
-function isArchived(entry) {
-  return Array.isArray(entry?.tags) && entry.tags.includes('archived');
-}
-
-function isPresent(value) {
-  return String(value || '').trim().toLowerCase() === 'present';
-}
+import { isArchived, isPresent } from '../../utils/cvHelpers';
 
 function formatYear(dateStr) {
   if (!dateStr) return '';

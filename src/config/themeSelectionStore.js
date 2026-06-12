@@ -3,6 +3,12 @@ const DB_VERSION = 1;
 const STORE_NAME = 'settings';
 const RANDOM_THEME_GATE_KEY = 'random-theme-gate';
 
+function logStorageError(operation, error) {
+  if (import.meta.env?.DEV) {
+    console.warn(`Theme selection storage ${operation} failed:`, error);
+  }
+}
+
 function openThemeSelectionDb() {
   return new Promise((resolve, reject) => {
     if (typeof indexedDB === 'undefined') {
@@ -47,14 +53,23 @@ function withStore(mode, callback) {
 
 export async function readRandomThemeGate() {
   let request;
-  await withStore('readonly', (store) => {
-    request = store.get(RANDOM_THEME_GATE_KEY);
-  });
+  try {
+    await withStore('readonly', (store) => {
+      request = store.get(RANDOM_THEME_GATE_KEY);
+    });
+  } catch (error) {
+    logStorageError('read', error);
+    return null;
+  }
   return request?.result || null;
 }
 
 export async function writeRandomThemeGate(state) {
-  await withStore('readwrite', (store) => {
-    store.put(state, RANDOM_THEME_GATE_KEY);
-  });
+  try {
+    await withStore('readwrite', (store) => {
+      store.put(state, RANDOM_THEME_GATE_KEY);
+    });
+  } catch (error) {
+    logStorageError('write', error);
+  }
 }

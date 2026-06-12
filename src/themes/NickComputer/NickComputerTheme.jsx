@@ -2,14 +2,7 @@ import React, { useMemo, useEffect, useState } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { getBioText } from '../../utils/bioText';
-
-function isPresent(value) {
-  return String(value || '').trim().toLowerCase() === 'present';
-}
-
-function isArchived(entry) {
-  return Array.isArray(entry?.tags) && entry.tags.includes('archived');
-}
+import { isArchived, isPresent, pickSocialUrl } from '../../utils/cvHelpers';
 
 // Group experience entries by company with their positions
 function groupExperience(experience = []) {
@@ -62,12 +55,6 @@ function formatDateRange(start, end) {
   if (!startYear && !endYear) return '';
   if (!endYear || startYear === endYear) return startYear;
   return `${startYear} - ${endYear}`;
-}
-
-function pickSocialUrl(socials, networkNames = []) {
-  const lowered = networkNames.map((n) => n.toLowerCase());
-  const found = socials.find((s) => lowered.includes(String(s.network || '').toLowerCase()));
-  return found?.url || null;
 }
 
 // Generate a color based on string hash

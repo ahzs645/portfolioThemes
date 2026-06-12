@@ -1,4 +1,4 @@
-import { isPresent, isArchived } from '../../../utils/cvHelpers';
+import { getSkillLabel, isPresent, isArchived } from '../../../utils/cvHelpers';
 
 export function formatYear(dateStr) {
   if (!dateStr) return '';
@@ -91,13 +91,7 @@ export function getSocialUsername(url, network) {
   }
 }
 
-export function getSkillLabel(skill) {
-  if (typeof skill === 'string') return skill;
-  if (typeof skill?.name === 'string') return skill.name;
-  if (typeof skill?.keyword === 'string') return skill.keyword;
-  if (typeof skill?.label === 'string') return skill.label;
-  return '';
-}
+export { getSkillLabel };
 
 export function trimText(text = '', max = 120) {
   const clean = String(text || '').trim();

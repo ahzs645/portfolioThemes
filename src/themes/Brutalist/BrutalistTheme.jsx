@@ -1,9 +1,6 @@
 import React, { useMemo } from 'react';
 import { useCV } from '../../contexts/ConfigContext';
-
-function isPresent(value) {
-  return String(value || '').trim().toLowerCase() === 'present';
-}
+import { isPresent } from '../../utils/cvHelpers';
 
 function flattenExperience(experience = []) {
   const items = [];

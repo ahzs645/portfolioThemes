@@ -13,6 +13,9 @@
     "build:static": "node scripts/fetch-contributions.js && vite build --mode static",
     "build:random-static": "node scripts/fetch-contributions.js && vite build --mode random-static",
     "preview": "vite preview",
+    "lint": "eslint .",
+    "validate:themes": "node scripts/validate-themes.js",
+    "check": "npm run lint && npm run validate:themes",
     "qa:themes": "node scripts/theme-smoke.js"
   },
   "dependencies": {
@@ -29,6 +32,9 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
     "playwright": "^1.60.0",
     "vite": "^6.0.7",
     "vite-plugin-glsl": "^1.6.0"

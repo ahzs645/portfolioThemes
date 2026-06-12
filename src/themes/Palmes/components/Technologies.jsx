@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { isArchived } from '../../../utils/cvHelpers';
 
 const Section = styled.section`
   min-height: 80vh;
@@ -149,10 +150,6 @@ function getDeviconClass(skillName) {
   };
 
   return iconMap[name] || null;
-}
-
-function isArchived(entry) {
-  return Array.isArray(entry?.tags) && entry.tags.includes('archived');
 }
 
 function splitSkillDetails(value) {

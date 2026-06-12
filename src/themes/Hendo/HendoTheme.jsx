@@ -1,16 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-
-function isArchived(entry) {
-  return Array.isArray(entry?.tags) && entry.tags.includes('archived');
-}
-
-function pickSocialUrl(socials, networkNames = []) {
-  const lowered = networkNames.map((n) => n.toLowerCase());
-  const found = socials.find((s) => lowered.includes(String(s.network || '').toLowerCase()));
-  return found?.url || null;
-}
+import { isArchived, pickSocialUrl } from '../../utils/cvHelpers';
 
 // Light and dark themes
 const lightTheme = {

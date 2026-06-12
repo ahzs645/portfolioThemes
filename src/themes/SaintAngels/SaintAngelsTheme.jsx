@@ -3,6 +3,7 @@ import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { getDefaultBioText } from '../../utils/bioText';
 import { withBase } from '../../utils/assetPath';
+import { isPresent } from '../../utils/cvHelpers';
 
 const lightPalette = {
   bodyBackground: '#f6f3ee',
@@ -54,10 +55,6 @@ const GlobalStyle = createGlobalStyle`
     background: ${(props) => props.$palette.linkHover};
   }
 `;
-
-function isPresent(value) {
-  return String(value || '').trim().toLowerCase() === 'present';
-}
 
 function formatLongDate(value) {
   if (!value) return '';

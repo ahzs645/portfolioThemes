@@ -11,6 +11,7 @@ import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import yaml from 'js-yaml';
+import { loadEnv } from 'vite';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -35,22 +36,7 @@ function getBuildMode() {
 }
 
 function loadViteEnv() {
-  const env = {};
-  const files = ['.env', `.env.${getBuildMode()}`];
-
-  for (const file of files) {
-    const path = resolve(ROOT, file);
-    if (!existsSync(path)) continue;
-
-    for (const line of readFileSync(path, 'utf8').split(/\r?\n/)) {
-      const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
-      if (!match) continue;
-      const [, key, rawValue] = match;
-      env[key] = rawValue.replace(/^['"]|['"]$/g, '');
-    }
-  }
-
-  return { ...env, ...process.env };
+  return { ...loadEnv(getBuildMode(), ROOT, ''), ...process.env };
 }
 
 function getCVConfig() {

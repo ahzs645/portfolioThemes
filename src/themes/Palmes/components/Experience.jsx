@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { isArchived } from '../../../utils/cvHelpers';
 
 const Section = styled.section`
   min-height: 100vh;
@@ -85,10 +86,6 @@ const Description = styled.div`
     }
   }
 `;
-
-function isArchived(entry) {
-  return Array.isArray(entry?.tags) && entry.tags.includes('archived');
-}
 
 function formatDate(dateStr) {
   if (!dateStr) return '';

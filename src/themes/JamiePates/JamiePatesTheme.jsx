@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useCV } from '../../contexts/ConfigContext';
 import { ShadowRoot } from '../../ui/ShadowRoot';
 import { getBioText } from '../../utils/bioText';
-import { formatDateRange, formatMonthYear, normalizeHighlights } from '../../utils/cvHelpers';
+import { formatDateRange, formatMonthYear, getInitials, normalizeHighlights } from '../../utils/cvHelpers';
 import { withBase } from '../../utils/assetPath';
 
 import rawStyles from './jamiePates.css?raw';
@@ -165,16 +165,6 @@ function readJsonStorage(key, fallback) {
   } catch {
     return fallback;
   }
-}
-
-function isPresent(value) {
-  return String(value || '').trim().toLowerCase() === 'present';
-}
-
-function getInitials(name = '') {
-  const parts = String(name).split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return 'CV';
-  return parts.slice(0, 2).map((part) => part[0]?.toUpperCase()).join('');
 }
 
 function wrapText(text = '', maxLength = 38, limit = 6) {
@@ -716,7 +706,7 @@ export function JamiePatesTheme() {
             </p>
           )}
           <div className="self-center relative">
-            <div className="jp-placeholder-portrait">{getInitials(cv.name)}</div>
+            <div className="jp-placeholder-portrait">{getInitials(cv.name, 2, 'CV')}</div>
           </div>
           {interactive && currentHealth === 0 && (
             <div className="absolute top-full" onMouseEnter={() => playSound('select')}>
@@ -895,7 +885,7 @@ export function JamiePatesTheme() {
                     <div className="flex justify-between">
                       <div className="_portrait_15lul_1">
                         <div className="self-center relative">
-                          <div className="jp-placeholder-portrait">{getInitials(cv.name)}</div>
+                          <div className="jp-placeholder-portrait">{getInitials(cv.name, 2, 'CV')}</div>
                         </div>
                       </div>
                       <div className="ml-2 mt-[1.3rem]">

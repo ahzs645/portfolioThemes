@@ -1,17 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { isArchived, pickSocialUrl } from '../../utils/cvHelpers';
 import { parseMarkdown } from '../../utils/parseMarkdown';
-
-function isArchived(entry) {
-  return Array.isArray(entry?.tags) && entry.tags.includes('archived');
-}
-
-function pickSocialUrl(socials, networkNames = []) {
-  const lowered = networkNames.map((n) => n.toLowerCase());
-  const found = socials.find((s) => lowered.includes(String(s.network || '').toLowerCase()));
-  return found?.url || null;
-}
 
 function formatDate(dateStr) {
   if (!dateStr) return '';

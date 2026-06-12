@@ -161,7 +161,7 @@ export function ConfigProvider({ children }) {
       // Normalized social links
       socialLinks: normalizeSocialLinks(raw.social || raw.social_networks || [], raw.email),
 
-      // Raw social array (for themes that need custom handling)
+      // Deprecated compatibility aliases. Prefer socialLinks for new themes.
       social: raw.social || raw.social_networks || [],
       socialRaw: raw.social || raw.social_networks || [],
 
@@ -187,11 +187,6 @@ export function ConfigProvider({ children }) {
       sectionsRaw: sections,
     };
   }, [cvData]);
-
-  // Backward compatibility helper (deprecated - use cv.about instead)
-  const getAboutContent = () => {
-    return { markdown: cv?.about || '' };
-  };
 
   // Function to upload new CV data from a YAML string
   const uploadCV = (yamlString) => {
@@ -257,9 +252,6 @@ export function ConfigProvider({ children }) {
     uploadCV,
     resetCV,
     isCustomCV,
-
-    // Deprecated - for backward compatibility with unmigrated themes
-    getAboutContent,
   };
 
   return <ConfigContext.Provider value={value}>{children}</ConfigContext.Provider>;
@@ -276,6 +268,47 @@ export function useConfig() {
 /**
  * Convenience hook that returns just the normalized CV data
  * Returns null while loading
+ *
+ * @typedef {Object} NormalizedSocialLinks
+ * @property {?string} github
+ * @property {?string} linkedin
+ * @property {?string} twitter
+ * @property {?string} youtube
+ * @property {?string} website
+ * @property {?string} email
+ *
+ * @typedef {Object} NormalizedCV
+ * @property {string} name
+ * @property {?string} label
+ * @property {?string} headline
+ * @property {?string} tagline
+ * @property {?string} email
+ * @property {?string} phone
+ * @property {?string} location
+ * @property {?string} website
+ * @property {?string} avatar
+ * @property {?number} avatarAspect
+ * @property {string} about
+ * @property {NormalizedSocialLinks} socialLinks
+ * @property {Array<Object>} social Deprecated raw social array. Prefer socialLinks.
+ * @property {Array<Object>} socialRaw Deprecated raw social array. Prefer socialLinks.
+ * @property {?string} currentJobTitle
+ * @property {Array<Object>} experience
+ * @property {Array<Object>} projects
+ * @property {Array<Object>} education
+ * @property {Array<Object>} skills
+ * @property {Array<Object>} languages
+ * @property {Array<Object>} awards
+ * @property {Array<Object>} publications
+ * @property {Array<Object>} presentations
+ * @property {Array<Object>} volunteer
+ * @property {Array<Object>} certifications
+ * @property {Array<Object>} professionalDevelopment
+ * @property {Array<Object>} certificationsSkills
+ * @property {Object} sections
+ * @property {Object} sectionsRaw
+ *
+ * @returns {?NormalizedCV}
  */
 export function useCV() {
   const { cv } = useConfig();

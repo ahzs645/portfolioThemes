@@ -2,14 +2,7 @@ import React, { useMemo } from 'react';
 import styled from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { getBioText } from '../../utils/bioText';
-
-function isArchived(entry) {
-  return Array.isArray(entry?.tags) && entry.tags.includes('archived');
-}
-
-function isPresent(value) {
-  return String(value || '').trim().toLowerCase() === 'present';
-}
+import { isArchived, isPresent, pickSocialUrl } from '../../utils/cvHelpers';
 
 function isActiveJob(entry) {
   // Job is active if end_date is "Present" or null/undefined
@@ -31,12 +24,6 @@ function formatDate(dateStr) {
   const month = parts[1] ? months[parseInt(parts[1], 10) - 1] : '';
   if (month && year) return `${month} ${year}`;
   return year;
-}
-
-function pickSocialUrl(socials, networkNames = []) {
-  const lowered = networkNames.map((n) => n.toLowerCase());
-  const found = socials.find((s) => lowered.includes(String(s.network || '').toLowerCase()));
-  return found?.url || null;
 }
 
 // Timeline component for reuse

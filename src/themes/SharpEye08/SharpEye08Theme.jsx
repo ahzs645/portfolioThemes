@@ -1,14 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-
-function isArchived(entry) {
-  return Array.isArray(entry?.tags) && entry.tags.includes('archived');
-}
-
-function isPresent(value) {
-  return String(value || '').trim().toLowerCase() === 'present';
-}
+import { isArchived, isPresent, pickSocialUrl } from '../../utils/cvHelpers';
 
 function formatYear(dateStr) {
   if (!dateStr) return '';
@@ -22,11 +15,6 @@ function formatRange(start, end) {
   const e = formatYear(end);
   if (s && e) return `${s} – ${e}`;
   return s || e || '';
-}
-
-function pickSocial(socials, names) {
-  const lowered = names.map((n) => n.toLowerCase());
-  return socials.find((s) => lowered.includes(String(s.network || '').toLowerCase()))?.url || null;
 }
 
 function extractProjectTag(project) {
@@ -99,9 +87,9 @@ export function SharpEye08Theme({ darkMode }) {
   const headline = cv?.label || cv?.headline || cv?.tagline || null;
   const socials = Array.isArray(cv?.social) ? cv.social : [];
 
-  const githubUrl = pickSocial(socials, ['github']);
-  const xUrl = pickSocial(socials, ['twitter', 'x']);
-  const linkedinUrl = pickSocial(socials, ['linkedin']);
+  const githubUrl = pickSocialUrl(socials, ['github']);
+  const xUrl = pickSocialUrl(socials, ['twitter', 'x']);
+  const linkedinUrl = pickSocialUrl(socials, ['linkedin']);
 
   const aboutText = cv?.about || '';
 

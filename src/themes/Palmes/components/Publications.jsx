@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { isArchived } from '../../../utils/cvHelpers';
 
 const Section = styled.section`
   padding: 6rem 2rem;
@@ -96,10 +97,6 @@ const Authors = styled.p`
   font-size: 0.875rem;
   line-height: 1.5;
 `;
-
-function isArchived(entry) {
-  return Array.isArray(entry?.tags) && entry.tags.includes('archived');
-}
 
 function formatDate(dateStr) {
   if (!dateStr) return '';

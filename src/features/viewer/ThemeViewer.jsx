@@ -4,6 +4,7 @@ import { useCvUpload } from '../../hooks/useCvUpload';
 import { useElementHeight } from '../../hooks/useElementHeight';
 import { useHashAnchorScroll } from '../../hooks/useHashAnchorScroll';
 import { TopBar } from '../topbar/TopBar';
+import { PreviewErrorBoundary } from '../preview/PreviewErrorBoundary';
 import { ThemeLoading } from '../preview/ThemeLoading';
 import { AppContainer, ThemeContainer } from './styles';
 
@@ -28,6 +29,7 @@ export function ThemeViewer({
 
   const ThemeComponent = currentTheme?.Component;
   const hideInitials = hideInitialsSetting;
+  const enableThemeReactGrab = enableReactGrab && currentTheme?.features?.reactGrab;
 
   return (
     <AppContainer
@@ -53,14 +55,16 @@ export function ThemeViewer({
         style={showThemeBar && topBarHeight != null ? { '--app-top-offset': `${topBarHeight}px` } : undefined}
       >
         {ThemeComponent ? (
-          <Suspense fallback={<ThemeLoading />}>
-            <ThemeComponent
-              key={currentThemeId}
-              darkMode={darkMode}
-              onDarkModeChange={setDarkMode}
-              enableReactGrab={enableReactGrab && currentThemeId === 'aiden-bai'}
-            />
-          </Suspense>
+          <PreviewErrorBoundary themeId={currentThemeId} label="Theme unavailable">
+            <Suspense fallback={<ThemeLoading />}>
+              <ThemeComponent
+                key={currentThemeId}
+                darkMode={darkMode}
+                onDarkModeChange={setDarkMode}
+                enableReactGrab={enableThemeReactGrab}
+              />
+            </Suspense>
+          </PreviewErrorBoundary>
         ) : (
           <div>No theme selected</div>
         )}

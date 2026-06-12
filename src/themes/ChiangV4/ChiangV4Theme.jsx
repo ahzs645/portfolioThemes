@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import styled from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { getBioText } from '../../utils/bioText';
+import { isPresent, pickSocialUrl } from '../../utils/cvHelpers';
 
 const colors = {
   darkNavy: '#020c1b',
@@ -15,10 +16,6 @@ const colors = {
   green: '#64ffda',
   greenTint: 'rgba(100, 255, 218, 0.1)',
 };
-
-function isPresent(value) {
-  return String(value || '').trim().toLowerCase() === 'present';
-}
 
 function flattenExperience(experience = []) {
   const items = [];
@@ -62,12 +59,6 @@ function formatDateRange(start, end) {
     return str;
   };
   return `${formatDate(start)} — ${formatDate(end)}`;
-}
-
-function pickSocialUrl(socials, networkNames = []) {
-  const lowered = networkNames.map((n) => n.toLowerCase());
-  const found = socials.find((s) => lowered.includes(String(s.network || '').toLowerCase()));
-  return found?.url || null;
 }
 
 export function ChiangV4Theme() {

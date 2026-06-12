@@ -25,27 +25,46 @@ export function useHashAnchorScroll(dependency) {
     if (typeof window === 'undefined') return undefined;
 
     let frameId = 0;
-    let timeoutId = 0;
+    let observer = null;
     let cancelled = false;
 
+    const stopWatching = () => {
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+    };
+
+    const attemptScroll = () => {
+      if (cancelled || !window.location.hash) {
+        stopWatching();
+        return;
+      }
+
+      const target = findHashTarget();
+      if (!target) return;
+
+      target.scrollIntoView({ block: 'start' });
+      stopWatching();
+    };
+
     const scrollWhenReady = () => {
-      const startedAt = Date.now();
+      stopWatching();
+      frameId = window.requestAnimationFrame(attemptScroll);
 
-      const attempt = () => {
-        if (cancelled || !window.location.hash) return;
+      if (!window.location.hash || !document.body) return;
 
-        const target = findHashTarget();
-        if (target) {
-          target.scrollIntoView({ block: 'start' });
-          return;
-        }
+      observer = new MutationObserver(attemptScroll);
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['id'],
+      });
 
-        if (Date.now() - startedAt < 1800) {
-          timeoutId = window.setTimeout(attempt, 60);
-        }
-      };
-
-      frameId = window.requestAnimationFrame(attempt);
+      window.setTimeout(() => {
+        if (!cancelled) attemptScroll();
+      }, 0);
     };
 
     scrollWhenReady();
@@ -54,7 +73,7 @@ export function useHashAnchorScroll(dependency) {
     return () => {
       cancelled = true;
       window.cancelAnimationFrame(frameId);
-      window.clearTimeout(timeoutId);
+      stopWatching();
       window.removeEventListener('hashchange', scrollWhenReady);
     };
   }, [dependency]);

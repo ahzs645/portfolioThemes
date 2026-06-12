@@ -1,25 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-
-function isArchived(entry) {
-  return Array.isArray(entry?.tags) && entry.tags.includes('archived');
-}
-
-function isPresent(value) {
-  return String(value || '').trim().toLowerCase() === 'present';
-}
+import { isArchived, isPresent, pickSocialUrl } from '../../utils/cvHelpers';
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
   if (isPresent(dateStr)) return 'Present';
   return dateStr;
-}
-
-function pickSocialUrl(socials, networkNames = []) {
-  const lowered = networkNames.map((n) => n.toLowerCase());
-  const found = socials.find((s) => lowered.includes(String(s.network || '').toLowerCase()));
-  return found?.url || null;
 }
 
 // Light and dark themes

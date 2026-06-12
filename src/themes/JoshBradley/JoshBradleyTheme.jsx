@@ -1,14 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-
-function isPresent(value) {
-  return String(value || '').trim().toLowerCase() === 'present';
-}
-
-function isArchived(entry) {
-  return Array.isArray(entry?.tags) && entry.tags.includes('archived');
-}
+import { isArchived, isPresent, pickSocialUrl } from '../../utils/cvHelpers';
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
@@ -20,12 +13,6 @@ function formatDate(dateStr) {
   const month = parts[1] ? months[parseInt(parts[1], 10) - 1] : '';
   if (month && year) return `${month} ${year}`;
   return year;
-}
-
-function pickSocialUrl(socials, networkNames = []) {
-  const lowered = networkNames.map((n) => n.toLowerCase());
-  const found = socials.find((s) => lowered.includes(String(s.network || '').toLowerCase()));
-  return found?.url || null;
 }
 
 // Group experience by company, keeping positions together

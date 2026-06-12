@@ -193,10 +193,10 @@ function ProjectView({ item }) {
 }
 
 function SkillView({ item }) {
+  const color = useMemo(() => randomAccent(), [item]);
   if (!item) return null;
   const name = typeof item === 'string' ? item : item.name;
   const details = typeof item === 'string' ? null : item.details;
-  const color = useMemo(() => randomAccent(), [item]);
 
   return (
     <ContentPadding>

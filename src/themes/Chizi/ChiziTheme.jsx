@@ -71,6 +71,7 @@ function processExperienceWithNesting(rawExperience = []) {
 
 export function ChiziTheme({ darkMode }) {
   const cv = useCV();
+  const safeCv = cv || {};
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
@@ -80,19 +81,19 @@ export function ChiziTheme({ darkMode }) {
 
   // Process experience with nesting from raw data
   const experienceItems = useMemo(() => {
-    const raw = cv?.sections?.experience || [];
+    const raw = safeCv?.sections?.experience || [];
     return processExperienceWithNesting(raw).slice(0, 6);
-  }, [cv?.sections?.experience]);
+  }, [safeCv?.sections?.experience]);
 
   // Education items
   const educationItems = useMemo(() => {
-    const raw = cv?.sections?.education || [];
+    const raw = safeCv?.sections?.education || [];
     return raw.filter(e => e && !isArchived(e)).slice(0, 4);
-  }, [cv?.sections?.education]);
+  }, [safeCv?.sections?.education]);
 
   // Volunteer items
   const volunteerItems = useMemo(() => {
-    const raw = cv?.sections?.volunteer || [];
+    const raw = safeCv?.sections?.volunteer || [];
     return raw.filter(e => e && !isArchived(e)).map(vol => ({
       organization: vol.organization || vol.company || '',
       position: vol.position || vol.role || 'Volunteer',
@@ -101,15 +102,13 @@ export function ChiziTheme({ darkMode }) {
       isCurrent: isPresent(vol.end_date),
       url: vol.url,
     })).slice(0, 4);
-  }, [cv?.sections?.volunteer]);
+  }, [safeCv?.sections?.volunteer]);
 
   // Publications items
   const publicationItems = useMemo(() => {
-    const raw = cv?.sections?.publications || [];
+    const raw = safeCv?.sections?.publications || [];
     return raw.filter(e => e && !isArchived(e)).slice(0, 6);
-  }, [cv?.sections?.publications]);
-
-  if (!cv) return null;
+  }, [safeCv?.sections?.publications]);
 
   const {
     name,
@@ -119,29 +118,31 @@ export function ChiziTheme({ darkMode }) {
     about,
     currentJobTitle,
     socialLinks,
-    projects,
-  } = cv;
+    projects = [],
+  } = safeCv;
 
   // Awards items
   const awardItems = useMemo(() => {
-    const raw = cv?.sections?.awards || [];
+    const raw = safeCv?.sections?.awards || [];
     return raw.filter(e => e && !isArchived(e));
-  }, [cv?.sections?.awards]);
+  }, [safeCv?.sections?.awards]);
 
   // Presentations items
   const presentationItems = useMemo(() => {
-    const raw = cv?.sections?.presentations || [];
+    const raw = safeCv?.sections?.presentations || [];
     return raw.filter(e => e && !isArchived(e));
-  }, [cv?.sections?.presentations]);
+  }, [safeCv?.sections?.presentations]);
 
   // Professional Development items
   const professionalDevItems = useMemo(() => {
-    const raw = cv?.sections?.professional_development || [];
+    const raw = safeCv?.sections?.professional_development || [];
     return raw.filter(e => e && !isArchived(e));
-  }, [cv?.sections?.professional_development]);
+  }, [safeCv?.sections?.professional_development]);
 
   const theme = darkMode ? colors.dark : colors.light;
   const projectItems = projects.slice(0, 6);
+
+  if (!cv) return null;
 
   const formatTime = (date) => {
     const hours = date.getHours();

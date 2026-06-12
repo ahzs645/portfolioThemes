@@ -31,6 +31,14 @@ export function CatalogView({ darkMode, setDarkMode, currentThemeId, onSelectThe
   const didLongPressRef = useRef(false);
 
   const hover = useHoverPreview(tableContainerRef);
+  const toggleDarkMode = useCallback(() => setDarkMode((value) => !value), [setDarkMode]);
+  const clearSearch = useCallback(() => setSearchQuery(''), []);
+  const handleSearchChange = useCallback((e) => setSearchQuery(e.target.value), []);
+  const closeCatalog = useCallback(() => {
+    hover.clearHover();
+    onClose();
+  }, [hover, onClose]);
+  const closeInspect = useCallback(() => setInspectThemeId(null), []);
 
   const filteredThemes = useMemo(() => {
     if (!searchQuery.trim()) return PORTFOLIO_THEMES;
@@ -110,11 +118,11 @@ export function CatalogView({ darkMode, setDarkMode, currentThemeId, onSelectThe
               type="text"
               placeholder="Search name, slug, source..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
               onKeyDown={handleCatalogKeyDown}
             />
             {searchQuery && (
-              <SearchClear $darkMode={darkMode} onClick={() => setSearchQuery('')}>
+              <SearchClear $darkMode={darkMode} onClick={clearSearch}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="18" y1="6" x2="6" y2="18"/>
                   <line x1="6" y1="6" x2="18" y2="18"/>
@@ -124,7 +132,7 @@ export function CatalogView({ darkMode, setDarkMode, currentThemeId, onSelectThe
           </SearchBar>
           <ModeToggle
             $darkMode={darkMode}
-            onClick={() => setDarkMode(!darkMode)}
+            onClick={toggleDarkMode}
             title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {darkMode ? (
@@ -138,7 +146,7 @@ export function CatalogView({ darkMode, setDarkMode, currentThemeId, onSelectThe
               </svg>
             )}
           </ModeToggle>
-          <CloseButton $darkMode={darkMode} onClick={() => { hover.clearHover(); onClose(); }}>Close</CloseButton>
+          <CloseButton $darkMode={darkMode} onClick={closeCatalog}>Close</CloseButton>
         </HeaderActions>
       </CatalogHeader>
 
@@ -170,7 +178,7 @@ export function CatalogView({ darkMode, setDarkMode, currentThemeId, onSelectThe
           inspectThemeId={inspectThemeId}
           currentThemeId={currentThemeId}
           darkMode={darkMode}
-          onClose={() => setInspectThemeId(null)}
+          onClose={closeInspect}
           onSelect={onSelectTheme}
         />
       )}

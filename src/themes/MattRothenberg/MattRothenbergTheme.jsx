@@ -2,15 +2,7 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { withBase } from '../../utils/assetPath';
-import { uniqueByNormalizedValue } from '../../utils/cvHelpers';
-
-function isArchived(entry) {
-  return Array.isArray(entry?.tags) && entry.tags.includes('archived');
-}
-
-function isPresent(value) {
-  return String(value || '').trim().toLowerCase() === 'present';
-}
+import { isArchived, isPresent, pickSocialUrl, uniqueByNormalizedValue } from '../../utils/cvHelpers';
 
 function formatYear(dateStr) {
   if (!dateStr) return '';
@@ -24,11 +16,6 @@ function formatRange(start, end) {
   const e = formatYear(end);
   if (s && e && s !== e) return `${s}–${e}`;
   return s || e || '';
-}
-
-function pickSocial(socials, names) {
-  const lowered = names.map((n) => n.toLowerCase());
-  return socials.find((s) => lowered.includes(String(s.network || '').toLowerCase()))?.url || null;
 }
 
 function joinList(rawItems, sep = ', ', lastSep = ' and ') {
@@ -90,11 +77,7 @@ function Pill({ children, href }) {
 
 export function MattRothenbergTheme({ darkMode }) {
   const cv = useCV() || {};
-  const [isDark, setIsDark] = useState(darkMode ?? false);
-
-  useEffect(() => {
-    if (typeof darkMode === 'boolean') setIsDark(darkMode);
-  }, [darkMode]);
+  const isDark = darkMode ?? false;
 
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;
@@ -103,10 +86,10 @@ export function MattRothenbergTheme({ darkMode }) {
   const socials = Array.isArray(cv?.social) ? cv.social : [];
   const aboutText = cv?.about || '';
 
-  const githubUrl = pickSocial(socials, ['github']);
-  const linkedinUrl = pickSocial(socials, ['linkedin']);
-  const xUrl = pickSocial(socials, ['twitter', 'x']);
-  const instagramUrl = pickSocial(socials, ['instagram']);
+  const githubUrl = pickSocialUrl(socials, ['github']);
+  const linkedinUrl = pickSocialUrl(socials, ['linkedin']);
+  const xUrl = pickSocialUrl(socials, ['twitter', 'x']);
+  const instagramUrl = pickSocialUrl(socials, ['instagram']);
 
   const currentExperiences = useMemo(() => {
     const experiences = (cv?.sections?.experience || []).filter((e) => !isArchived(e));

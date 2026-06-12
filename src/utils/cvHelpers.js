@@ -167,6 +167,43 @@ export function uniqueByNormalizedValue(items = [], getValue = (item) => item) {
 }
 
 /**
+ * Derive display initials from a name-like string.
+ */
+export function getInitials(name = '', maxLength = 2, fallback = '') {
+  const initials = String(name || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join('')
+    .slice(0, maxLength)
+    .toUpperCase();
+
+  return initials || fallback;
+}
+
+/**
+ * Truncate text without splitting the final visible word when possible.
+ */
+export function truncateText(value = '', maxLength = 120) {
+  const text = String(value || '').replace(/\s+/g, ' ').trim();
+  if (text.length <= maxLength) return text;
+
+  const clipped = text.slice(0, Math.max(0, maxLength - 1)).trimEnd();
+  const lastSpace = clipped.lastIndexOf(' ');
+  const safeClip = lastSpace > maxLength * 0.6 ? clipped.slice(0, lastSpace) : clipped;
+  return `${safeClip}…`;
+}
+
+/**
+ * Normalize skill entries that may be strings or objects.
+ */
+export function getSkillLabel(skill) {
+  if (typeof skill === 'string') return skill;
+  return skill?.name || skill?.keyword || skill?.label || skill?.title || skill?.skill || '';
+}
+
+/**
  * Get the current job title from experience
  */
 export function getCurrentJobTitle(experience = []) {

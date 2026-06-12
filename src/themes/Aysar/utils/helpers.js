@@ -1,9 +1,11 @@
-import { isPresent } from '../../../utils/cvHelpers';
+import {
+  getInitials as getSharedInitials,
+  getSkillLabel,
+  isPresent,
+} from '../../../utils/cvHelpers';
 
 export function getInitials(name = '') {
-  const parts = String(name).trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return 'PT';
-  return parts.slice(0, 2).map(part => part[0]?.toUpperCase() || '').join('');
+  return getSharedInitials(name, 2, 'PT');
 }
 
 export function getFirstSentence(text = '') {
@@ -11,14 +13,6 @@ export function getFirstSentence(text = '') {
   if (!cleaned) return '';
   const match = cleaned.match(/.*?[.!?](\s|$)/);
   return (match?.[0] || cleaned).trim();
-}
-
-export function getSkillLabel(skill) {
-  if (typeof skill === 'string') return skill;
-  if (typeof skill?.name === 'string') return skill.name;
-  if (typeof skill?.keyword === 'string') return skill.keyword;
-  if (typeof skill?.label === 'string') return skill.label;
-  return '';
 }
 
 function uniqueCompanies(experience = []) {
