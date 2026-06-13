@@ -29,6 +29,10 @@ const C = {
 
 const GlobalStyle = createGlobalStyle`
   @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap');
+
+  body {
+    background: ${C.g1};
+  }
 `;
 
 function initialsOf(name = '') {
@@ -445,7 +449,8 @@ export function WinTongtaweeTheme() {
 
 const Page = styled.div`
   position: relative;
-  min-height: 100%;
+  height: max-content;
+  min-height: max(100%, calc(100dvh - var(--app-top-offset, 0px)));
   background: ${C.g1};
   color: ${C.g9};
   font-family: 'Geist Mono', ui-monospace, SFMono-Regular, 'SF Mono', Menlo,
@@ -469,7 +474,10 @@ const Page = styled.div`
 
 const Vignette = styled.div`
   position: fixed;
-  inset: 0;
+  top: var(--app-top-offset, 0px);
+  right: 0;
+  bottom: 0;
+  left: 0;
   pointer-events: none;
   background: radial-gradient(
     120% 80% at 50% 0%,
@@ -480,9 +488,12 @@ const Vignette = styled.div`
 
 const Canvas = styled.canvas`
   position: fixed;
-  inset: 0;
+  top: var(--app-top-offset, 0px);
+  right: 0;
+  bottom: 0;
+  left: 0;
   width: 100%;
-  height: 100%;
+  height: calc(100dvh - var(--app-top-offset, 0px));
   pointer-events: none;
   z-index: 0;
 `;
