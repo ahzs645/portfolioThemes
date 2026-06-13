@@ -225,6 +225,8 @@ function FoldContent({ cv, headline, socials, projects, moreProjects, experience
 
 export function SharonZhengTheme() {
   const cv = useCV();
+  const stageRef = useRef(null);
+  const scrollSpacerRef = useRef(null);
   const centerContentRef = useRef(null);
   const centerFoldRef = useRef(null);
   const topContentRef = useRef(null);
@@ -264,23 +266,23 @@ export function SharonZhengTheme() {
   useEffect(() => {
     const centerContent = centerContentRef.current;
     const centerFold = centerFoldRef.current;
+    const stage = stageRef.current;
+    const scrollSpacer = scrollSpacerRef.current;
     const foldsContent = [
       topContentRef.current,
       centerContentRef.current,
       bottomContentRef.current,
     ].filter(Boolean);
 
-    if (!centerContent || !centerFold || foldsContent.length === 0) {
+    if (!centerContent || !centerFold || !stage || !scrollSpacer || foldsContent.length === 0) {
       return undefined;
     }
 
     const doc = centerContent.ownerDocument;
     const win = doc.defaultView || window;
     const viewport = win.visualViewport;
-    const originalHtmlHeight = doc.documentElement.style.height;
-    const originalHtmlOverflow = doc.documentElement.style.overflow;
-    const originalBodyHeight = doc.body.style.height;
-    const originalBodyOverflow = doc.body.style.overflow;
+    const scrollRoot = stage.parentElement;
+    const originalSpacerHeight = scrollSpacer.style.height;
     let rafId = 0;
     let resizeObserver;
 
@@ -290,18 +292,16 @@ export function SharonZhengTheme() {
       });
     };
 
-    const updateBodyHeight = () => {
+    const updateScrollHeight = () => {
       const overflowHeight = Math.max(0, centerContent.clientHeight - centerFold.clientHeight);
       const viewportHeight = viewport?.height || win.innerHeight;
       const scrollHeight = `${overflowHeight + viewportHeight}px`;
-      doc.documentElement.style.height = scrollHeight;
-      doc.documentElement.style.overflow = 'auto';
-      doc.body.style.height = scrollHeight;
-      doc.body.style.overflow = 'auto';
+      scrollSpacer.style.height = scrollHeight;
     };
 
     const tick = () => {
-      const scroll = -(win.scrollY || win.pageYOffset || doc.documentElement.scrollTop || 0);
+      const scrollTop = scrollRoot?.scrollTop ?? win.scrollY ?? win.pageYOffset ?? doc.documentElement.scrollTop ?? 0;
+      const scroll = -scrollTop;
       foldsContent.forEach((content) => {
         content.style.transform = `translate3d(0, ${scroll}px, 0)`;
       });
@@ -309,35 +309,35 @@ export function SharonZhengTheme() {
     };
 
     win.scrollTo(0, 0);
-    win.addEventListener('resize', updateBodyHeight);
-    viewport?.addEventListener('resize', updateBodyHeight);
-    viewport?.addEventListener('scroll', updateBodyHeight);
+    if (scrollRoot) {
+      scrollRoot.scrollTop = 0;
+    }
+    win.addEventListener('resize', updateScrollHeight);
+    viewport?.addEventListener('resize', updateScrollHeight);
+    viewport?.addEventListener('scroll', updateScrollHeight);
     if ('ResizeObserver' in win) {
-      resizeObserver = new win.ResizeObserver(updateBodyHeight);
+      resizeObserver = new win.ResizeObserver(updateScrollHeight);
       resizeObserver.observe(centerContent);
       resizeObserver.observe(centerFold);
     }
-    updateBodyHeight();
+    updateScrollHeight();
     tick();
 
     return () => {
-      win.removeEventListener('resize', updateBodyHeight);
-      viewport?.removeEventListener('resize', updateBodyHeight);
-      viewport?.removeEventListener('scroll', updateBodyHeight);
+      win.removeEventListener('resize', updateScrollHeight);
+      viewport?.removeEventListener('resize', updateScrollHeight);
+      viewport?.removeEventListener('scroll', updateScrollHeight);
       resizeObserver?.disconnect();
       win.cancelAnimationFrame(rafId);
       clearFoldTransforms();
-      doc.documentElement.style.height = originalHtmlHeight;
-      doc.documentElement.style.overflow = originalHtmlOverflow;
-      doc.body.style.height = originalBodyHeight;
-      doc.body.style.overflow = originalBodyOverflow;
+      scrollSpacer.style.height = originalSpacerHeight;
     };
   }, [data]);
 
   return (
     <>
       <GlobalStyle />
-      <Stage>
+      <Stage ref={stageRef}>
         <Wrapper3d>
           <Fold className="fold-top">
             <FoldAlign>
@@ -362,6 +362,7 @@ export function SharonZhengTheme() {
           </Fold>
         </Wrapper3d>
       </Stage>
+      <ScrollSpacer ref={scrollSpacerRef} aria-hidden="true" />
     </>
   );
 }
@@ -388,6 +389,13 @@ const Stage = styled.div`
   font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   font-size: clamp(1.35rem, 2vw, 2rem);
   line-height: 1.15;
+`;
+
+const ScrollSpacer = styled.div`
+  flex: 0 0 auto;
+  width: 1px;
+  min-height: calc(100dvh - var(--app-top-offset, 0px));
+  pointer-events: none;
 `;
 
 const Wrapper3d = styled.div`
