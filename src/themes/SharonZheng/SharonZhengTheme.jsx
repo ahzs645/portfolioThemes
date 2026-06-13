@@ -283,7 +283,7 @@ export function SharonZhengTheme() {
     const viewport = win.visualViewport;
     const scrollRoot = stage.parentElement;
     const originalSpacerHeight = scrollSpacer.style.height;
-    let rafId = 0;
+    let touchY = null;
     let resizeObserver;
 
     const clearFoldTransforms = () => {
@@ -299,13 +299,47 @@ export function SharonZhengTheme() {
       scrollSpacer.style.height = scrollHeight;
     };
 
-    const tick = () => {
-      const scrollTop = scrollRoot?.scrollTop ?? win.scrollY ?? win.pageYOffset ?? doc.documentElement.scrollTop ?? 0;
+    const getScrollTop = () => (
+      scrollRoot?.scrollTop ?? win.scrollY ?? win.pageYOffset ?? doc.documentElement.scrollTop ?? 0
+    );
+
+    const applyFoldTransform = () => {
+      const scrollTop = getScrollTop();
       const scroll = -scrollTop;
       foldsContent.forEach((content) => {
         content.style.transform = `translate3d(0, ${scroll}px, 0)`;
       });
-      rafId = win.requestAnimationFrame(tick);
+    };
+
+    const scrollBy = (deltaY) => {
+      if (!scrollRoot) {
+        win.scrollBy(0, deltaY);
+        return;
+      }
+      scrollRoot.scrollTop += deltaY;
+      applyFoldTransform();
+    };
+
+    const handleWheel = (event) => {
+      if (!event.deltaY) return;
+      event.preventDefault();
+      scrollBy(event.deltaY);
+    };
+
+    const handleTouchStart = (event) => {
+      touchY = event.touches?.[0]?.clientY ?? null;
+    };
+
+    const handleTouchMove = (event) => {
+      const nextY = event.touches?.[0]?.clientY;
+      if (touchY == null || nextY == null) return;
+      event.preventDefault();
+      scrollBy(touchY - nextY);
+      touchY = nextY;
+    };
+
+    const handleTouchEnd = () => {
+      touchY = null;
     };
 
     win.scrollTo(0, 0);
@@ -313,6 +347,13 @@ export function SharonZhengTheme() {
       scrollRoot.scrollTop = 0;
     }
     win.addEventListener('resize', updateScrollHeight);
+    win.addEventListener('scroll', applyFoldTransform, { passive: true });
+    scrollRoot?.addEventListener('scroll', applyFoldTransform, { passive: true });
+    stage.addEventListener('wheel', handleWheel, { passive: false });
+    stage.addEventListener('touchstart', handleTouchStart, { passive: true });
+    stage.addEventListener('touchmove', handleTouchMove, { passive: false });
+    stage.addEventListener('touchend', handleTouchEnd);
+    stage.addEventListener('touchcancel', handleTouchEnd);
     viewport?.addEventListener('resize', updateScrollHeight);
     viewport?.addEventListener('scroll', updateScrollHeight);
     if ('ResizeObserver' in win) {
@@ -321,14 +362,20 @@ export function SharonZhengTheme() {
       resizeObserver.observe(centerFold);
     }
     updateScrollHeight();
-    tick();
+    applyFoldTransform();
 
     return () => {
       win.removeEventListener('resize', updateScrollHeight);
+      win.removeEventListener('scroll', applyFoldTransform);
+      scrollRoot?.removeEventListener('scroll', applyFoldTransform);
+      stage.removeEventListener('wheel', handleWheel);
+      stage.removeEventListener('touchstart', handleTouchStart);
+      stage.removeEventListener('touchmove', handleTouchMove);
+      stage.removeEventListener('touchend', handleTouchEnd);
+      stage.removeEventListener('touchcancel', handleTouchEnd);
       viewport?.removeEventListener('resize', updateScrollHeight);
       viewport?.removeEventListener('scroll', updateScrollHeight);
       resizeObserver?.disconnect();
-      win.cancelAnimationFrame(rafId);
       clearFoldTransforms();
       scrollSpacer.style.height = originalSpacerHeight;
     };
