@@ -584,6 +584,14 @@ export const PORTFOLIO_THEMES = [
     Component: lazyTheme(() => import('./VibeCoded/VibeCodedTheme'), 'VibeCodedTheme'),
   },
   {
+    id: 'qtzx',
+    slug: 'what-if',
+    name: 'What If',
+    description: 'Monochrome dark/light portfolio with a curl-noise GPGPU particle hero behind a closing frame, typewriter greetings, a GSAP photo card-swap, a "what if?" ASCII panel, SDF-bordered media, and a spinning target cursor — faithfully rebuilt from qtzx.dev.',
+    source: 'https://qtzx.dev',
+    Component: lazyTheme(() => import('./Qtzx/QtzxTheme'), 'QtzxTheme'),
+  },
+  {
     id: 'terishim',
     slug: 'in-orbit',
     name: 'In Orbit',
