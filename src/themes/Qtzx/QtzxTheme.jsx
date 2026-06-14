@@ -19,7 +19,9 @@ import {
 import {
   AsciiText,
   CardSwap,
+  GlassSurface,
   HeroParticles,
+  LoaderSphere,
   NameType,
   ShapeBlur,
   SwapCard,
@@ -152,27 +154,44 @@ function Nav({ active, projectsExist }) {
   };
 
   return (
-    <NavShell $active={active} $palette={palette}>
-      <NavPill $palette={palette}>
-        {items.map((item) => (
-          <span key={item.title} style={{ display: 'inline-flex', alignItems: 'center' }}>
-            {item.title === 'home' ? (
-              <>
-                <a className="cursor-target" href={item.href} onClick={(e) => onClick(e, item.href)} aria-label="home">
-                  <HomeIcon />
+    <NavShell $active={active}>
+      <GlassSurface
+        height="auto"
+        width="auto"
+        borderRadius={50}
+        backgroundOpacity={0.35}
+        saturation={1}
+        borderWidth={0.07}
+        brightness={45}
+        opacity={0.93}
+        blur={11}
+        displace={1.5}
+        distortionScale={-180}
+        redOffset={0}
+        greenOffset={10}
+        blueOffset={20}
+      >
+        <NavInner>
+          {items.map((item) => (
+            <span key={item.title} style={{ display: 'inline-flex', alignItems: 'center' }}>
+              {item.title === 'home' ? (
+                <>
+                  <a className="cursor-target" href={item.href} onClick={(e) => onClick(e, item.href)} aria-label="home">
+                    <HomeIcon />
+                  </a>
+                  <NavDivider />
+                </>
+              ) : (
+                <a className="cursor-target" href={item.href} onClick={(e) => onClick(e, item.href)}>
+                  {item.title}
                 </a>
-                <NavDivider $palette={palette} />
-              </>
-            ) : (
-              <a className="cursor-target" href={item.href} onClick={(e) => onClick(e, item.href)}>
-                {item.title}
-              </a>
-            )}
-          </span>
-        ))}
-        <NavDivider $palette={palette} />
-        <ThemeToggle />
-      </NavPill>
+              )}
+            </span>
+          ))}
+          <NavDivider />
+          <ThemeToggle />
+        </NavInner>
+      </GlassSurface>
     </NavShell>
   );
 }
@@ -213,29 +232,31 @@ function Hero({ cv, started, progress }) {
       </HeroFrame>
 
       <HeroContent style={{ transform: `translateY(${contentY}) scale(${contentScale})` }}>
-        <HeroName>
-          {started ? (
-            <NameType text={typed} active={started} />
+        <HeroInner>
+          <HeroName>
+            {started ? (
+              <NameType text={typed} active={started} />
+            ) : (
+              <span>{typed}</span>
+            )}
+          </HeroName>
+
+          {website ? (
+            <HeroTag as="a" href={website} target="_blank" rel="noreferrer" className="cursor-target" $started={started}>
+              {tagline}
+            </HeroTag>
           ) : (
-            <span>{typed}</span>
+            <HeroTag as="span" $started={started}>{tagline}</HeroTag>
           )}
-        </HeroName>
 
-        {website ? (
-          <HeroTag as="a" href={website} target="_blank" rel="noreferrer" className="cursor-target" $started={started}>
-            {tagline}
-          </HeroTag>
-        ) : (
-          <HeroTag as="span" $started={started}>{tagline}</HeroTag>
-        )}
-
-        <HeroMeta $started={started}>
-          {cv?.location && <span>{cv.location}</span>}
-          {cv?.location && <span className="dot">·</span>}
-          <span className="mono">
-            {(cv?.projects?.length || 0)} projects · {(cv?.experience?.length || 0)} roles
-          </span>
-        </HeroMeta>
+          <HeroMeta $started={started}>
+            {cv?.location && <span>{cv.location}</span>}
+            {cv?.location && <span className="dot">·</span>}
+            <span className="mono">
+              {(cv?.projects?.length || 0)} projects · {(cv?.experience?.length || 0)} roles
+            </span>
+          </HeroMeta>
+        </HeroInner>
       </HeroContent>
     </HeroSection>
   );
@@ -254,6 +275,7 @@ function About({ cv }) {
   const firstName = (cv?.name || 'there').split(/\s+/)[0]?.toLowerCase() || 'there';
   const bio = cv?.about || getBioText(cv, { type: 'profile' }) || '';
   const paragraphs = String(bio).split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+  const experience = (cv?.experience || []).slice(0, 4);
 
   const imagePool = useMemo(() => {
     const fromProjects = (cv?.projects || []).map((p) => getProjectMedia(p)).filter((m) => isImageSrc(m));
@@ -279,6 +301,21 @@ function About({ cv }) {
               {paragraph}
             </p>
           ))}
+          {experience.length > 0 && (
+            <Timeline $palette={palette}>
+              {experience.map((item, index) => (
+                <li key={`${item.company}-${item.title}-${index}`}>
+                  <span className="date">
+                    {formatDateRange(item.startDate, item.endDate) || 'now'}
+                  </span>
+                  <span className="role">
+                    <strong>{item.title || 'Contributor'}</strong>
+                    {item.company ? ` · ${item.company}` : ''}
+                  </span>
+                </li>
+              ))}
+            </Timeline>
+          )}
           <p style={{ color: palette.muted }}>
             if you&apos;re building something interesting or just want to say hi, feel free to{' '}
             <a className="reach cursor-target" onClick={() => smoothScrollTo('#contact')} style={{ color: palette.heading }}>
@@ -510,12 +547,25 @@ function Contact({ cv }) {
 /* ----------------------------------------------------------------------------
  * Loader + shell
  * -------------------------------------------------------------------------- */
-function Loader({ visible, name }) {
+function Loader({ visible }) {
+  const [present, setPresent] = useState(visible);
+
+  useEffect(() => {
+    if (visible) {
+      setPresent(true);
+      return undefined;
+    }
+    const id = window.setTimeout(() => setPresent(false), 700);
+    return () => window.clearTimeout(id);
+  }, [visible]);
+
+  if (!present) return null;
+
   return (
     <LoaderOverlay $visible={visible} aria-hidden={!visible}>
-      <LoaderGlyph>ƪ.◖ƪ❍⊁◞.|◗щ*ㅇ△₊⁎</LoaderGlyph>
-      <LoaderName>{(name || '').toLowerCase()}</LoaderName>
-      <LoaderTrack><span /></LoaderTrack>
+      <LoaderSphereBox>
+        <LoaderSphere />
+      </LoaderSphereBox>
     </LoaderOverlay>
   );
 }
@@ -547,7 +597,7 @@ function QtzxInner() {
   return (
     <Root $palette={palette}>
       <GlobalStyles />
-      <Loader visible={showLoader} name={cv?.name} />
+      <Loader visible={showLoader} />
       <Nav active={!showLoader} projectsExist={projectsExist} />
 
       <ScrollContainer className="qtzx-scroll" onScroll={onScroll}>
@@ -590,6 +640,34 @@ const GlobalStyles = createGlobalStyle`
   .target-cursor-corner.corner-br { transform: translate(6px, 6px); border-left: 0; border-top: 0; }
   .target-cursor-corner.corner-bl { transform: translate(-18px, 6px); border-right: 0; border-top: 0; }
 
+  .glass-surface {
+    position: relative; display: flex; align-items: center; justify-content: center;
+    overflow: hidden; transition: opacity .26s ease-out; isolation: auto; color-scheme: light dark;
+  }
+  .glass-surface__filter { width: 100%; height: 100%; pointer-events: none; position: absolute; inset: 0; opacity: 0; z-index: -1; }
+  .glass-surface__content { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: .4rem; border-radius: inherit; position: relative; isolation: auto; }
+  .glass-surface--svg {
+    background: light-dark(hsl(0 0% 100% / var(--glass-frost, 0)), hsl(0 0% 0% / var(--glass-frost, 0)));
+    isolation: auto;
+    box-shadow:
+      0 0 2px 1px light-dark(color-mix(in oklch,black,transparent 85%),color-mix(in oklch,white,transparent 65%)) inset,
+      0 0 10px 4px light-dark(color-mix(in oklch,black,transparent 90%),color-mix(in oklch,white,transparent 85%)) inset,
+      0 4px 16px #11111a0d, 0 8px 24px #11111a0d, 0 16px 56px #11111a0d,
+      0 4px 16px #11111a0d inset, 0 8px 24px #11111a0d inset, 0 16px 56px #11111a0d inset;
+  }
+  @supports (backdrop-filter: url(#test)) {
+    .glass-surface--svg {
+      -webkit-backdrop-filter: var(--filter-id, url(#glass-filter)) saturate(var(--glass-saturation, 1));
+      backdrop-filter: var(--filter-id, url(#glass-filter)) saturate(var(--glass-saturation, 1));
+    }
+  }
+  @supports not (backdrop-filter: url(#test)) {
+    .glass-surface--svg {
+      backdrop-filter: blur(12px) saturate(var(--glass-saturation, 1));
+      -webkit-backdrop-filter: blur(12px) saturate(var(--glass-saturation, 1));
+    }
+  }
+
   .qtzx-swap-card {
     position: absolute; top: 50%; left: 50%;
     border-radius: 12px; overflow: hidden;
@@ -631,27 +709,25 @@ const NavShell = styled.header`
   transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 `;
 
-const NavPill = styled.nav`
+const NavInner = styled.nav`
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 8px 10px;
-  border-radius: 999px;
-  border: 1px solid ${({ $palette }) => $palette.faint};
-  background: ${({ $palette }) => ($palette.bg === '#1a1a1a' ? 'rgba(40,40,40,0.55)' : 'rgba(255,255,255,0.6)')};
-  backdrop-filter: blur(14px) saturate(1.4);
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
+  padding: 4px 6px;
+  color: #fff;
+  isolation: auto;
+  mix-blend-mode: difference;
 
   a {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 7px 12px;
+    padding: 8px 14px;
     border-radius: 999px;
-    color: ${({ $palette }) => $palette.heading};
+    color: #fff;
     font-family: 'Geist', system-ui, sans-serif;
-    font-weight: 300;
-    font-size: 13px;
+    font-weight: 200;
+    font-size: 14px;
     text-decoration: none;
     cursor: pointer;
     transition: opacity 0.2s ease;
@@ -661,21 +737,20 @@ const NavPill = styled.nav`
 
 const NavDivider = styled.span`
   width: 1px;
-  height: 18px;
-  margin: 0 4px;
-  background: ${({ $palette }) => ($palette.bg === '#1a1a1a' ? '#555' : '#ddd')};
+  height: 22px;
+  margin: 0 6px;
+  background: #fff;
 `;
 
 const ToggleButton = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 7px 11px;
+  padding: 8px 14px;
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: ${({ theme }) => theme?.heading || 'inherit'};
-  color: inherit;
+  color: #fff;
   cursor: pointer;
 `;
 
@@ -713,15 +788,21 @@ const HeroContent = styled.div`
   inset: 0;
   z-index: 20;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding: 0 8vw;
+  padding: 0 6vw;
   pointer-events: none;
   transform-origin: center;
   color: #fff;
 
   a { pointer-events: auto; }
+`;
+
+const HeroInner = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
 `;
 
 const HeroName = styled.h1`
@@ -730,6 +811,7 @@ const HeroName = styled.h1`
   font-weight: 700;
   text-transform: uppercase;
   white-space: pre-line;
+  text-align: left;
   line-height: 0.92;
   font-size: clamp(54px, 12vw, 150px);
 
@@ -801,6 +883,26 @@ const AboutCopy = styled.div`
   p.lead { margin-top: 4px; }
   a.reach { font-weight: 700; cursor: pointer; text-decoration: none; }
   a.reach:hover { text-decoration: underline; text-underline-offset: 4px; }
+`;
+
+const Timeline = styled.ul`
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+
+  li {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 16px;
+    padding: 12px 0;
+    border-top: 1px solid ${({ $palette }) => $palette.faint};
+    font-size: 14px;
+  }
+  li:last-child { border-bottom: 1px solid ${({ $palette }) => $palette.faint}; }
+
+  .date { font-family: 'IBM Plex Mono', monospace; font-size: 12px; opacity: 0.55; }
+  .role { color: ${({ $palette }) => $palette.muted}; }
+  .role strong { font-weight: 700; color: ${({ $palette }) => $palette.heading}; }
 `;
 
 const AboutHeading = styled.div`
@@ -1101,45 +1203,18 @@ const LoaderOverlay = styled.div`
   z-index: 1000;
   display: grid;
   place-items: center;
-  align-content: center;
-  gap: 22px;
   background: #000;
-  color: #f7f3ec;
   opacity: ${({ $visible }) => ($visible ? 1 : 0)};
   pointer-events: ${({ $visible }) => ($visible ? 'auto' : 'none')};
   transition: opacity 0.5s ease 0.1s;
 `;
 
-const LoaderGlyph = styled.div`
-  width: min(320px, 70vw);
-  aspect-ratio: 1;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  font-family: ui-monospace, Menlo, monospace;
-  font-size: clamp(18px, 4vw, 40px);
-  text-align: center;
-  animation: qtzxSpin 1.8s linear infinite;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.12), transparent 32%),
-    conic-gradient(from 0deg, transparent, rgba(255,255,255,0.34), transparent 45%, transparent);
+const LoaderSphereBox = styled.div`
+  width: 18rem;
+  height: 18rem;
 
-  @keyframes qtzxSpin { to { transform: rotate(360deg); } }
-`;
-
-const LoaderName = styled.div`
-  font-family: 'Yeseva One', Georgia, serif;
-  font-size: clamp(26px, 6vw, 56px);
-  line-height: 1;
-`;
-
-const LoaderTrack = styled.div`
-  width: min(260px, 64vw);
-  height: 2px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.16);
-
-  span { display: block; width: 48%; height: 100%; background: #f7f3ec; animation: qtzxTrack 1.2s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
-  @keyframes qtzxTrack { from { transform: translateX(-100%); } to { transform: translateX(230%); } }
+  @media (max-width: 640px) {
+    width: 12rem;
+    height: 12rem;
+  }
 `;
