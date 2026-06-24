@@ -22,6 +22,11 @@ export const ThemeContainer = styled.div`
   --app-top-offset: ${({ $hasTopBar }) => $hasTopBar ? '61px' : '0px'};
   --initial-display: ${({ $hideInitials }) => $hideInitials ? 'none' : 'flex'};
 
+  > * {
+    flex-shrink: 0;
+    width: 100%;
+  }
+
   @media (max-width: 640px) {
     --app-top-offset: ${({ $hasTopBar }) => $hasTopBar ? '57px' : '0px'};
   }
