@@ -327,6 +327,14 @@ export const PORTFOLIO_THEMES = [
     Component: lazyTheme(() => import('./KellyChong/KellyChongTheme'), 'KellyChongTheme'),
   },
   {
+    id: 'rodney-v2',
+    slug: 'paper-pixel',
+    name: 'Paper Pixel',
+    description: 'Paper-toned monospace portfolio with pixel headings, blue accent heatmap, fixed nav, live clock, and comprehensive CV sections inspired by v2.rodney.lol.',
+    source: 'https://v2.rodney.lol',
+    Component: lazyTheme(() => import('./RodneyV2/RodneyV2Theme'), 'RodneyV2Theme'),
+  },
+  {
     id: 'sinister-suns',
     slug: 'moonrest',
     name: 'Moonrest',
