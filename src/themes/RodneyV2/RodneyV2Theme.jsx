@@ -568,6 +568,8 @@ const Shell = styled.div`
   --font-mono: 'Rodney Ioskeley Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-pixel: 'Rodney Geist Pixel', 'Rodney Ioskeley Mono', ui-monospace, monospace;
 
+  flex: 0 0 auto;
+  width: 100%;
   min-height: 100vh;
   background:
     linear-gradient(90deg, rgba(227, 225, 218, 0.4) 1px, transparent 1px) 0 0 / 12.5% 100%,
