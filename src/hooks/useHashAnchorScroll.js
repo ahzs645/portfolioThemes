@@ -65,6 +65,10 @@ export function useHashAnchorScroll(dependency) {
       window.setTimeout(() => {
         if (!cancelled) attemptScroll();
       }, 0);
+
+      // If the anchor never appears (bad bookmark), stop observing rather
+      // than re-running on every DOM mutation of animation-heavy themes.
+      window.setTimeout(stopWatching, 10000);
     };
 
     scrollWhenReady();
