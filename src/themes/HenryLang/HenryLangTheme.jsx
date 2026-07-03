@@ -7,7 +7,10 @@ import { BlendMode, Screen, globalDebugInfo, resetGlobalDebugInfo } from './engi
 import { BrowserProgram, DebuggerProgram, PainterProgram, TextEditProgram } from './programs.js';
 import { defaultGlyphSet } from './glyphs.js';
 
-const CELL_SIZE = 8;
+// Grid density is anchored to CSS pixels (4px per cell — what the original
+// 8-device-px cell produced on the retina screens this was designed on), so
+// text renders the same physical size on 1x desktops and 3x phones alike.
+const CELL_SIZE_CSS = 4;
 const WINDOW_CHROME_HEIGHT = 11;
 const TASKBAR_HEIGHT = 10;
 
@@ -232,6 +235,7 @@ export function HenryLangTheme() {
     if (!gl) return undefined;
 
     const dpr = window.devicePixelRatio || 1;
+    const cellSize = Math.max(2, Math.round(CELL_SIZE_CSS * dpr));
     const screenState = {
       gridW: 0,
       gridH: 0,
@@ -312,8 +316,24 @@ export function HenryLangTheme() {
       },
     };
 
+    // Default program sizes assume a desktop grid; clamp so windows spawned
+    // on small screens stay fully reachable (close button, resize handle).
+    function clampWindowSize(programInstance) {
+      const data = programInstance.systemData;
+      const maxW = Math.max(40, screenState.gridW - 6);
+      const maxH = Math.max(30, screenState.gridH - TASKBAR_HEIGHT - WINDOW_CHROME_HEIGHT - 4);
+      if (data.width > maxW || data.height > maxH) {
+        programInstance.setSize(Math.min(data.width, maxW), Math.min(data.height, maxH));
+      }
+    }
+
     const createInitialBrowser = () => {
       const browser = new BrowserProgram(defaultGlyphSet, pages);
+      clampWindowSize(browser);
+      if (screenState.gridW < 160) {
+        browser.systemData.x = 2;
+        browser.systemData.y = TASKBAR_HEIGHT + 2;
+      }
       browser.initialize(context);
       runningPrograms.push(browser);
     };
@@ -325,8 +345,8 @@ export function HenryLangTheme() {
       canvas.width = width;
       canvas.height = height;
 
-      screenState.gridW = Math.max(40, Math.floor(width / CELL_SIZE));
-      screenState.gridH = Math.max(30, Math.floor(height / CELL_SIZE));
+      screenState.gridW = Math.max(40, Math.floor(width / cellSize));
+      screenState.gridH = Math.max(30, Math.floor(height / cellSize));
       screenState.screen = new Screen(screenState.gridH, screenState.gridW, 10, defaultGlyphSet);
       screenState.textureData = new Uint8Array(screenState.gridW * screenState.gridH);
       screenState.texture = gl.createTexture();
@@ -383,6 +403,7 @@ export function HenryLangTheme() {
       const app = descriptor.create();
       app.systemData.x = 20 + runningPrograms.length * 4;
       app.systemData.y = 20 + runningPrograms.length * 3;
+      clampWindowSize(app);
       clampWindow(app);
       app.initialize?.(context);
       runningPrograms.push(app);
@@ -441,8 +462,8 @@ export function HenryLangTheme() {
       screen.drawText(currentTime, 1, screenState.gridW - 6 * currentTime.length - 2);
 
       if (mouseX !== null && mouseY !== null) {
-        const row = Math.floor(mouseY / CELL_SIZE);
-        const col = Math.floor(mouseX / CELL_SIZE);
+        const row = Math.floor(mouseY / cellSize);
+        const col = Math.floor(mouseX / cellSize);
         screen.drawGlyph(0, row, col, BlendMode.OVERWRITE);
       }
 
@@ -484,8 +505,8 @@ export function HenryLangTheme() {
       mouseX = (event.clientX - rect.left) * dpr;
       mouseY = (event.clientY - rect.top) * dpr;
       return {
-        row: Math.floor(mouseY / CELL_SIZE),
-        col: Math.floor(mouseX / CELL_SIZE),
+        row: Math.floor(mouseY / cellSize),
+        col: Math.floor(mouseX / cellSize),
       };
     }
 
@@ -657,20 +678,58 @@ export function HenryLangTheme() {
       }
     }
 
+    // Touch has no wheel: dragging inside the focused window's content
+    // scrolls it (window dragging still works from the title bar, which
+    // handleMouseDown claims first via isDragging).
+    let touchScrollTarget = null;
+    let touchLastY = 0;
+
+    function handlePointerDown(event) {
+      handleMouseDown(event);
+      if (event.pointerType === 'touch' && !isDragging && !isResizing && !menuOpen) {
+        const top = runningPrograms[runningPrograms.length - 1];
+        const { row, col } = getPointerPosition(event);
+        if (top && isInsideProgram(top, col, row)) {
+          touchScrollTarget = top;
+          touchLastY = mouseY;
+        }
+      }
+    }
+
+    function handlePointerMove(event) {
+      if (event.pointerType === 'touch' && touchScrollTarget && !isDragging && !isResizing) {
+        getPointerPosition(event);
+        const deltaY = touchLastY - mouseY;
+        touchLastY = mouseY;
+        touchScrollTarget.onScroll?.(deltaY);
+        return;
+      }
+      handleMouseMove(event);
+    }
+
+    function handlePointerUp(event) {
+      touchScrollTarget = null;
+      handleMouseUp(event);
+    }
+
     function handleResize() {
       if (screenState.texture) {
         gl.deleteTexture(screenState.texture);
       }
       setupScreen();
+      for (const running of runningPrograms) {
+        clampWindowSize(running);
+        clampWindow(running);
+      }
     }
 
     setupScreen();
     createInitialBrowser();
     animationFrame = window.requestAnimationFrame(renderFrame);
 
-    canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('mousedown', handleMouseDown);
-    window.addEventListener('mouseup', handleMouseUp);
+    canvas.addEventListener('pointermove', handlePointerMove);
+    canvas.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('pointerup', handlePointerUp);
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     window.addEventListener('wheel', handleWheel, { passive: true });
@@ -678,9 +737,9 @@ export function HenryLangTheme() {
 
     return () => {
       window.cancelAnimationFrame(animationFrame);
-      canvas.removeEventListener('mousemove', handleMouseMove);
-      canvas.removeEventListener('mousedown', handleMouseDown);
-      window.removeEventListener('mouseup', handleMouseUp);
+      canvas.removeEventListener('pointermove', handlePointerMove);
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('pointerup', handlePointerUp);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('wheel', handleWheel);
@@ -716,7 +775,13 @@ const Canvas = styled.canvas`
   width: 100%;
   height: 100%;
   image-rendering: pixelated;
-  cursor: none;
+  touch-action: none;
+
+  /* The engine draws its own cursor glyph; hide the OS cursor only where
+     a hardware pointer exists. */
+  @media (pointer: fine) {
+    cursor: none;
+  }
 `;
 
 const Hint = styled.div`

@@ -182,13 +182,15 @@ export function LiamMattesonTheme({ darkMode }) {
 /* ── Styled Components ─────────────────────────────────── */
 
 const Page = styled.div`
-  min-height: 100vh;
+  min-height: 100%;
   background: ${({ $theme }) => $theme.bg};
   color: ${({ $theme }) => $theme.text};
 `;
 
 const ScreenWrap = styled.div`
-  height: 100vh;
+  /* Center within the visible area below the TopBar; raw 100vh pushed the
+     centered intro down and clipped it. */
+  height: calc(100dvh - var(--app-top-offset, 0px));
   overflow: hidden;
   display: flex;
   flex-direction: column;

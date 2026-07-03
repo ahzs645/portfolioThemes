@@ -154,7 +154,9 @@ const ThemeRoot = styled.div`
   font-family: ${fonts.mono};
   background-color: ${colors.primaryBg};
   color: ${colors.primaryText};
-  height: 100vh;
+  /* Fill the shell's theme container (viewport minus TopBar) instead of the
+     raw viewport, which clipped the TUI bottom under the bar. */
+  height: 100%;
   padding: 1rem;
   overflow: hidden;
   cursor: default;

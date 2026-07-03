@@ -88,6 +88,28 @@ function vnoise(x, y) {
   return lerp(lerp(a, b, u), lerp(c, d, u), v);
 }
 
+function wrapText(text, width) {
+  const words = String(text || '').split(/\s+/).filter(Boolean);
+  const lines = [];
+  let line = '';
+  for (const word of words) {
+    const next = line ? `${line} ${word}` : word;
+    if (next.length > width && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = next;
+    }
+  }
+  if (line) lines.push(line);
+  return lines.length ? lines : [''];
+}
+
+function truncate(text, width) {
+  const value = String(text || '');
+  return value.length <= width ? value : `${value.slice(0, Math.max(0, width - 1))}…`;
+}
+
 function makeCanvas(w = 1, h = 1) {
   const c = document.createElement('canvas');
   c.width = w;
@@ -167,6 +189,7 @@ export class VibeCodedRuntime {
     this.start = 0;
     this.last = 0;
     this.disposed = false;
+    this.resizeObserver = null;
 
     this.state = {
       appMode: 'overlay',
@@ -224,6 +247,10 @@ export class VibeCodedRuntime {
     this.mount.addEventListener('pointerdown', this.onPointerDown);
     window.addEventListener('keydown', this.onKey);
     window.addEventListener('resize', this.onResize);
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(this.onResize);
+      this.resizeObserver.observe(this.mount);
+    }
     this.raf = requestAnimationFrame((now) => this.frame(now));
   }
 
@@ -331,30 +358,39 @@ export class VibeCodedRuntime {
     this.diceCamera.aspect = this.cssW / this.cssH;
     this.diceCamera.updateProjectionMatrix();
 
-    this.cellW = Math.max(14, Math.min(24, (this.cssW / 86) * (this.state.displayScale / 2)));
+    // Narrow screens need smaller cells so the overlay box keeps enough
+    // text columns; 9px matches the bitmap font's native glyph width.
+    const minCell = this.cssW < 640 ? 9 : 14;
+    this.cellW = Math.max(minCell, Math.min(24, (this.cssW / 86) * (this.state.displayScale / 2)));
     this.cellH = (this.cellW * 16) / 9;
     this.cols = Math.max(1, Math.ceil(this.cssW / this.cellW));
     this.rows = Math.max(1, Math.ceil(this.cssH / this.cellH));
     this.asciiCanvas.width = Math.floor(this.cssW * dpr);
     this.asciiCanvas.height = Math.floor(this.cssH * dpr);
     this.asciiCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    this.fluid = new Fluid(this.cols, this.rows);
+    if (!this.fluid || this.fluid.w !== this.cols || this.fluid.h !== this.rows) {
+      this.fluid = new Fluid(this.cols, this.rows);
+    }
   }
 
   computeLayout() {
     const d = this.data;
     const s = this.state;
+    // On narrow grids give the box nearly the full width and wrap the
+    // headline instead of letting text spill past the frame.
+    const margin = this.cols < 52 ? 2 : 6;
     const lines =
       s.view === 'contact'
         ? [d.headline, d.email || '', d.xHandle ? `x: ${d.xHandle}` : '']
         : d.projects.map((p) => `> ${p.label}`);
     const longest = lines.reduce((m, l) => Math.max(m, l.length), 0);
     const innerW = Math.max(longest + 8, 44);
-    const boxW = Math.min(this.cols - 6, innerW);
+    const boxW = Math.max(24, Math.min(this.cols - margin, innerW));
+    const headlineLines = s.view === 'contact' ? wrapText(d.headline, boxW - 6) : [];
     const boxH =
       s.view === 'contact'
-        ? Math.min(this.rows - 6, 18)
-        : Math.min(this.rows - 6, Math.max(14, d.projects.length * 3 + 7));
+        ? Math.min(this.rows - 4, Math.max(14, 9 + headlineLines.length + (d.email ? 2 : 0) + (d.xHandle ? 2 : 0)))
+        : Math.min(this.rows - 4, Math.max(14, d.projects.length * 3 + 7));
     const x0 = Math.floor((this.cols - boxW) / 2);
     const y0 = Math.floor((this.rows - boxH) / 2);
     const dividerX = x0 + Math.floor(boxW / 2);
@@ -367,18 +403,24 @@ export class VibeCodedRuntime {
     const content = [];
 
     if (s.view === 'contact') {
-      const top = y0 + 4;
-      const mid = y0 + Math.floor(boxH * 0.42);
-      const low = y0 + Math.floor(boxH * 0.62);
-      content.push({ type: 'center', text: d.headline, cx, y: top });
+      let y = y0 + 4;
+      for (const line of headlineLines) {
+        content.push({ type: 'center', text: line, cx, y });
+        y += 1;
+      }
+      y += 1;
       if (d.email) {
-        content.push({ type: 'center', kind: 'email', text: s.copiedSeconds > 0 ? 'copied' : d.email, cx, y: mid });
-        links.push({ kind: 'email', x: cx - Math.ceil(d.email.length / 2), y: mid, w: d.email.length, h: 1, url: `mailto:${d.email}` });
+        const emailText = truncate(s.copiedSeconds > 0 ? 'copied' : d.email, boxW - 4);
+        const linkW = Math.min(d.email.length, boxW - 4);
+        content.push({ type: 'center', kind: 'email', text: emailText, cx, y });
+        links.push({ kind: 'email', x: cx - Math.ceil(linkW / 2), y, w: linkW, h: 1, url: `mailto:${d.email}` });
+        y += 2;
       }
       if (d.xHandle) {
-        const xt = `x: ${d.xHandle}`;
-        content.push({ type: 'center', kind: 'x', url: d.xUrl || undefined, text: xt, cx, y: low });
-        if (d.xUrl) links.push({ kind: 'x', x: cx - Math.ceil(xt.length / 2), y: low, w: xt.length, h: 1, url: d.xUrl });
+        const xt = truncate(`x: ${d.xHandle}`, boxW - 4);
+        content.push({ type: 'center', kind: 'x', url: d.xUrl || undefined, text: xt, cx, y });
+        if (d.xUrl) links.push({ kind: 'x', x: cx - Math.ceil(xt.length / 2), y, w: xt.length, h: 1, url: d.xUrl });
+        y += 2;
       }
       content.push({ type: 'prompt', x: x0 + 3, y: y0 + boxH - 3 });
       links.push({ kind: 'input', x: x0 + 1, y: y0 + boxH - 3, w: boxW - 2, h: 1 });
@@ -635,7 +677,12 @@ export class VibeCodedRuntime {
     if (!this.layout || this.state.appMode !== 'overlay') return null;
     const gx = px / this.cellW;
     const gy = py / this.cellH;
-    return this.layout.links.find((l) => gx >= l.x && gx < l.x + l.w && gy >= l.y && gy < l.y + l.h) || null;
+    // Pad hit areas by a bit less than half a cell so one-row links stay
+    // tappable on touch screens without overlapping their neighbors.
+    const pad = 0.4;
+    return this.layout.links.find(
+      (l) => gx >= l.x - pad && gx < l.x + l.w + pad && gy >= l.y - pad && gy < l.y + l.h + pad,
+    ) || null;
   }
 
   handlePointerMove(event) {
@@ -764,6 +811,7 @@ export class VibeCodedRuntime {
   dispose() {
     this.disposed = true;
     cancelAnimationFrame(this.raf);
+    this.resizeObserver?.disconnect();
     window.removeEventListener('resize', this.onResize);
     window.removeEventListener('keydown', this.onKey);
     this.mount.removeEventListener('pointermove', this.onPointerMove);

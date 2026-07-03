@@ -88,8 +88,7 @@ const GlobalStyle = createGlobalStyle`
 const Wrap = styled.main`
   position: relative;
   width: 100%;
-  height: 100vh;
-  min-height: 100%;
+  height: 100%;
   overflow: hidden;
   background: #02050b;
   color: #d6ffdf;
