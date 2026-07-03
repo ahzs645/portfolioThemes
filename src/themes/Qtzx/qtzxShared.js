@@ -1,4 +1,4 @@
-import { createContext, createElement, useContext, useState, useMemo, useCallback } from 'react';
+import { createContext, createElement, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 
 // Monochrome palettes faithful to qtzx.dev (no accent colour — pure dark/light).
 export const PALETTES = {
@@ -32,9 +32,20 @@ export const PALETTES = {
 
 const DarkModeContext = createContext(null);
 
-export function DarkModeProvider({ initialDark = true, children }) {
+export function DarkModeProvider({ initialDark = true, onDarkModeChange, children }) {
   const [isDarkMode, setIsDarkMode] = useState(initialDark);
-  const toggleDarkMode = useCallback(() => setIsDarkMode((value) => !value), []);
+
+  // Follow external dark-mode changes (e.g. the shell's top-bar toggle).
+  useEffect(() => {
+    setIsDarkMode(initialDark);
+  }, [initialDark]);
+
+  const toggleDarkMode = useCallback(() => {
+    const next = !isDarkMode;
+    setIsDarkMode(next);
+    // Keep the shell in sync with the in-theme toggle.
+    onDarkModeChange?.(next);
+  }, [isDarkMode, onDarkModeChange]);
 
   const value = useMemo(
     () => ({

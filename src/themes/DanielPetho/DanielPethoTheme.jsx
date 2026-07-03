@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-import { filterActive, formatDateRange, isPresent } from '../../utils/cvHelpers';
+import { filterActive, formatDate, formatDateRange, isPresent } from '../../utils/cvHelpers';
 
 const BG = '#fefefe';
 const FG = '#0a0a0a';
@@ -105,9 +105,9 @@ function Scramble({ text = '', delay = 0, hover, className }) {
   );
 }
 
+// Year-only display; "present" and unparseable values render as '' (historical behavior).
 function getYear(value) {
-  const match = String(value || '').match(/\d{4}/);
-  return match ? match[0] : '';
+  return formatDate(value, { month: 'none', presentLabel: '', fallback: '' });
 }
 
 function getProjectImage(project) {

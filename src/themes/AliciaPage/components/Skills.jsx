@@ -2,10 +2,12 @@ import React from 'react';
 import styled from 'styled-components';
 import { FONT } from '../utils/tokens';
 import { ShuffleSectionLabel } from './Hero';
+import { isPresent } from '../../../utils/cvHelpers';
 
+// Dates are shown raw (e.g. "2023-05"); only "present" is normalized.
 function formatDate(dateStr) {
   if (!dateStr) return '';
-  if (/present/i.test(String(dateStr))) return 'Present';
+  if (isPresent(dateStr)) return 'Present';
   return String(dateStr);
 }
 

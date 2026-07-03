@@ -1,5 +1,6 @@
 import React from 'react';
 import styled, { keyframes } from 'styled-components';
+import { isPresent } from '../../../utils/cvHelpers';
 
 const COLORS = {
   text: '#2a2520',
@@ -92,9 +93,10 @@ const Highlights = styled.ul`
   }
 `;
 
+// Dates are shown raw (e.g. "2023-05"); only "present" is normalized.
 function formatDate(d) {
   if (!d) return '';
-  if (String(d).toLowerCase().trim() === 'present') return 'Present';
+  if (isPresent(d)) return 'Present';
   return d;
 }
 

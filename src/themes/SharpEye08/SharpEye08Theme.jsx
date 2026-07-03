@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { isArchived, isPresent, pickSocialUrl } from '../../utils/cvHelpers';
@@ -73,13 +73,10 @@ const lightTheme = {
   toggleHv: '#444',
 };
 
-export function SharpEye08Theme({ darkMode }) {
+export function SharpEye08Theme({ darkMode, onDarkModeChange }) {
   const cv = useCV() || {};
-  const [isDark, setIsDark] = useState(darkMode ?? true);
-
-  useEffect(() => {
-    if (typeof darkMode === 'boolean') setIsDark(darkMode);
-  }, [darkMode]);
+  // Fully controlled by the shell's darkMode prop; defaults to dark when the prop is absent
+  const isDark = darkMode ?? true;
 
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;
@@ -160,7 +157,7 @@ export function SharpEye08Theme({ darkMode }) {
     <ThemeProvider theme={theme}>
       <GlobalReset />
       <Page>
-        <ThemeToggle onClick={() => setIsDark(!isDark)}>
+        <ThemeToggle onClick={() => onDarkModeChange?.(!isDark)}>
           {isDark ? 'light' : 'dark'}
         </ThemeToggle>
         <Container>
@@ -347,11 +344,15 @@ const Container = styled.div`
   max-width: 820px;
   margin: 0 auto;
   padding: 0 40px;
+
+  @media (max-width: 640px) {
+    padding: 0 20px;
+  }
 `;
 
 const ThemeToggle = styled.button`
   position: fixed;
-  top: 24px;
+  top: calc(var(--app-top-offset, 0px) + 16px);
   right: 32px;
   background: ${(p) => p.theme.toggleBg};
   border: 1px solid ${(p) => p.theme.toggleBorder};
@@ -460,6 +461,11 @@ const Entry = styled.div`
   align-items: baseline;
   gap: 20px;
   margin-bottom: 6px;
+
+  @media (max-width: 640px) {
+    flex-wrap: wrap;
+    gap: 4px 12px;
+  }
 `;
 
 const EntryTag = styled.span`
@@ -496,4 +502,8 @@ const EntryDesc = styled.p`
   font-size: 12px;
   margin: 3px 0 12px 110px;
   line-height: 1.7;
+
+  @media (max-width: 640px) {
+    margin-left: 0;
+  }
 `;

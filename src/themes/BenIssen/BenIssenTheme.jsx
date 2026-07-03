@@ -24,8 +24,6 @@ import {
 import {
   C,
   COLORS,
-  FONT_HREF,
-  useFontLink,
   statusFor,
   getInitials,
 } from './helpers';
@@ -67,8 +65,6 @@ export function BenIssenTheme() {
   const [clearKey, setClearKey] = useState(0);
   const [toolsOpen, setToolsOpen] = useState(false);
   const rightScrollRef = useRef(null);
-
-  useFontLink(FONT_HREF);
 
   useEffect(() => {
     document.body.classList.add('benissen-locked');

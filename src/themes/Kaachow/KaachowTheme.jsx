@@ -6,7 +6,6 @@ import { withBase } from '../../utils/assetPath';
 const MATTER_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js';
 
 const FontLoader = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400&family=JetBrains+Mono:wght@300;400&display=swap');
 
   body.kaachow-cursor-active {
     cursor: none !important;
@@ -25,7 +24,9 @@ const FontLoader = createGlobalStyle`
 
 const Page = styled.div`
   position: relative;
-  height: 100vh;
+  /* Fill the shell's theme container (viewport minus TopBar) instead of the
+     raw viewport, which clipped the scene bottom under the bar. */
+  height: 100%;
   width: 100%;
   background: ${p => p.$dark ? '#1a1a1e' : '#f5f5f5'};
   color: ${p => p.$dark ? '#d8d8d8' : '#2a2a2e'};

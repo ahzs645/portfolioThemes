@@ -5,7 +5,6 @@ import { formatDateRange } from '../../utils/cvHelpers';
 
 /* ───── fonts ───── */
 const FontStyle = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600&display=swap');
 `;
 
 /* ───── animations ───── */

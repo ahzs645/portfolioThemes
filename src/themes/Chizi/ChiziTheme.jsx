@@ -7,7 +7,6 @@ import { isArchived, isPresent } from '../../utils/cvHelpers';
 // Load Inter font (closest to Uncut Sans available on Google Fonts)
 // Uncut Sans is the original font but not available publicly
 const FontLoader = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 `;
 
 // Color tokens matching chizi.dev exactly

@@ -2,7 +2,7 @@ import React, { useMemo, useEffect, useState } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { getBioText } from '../../utils/bioText';
-import { isArchived, isPresent, pickSocialUrl } from '../../utils/cvHelpers';
+import { formatDate, isArchived, pickSocialUrl } from '../../utils/cvHelpers';
 
 // Group experience entries by company with their positions
 function groupExperience(experience = []) {
@@ -41,17 +41,9 @@ function groupExperience(experience = []) {
   return groups;
 }
 
-function getYear(dateStr) {
-  if (!dateStr) return '';
-  if (isPresent(dateStr)) return 'Present';
-  const str = String(dateStr);
-  if (str.length >= 4) return str.substring(0, 4);
-  return str;
-}
-
 function formatDateRange(start, end) {
-  const startYear = getYear(start);
-  const endYear = getYear(end);
+  const startYear = formatDate(start, { month: 'none' });
+  const endYear = formatDate(end, { month: 'none' });
   if (!startYear && !endYear) return '';
   if (!endYear || startYear === endYear) return startYear;
   return `${startYear} - ${endYear}`;
@@ -71,25 +63,10 @@ export function NickComputerTheme({ darkMode = false }) {
   const cv = useCV() || {};
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Inject Rammetto One font
+  // Trigger entrance animations after mount
   useEffect(() => {
-    const linkId = 'nick-computer-font';
-    if (!document.getElementById(linkId)) {
-      const link = document.createElement('link');
-      link.id = linkId;
-      link.rel = 'stylesheet';
-      link.href = 'https://fonts.googleapis.com/css2?family=Rammetto+One&display=swap';
-      document.head.appendChild(link);
-    }
-
-    // Trigger entrance animations after mount
     const timer = setTimeout(() => setIsLoaded(true), 100);
-
-    return () => {
-      const el = document.getElementById(linkId);
-      if (el) el.remove();
-      clearTimeout(timer);
-    };
+    return () => clearTimeout(timer);
   }, []);
 
   const fullName = cv?.name || 'Your Name';

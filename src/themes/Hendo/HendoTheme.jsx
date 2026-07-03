@@ -74,13 +74,11 @@ const NAV_ITEMS = [
   { id: 'professional-development', label: 'Prof. Dev.' },
 ];
 
-export function HendoTheme({ darkMode = false }) {
+export function HendoTheme({ darkMode = false, onDarkModeChange }) {
   const cv = useCV() || {};
   const [activeSection, setActiveSection] = useState('about');
-  const [isDark, setIsDark] = useState(darkMode);
-
-  // Sync with external darkMode prop
-  React.useEffect(() => { setIsDark(darkMode); }, [darkMode]);
+  // Dark mode is fully controlled by the shell's darkMode prop
+  const isDark = darkMode;
 
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;
@@ -411,7 +409,7 @@ export function HendoTheme({ darkMode = false }) {
         </Main>
 
         <ThemeToggle
-          onClick={() => setIsDark(!isDark)}
+          onClick={() => onDarkModeChange?.(!isDark)}
           $isDark={isDark}
           title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
         />
@@ -421,7 +419,6 @@ export function HendoTheme({ darkMode = false }) {
 }
 
 const GlobalStyle = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 `;
 
 const Container = styled.div`

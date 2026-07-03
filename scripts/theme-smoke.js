@@ -83,16 +83,46 @@ function startServer(port) {
   });
 }
 
+// Sandboxed/CI environments often route outbound HTTPS through a local
+// proxy with its own CA, or block external hosts entirely. Without these
+// escape hatches every route fails on external font/CDN requests and
+// drowns out real regressions:
+// - QA_PROXY / HTTPS_PROXY: route browser traffic through the proxy.
+// - QA_CHROMIUM: path to a pre-installed Chromium executable.
+// - QA_IGNORE_EXTERNAL=1: report only failures for same-origin resources.
+const PROXY_SERVER = process.env.QA_PROXY || process.env.HTTPS_PROXY || process.env.https_proxy || null;
+const IGNORE_EXTERNAL = process.env.QA_IGNORE_EXTERNAL === '1';
+const launchOptions = {
+  ...(PROXY_SERVER ? { proxy: { server: PROXY_SERVER, bypass: 'localhost,127.0.0.1' } } : {}),
+  ...(process.env.QA_CHROMIUM ? { executablePath: process.env.QA_CHROMIUM } : {}),
+};
+const pageOptions = PROXY_SERVER ? { ignoreHTTPSErrors: true } : {};
+
+function isExternalIssue(issue) {
+  const match = issue.match(/https?:\/\/[^\s"')]+/);
+  return Boolean(match && !match[0].includes('127.0.0.1') && !match[0].includes('localhost'));
+}
+
+function filterIssues(issues) {
+  return IGNORE_EXTERNAL ? issues.filter((issue) => !isExternalIssue(issue)) : issues;
+}
+
 async function checkRoute(browser, baseUrl, theme, viewport) {
-  const path = theme.slug === 'minimal' ? '/' : `/${theme.slug}`;
+  // Every theme resolves at its explicit slug route (the root "/" belongs to
+  // whichever theme is configured as default; the app-shell check covers it).
+  const path = `/${theme.slug}`;
   const page = await browser.newPage({
+    ...pageOptions,
     viewport,
     reducedMotion: 'reduce',
   });
   const issues = [];
 
   page.on('console', (message) => {
-    if (message.type() === 'error') issues.push(`console error: ${message.text()}`);
+    if (message.type() === 'error') {
+      const url = message.location()?.url || '';
+      issues.push(`console error: ${message.text()}${url ? ` (${url})` : ''}`);
+    }
   });
   page.on('pageerror', (error) => {
     issues.push(`page error: ${error.message}`);
@@ -139,11 +169,12 @@ async function checkRoute(browser, baseUrl, theme, viewport) {
     await page.close();
   }
 
-  return { theme, viewport, issues };
+  return { theme, viewport, issues: filterIssues(issues) };
 }
 
 async function checkAppShell(browser, baseUrl) {
   const page = await browser.newPage({
+    ...pageOptions,
     viewport: { width: 1280, height: 900 },
     reducedMotion: 'reduce',
   });
@@ -153,7 +184,10 @@ async function checkAppShell(browser, baseUrl) {
   const validPath = resolve(tmp, 'valid.yaml');
 
   page.on('console', (message) => {
-    if (message.type() === 'error') issues.push(`console error: ${message.text()}`);
+    if (message.type() === 'error') {
+      const url = message.location()?.url || '';
+      issues.push(`console error: ${message.text()}${url ? ` (${url})` : ''}`);
+    }
   });
   page.on('pageerror', (error) => {
     issues.push(`page error: ${error.message}`);
@@ -210,7 +244,7 @@ async function checkAppShell(browser, baseUrl) {
     rmSync(tmp, { recursive: true, force: true });
   }
 
-  return { issues };
+  return { issues: filterIssues(issues) };
 }
 
 async function main() {
@@ -230,9 +264,14 @@ async function main() {
     server = await startServer(port);
   }
 
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(launchOptions);
   const results = [];
   try {
+    // Warm up Vite's dep optimizer so the first measured route doesn't race
+    // its re-bundling ("504 Outdated Optimize Dep" flakes).
+    const warmup = await browser.newPage(pageOptions);
+    await warmup.goto(baseUrl, { waitUntil: 'networkidle', timeout: 60000 }).catch(() => {});
+    await warmup.close();
     for (const theme of themes) {
       for (const viewport of viewports) {
         const result = await checkRoute(browser, baseUrl, theme, viewport);

@@ -31,12 +31,10 @@ const darkTheme = {
   searchBorder: '#444444',
 };
 
-export function AlanaGoyalTheme({ darkMode = false }) {
+export function AlanaGoyalTheme({ darkMode = false, onDarkModeChange }) {
   const cv = useCV() || {};
-  const [isDark, setIsDark] = useState(darkMode);
-
-  // Sync with external darkMode prop
-  React.useEffect(() => { setIsDark(darkMode); }, [darkMode]);
+  // Dark mode is fully controlled by the shell's darkMode prop
+  const isDark = darkMode;
 
   const [activeNote, setActiveNote] = useState('about');
   const [searchQuery, setSearchQuery] = useState('');
@@ -633,7 +631,7 @@ export function AlanaGoyalTheme({ darkMode = false }) {
 
           <SidebarHeader>
             <SidebarTitle>{fullName.toLowerCase()}</SidebarTitle>
-            <ThemeToggle onClick={() => setIsDark(!isDark)} title={isDark ? 'Light mode' : 'Dark mode'}>
+            <ThemeToggle onClick={() => onDarkModeChange?.(!isDark)} title={isDark ? 'Light mode' : 'Dark mode'}>
               {isDark ? (
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="5"/>

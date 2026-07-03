@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-import { isPresent, pickSocialUrl } from '../../utils/cvHelpers';
+import { formatDate as formatCvDate, isPresent, pickSocialUrl } from '../../utils/cvHelpers';
 import tardisGif from './assets/tardis-rotate.gif';
 
 const colors = {
@@ -54,12 +54,9 @@ function formatDateRange(start, end) {
     if (!d) return '';
     if (isPresent(d)) return 'Present';
     const str = String(d);
-    if (str.length === 7) {
-      const [year, month] = str.split('-');
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      return `${months[parseInt(month, 10) - 1]} ${year}`;
-    }
-    return str;
+    // Historical behavior: only "YYYY-MM" values render as "Mon YYYY";
+    // everything else (years, full dates) renders raw.
+    return str.length === 7 ? formatCvDate(str) : str;
   };
   return `${formatDate(start)} — ${formatDate(end)}`;
 }

@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import styled from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { getBioText } from '../../utils/bioText';
-import { filterActive, flattenExperience } from '../../utils/cvHelpers';
+import { filterActive, flattenExperience, formatRange } from '../../utils/cvHelpers';
 import faviconUrl from './assets/favicon.png';
 
 function hostLabel(url) {
@@ -20,11 +20,7 @@ function linkLabel(text = '') {
 }
 
 function formatDate(start, end) {
-  const years = [start, end]
-    .filter(Boolean)
-    .map((date) => String(date).toLowerCase() === 'present' ? 'now' : String(date).slice(0, 4));
-
-  return years.length ? years.join(' - ') : '';
+  return formatRange(start, end, { month: 'none', separator: ' - ', presentLabel: 'now', collapseEqual: false });
 }
 
 function MarkdownLink({ label, href }) {

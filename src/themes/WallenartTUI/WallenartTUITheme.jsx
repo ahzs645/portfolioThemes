@@ -105,18 +105,6 @@ export function WallenartTUITheme() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [sectionIndex, itemIndex, goToSection, goToItem]);
 
-  useEffect(() => {
-    const id = 'wallenart-tui-font';
-    if (!document.getElementById(id)) {
-      const link = document.createElement('link');
-      link.id = id;
-      link.rel = 'stylesheet';
-      link.href =
-        'https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;700&display=swap';
-      document.head.appendChild(link);
-    }
-  }, []);
-
   if (!cv) return null;
 
   return (
@@ -154,7 +142,9 @@ const ThemeRoot = styled.div`
   font-family: ${fonts.mono};
   background-color: ${colors.primaryBg};
   color: ${colors.primaryText};
-  height: 100vh;
+  /* Fill the shell's theme container (viewport minus TopBar) instead of the
+     raw viewport, which clipped the TUI bottom under the bar. */
+  height: 100%;
   padding: 1rem;
   overflow: hidden;
   cursor: default;

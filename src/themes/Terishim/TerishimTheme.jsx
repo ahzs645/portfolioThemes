@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import styled, { createGlobalStyle, keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-import { formatDateRange, normalizeHighlights } from '../../utils/cvHelpers';
+import { formatDate, formatDateRange, normalizeHighlights } from '../../utils/cvHelpers';
 
 /* ──────────────────────────────────────────────────────────────
    Terishim — "in orbit"
@@ -54,8 +54,8 @@ function roleWord(title = '') {
   return words[words.length - 1] || 'maker';
 }
 function yearOf(v) {
-  const m = String(v || '').match(/\d{4}/);
-  return m ? m[0] : '';
+  // Bare year, with '' for "present"/unparseable values.
+  return formatDate(v, { month: 'none', presentLabel: '', fallback: '' });
 }
 function articleFor(word = '') {
   return /^[aeiou]/i.test(word.trim()) ? 'an' : 'a';
@@ -1119,7 +1119,6 @@ const blink = keyframes`0%,100%{opacity:1}50%{opacity:0}`;
 const fadeUp = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`;
 
 const GlobalStyle = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,200;0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,200;1,9..40,300;1,9..40,400&family=DM+Mono:wght@300;400;500&family=Noto+Serif+KR:wght@200;300&display=swap');
   body { background: #e8e8ec; }
 `;
 

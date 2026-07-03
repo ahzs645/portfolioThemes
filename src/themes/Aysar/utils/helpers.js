@@ -1,7 +1,8 @@
 import {
+  formatDate,
+  formatRange,
   getInitials as getSharedInitials,
   getSkillLabel,
-  isPresent,
 } from '../../../utils/cvHelpers';
 
 export function getInitials(name = '') {
@@ -46,25 +47,12 @@ export function trimText(text = '', maxLength = 132) {
 }
 
 export function formatDisplayDate(dateValue) {
-  if (!dateValue) return '';
-  if (isPresent(dateValue)) return 'Present';
-
-  const stringValue = String(dateValue);
-  if (/^\d{4}$/.test(stringValue)) return stringValue;
-
-  const [year, month] = stringValue.split('-');
-  if (!month) return year || stringValue;
-
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const monthLabel = months[Number(month) - 1];
-  return monthLabel ? `${monthLabel} ${year}` : stringValue;
+  // "May 2023" / "2023" / "Present"
+  return formatDate(dateValue);
 }
 
 export function formatDisplayRange(startDate, endDate) {
-  const start = formatDisplayDate(startDate);
-  const end = formatDisplayDate(endDate);
-  if (start && end) return `${start} – ${end}`;
-  return start || end || '';
+  return formatRange(startDate, endDate, { collapseEqual: false });
 }
 
 export function getDisplayUrl(url) {

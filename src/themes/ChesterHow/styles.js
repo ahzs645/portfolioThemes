@@ -77,9 +77,6 @@ export const gridVariants = {
   show: { transition: { staggerChildren: 0.15 } },
 };
 
-export const FRAUNCES_HREF =
-  'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,200;9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600&display=swap';
-
 export const GlobalReset = createGlobalStyle`
   .chester-how-main, .chester-how-main *, .chester-how-main *::before, .chester-how-main *::after {
     box-sizing: border-box;

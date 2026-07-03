@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { isPresent } from '../../utils/cvHelpers';
 import { getBioText } from '../../utils/bioText';
 import { GlitchName } from './components/GlitchName';
 import { DuckPond } from './components/DuckPond';
@@ -66,20 +67,6 @@ const ANIM = {
   EASING: { SMOOTH: '0.22,1,0.36,1', STANDARD: '0.16,1,0.3,1' },
   STAGGER: { DEFAULT: 0.08, TAGS: 0.04 },
 };
-
-function FontLoader() {
-  useEffect(() => {
-    const id = 'baoto-fonts';
-    if (!document.getElementById(id)) {
-      const link = document.createElement('link');
-      link.id = id;
-      link.rel = 'stylesheet';
-      link.href = 'https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&family=DM+Mono:wght@300;400;500&display=swap';
-      document.head.appendChild(link);
-    }
-  }, []);
-  return null;
-}
 
 /* ── Animations ── */
 
@@ -675,9 +662,10 @@ export function BaoToTheme({ darkMode = false }) {
 
   if (!cv) return null;
 
+  // Dates are shown raw (e.g. "2023-05"); only "present" is normalized.
   function fmtDate(d) {
     if (!d) return '';
-    if (String(d).toLowerCase().trim() === 'present') return 'Present';
+    if (isPresent(d)) return 'Present';
     return d;
   }
 
@@ -715,7 +703,6 @@ export function BaoToTheme({ darkMode = false }) {
 
   return (
     <>
-      <FontLoader />
       <PageRoot style={darkMode ? DARK_VARS : LIGHT_VARS}>
         {/* Paper texture overlay */}
         <PaperOverlay />

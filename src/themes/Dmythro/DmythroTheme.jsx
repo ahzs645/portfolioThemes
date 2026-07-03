@@ -1,16 +1,14 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-import { isArchived, isPresent } from '../../utils/cvHelpers';
+import { formatDate, isArchived } from '../../utils/cvHelpers';
 
+// Year-only display ("2023", "Present"); delegates parsing to the shared helper.
 function formatYear(dateStr) {
-  if (!dateStr) return '';
-  if (isPresent(dateStr)) return 'Present';
-  const yearMatch = String(dateStr).match(/\d{4}/);
-  return yearMatch ? yearMatch[0] : dateStr;
+  return formatDate(dateStr, { month: 'none' });
 }
 
-export function DmythroTheme({ darkMode = false }) {
+export function DmythroTheme({ darkMode = false, onDarkModeChange }) {
   const cv = useCV() || {};
 
   const fullName = cv?.name || 'Your Name';
@@ -131,12 +129,10 @@ export function DmythroTheme({ darkMode = false }) {
     );
   };
 
-  // Dark mode state — seeded from the prop, togglable locally
-  const [isDark, setIsDark] = useState(darkMode);
+  // Dark mode is fully controlled by the shell's darkMode prop
+  const isDark = darkMode;
 
-  useEffect(() => { setIsDark(darkMode); }, [darkMode]);
-
-  const toggleDarkMode = () => setIsDark(prev => !prev);
+  const toggleDarkMode = () => onDarkModeChange?.(!isDark);
 
   const theme = { isDark };
 

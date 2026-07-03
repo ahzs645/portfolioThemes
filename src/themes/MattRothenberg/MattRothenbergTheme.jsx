@@ -2,20 +2,10 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { withBase } from '../../utils/assetPath';
-import { isArchived, isPresent, pickSocialUrl, uniqueByNormalizedValue } from '../../utils/cvHelpers';
+import { formatDate, isArchived, isPresent, pickSocialUrl, uniqueByNormalizedValue } from '../../utils/cvHelpers';
 
 function formatYear(dateStr) {
-  if (!dateStr) return '';
-  if (isPresent(dateStr)) return 'present';
-  const match = String(dateStr).match(/\d{4}/);
-  return match ? match[0] : String(dateStr);
-}
-
-function formatRange(start, end) {
-  const s = formatYear(start);
-  const e = formatYear(end);
-  if (s && e && s !== e) return `${s}–${e}`;
-  return s || e || '';
+  return formatDate(dateStr, { month: 'none', presentLabel: 'present' });
 }
 
 function joinList(rawItems, sep = ', ', lastSep = ' and ') {

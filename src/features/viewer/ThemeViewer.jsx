@@ -29,7 +29,7 @@ export function ThemeViewer({
 
   const ThemeComponent = currentTheme?.Component;
   const hideInitials = hideInitialsSetting;
-  const enableThemeReactGrab = enableReactGrab && currentTheme?.features?.reactGrab;
+  const enableThemeReactGrab = enableReactGrab && currentTheme?.shellFeatures?.reactGrab;
 
   return (
     <AppContainer

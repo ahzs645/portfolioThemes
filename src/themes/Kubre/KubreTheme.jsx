@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { isArchived, isPresent, parseDateParts, MONTHS_SHORT } from '../../utils/cvHelpers';
 
 // Global styles for background
 const GlobalStyle = createGlobalStyle`
@@ -8,12 +9,6 @@ const GlobalStyle = createGlobalStyle`
     background-color: ${p => p.$dark ? '#111111' : '#eeeeee'} !important;
   }
 `;
-
-// Helper to check if archived
-const isArchived = (entry) => Array.isArray(entry?.tags) && entry.tags.includes('archived');
-
-// Helper to check if present
-const isPresent = (value) => String(value || '').trim().toLowerCase() === 'present';
 
 export function KubreTheme({ darkMode = false }) {
   const cv = useCV();
@@ -67,12 +62,15 @@ export function KubreTheme({ darkMode = false }) {
 
   if (!cv) return null;
 
-  // Format date
+  // Format date as "Mon YYYY" — matches the old
+  // `toLocaleDateString('en-IN', { year: 'numeric', month: 'short' })` output,
+  // where a bare year renders as "Jan YYYY" because Date defaults to January.
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
     if (isPresent(dateStr)) return 'Present';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short' });
+    const parts = parseDateParts(dateStr);
+    if (!parts) return String(dateStr);
+    return `${MONTHS_SHORT[(parts.month || 1) - 1]} ${parts.year}`;
   };
 
   // Format date range

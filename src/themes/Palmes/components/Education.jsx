@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { isArchived } from '../../../utils/cvHelpers';
+import formatCvDate from './formatDate';
 
 const Section = styled.section`
   padding: 6rem 2rem;
@@ -64,11 +65,7 @@ const Description = styled.p`
 `;
 
 function formatDate(dateStr) {
-  if (!dateStr) return '';
-  if (String(dateStr).toLowerCase() === 'present') return 'Present';
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return dateStr;
-  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  return formatCvDate(dateStr, { presentLabel: 'Present' });
 }
 
 export default function Education({ education = [] }) {

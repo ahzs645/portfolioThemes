@@ -588,10 +588,10 @@ const Shell = styled.div`
 const DesktopNav = styled.nav`
   position: fixed;
   z-index: 5;
-  top: 0;
+  top: var(--app-top-offset, 0px);
   left: 12.5%;
   width: 12.5%;
-  height: 100vh;
+  height: calc(100dvh - var(--app-top-offset, 0px));
   padding: 80px 16px;
   border-right: 1px solid var(--line);
   display: flex;

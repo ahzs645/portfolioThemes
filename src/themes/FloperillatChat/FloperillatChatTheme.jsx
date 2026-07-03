@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import styled, { keyframes } from 'styled-components';
 import { ArrowUp } from 'lucide-react';
 import { useCV } from '../../contexts/ConfigContext';
+import { formatRange } from '../../utils/cvHelpers';
 
 const TOPICS = [
   { id: 'current', label: 'Current work', prompt: 'What are you working on now?' },
@@ -10,24 +11,6 @@ const TOPICS = [
   { id: 'skills', label: 'Skills', prompt: 'What skills do you have?' },
   { id: 'contact', label: 'Contact', prompt: 'How can I contact you?' },
 ];
-
-function formatDate(value) {
-  if (!value) return '';
-  if (String(value).toLowerCase() === 'present') return 'present';
-  const [year, month] = String(value).split('-');
-  if (!month) return year;
-  const date = new Date(Number(year), Number(month) - 1);
-  return Number.isNaN(date.getTime())
-    ? value
-    : date.toLocaleDateString('en', { month: 'short', year: 'numeric' });
-}
-
-function formatRange(start, end) {
-  const from = formatDate(start);
-  const to = formatDate(end);
-  if (from && to) return `${from} to ${to}`;
-  return from || to || '';
-}
 
 function listSentence(items, fallback = 'a few different things') {
   const clean = items.filter(Boolean).map((item) => String(item).trim()).filter(Boolean);
@@ -91,7 +74,11 @@ function answerForPrompt(rawPrompt, profile) {
     const school = profile.latestEducation;
     if (!school) return hesitant(`${profile.firstName} has an unconventional path, and the resume does not list formal education.`);
     const degree = [school.degree, school.area].filter(Boolean).join(' in ');
-    const range = formatRange(school.start_date, school.end_date);
+    const range = formatRange(school.start_date, school.end_date, {
+      separator: ' to ',
+      presentLabel: 'present',
+      collapseEqual: false,
+    });
     return `I went to university at ${school.institution}${school.location ? ` in ${school.location}` : ''}${degree ? ` for ${degree}` : ''}${range ? `, ${range}` : ''}. ${school.highlights?.[0] || 'That academic thread shows up a lot in my work.'}`;
   }
 

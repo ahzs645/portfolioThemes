@@ -1,4 +1,5 @@
 import { PORTFOLIO_THEMES } from '../../themes';
+import { sourceDomain } from '../../utils/sourceDomain';
 import {
   TableContainer,
   ThemeTable,
@@ -72,7 +73,7 @@ export function DesktopThemeTable({
                 <Td $darkMode={darkMode} $bold>{theme.name}</Td>
                 <Td $darkMode={darkMode} $muted $truncate>{theme.description}</Td>
                 <Td $darkMode={darkMode} $hideOnMobile>
-                  {theme.source ? (
+                  {sourceDomain(theme.source) ? (
                     <SourceLink
                       $darkMode={darkMode}
                       href={theme.source}
@@ -80,7 +81,7 @@ export function DesktopThemeTable({
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {new URL(theme.source).hostname.replace('www.', '')}
+                      {sourceDomain(theme.source)}
                     </SourceLink>
                   ) : (
                     <MutedText $darkMode={darkMode}>Original</MutedText>

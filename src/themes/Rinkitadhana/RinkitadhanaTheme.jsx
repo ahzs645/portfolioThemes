@@ -1,25 +1,24 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-import { isArchived, isPresent, pickSocialUrl } from '../../utils/cvHelpers';
+import { isArchived, isPresent, MONTHS_SHORT, parseDateParts, pickSocialUrl } from '../../utils/cvHelpers';
 
 function formatDate(dateStr) {
+  // Matches the previous Date-based rendering (year-only values default to
+  // Jan) without the `new Date('YYYY-MM')` UTC-shift bug.
   if (!dateStr) return '';
   if (isPresent(dateStr)) return 'Present';
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return dateStr;
-  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  const parts = parseDateParts(dateStr);
+  if (!parts) return dateStr;
+  return `${MONTHS_SHORT[(parts.month || 1) - 1]} ${parts.year}`;
 }
 
-export function RinkitadhanaTheme({ darkMode = false }) {
+export function RinkitadhanaTheme({ darkMode = false, onDarkModeChange }) {
   const cv = useCV() || {};
-  const [isDark, setIsDark] = useState(darkMode);
+  // Dark mode is fully controlled by the shell's darkMode prop
+  const isDark = darkMode;
   const [expandedExp, setExpandedExp] = useState({});
 
-  // Default to the global dark/light setting, but allow the in-theme toggle to override it
-  useEffect(() => {
-    setIsDark(darkMode);
-  }, [darkMode]);
   // Inject view transition CSS into document head
   useEffect(() => {
     const styleId = 'rinkitadhana-view-transition-styles';
@@ -50,11 +49,11 @@ export function RinkitadhanaTheme({ darkMode = false }) {
   const toggleTheme = () => {
     if (document.startViewTransition) {
       document.startViewTransition(() => {
-        setIsDark(!isDark);
+        onDarkModeChange?.(!isDark);
       });
     } else {
       // Fallback for browsers that don't support View Transitions
-      setIsDark(!isDark);
+      onDarkModeChange?.(!isDark);
     }
   };
 

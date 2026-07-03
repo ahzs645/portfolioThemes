@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import {
   formatMonthYear,
   getInitials as getSharedInitials,
@@ -7,9 +6,6 @@ import {
 } from '../../utils/cvHelpers';
 
 export const COLORS = ['#FFFFFF', '#FF5D0D', '#7A64FF'];
-
-export const FONT_HREF =
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
 
 export const C = {
   bg: 'rgb(28, 28, 28)',
@@ -26,17 +22,6 @@ export const C = {
   pulse: 'rgb(255, 51, 51)',
   white: '#ffffff',
 };
-
-export function useFontLink(href) {
-  useEffect(() => {
-    if (document.querySelector('link[data-benissen-font="1"]')) return;
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    link.dataset.benissenFont = '1';
-    document.head.appendChild(link);
-  }, [href]);
-}
 
 export function statusFor(item) {
   if (isArchived(item)) return 'Archived';

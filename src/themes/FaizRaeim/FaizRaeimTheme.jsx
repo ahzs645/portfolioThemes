@@ -13,7 +13,6 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 
 const FontLoader = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 `;
 
 const GlobalReset = createGlobalStyle`

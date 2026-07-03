@@ -3,7 +3,7 @@ import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { getDefaultBioText } from '../../utils/bioText';
 import { withBase } from '../../utils/assetPath';
-import { isPresent } from '../../utils/cvHelpers';
+import { formatRange as formatCvRange } from '../../utils/cvHelpers';
 
 const lightPalette = {
   bodyBackground: '#f6f3ee',
@@ -56,23 +56,8 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
-function formatLongDate(value) {
-  if (!value) return '';
-  if (isPresent(value)) return 'Present';
-
-  const [year, month] = String(value).split('-');
-  if (!year) return '';
-  if (!month) return year;
-
-  const date = new Date(Number(year), Number(month) - 1, 1);
-  return new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' }).format(date);
-}
-
 function formatRange(startDate, endDate) {
-  const start = formatLongDate(startDate);
-  const end = formatLongDate(endDate);
-  if (start && end) return `${start} - ${end}`;
-  return start || end || '';
+  return formatCvRange(startDate, endDate, { month: 'long', separator: ' - ', collapseEqual: false });
 }
 
 function pickHighlights(items = [], limit = 3) {
@@ -406,14 +391,11 @@ function WireCubeCanvas({ palette }) {
   return <Canvas id="cube-bg" ref={canvasRef} aria-hidden="true" />;
 }
 
-export function SaintAngelsTheme({ darkMode = false }) {
+export function SaintAngelsTheme({ darkMode = false, onDarkModeChange }) {
   const cv = useCV();
   const [page, setPage] = useState('home');
-  const [isDark, setIsDark] = useState(darkMode);
-
-  useEffect(() => {
-    setIsDark(darkMode);
-  }, [darkMode]);
+  // Dark mode is fully controlled by the shell's darkMode prop
+  const isDark = darkMode;
 
   const palette = isDark ? darkPalette : lightPalette;
 
@@ -517,7 +499,7 @@ export function SaintAngelsTheme({ darkMode = false }) {
                   socialLinks={socialLinks}
                   palette={palette}
                   darkMode={isDark}
-                  onToggleTheme={() => setIsDark((current) => !current)}
+                  onToggleTheme={() => onDarkModeChange?.(!isDark)}
                 />
               )}
               {page === 'writing' && noteItems.length > 0 && <WritingSection items={noteItems} palette={palette} />}

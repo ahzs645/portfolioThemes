@@ -1,13 +1,11 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import styled, { ThemeProvider, keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-import { isArchived, isPresent } from '../../utils/cvHelpers';
+import { formatDate, isArchived } from '../../utils/cvHelpers';
 
+// Year-only display ("2023", "Present"); delegates parsing to the shared helper.
 function formatYear(dateStr) {
-  if (!dateStr) return '';
-  if (isPresent(dateStr)) return 'Present';
-  const yearMatch = String(dateStr).match(/\d{4}/);
-  return yearMatch ? yearMatch[0] : dateStr;
+  return formatDate(dateStr, { month: 'none' });
 }
 
 // Particles Component
@@ -115,7 +113,7 @@ const COLORS = [
   { bg: '#455a64', fg: '#fff' }, // Blue Grey
 ];
 
-export function DTCTheme({ darkMode = false }) {
+export function DTCTheme({ darkMode = false, onDarkModeChange }) {
   const cv = useCV() || {};
 
   const fullName = cv?.name || 'Your Name';
@@ -225,12 +223,10 @@ export function DTCTheme({ darkMode = false }) {
     publicationItems.length > 0 ||
     professionalDevItems.length > 0;
 
-  // Theme state — seeded from the prop, togglable locally
-  const [isDark, setIsDark] = useState(darkMode);
+  // Theme is fully controlled by the shell's darkMode prop
+  const isDark = darkMode;
 
-  useEffect(() => { setIsDark(darkMode); }, [darkMode]);
-
-  const toggleDarkMode = () => setIsDark(prev => !prev);
+  const toggleDarkMode = () => onDarkModeChange?.(!isDark);
   const theme = { isDark };
 
   return (

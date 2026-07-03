@@ -144,8 +144,11 @@ export function resolveThemePath(themeId, pathname) {
     return normalizedPath;
   }
 
+  // The configured default theme owns the clean root URL; every other theme
+  // lives at its slug. (Previously hardcoded to the 'minimal' slug, which
+  // made "/" bounce to "/<slug>" whenever VITE_DEFAULT_THEME_ID differed.)
   const theme = getPortfolioTheme(themeId);
-  const rel = theme.slug === 'minimal' ? '/' : `/${theme.slug}`;
+  const rel = theme.id === defaultThemeId ? '/' : `/${theme.slug}`;
   if (!BASE_PREFIX) return rel;
   return rel === '/' ? `${BASE_PREFIX}/` : `${BASE_PREFIX}${rel}`;
 }

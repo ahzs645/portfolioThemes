@@ -126,6 +126,40 @@ cv:
         # ...
 ```
 
+### Theme Contract
+
+Every theme is rendered by the app shell inside a scrollable flex container
+below the theme-switcher TopBar, and again inside a sandboxed iframe for
+catalog previews. To work everywhere (including phones), a theme must:
+
+1. **Fill the parent, never the viewport.** Size the root with `height: 100%`
+   (or `min-height: 100%` for scrolling layouts) — not `100vh`. Raw `100vh`
+   is TopBar-height taller than the actual area and clips the bottom. If a
+   layout genuinely needs viewport units (e.g. centering a hero), use
+   `calc(100dvh - var(--app-top-offset, 0px))`.
+2. **Offset fixed/sticky elements.** The shell publishes the measured TopBar
+   height as `--app-top-offset`. Anything `position: fixed`/`sticky` must use
+   `top: var(--app-top-offset, 0px)` (and size with
+   `calc(100dvh - var(--app-top-offset, 0px))`) or it will sit under the bar.
+3. **Honor dark mode.** Read the `darkMode` prop directly (don't copy it into
+   `useState` — that snapshots it at mount and ignores the TopBar toggle). If
+   the theme has its own toggle, call `onDarkModeChange?.(next)` so the shell
+   stays in sync. Guard with `?.` — catalog previews don't pass the setter.
+4. **Work at 390px and on touch.** Add `@media` breakpoints for fixed paddings
+   and multi-column layouts, prefer `clamp()` for display type, use pointer
+   events (not mouse-only) for canvas interactions, and never hide critical
+   links behind hover-only reveals.
+5. **Load data via `useCV()`** (and `useGitHub()` for activity) — never fetch
+   CV data directly, and never hardcode personal content.
+6. **Resolve public assets with `withBase()`** from `src/utils/assetPath.js` —
+   raw `/...` URLs break under a non-root deploy base path.
+7. **Prefer shared helpers** (`utils/cvHelpers` for date ranges and social
+   links, `utils/parseMarkdown` for markdown) over local re-implementations,
+   and clean up every `window`/`document` listener in the effect cleanup.
+
+`npm run qa:themes` smoke-tests every registered theme at desktop and 390px
+mobile viewports (blank screens, horizontal overflow, console errors).
+
 ### Adding a New Theme
 
 1. Create a new folder in `src/themes/YourTheme/`
