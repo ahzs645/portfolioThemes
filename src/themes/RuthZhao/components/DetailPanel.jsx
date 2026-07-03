@@ -1,19 +1,17 @@
 import React from 'react';
 import styled from 'styled-components';
+import { MONTHS_SHORT, parseDateParts } from '../../../utils/cvHelpers';
 
 function formatDate(value) {
+  // "Mon YYYY" for YYYY-MM values; bare years and full YYYY-MM-DD dates pass
+  // through untouched, matching the previous local formatter.
   if (!value) return '';
   const normalized = String(value).trim();
-  if (normalized.toLowerCase() === 'present') return 'Present';
-  if (/^\d{4}$/.test(normalized)) return normalized;
-  if (/^\d{4}-\d{2}$/.test(normalized)) {
-    const [year, month] = normalized.split('-');
-    return new Date(Number(year), Number(month) - 1).toLocaleString('en-US', {
-      month: 'short',
-      year: 'numeric',
-    });
-  }
-  return normalized;
+  const parts = parseDateParts(normalized);
+  if (!parts) return normalized;
+  if (parts.present) return 'Present';
+  if (parts.month == null || parts.day != null) return normalized;
+  return `${MONTHS_SHORT[parts.month - 1]} ${parts.year}`;
 }
 
 function formatRange(start, end) {

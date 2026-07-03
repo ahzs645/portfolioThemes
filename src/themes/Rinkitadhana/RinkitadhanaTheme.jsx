@@ -1,14 +1,16 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-import { isArchived, isPresent, pickSocialUrl } from '../../utils/cvHelpers';
+import { isArchived, isPresent, MONTHS_SHORT, parseDateParts, pickSocialUrl } from '../../utils/cvHelpers';
 
 function formatDate(dateStr) {
+  // Matches the previous Date-based rendering (year-only values default to
+  // Jan) without the `new Date('YYYY-MM')` UTC-shift bug.
   if (!dateStr) return '';
   if (isPresent(dateStr)) return 'Present';
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return dateStr;
-  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  const parts = parseDateParts(dateStr);
+  if (!parts) return dateStr;
+  return `${MONTHS_SHORT[(parts.month || 1) - 1]} ${parts.year}`;
 }
 
 export function RinkitadhanaTheme({ darkMode = false, onDarkModeChange }) {

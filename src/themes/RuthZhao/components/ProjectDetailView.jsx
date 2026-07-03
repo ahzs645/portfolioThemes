@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { MONTHS_SHORT, parseDateParts } from '../../../utils/cvHelpers';
 
 const glyphSvg = (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 36" width="48" height="36">
@@ -27,15 +28,15 @@ const CATEGORIES = [
 ];
 
 function formatDate(value) {
+  // "Mon YYYY" for YYYY-MM values; bare years and full YYYY-MM-DD dates pass
+  // through untouched, matching the previous local formatter.
   if (!value) return '';
   const s = String(value).trim();
-  if (s.toLowerCase() === 'present') return 'Present';
-  if (/^\d{4}$/.test(s)) return s;
-  if (/^\d{4}-\d{2}$/.test(s)) {
-    const [y, m] = s.split('-');
-    return new Date(Number(y), Number(m) - 1).toLocaleString('en-US', { month: 'short', year: 'numeric' });
-  }
-  return s;
+  const parts = parseDateParts(s);
+  if (!parts) return s;
+  if (parts.present) return 'Present';
+  if (parts.month == null || parts.day != null) return s;
+  return `${MONTHS_SHORT[parts.month - 1]} ${parts.year}`;
 }
 
 function formatRange(start, end) {

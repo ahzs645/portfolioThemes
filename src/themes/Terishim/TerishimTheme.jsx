@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import styled, { createGlobalStyle, keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-import { formatDateRange, normalizeHighlights } from '../../utils/cvHelpers';
+import { formatDate, formatDateRange, normalizeHighlights } from '../../utils/cvHelpers';
 
 /* ──────────────────────────────────────────────────────────────
    Terishim — "in orbit"
@@ -54,8 +54,8 @@ function roleWord(title = '') {
   return words[words.length - 1] || 'maker';
 }
 function yearOf(v) {
-  const m = String(v || '').match(/\d{4}/);
-  return m ? m[0] : '';
+  // Bare year, with '' for "present"/unparseable values.
+  return formatDate(v, { month: 'none', presentLabel: '', fallback: '' });
 }
 function articleFor(word = '') {
   return /^[aeiou]/i.test(word.trim()) ? 'an' : 'a';

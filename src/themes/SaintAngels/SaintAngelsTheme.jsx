@@ -3,7 +3,7 @@ import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { getDefaultBioText } from '../../utils/bioText';
 import { withBase } from '../../utils/assetPath';
-import { isPresent } from '../../utils/cvHelpers';
+import { formatRange as formatCvRange } from '../../utils/cvHelpers';
 
 const lightPalette = {
   bodyBackground: '#f6f3ee',
@@ -56,23 +56,8 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
-function formatLongDate(value) {
-  if (!value) return '';
-  if (isPresent(value)) return 'Present';
-
-  const [year, month] = String(value).split('-');
-  if (!year) return '';
-  if (!month) return year;
-
-  const date = new Date(Number(year), Number(month) - 1, 1);
-  return new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' }).format(date);
-}
-
 function formatRange(startDate, endDate) {
-  const start = formatLongDate(startDate);
-  const end = formatLongDate(endDate);
-  if (start && end) return `${start} - ${end}`;
-  return start || end || '';
+  return formatCvRange(startDate, endDate, { month: 'long', separator: ' - ', collapseEqual: false });
 }
 
 function pickHighlights(items = [], limit = 3) {

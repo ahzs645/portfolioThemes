@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { isArchived } from '../../../utils/cvHelpers';
+import formatDate from './formatDate';
 
 const Section = styled.section`
   padding: 6rem 2rem;
@@ -85,13 +86,6 @@ const Summary = styled.p`
   font-size: 0.875rem;
   line-height: 1.5;
 `;
-
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return dateStr;
-  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-}
 
 export default function Presentations({ presentations = [] }) {
   const filtered = presentations.filter(p => !isArchived(p));

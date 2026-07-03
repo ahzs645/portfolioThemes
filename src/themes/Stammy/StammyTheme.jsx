@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
+import { formatDate } from '../../utils/cvHelpers';
 
 // Global styles to fix overscroll color
 const GlobalStyle = createGlobalStyle`
@@ -12,9 +13,6 @@ const GlobalStyle = createGlobalStyle`
 
 // Helper to check if archived
 const isArchived = (entry) => Array.isArray(entry?.tags) && entry.tags.includes('archived');
-
-// Helper to check if present
-const isPresent = (value) => String(value || '').trim().toLowerCase() === 'present';
 
 // SVG Icons
 const HomeIcon = () => (
@@ -113,8 +111,10 @@ export function StammyTheme({ darkMode = false, onDarkModeChange }) {
 
   // Format date range
   const formatDateRange = (startDate, endDate) => {
-    const start = startDate ? String(startDate).split('-')[0] : '';
-    const end = isPresent(endDate) ? 'Present' : endDate ? String(endDate).split('-')[0] : '';
+    // Year-only, e.g. "2021–Present" (a "present" start date stays lowercase,
+    // matching the old raw passthrough).
+    const start = formatDate(startDate, { month: 'none', presentLabel: 'present' });
+    const end = formatDate(endDate, { month: 'none' });
     if (start === end) return start;
     return `${start}–${end}`;
   };
@@ -339,7 +339,7 @@ export function StammyTheme({ darkMode = false, onDarkModeChange }) {
                   <WorkRow key={`edu-${idx}`}>
                     <WorkCompany $theme={theme}>{item.institution}</WorkCompany>
                     <WorkRole $theme={theme}>{item.degree} in {item.area}</WorkRole>
-                    <WorkDate $theme={theme}>{item.end_date ? String(item.end_date).split('-')[0] : ''}</WorkDate>
+                    <WorkDate $theme={theme}>{formatDate(item.end_date, { month: 'none', presentLabel: 'present' })}</WorkDate>
                   </WorkRow>
                 ))}
               </WorkTable>
@@ -379,7 +379,7 @@ export function StammyTheme({ darkMode = false, onDarkModeChange }) {
                   <WorkRow key={`award-${idx}`}>
                     <WorkCompany $theme={theme}>{item.name}</WorkCompany>
                     <WorkRole $theme={theme}>{item.summary || ''}</WorkRole>
-                    <WorkDate $theme={theme}>{item.date ? String(item.date).split('-')[0] : ''}</WorkDate>
+                    <WorkDate $theme={theme}>{formatDate(item.date, { month: 'none', presentLabel: 'present' })}</WorkDate>
                   </WorkRow>
                 ))}
               </WorkTable>
@@ -395,7 +395,7 @@ export function StammyTheme({ darkMode = false, onDarkModeChange }) {
                   <WorkRow key={`pres-${idx}`}>
                     <WorkCompany $theme={theme}>{item.name}</WorkCompany>
                     <WorkRole $theme={theme}>{item.location || ''}</WorkRole>
-                    <WorkDate $theme={theme}>{item.date ? String(item.date).split('-')[0] : ''}</WorkDate>
+                    <WorkDate $theme={theme}>{formatDate(item.date, { month: 'none', presentLabel: 'present' })}</WorkDate>
                   </WorkRow>
                 ))}
               </WorkTable>
@@ -432,7 +432,7 @@ export function StammyTheme({ darkMode = false, onDarkModeChange }) {
                   <WorkRow key={`profdev-${idx}`}>
                     <WorkCompany $theme={theme}>{item.name}</WorkCompany>
                     <WorkRole $theme={theme}>{item.location || ''}</WorkRole>
-                    <WorkDate $theme={theme}>{item.date ? String(item.date).split('-')[0] : ''}</WorkDate>
+                    <WorkDate $theme={theme}>{formatDate(item.date, { month: 'none', presentLabel: 'present' })}</WorkDate>
                   </WorkRow>
                 ))}
               </WorkTable>

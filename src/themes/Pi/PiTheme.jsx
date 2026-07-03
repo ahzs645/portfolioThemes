@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import styled from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { getBioText } from '../../utils/bioText';
-import { isArchived, isPresent, pickSocialUrl } from '../../utils/cvHelpers';
+import { formatDate as formatCvDate, isArchived, isPresent, pickSocialUrl } from '../../utils/cvHelpers';
 
 function isActiveJob(entry) {
   // Job is active if end_date is "Present" or null/undefined
@@ -15,15 +15,7 @@ function isActiveJob(entry) {
 }
 
 function formatDate(dateStr) {
-  if (!dateStr) return '';
-  if (isPresent(dateStr)) return 'Present';
-  const str = String(dateStr);
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  const parts = str.split('-');
-  const year = parts[0] || '';
-  const month = parts[1] ? months[parseInt(parts[1], 10) - 1] : '';
-  if (month && year) return `${month} ${year}`;
-  return year;
+  return formatCvDate(dateStr, { month: 'long' });
 }
 
 // Timeline component for reuse

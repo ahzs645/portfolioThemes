@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-import { uniqueByNormalizedValue } from '../../utils/cvHelpers';
+import { MONTHS_LONG, parseDateParts, uniqueByNormalizedValue } from '../../utils/cvHelpers';
 import wikiGlobe from './assets/wikipedia-globe.svg';
 
 // Inline SVGs from actual Wikipedia assets (small enough to embed)
@@ -18,11 +18,12 @@ const WikiTagline = () => (
 );
 
 function formatDateRange(start, end) {
+  // Matches the previous Date-based rendering (year-only values default to
+  // January) without the `new Date('YYYY-MM')` UTC-shift bug.
   const fmt = d => {
-    if (!d) return '';
-    const date = new Date(d);
-    if (isNaN(date.getTime())) return '';
-    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const parts = parseDateParts(d);
+    if (!parts || parts.present) return '';
+    return `${MONTHS_LONG[(parts.month || 1) - 1]} ${parts.year}`;
   };
   const s = fmt(start);
   const e = fmt(end) || 'present';

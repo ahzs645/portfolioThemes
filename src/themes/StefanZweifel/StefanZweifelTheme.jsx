@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import styled from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-import { isArchived, isPresent, pickSocialUrl } from '../../utils/cvHelpers';
+import { isArchived, isPresent, parseDateParts, pickSocialUrl } from '../../utils/cvHelpers';
 
 function formatDateShort(dateStr) {
   if (!dateStr) return '';
@@ -13,12 +13,11 @@ function formatDateShort(dateStr) {
   }
   const str = String(dateStr);
   if (isPresent(str)) return 'Present';
-  // Try to extract month/year format like "08/2024"
-  const date = new Date(str);
-  if (!isNaN(date.getTime())) {
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${month}/${year}`;
+  // "MM/YYYY" (year-only values default to 01, matching the old Date-based
+  // rendering without the `new Date('YYYY-MM')` UTC-shift bug)
+  const parts = parseDateParts(str);
+  if (parts?.year) {
+    return `${String(parts.month || 1).padStart(2, '0')}/${parts.year}`;
   }
   // Fallback: extract year
   const yearMatch = str.match(/\d{4}/);

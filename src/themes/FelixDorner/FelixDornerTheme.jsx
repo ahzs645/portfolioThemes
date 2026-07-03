@@ -1,14 +1,11 @@
 import React, { useMemo, useEffect, useRef, useState } from 'react';
 import styled, { css, keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-import { isArchived, isPresent, pickSocialUrl } from '../../utils/cvHelpers';
+import { formatDate as formatCvDate, isArchived, pickSocialUrl } from '../../utils/cvHelpers';
 
+// Year-only display ("2023", "Present"); delegates parsing to the shared helper.
 function formatDate(dateStr) {
-  if (!dateStr) return '';
-  if (isPresent(dateStr)) return 'Present';
-  // Extract only the year
-  const yearMatch = String(dateStr).match(/\d{4}/);
-  return yearMatch ? yearMatch[0] : dateStr;
+  return formatCvDate(dateStr, { month: 'none' });
 }
 
 // Scroll animation hook

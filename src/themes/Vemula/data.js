@@ -1,3 +1,5 @@
+import { formatDate, formatRange } from '../../utils/cvHelpers';
+
 export const PALETTE = [
   { from: '#1A1A1A', to: '#3B3B3B', label: '#FFFFFF', accent: '#FFC700' },
   { from: '#00BDE9', to: '#007D95', label: '#FFFFFF', accent: '#FFC700' },
@@ -15,24 +17,8 @@ export const PALETTE = [
   { from: '#FB923C', to: '#9A3412', label: '#FFFFFF', accent: '#FFE8B0' },
 ];
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-export function fmtDate(d) {
-  if (!d) return '';
-  if (d === 'present' || d === 'Present') return 'Present';
-  const [y, m] = String(d).split('-');
-  if (!y) return '';
-  if (!m) return y;
-  const monthIdx = parseInt(m, 10) - 1;
-  return Number.isFinite(monthIdx) && MONTHS[monthIdx] ? `${MONTHS[monthIdx]} ${y}` : y;
-}
-
 export function fmtRange(item) {
-  const start = fmtDate(item?.startDate);
-  const end = fmtDate(item?.endDate);
-  if (!start && !end) return '';
-  if (start && end) return `${start} — ${end}`;
-  return start || end;
+  return formatRange(item?.startDate, item?.endDate, { separator: ' — ', collapseEqual: false });
 }
 
 export function shuffle(array, seed) {
@@ -159,7 +145,7 @@ export const SECTION_DEFS = [
         .map((a) => ({
           title: a.title,
           subtitle: a.issuer,
-          dates: fmtDate(a.date),
+          dates: formatDate(a.date),
           body: a.description,
         })),
   },
@@ -173,7 +159,7 @@ export const SECTION_DEFS = [
         .map((p) => ({
           title: p.title || p.name,
           subtitle: p.authors || p.publisher,
-          dates: fmtDate(p.date),
+          dates: formatDate(p.date),
           url: p.url,
         })),
   },
@@ -187,7 +173,7 @@ export const SECTION_DEFS = [
         .map((c) => ({
           title: c.name || c.title,
           subtitle: c.issuer,
-          dates: fmtDate(c.date),
+          dates: formatDate(c.date),
           url: c.url,
         })),
   },
