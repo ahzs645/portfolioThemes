@@ -524,7 +524,10 @@ export const PORTFOLIO_THEMES = [
     name: 'Aiden Bai',
     description: 'Narrow text-only portfolio with stone neutrals, serif heading, understated underlined links, shimmer emphasis, and expandable lore inspired by aidenybai.com without the image strip.',
     source: 'https://www.aidenybai.com',
-    features: { reactGrab: true },
+    // Shell-level opt-ins for this theme (distinct from cv.features, which is
+    // user data from CV.yaml). reactGrab gates the Aiden Bai visual-edit
+    // helper behind VITE_ENABLE_REACT_GRAB.
+    shellFeatures: { reactGrab: true },
     Component: lazyTheme(() => import('./AidenBai/AidenBaiTheme'), 'AidenBaiTheme'),
   },
   {
