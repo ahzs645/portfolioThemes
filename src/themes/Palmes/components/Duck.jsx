@@ -1,13 +1,24 @@
 import React, { useRef, useEffect, useMemo, useState } from 'react';
 import { useFrame, useThree, useLoader } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { useGLTF } from '@react-three/drei';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { AnimationMixer, MathUtils } from 'three';
 import DuckMoves from '../utils/duckMoves';
 import { withBase } from '../../../utils/assetPath';
 
 const DUCK_MODEL = withBase('models/duck_centered.glb');
 const CISCO_MODEL = withBase('models/cisco_centered.glb');
+
+// Decode draco-compressed models with the locally hosted decoder (shared
+// with the Comp theme) instead of drei's default Google-CDN decoder path.
+let dracoLoader = null;
+function attachDraco(loader) {
+  if (!dracoLoader) {
+    dracoLoader = new DRACOLoader();
+    dracoLoader.setDecoderPath(withBase('comp/draco/'));
+  }
+  loader.setDRACOLoader(dracoLoader);
+}
 
 // Inactivity timeout before switching to idle animation
 const MOVE_TIMEOUT_MS = 50;
@@ -72,10 +83,10 @@ export default function Duck({ scrollPercent, isScrolling }) {
   const [movements, setMovements] = useState(DuckMoves.duckKeyframes);
 
   // Load duck model
-  const gltf = useLoader(GLTFLoader, DUCK_MODEL);
+  const gltf = useLoader(GLTFLoader, DUCK_MODEL, attachDraco);
 
   // Load cisco accessory
-  const cisco = useGLTF(CISCO_MODEL);
+  const cisco = useLoader(GLTFLoader, CISCO_MODEL, attachDraco);
 
   // Create animation mixer
   useEffect(() => {
@@ -225,5 +236,5 @@ export default function Duck({ scrollPercent, isScrolling }) {
 }
 
 // Preload models
-useGLTF.preload(DUCK_MODEL);
-useGLTF.preload(CISCO_MODEL);
+useLoader.preload(GLTFLoader, DUCK_MODEL, attachDraco);
+useLoader.preload(GLTFLoader, CISCO_MODEL, attachDraco);
