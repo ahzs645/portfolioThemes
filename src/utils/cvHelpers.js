@@ -103,6 +103,91 @@ export function normalizeSocialLinks(socials = [], email = null) {
   };
 }
 
+export const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+export const MONTHS_LONG = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+/**
+ * Parse a CV date string ("2023", "2023-05", "2023-05-04", "present") into
+ * parts without going through `new Date()` — Date parses "YYYY-MM" as UTC
+ * midnight, which shifts to the previous month/year in negative-offset
+ * timezones when formatted locally.
+ *
+ * Returns { present, year, month (1-12), day } or null when unparseable.
+ */
+export function parseDateParts(value) {
+  if (value == null || value === '') return null;
+  if (isPresent(value)) return { present: true, year: null, month: null, day: null };
+
+  const match = String(value).trim().match(/^(\d{4})(?:-(\d{1,2}))?(?:-(\d{1,2}))?/);
+  if (!match) return null;
+
+  const month = match[2] ? parseInt(match[2], 10) : null;
+  return {
+    present: false,
+    year: parseInt(match[1], 10),
+    month: month >= 1 && month <= 12 ? month : null,
+    day: match[3] ? parseInt(match[3], 10) : null,
+  };
+}
+
+/**
+ * Format a single CV date for display.
+ *
+ * Options:
+ * - month: 'short' (Jan) | 'long' (January) | 'numeric' (01) | 'none'
+ * - year: 'full' (2023) | '2-digit' (23)
+ * - presentLabel: text for "present" values (default 'Present')
+ * - fallback: returned for unparseable input (default: the raw input)
+ */
+export function formatDate(value, options = {}) {
+  const { month = 'short', year = 'full', presentLabel = 'Present', fallback } = options;
+  const parts = parseDateParts(value);
+  if (!parts) return fallback !== undefined ? fallback : String(value ?? '');
+  if (parts.present) return presentLabel;
+
+  const yearText = year === '2-digit' ? String(parts.year).slice(-2) : String(parts.year);
+  const monthText = parts.month == null || month === 'none'
+    ? ''
+    : month === 'long'
+      ? MONTHS_LONG[parts.month - 1]
+      : month === 'numeric'
+        ? String(parts.month).padStart(2, '0')
+        : MONTHS_SHORT[parts.month - 1];
+
+  return [monthText, yearText].filter(Boolean).join(' ');
+}
+
+/**
+ * Format a start/end CV date pair for display, e.g. "Jan 2021 – Present".
+ *
+ * Takes every formatDate option, plus:
+ * - separator: between the two dates (default ' – ')
+ * - ongoingWhenNoEnd: treat a missing end date as "present" (default false)
+ * - collapseEqual: render "2023" instead of "2023 – 2023" (default true)
+ */
+export function formatRange(start, end, options = {}) {
+  const {
+    separator = ' – ',
+    ongoingWhenNoEnd = false,
+    collapseEqual = true,
+    ...dateOptions
+  } = options;
+
+  const startText = formatDate(start, dateOptions);
+  const endText = end == null || end === ''
+    ? (ongoingWhenNoEnd ? (dateOptions.presentLabel ?? 'Present') : '')
+    : formatDate(end, dateOptions);
+
+  if (startText && endText) {
+    if (collapseEqual && startText === endText) return startText;
+    return `${startText}${separator}${endText}`;
+  }
+  return startText || endText || '';
+}
+
 /**
  * Format a date range for display (e.g., "'21–'23" or "Current")
  */

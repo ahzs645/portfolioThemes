@@ -1,17 +1,24 @@
-import { getSkillLabel, isPresent, isArchived } from '../../../utils/cvHelpers';
+import {
+  formatDate as formatCvDate,
+  formatRange as formatCvRange,
+  getSkillLabel,
+  isPresent,
+  isArchived,
+} from '../../../utils/cvHelpers';
+
+// Year-only display, e.g. "2023" / "Current"
+const DATE_OPTIONS = { month: 'none', presentLabel: 'Current' };
 
 export function formatYear(dateStr) {
-  if (!dateStr) return '';
-  if (isPresent(dateStr)) return 'Current';
-  const parts = String(dateStr).split('-');
-  return parts[0] || dateStr;
+  return formatCvDate(dateStr, DATE_OPTIONS);
 }
 
 export function formatRange(startDate, endDate) {
-  const start = formatYear(startDate);
-  const end = formatYear(endDate);
-  if (start && end) return `${start} → ${end}`;
-  return start || end || '';
+  return formatCvRange(startDate, endDate, {
+    ...DATE_OPTIONS,
+    separator: ' → ',
+    collapseEqual: false,
+  });
 }
 
 /**
