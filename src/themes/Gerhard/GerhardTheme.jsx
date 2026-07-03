@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { isArchived, isPresent, pickSocialUrl } from '../../utils/cvHelpers';
@@ -24,12 +24,10 @@ const darkTheme = {
   underline: 'rgba(128, 128, 128, 0.5)',
 };
 
-export function GerhardTheme({ darkMode = false }) {
+export function GerhardTheme({ darkMode = false, onDarkModeChange }) {
   const cv = useCV() || {};
-  const [isDark, setIsDark] = useState(darkMode);
-
-  // Sync with external darkMode prop
-  React.useEffect(() => { setIsDark(darkMode); }, [darkMode]);
+  // Dark mode is fully controlled by the shell's darkMode prop
+  const isDark = darkMode;
 
   const fullName = cv?.name || 'Your Name';
   const email = cv?.email || null;
@@ -132,7 +130,7 @@ export function GerhardTheme({ darkMode = false }) {
       <Page>
         <Container>
           <Header>
-            <IconButton onClick={() => setIsDark(!isDark)} title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}>
+            <IconButton onClick={() => onDarkModeChange?.(!isDark)} title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}>
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10"/>
                 <line x1="2" y1="12" x2="22" y2="12"/>

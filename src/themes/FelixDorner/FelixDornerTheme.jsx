@@ -57,11 +57,10 @@ function AnimatedRow({ children, index = 0, isDark }) {
   );
 }
 
-export function FelixDornerTheme({ darkMode = false }) {
+export function FelixDornerTheme({ darkMode = false, onDarkModeChange }) {
   const cv = useCV() || {};
-  const [isDark, setIsDark] = useState(darkMode);
-
-  useEffect(() => { setIsDark(darkMode); }, [darkMode]);
+  // Dark mode is fully controlled by the shell's darkMode prop
+  const isDark = darkMode;
 
   const fullName = cv?.name || 'Your Name';
   const firstName = fullName.split(' ')[0];
@@ -441,7 +440,7 @@ export function FelixDornerTheme({ darkMode = false }) {
 
       <FloatingNav $dark={isDark}>
         <NavPill $dark={isDark}>
-          <NavLink $dark={isDark} onClick={() => setIsDark(!isDark)}>
+          <NavLink $dark={isDark} onClick={() => onDarkModeChange?.(!isDark)}>
             {isDark ? 'Light' : 'Dark'}
           </NavLink>
           <NavDivider $dark={isDark}>/</NavDivider>

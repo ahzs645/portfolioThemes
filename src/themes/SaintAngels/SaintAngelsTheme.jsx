@@ -406,14 +406,11 @@ function WireCubeCanvas({ palette }) {
   return <Canvas id="cube-bg" ref={canvasRef} aria-hidden="true" />;
 }
 
-export function SaintAngelsTheme({ darkMode = false }) {
+export function SaintAngelsTheme({ darkMode = false, onDarkModeChange }) {
   const cv = useCV();
   const [page, setPage] = useState('home');
-  const [isDark, setIsDark] = useState(darkMode);
-
-  useEffect(() => {
-    setIsDark(darkMode);
-  }, [darkMode]);
+  // Dark mode is fully controlled by the shell's darkMode prop
+  const isDark = darkMode;
 
   const palette = isDark ? darkPalette : lightPalette;
 
@@ -517,7 +514,7 @@ export function SaintAngelsTheme({ darkMode = false }) {
                   socialLinks={socialLinks}
                   palette={palette}
                   darkMode={isDark}
-                  onToggleTheme={() => setIsDark((current) => !current)}
+                  onToggleTheme={() => onDarkModeChange?.(!isDark)}
                 />
               )}
               {page === 'writing' && noteItems.length > 0 && <WritingSection items={noteItems} palette={palette} />}

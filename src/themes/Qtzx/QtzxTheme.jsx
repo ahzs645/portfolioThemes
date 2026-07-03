@@ -612,9 +612,9 @@ function QtzxInner() {
   );
 }
 
-export function QtzxTheme({ darkMode = true }) {
+export function QtzxTheme({ darkMode = true, onDarkModeChange }) {
   return (
-    <DarkModeProvider initialDark={darkMode}>
+    <DarkModeProvider initialDark={darkMode} onDarkModeChange={onDarkModeChange}>
       <QtzxInner />
     </DarkModeProvider>
   );

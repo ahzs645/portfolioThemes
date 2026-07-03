@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 
@@ -75,14 +75,10 @@ const themes = {
   },
 };
 
-export function StammyTheme({ darkMode = false }) {
+export function StammyTheme({ darkMode = false, onDarkModeChange }) {
   const cv = useCV();
-  const [isDark, setIsDark] = useState(darkMode);
-
-  // Sync with the global top-bar toggle; the in-theme button can still override afterward
-  useEffect(() => {
-    setIsDark(darkMode);
-  }, [darkMode]);
+  // Fully controlled by the shell's darkMode prop; the in-theme button reports back via onDarkModeChange
+  const isDark = darkMode;
 
   // Refs for scrolling
   const headerRef = useRef(null);
@@ -134,7 +130,7 @@ export function StammyTheme({ darkMode = false }) {
 
     // If View Transitions API is not supported, just toggle
     if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setIsDark(newTheme);
+      onDarkModeChange?.(newTheme);
       return;
     }
 
@@ -180,7 +176,7 @@ export function StammyTheme({ darkMode = false }) {
 
     try {
       const transition = document.startViewTransition(() => {
-        setIsDark(newTheme);
+        onDarkModeChange?.(newTheme);
       });
 
       await transition.finished;
@@ -192,7 +188,7 @@ export function StammyTheme({ darkMode = false }) {
       }
     } catch (error) {
       console.error('View transition failed:', error);
-      setIsDark(newTheme);
+      onDarkModeChange?.(newTheme);
     }
   };
 
