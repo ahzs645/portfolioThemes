@@ -15,7 +15,6 @@ import CreditsSection from './components/CreditsSection';
 import BottomBar from './components/BottomBar';
 
 const GlobalStyles = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 `;
 
 // Each tab has its own background gradient, inspired by Kelly Chong's page transitions

@@ -6,8 +6,6 @@ import BiographySection from './components/BiographySection';
 import ResumeSection from './components/ResumeSection';
 
 const GlobalStyles = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=EB+Garamond&family=Space+Mono:wght@400;700&display=swap');
-  @import url('https://fonts.googleapis.com/css2?family=Unica+One&display=swap');
 `;
 
 const Page = styled.div`

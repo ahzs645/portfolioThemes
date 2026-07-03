@@ -8,7 +8,6 @@ import { ProjectDetailView } from './components/ProjectDetailView';
 import { PROJECT_MARKERS, MOBILE_PROJECTS } from './themeData';
 
 const FontLoader = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&family=Instrument+Serif&family=Geist:wght@400;500&display=swap');
 `;
 
 function getSocialEntries(cv) {

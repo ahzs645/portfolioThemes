@@ -624,7 +624,6 @@ export function QtzxTheme({ darkMode = true, onDarkModeChange }) {
  * Styles
  * -------------------------------------------------------------------------- */
 const GlobalStyles = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Yeseva+One&family=Geist:wght@100..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
   .qtzx-scroll::-webkit-scrollbar { display: none; }
 

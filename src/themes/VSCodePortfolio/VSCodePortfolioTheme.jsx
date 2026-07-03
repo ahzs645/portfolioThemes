@@ -95,7 +95,6 @@ function FileIcon({ color }) {
 
 /* ── Scoped global styles ──────────────────────────────────── */
 const ScopedReset = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&family=Ubuntu+Mono:wght@400;700&display=swap');
 `;
 
 /* ── Styled-components ─────────────────────────────────────── */

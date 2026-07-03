@@ -6,7 +6,6 @@ import { withBase } from '../../utils/assetPath';
 const MATTER_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js';
 
 const FontLoader = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400&family=JetBrains+Mono:wght@300;400&display=swap');
 
   body.kaachow-cursor-active {
     cursor: none !important;

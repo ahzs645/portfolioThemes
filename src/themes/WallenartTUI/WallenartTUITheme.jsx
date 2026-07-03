@@ -105,18 +105,6 @@ export function WallenartTUITheme() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [sectionIndex, itemIndex, goToSection, goToItem]);
 
-  useEffect(() => {
-    const id = 'wallenart-tui-font';
-    if (!document.getElementById(id)) {
-      const link = document.createElement('link');
-      link.id = id;
-      link.rel = 'stylesheet';
-      link.href =
-        'https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;700&display=swap';
-      document.head.appendChild(link);
-    }
-  }, []);
-
   if (!cv) return null;
 
   return (

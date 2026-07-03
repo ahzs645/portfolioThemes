@@ -31,17 +31,6 @@ export function paletteFor(seed) {
   return TAG_PALETTE[pickColorKey(seed)];
 }
 
-export function loadFraunces(href) {
-  if (typeof document === 'undefined') return;
-  const id = 'chester-how-fonts';
-  if (document.getElementById(id)) return;
-  const link = document.createElement('link');
-  link.id = id;
-  link.rel = 'stylesheet';
-  link.href = href;
-  document.head.appendChild(link);
-}
-
 export function buildCards(cv) {
   if (!cv) {
     return { projects: [], experience: [], writing: [], extras: [] };

@@ -6,7 +6,6 @@ import { ClockWidget } from './components/ClockWidget';
 import { SubPageHeaderBlock, WorkPage, ProjectsPage, ConnectPage } from './components/SubPages';
 
 const FontLoader = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Cormorant+Garamond:wght@500;600&display=swap');
 `;
 
 const revealUp = keyframes`

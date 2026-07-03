@@ -8,8 +8,8 @@ import { Grid } from './components/Grid';
 import { Card } from './components/Card';
 import { Footer } from './components/Footer';
 import { Modal } from './components/Modal';
-import { FRAUNCES_HREF, GlobalReset, colors, fonts, CHESTER_LIGHT_VARS, CHESTER_DARK_VARS } from './styles';
-import { buildCards, loadFraunces } from './utils';
+import { GlobalReset, colors, fonts, CHESTER_LIGHT_VARS, CHESTER_DARK_VARS } from './styles';
+import { buildCards } from './utils';
 
 const SECTION_DEFS = [
   { id: 'about', label: 'About' },
@@ -61,10 +61,6 @@ export function ChesterHowTheme({ darkMode = false }) {
   const cv = useCV();
   const [activeId, setActiveId] = useState(() => readHashSection() || 'about');
   const [openCard, setOpenCard] = useState(null);
-
-  useEffect(() => {
-    loadFraunces(FRAUNCES_HREF);
-  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;

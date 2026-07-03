@@ -28,7 +28,6 @@ const C = {
 };
 
 const GlobalStyle = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap');
 
   body {
     background: ${C.g1};

@@ -5,7 +5,6 @@ import { getBioText } from '../../utils/bioText';
 
 // Load Inter font
 const FontLoader = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 `;
 
 // Color tokens matching amirmxt.com

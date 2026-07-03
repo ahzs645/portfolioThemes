@@ -1,18 +1,21 @@
 import React, { useState, useCallback } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-import { isArchived, pickSocialUrl } from '../../utils/cvHelpers';
+import { isArchived, MONTHS_SHORT, parseDateParts, pickSocialUrl } from '../../utils/cvHelpers';
 import { parseMarkdown } from '../../utils/parseMarkdown';
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
   if (/present/i.test(dateStr)) return 'Present';
-  const d = new Date(dateStr + '-01');
-  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  const parts = parseDateParts(dateStr);
+  // Historical behavior: values were parsed via `new Date(dateStr + '-01')`,
+  // so year-only dates rendered as January, and day-precision or unparseable
+  // values produced an invalid Date that rendered as "Invalid Date".
+  if (!parts || parts.day != null) return 'Invalid Date';
+  return `${MONTHS_SHORT[(parts.month || 1) - 1]} ${parts.year}`;
 }
 
 const GlobalStyle = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap');
 `;
 
 export function EdHendersonTheme({ darkMode }) {

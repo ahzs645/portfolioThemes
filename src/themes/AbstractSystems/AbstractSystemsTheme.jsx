@@ -17,7 +17,6 @@ import CertsSkills from './components/CertsSkills';
 import Connect from './components/Connect';
 
 const GlobalStyles = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
   /* blur-hover interaction — siblings dim when one is hovered */
   .blur-hover {

@@ -2,21 +2,6 @@ import React, { useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 
-const GEIST_MONO_FONT_ID = 'terminal-theme-geist-mono-font';
-const GEIST_MONO_FONT_URL = 'https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap';
-
-function useGeistMonoFont() {
-  useEffect(() => {
-    if (document.getElementById(GEIST_MONO_FONT_ID)) return;
-
-    const link = document.createElement('link');
-    link.id = GEIST_MONO_FONT_ID;
-    link.rel = 'stylesheet';
-    link.href = GEIST_MONO_FONT_URL;
-    document.head.appendChild(link);
-  }, []);
-}
-
 // Helper to check if archived
 const isArchived = (entry) => Array.isArray(entry?.tags) && entry.tags.includes('archived');
 
@@ -25,7 +10,6 @@ const isPresent = (value) => String(value || '').trim().toLowerCase() === 'prese
 
 export function TerminalTheme({ darkMode = false, onDarkModeChange }) {
   const cv = useCV();
-  useGeistMonoFont();
   const light = !darkMode;
 
   if (!cv) return null;

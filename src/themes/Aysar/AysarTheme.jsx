@@ -7,7 +7,6 @@ import Hero from './components/Hero';
 import Work from './components/Work';
 
 const FontLoader = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@600;700&display=swap');
 `;
 
 export function AysarTheme({ darkMode }) {

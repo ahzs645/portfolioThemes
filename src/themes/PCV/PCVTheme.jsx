@@ -5,7 +5,6 @@ import { isPresent, isArchived } from '../../utils/cvHelpers';
 
 /* ─── Font ─────────────────────────────────────────── */
 const FontLoader = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap');
 `;
 
 /* ─── 7 Color Themes (from p.cv) ───────────────────── */
