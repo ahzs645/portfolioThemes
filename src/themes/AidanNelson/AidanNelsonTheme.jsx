@@ -1,7 +1,21 @@
-import React, { useMemo } from 'react';
+import React, {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
+import * as THREE from 'three';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { useGLTF, useTexture } from '@react-three/drei';
 import { useCV } from '../../contexts/ConfigContext';
 import { getInitials, pickSocialUrl } from '../../utils/cvHelpers';
+import { canUseWebGL, usePrefersReducedMotion } from '../../utils/rendering';
+// Vite hashes + base-path-resolves these imports; do NOT wrap in withBase.
+import giraffeUrl from './assets/giraffe.glb';
+import dotUrl from './assets/dot.jpg';
 
 /**
  * AidanNelsonTheme — a CV-driven remake of aidanjnelson.com.
@@ -66,9 +80,256 @@ function obfuscateEmail(email = '') {
   return String(email).replace('@', ' at ').replace(/\./g, ' dot ');
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// Interactive WebGL backdrop — a faithful React-Three-Fiber remake of
+// aidanjnelson.com's home-page sketch: a transparent canvas fixed behind the
+// reader, a huge dotted ground plane receding to the horizon, soft-shadowed
+// lighting, and a click-anywhere-to-drop-a-giraffe raycast. The canvas is
+// pointer-events:none — spawning is driven by a window pointer listener that
+// raycasts manually (mirroring the original's document.body handler), so page
+// scrolling and text/link interaction are never captured by the canvas.
+// ─────────────────────────────────────────────────────────────────────────
+
+// Camera aim: just above the ground, looking toward the horizon.
+const CAMERA_TARGET = new THREE.Vector3(0, 2, -14);
+// Fine dotted grid: a large plane tiled many times so dots recede to a mist.
+const GROUND_SIZE = 2000;
+const GROUND_HALF = GROUND_SIZE / 2;
+const DOT_REPEAT = 1400;
+
+function useMediaQuery(query) {
+  const [matches, setMatches] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia
+      ? window.matchMedia(query).matches
+      : false,
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
+    const mql = window.matchMedia(query);
+    const onChange = () => setMatches(mql.matches);
+    onChange();
+    mql.addEventListener?.('change', onChange);
+    return () => mql.removeEventListener?.('change', onChange);
+  }, [query]);
+
+  return matches;
+}
+
+// Keep a WebGL context-loss or asset-load failure from ever blanking the page:
+// the serif reader lives outside this boundary and always renders.
+class CanvasErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { failed: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch() {
+    /* swallow — the backdrop is purely decorative */
+  }
+
+  render() {
+    if (this.state.failed) return null;
+    return this.props.children;
+  }
+}
+
+function Ground({ darkMode }) {
+  const texture = useTexture(dotUrl);
+
+  useMemo(() => {
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(DOT_REPEAT, DOT_REPEAT);
+    texture.anisotropy = 8;
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.needsUpdate = true;
+  }, [texture]);
+
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <planeGeometry args={[GROUND_SIZE, GROUND_SIZE]} />
+      {/* On dark backgrounds a mid-grey tint keeps the lit grid faint and the
+          reader legible; on light it stays white (no tint). */}
+      <meshLambertMaterial map={texture} color={darkMode ? '#6c6a61' : '#ffffff'} />
+    </mesh>
+  );
+}
+
+function Giraffe({ position, rotation }) {
+  const { scene } = useGLTF(giraffeUrl);
+
+  // Each drop is an independent clone that casts a shadow. The model's own
+  // node transform already stands it upright at ~5 units tall.
+  const object = useMemo(() => {
+    const clone = scene.clone(true);
+    clone.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = false;
+      }
+    });
+    return clone;
+  }, [scene]);
+
+  return <primitive object={object} position={position} rotation={[0, rotation, 0]} />;
+}
+
+function CameraRig({ drift }) {
+  const { camera, invalidate } = useThree();
+
+  useEffect(() => {
+    camera.lookAt(CAMERA_TARGET);
+    // In frameloop="demand" nothing re-renders on its own — nudge one frame so
+    // the corrected camera orientation is what actually gets drawn.
+    invalidate();
+  }, [camera, invalidate]);
+
+  useFrame(({ clock }) => {
+    if (!drift) return;
+    const t = clock.getElapsedTime();
+    camera.position.x = Math.sin(t * 0.06) * 7;
+    camera.position.z = 34 + Math.cos(t * 0.05) * 3;
+    camera.lookAt(CAMERA_TARGET);
+  });
+
+  return null;
+}
+
+// Manual raycaster: listens on the window (canvas is pointer-events:none) so a
+// tap on empty space — or even behind the text — drops a giraffe, while drags
+// (scroll / text-select) and taps on links & buttons are ignored.
+function ClickSpawner({ onSpawn }) {
+  const { camera, gl } = useThree();
+
+  useEffect(() => {
+    const raycaster = new THREE.Raycaster();
+    const ndc = new THREE.Vector2();
+    const ground = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const hit = new THREE.Vector3();
+    let downX = 0;
+    let downY = 0;
+
+    const onDown = (event) => {
+      downX = event.clientX;
+      downY = event.clientY;
+    };
+
+    const onUp = (event) => {
+      // Ignore drags: scrolling and text selection move the pointer.
+      if (Math.hypot(event.clientX - downX, event.clientY - downY) > 10) return;
+      // Ignore interactive targets so links/buttons behave normally.
+      if (
+        event.target?.closest?.('a, button, input, textarea, select, label')
+      ) {
+        return;
+      }
+      const rect = gl.domElement.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      ndc.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      ndc.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(ndc, camera);
+      if (!raycaster.ray.intersectPlane(ground, hit)) return;
+      if (
+        Number.isFinite(hit.x) &&
+        Math.abs(hit.x) < GROUND_HALF &&
+        Math.abs(hit.z) < GROUND_HALF
+      ) {
+        onSpawn({ x: hit.x, y: 0, z: hit.z });
+      }
+    };
+
+    window.addEventListener('pointerdown', onDown, { passive: true });
+    window.addEventListener('pointerup', onUp, { passive: true });
+    return () => {
+      window.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointerup', onUp);
+    };
+  }, [camera, gl, onSpawn]);
+
+  return null;
+}
+
+function GiraffeBackdrop({ drift, cap, darkMode }) {
+  const [giraffes, setGiraffes] = useState([]);
+  const nextId = useRef(0);
+
+  const handleSpawn = useCallback(
+    (point) => {
+      setGiraffes((prev) => {
+        const next = prev.concat({
+          id: nextId.current++,
+          position: [point.x, point.y, point.z],
+          rotation: Math.random() * Math.PI * 2,
+        });
+        // Recycle the oldest once the cap is reached — endless, bounded fun.
+        if (next.length > cap) next.shift();
+        return next;
+      });
+    },
+    [cap],
+  );
+
+  return (
+    <CanvasLayer aria-hidden="true">
+      <CanvasErrorBoundary>
+        <Canvas
+          shadows
+          dpr={[1, 2]}
+          frameloop={drift ? 'always' : 'demand'}
+          gl={{ alpha: true, antialias: true }}
+          camera={{ fov: 25, near: 0.1, far: 2000, position: [0, 20, 34] }}
+          style={{ pointerEvents: 'none' }}
+        >
+          <hemisphereLight args={[0xffffff, 0xffffff, 0.8]} position={[0, 50, 0]} />
+          <directionalLight
+            intensity={1}
+            position={[30, 52, 30]}
+            castShadow
+            shadow-mapSize-width={1024}
+            shadow-mapSize-height={1024}
+            shadow-camera-near={0.5}
+            shadow-camera-far={500}
+            shadow-camera-left={-120}
+            shadow-camera-right={120}
+            shadow-camera-top={120}
+            shadow-camera-bottom={-120}
+            shadow-bias={-0.0001}
+          />
+          <CameraRig drift={drift} />
+          <Suspense fallback={null}>
+            <Ground darkMode={darkMode} />
+            {giraffes.map((g) => (
+              <Giraffe key={g.id} position={g.position} rotation={g.rotation} />
+            ))}
+          </Suspense>
+          <ClickSpawner onSpawn={handleSpawn} />
+        </Canvas>
+      </CanvasErrorBoundary>
+    </CanvasLayer>
+  );
+}
+
+// Warm the giraffe cache so the first drop is instant.
+useGLTF.preload(giraffeUrl);
+
 export function AidanNelsonTheme({ darkMode = false, onDarkModeChange }) {
   const cv = useCV() || {};
   const theme = darkMode ? darkTheme : lightTheme;
+
+  // Interactive backdrop gating: only mount WebGL where it's supported, drop
+  // the idle drift for reduced-motion / small screens, and trim the giraffe
+  // cap on phones. Click-to-spawn stays on in every case the canvas renders.
+  const reducedMotion = usePrefersReducedMotion();
+  const isMobile = useMediaQuery('(max-width: 760px)');
+  const [webglAvailable] = useState(() => canUseWebGL());
+  const showBackdrop = webglAvailable;
+  const drift = showBackdrop && !reducedMotion && !isMobile;
+  const spawnCap = isMobile ? 15 : 40;
 
   const name = cv.name || 'Your Name';
   const location = cv.location || null;
@@ -99,6 +360,9 @@ export function AidanNelsonTheme({ darkMode = false, onDarkModeChange }) {
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyle />
+      {showBackdrop && (
+        <GiraffeBackdrop drift={drift} cap={spawnCap} darkMode={darkMode} />
+      )}
       <Page>
         <Reader>
           <TopRow>
@@ -205,20 +469,59 @@ export function AidanNelsonTheme({ darkMode = false, onDarkModeChange }) {
             </>
           )}
         </Reader>
+        {showBackdrop && (
+          <Hint aria-hidden="true">click anywhere&#8202;↝&#8202;drop a giraffe</Hint>
+        )}
       </Page>
     </ThemeProvider>
   );
 }
 
 const Page = styled.div`
+  position: relative;
+  z-index: 1;
   min-height: 100%;
   width: 100%;
-  background-color: ${(props) => props.theme.background};
+  /* Transparent so the fixed WebGL backdrop shows through; the warm-white (or
+     dark) page colour is supplied by the body via GlobalStyle, which also acts
+     as the fallback whenever the canvas is absent. */
+  background-color: transparent;
   color: ${(props) => props.theme.text};
   font-family: ${SERIF};
   box-sizing: border-box;
   display: flex;
   justify-content: center;
+`;
+
+// Full-bleed backdrop pinned behind the reader. pointer-events:none guarantees
+// it never eats scroll/clicks — spawning is handled by ClickSpawner's window
+// listener. Sized to the container height (never a raw 100vh).
+const CanvasLayer = styled.div`
+  position: fixed;
+  top: var(--app-top-offset, 0px);
+  left: 0;
+  width: 100%;
+  height: calc(100dvh - var(--app-top-offset, 0px));
+  z-index: 0;
+  pointer-events: none;
+`;
+
+const Hint = styled.p`
+  position: fixed;
+  left: 50%;
+  bottom: max(0.9rem, env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 2;
+  margin: 0;
+  padding: 0.3rem 0.7rem;
+  font-family: ${MONO};
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  color: ${(props) => props.theme.muted};
+  opacity: 0.72;
+  pointer-events: none;
+  user-select: none;
 `;
 
 const Reader = styled.main`

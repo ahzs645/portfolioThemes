@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { formatRange, formatDate, isPresent } from '../../utils/cvHelpers';
@@ -6,16 +6,63 @@ import { formatRange, formatDate, isPresent } from '../../utils/cvHelpers';
 /**
  * SanjayEngineeringTheme — a faithful CV-driven remake of sanjay.engineering.
  *
- * A calm sky-blue gradient page set entirely in Geist Mono, with a rotated
- * "<name> · <field>" rail running down the left edge, blocky Departure Mono
- * section headers (PROJECTS / WRITING / EXPERIENCE), and quiet two-column rows
- * — a title on the left, a description or date on the right. Rebuilt from
- * CV.yaml rather than Sanjay's own content, down to the "Typeset in Departure
- * Mono" colophon (which we can honor because the shell already ships the font).
+ * The tagline is "chasing light": the page background is a LIVE SKY GRADIENT
+ * computed from the sun's real position over the CV owner's city. We calculate
+ * the solar elevation for the current moment (recomputed every minute) and map
+ * it to a top→bottom sky — blue by day, warm gold at dawn/dusk, deep navy after
+ * dark — and flip to the dark ink variant once the sun drops below the horizon.
+ *
+ * Everything is set in Geist Mono (regular 400, with a few thin 300 accents),
+ * with a rotated "<name> · <field>" rail down the left edge, blocky Departure
+ * Mono section headers (PROJECTS / WRITING / EXPERIENCE), and quiet two-column
+ * rows. Rebuilt from CV.yaml, down to the "Typeset in Departure Mono" colophon.
  */
 
-const light = {
-  gradient: 'linear-gradient(162deg, #9dc0e6 0%, #b9d2ea 32%, #dce8f4 72%, #eef4fa 100%)',
+// The owner's city (Prince George, BC). The sky is computed for this location,
+// so the background is literally the local sky at the visitor's current time.
+const LAT = 53.9171;
+const LNG = -122.7497;
+
+// ---- Compact NOAA / SunCalc-style solar position (altitude in degrees) ----
+const RAD = Math.PI / 180;
+const DAY_MS = 86400000;
+const J1970 = 2440588;
+const J2000 = 2451545;
+const OBLIQUITY = RAD * 23.4397; // obliquity of the ecliptic
+
+function solarElevation(date, lat, lng) {
+  const days = date.valueOf() / DAY_MS - 0.5 + J1970 - J2000;
+  const M = RAD * (357.5291 + 0.98560028 * days); // solar mean anomaly
+  const C =
+    RAD * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M)); // equation of center
+  const L = M + C + RAD * 102.9372 + Math.PI; // ecliptic longitude
+  const dec = Math.asin(Math.sin(OBLIQUITY) * Math.sin(L)); // declination
+  const ra = Math.atan2(Math.sin(L) * Math.cos(OBLIQUITY), Math.cos(L)); // right ascension
+  const th = RAD * (280.16 + 360.9856235 * days) - RAD * -lng; // sidereal time
+  const H = th - ra; // hour angle
+  const phi = RAD * lat;
+  const alt = Math.asin(
+    Math.sin(phi) * Math.sin(dec) + Math.cos(phi) * Math.cos(dec) * Math.cos(H),
+  );
+  return alt / RAD; // degrees above the horizon
+}
+
+// ---- Sky bands: solar elevation (deg) -> vertical gradient stops (top, bottom).
+// Anchors are interpolated so the sky shifts smoothly minute to minute.
+const SKY = [
+  { e: 60, top: '#3d72b6', bottom: '#dbe8f5' }, // clear day, sun high
+  { e: 20, top: '#5786c2', bottom: '#e4eef7' }, // day
+  { e: 10, top: '#7b8fd0', bottom: '#f3d6ad' }, // low sun, warming
+  { e: 3, top: '#9a9ed0', bottom: '#f4bf90' }, // golden hour, periwinkle -> peach
+  { e: 0, top: '#9a86bb', bottom: '#e39a6b' }, // sunrise / sunset horizon
+  { e: -2, top: '#2a2c54', bottom: '#3d3350' }, // civil twilight, indigo -> dusky warm
+  { e: -6, top: '#1f2549', bottom: '#2c2746' }, // end of civil twilight
+  { e: -12, top: '#121d34', bottom: '#1e2c44' }, // nautical night
+  { e: -18, top: '#0d1a2b', bottom: '#16293f' }, // astronomical night
+];
+
+// Ink palettes: dark slate for light (day) skies, light for dark (night) skies.
+const DAY_INK = {
   ink: '#2b3a4d',
   head: '#1c2a3c',
   muted: '#5d6f83',
@@ -25,8 +72,7 @@ const light = {
   link: '#2b3a4d',
 };
 
-const dark = {
-  gradient: 'linear-gradient(162deg, #0d1a2b 0%, #122439 40%, #16293f 100%)',
+const NIGHT_INK = {
   ink: '#c3d2e2',
   head: '#e6eef6',
   muted: '#8aa0b6',
@@ -36,8 +82,58 @@ const dark = {
   link: '#dbe6f1',
 };
 
+function hexToRgb(h) {
+  const n = parseInt(h.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function mixHex(a, b, t) {
+  const A = hexToRgb(a);
+  const B = hexToRgb(b);
+  const c = (i) => Math.round(A[i] + (B[i] - A[i]) * t).toString(16).padStart(2, '0');
+  return `#${c(0)}${c(1)}${c(2)}`;
+}
+
+// Relative luminance (WCAG) — used to pick legible ink for the current sky.
+function relLuminance(hex) {
+  const lin = (v) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  };
+  const [r, g, b] = hexToRgb(hex);
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+
+function buildSkyTheme(elevation) {
+  const e = Math.max(-18, Math.min(60, elevation));
+  let hi = SKY[0];
+  let lo = SKY[SKY.length - 1];
+  for (let i = 0; i < SKY.length - 1; i += 1) {
+    if (e <= SKY[i].e && e >= SKY[i + 1].e) {
+      hi = SKY[i];
+      lo = SKY[i + 1];
+      break;
+    }
+  }
+  const t = hi.e === lo.e ? 0 : (hi.e - e) / (hi.e - lo.e);
+  const top = mixHex(hi.top, lo.top, t);
+  const bottom = mixHex(hi.bottom, lo.bottom, t);
+  // Legibility: switch to light ink once the average sky is dark (roughly the
+  // moment the sun dips below the horizon).
+  const avgLum = (relLuminance(top) + relLuminance(bottom)) / 2;
+  const ink = avgLum < 0.3 ? NIGHT_INK : DAY_INK;
+  return {
+    ...ink,
+    gradient: `linear-gradient(to bottom, ${top} 0%, ${bottom} 100%)`,
+  };
+}
+
 const GlobalStyle = createGlobalStyle`
-  body { background: ${(props) => props.theme.gradient}; background-attachment: fixed; }
+  body {
+    background: ${(props) => props.theme.gradient};
+    background-attachment: fixed;
+    transition: background 1.5s linear;
+  }
 `;
 
 function fieldWord(cv) {
@@ -50,7 +146,24 @@ function fieldWord(cv) {
 
 export function SanjayEngineeringTheme({ darkMode = false }) {
   const cv = useCV() || {};
-  const theme = darkMode ? dark : light;
+
+  // Live solar elevation for the current moment, recomputed every ~60s.
+  const [elevation, setElevation] = useState(() => solarElevation(new Date(), LAT, LNG));
+  useEffect(() => {
+    const tick = () => setElevation(solarElevation(new Date(), LAT, LNG));
+    tick();
+    const id = setInterval(tick, 60000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Sun-driven dark mode: below the horizon the sky (and its ink) go dark on
+  // their own. If the shell explicitly forces dark via the prop, that wins — we
+  // render the deep-night sky so the light ink stays legible even in daylight;
+  // otherwise the live sun decides both the gradient and the dark/light ink.
+  const theme = useMemo(
+    () => buildSkyTheme(darkMode ? -18 : elevation),
+    [darkMode, elevation],
+  );
 
   const name = cv.name || 'Your Name';
   const firstName = name.split(/\s+/)[0] || name;
@@ -187,10 +300,12 @@ const Page = styled.div`
   background: ${(props) => props.theme.gradient};
   color: ${(props) => props.theme.ink};
   font-family: 'Geist Mono', ui-monospace, SFMono-Regular, 'Roboto Mono', Menlo, monospace;
+  font-weight: 400;
   font-size: 15px;
   line-height: 1.55;
   box-sizing: border-box;
   padding: 2rem 1rem 4rem;
+  transition: background 1.5s linear, color 1.5s linear;
 `;
 
 const Rail = styled.div`
@@ -200,6 +315,7 @@ const Rail = styled.div`
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   color: ${(props) => props.theme.rail};
+  font-weight: 300;
   letter-spacing: 0.12em;
   font-size: 13px;
   user-select: none;
@@ -226,6 +342,7 @@ const Nav = styled.nav`
   a {
     color: ${(props) => props.theme.ink};
     text-decoration: none;
+    transition: color 0.3s ease;
     &:hover {
       color: ${(props) => props.theme.accent};
     }
@@ -237,12 +354,14 @@ const Masthead = styled.header`
   line-height: 1.4;
   div {
     color: ${(props) => props.theme.head};
+    transition: color 1s linear;
   }
 `;
 
 const Intro = styled.p`
   margin: 0 0 3rem;
-  color: ${(props) => props.theme.muted};
+  color: ${(props) => props.theme.ink};
+  opacity: 0.9;
 `;
 
 const Section = styled.section`
@@ -257,6 +376,7 @@ const Heading = styled.h2`
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: ${(props) => props.theme.head};
+  transition: color 1s linear;
   margin: 0 0 1.1rem;
 `;
 
@@ -285,8 +405,10 @@ const RowLeft = styled.div`
 
 const RowTitle = styled.span`
   color: ${(props) => props.theme.head};
-  font-weight: 500;
+  font-weight: 400;
+  letter-spacing: 0.01em;
   text-decoration: none;
+  transition: color 0.3s ease;
 
   &[href]:hover {
     color: ${(props) => props.theme.accent};
@@ -320,6 +442,7 @@ const Footer = styled.footer`
 
   .colophon {
     margin-top: 0.35rem;
+    font-weight: 300;
     opacity: 0.8;
   }
 `;
