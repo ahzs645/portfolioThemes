@@ -636,9 +636,9 @@ export const PORTFOLIO_THEMES = [
   },
   {
     id: 'cp-domina',
-    slug: 'serif-hello',
-    name: 'Serif Hello',
-    description: 'Ultra-minimal classic-serif page: a bold "Hi" and one flowing paragraph that folds email, GitHub, LinkedIn, CV, and publications into inline blue underlined links, inspired by cpdomina.net.',
+    slug: 'milligram',
+    name: 'Milligram',
+    description: 'Ultra-minimal milligram-framework page in light-weight Roboto grey: a quiet "Hi" and one flowing paragraph that folds email, GitHub, LinkedIn, CV, and publications into inline purple links, inspired by cpdomina.net.',
     source: 'https://www.cpdomina.net',
     Component: lazyTheme(() => import('./CpDomina/CpDominaTheme'), 'CpDominaTheme'),
   },

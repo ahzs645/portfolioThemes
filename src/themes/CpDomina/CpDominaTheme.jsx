@@ -6,32 +6,36 @@ import { pickSocialUrl } from '../../utils/cvHelpers';
 /**
  * CpDominaTheme — a faithful, CV-driven remake of www.cpdomina.net (Pedro Oliveira).
  *
- * The source is an ultra-minimal classic-serif page: a white ground, a bold
- * serif "Hi" heading, and a single flowing paragraph that folds inline blue
- * underlined links (email, GitHub, LinkedIn, CV, publications) straight into
- * the sentence. We rebuild that voice entirely from CV.yaml — the greeting
- * sentence, the links, and an optional publications block are all synthesized
- * from the normalized CV rather than hardcoding Pedro's copy.
+ * The source is an ultra-minimal page built on the milligram CSS framework:
+ * a white ground, light-weight Roboto (300) type in milligram's signature
+ * grey (#606c76), a quiet "Hi" heading, and a single flowing paragraph that
+ * folds inline purple (#9b4dca) links (email, GitHub, LinkedIn, CV,
+ * publications) straight into the sentence. We rebuild that voice entirely
+ * from CV.yaml — the greeting, links, and an optional publications block are
+ * synthesized from the normalized CV rather than hardcoding Pedro's copy.
  */
 
 const PUB_ANCHOR = 'cpdomina-publications';
 
+// milligram's default palette: primary purple links on grey body text.
 const lightTheme = {
   bg: '#ffffff',
-  text: '#141414',
-  link: '#0b57d0',
-  linkHover: '#083b8f',
-  muted: '#5a5a5a',
-  rule: 'rgba(0, 0, 0, 0.12)',
+  text: '#606c76',
+  strong: '#3a4149',
+  link: '#9b4dca',
+  linkHover: '#606c76',
+  muted: '#8b96a0',
+  rule: 'rgba(0, 0, 0, 0.1)',
 };
 
 const darkTheme = {
-  bg: '#0e0e10',
-  text: '#e9e9ec',
-  link: '#8ab4ff',
-  linkHover: '#aecaff',
-  muted: '#9a9aa4',
-  rule: 'rgba(255, 255, 255, 0.14)',
+  bg: '#12131a',
+  text: '#b7bfc9',
+  strong: '#e9edf2',
+  link: '#c99be8',
+  linkHover: '#e7d3f7',
+  muted: '#7f8894',
+  rule: 'rgba(255, 255, 255, 0.12)',
 };
 
 const GlobalStyle = createGlobalStyle`
@@ -289,7 +293,8 @@ const Page = styled.div`
   justify-content: flex-start;
   background-color: ${(props) => props.theme.bg};
   color: ${(props) => props.theme.text};
-  font-family: 'Times New Roman', Times, Georgia, serif;
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-weight: 300;
   padding: clamp(2.75rem, 10vh, 6.5rem) clamp(1.25rem, 5vw, 3.5rem) 4rem;
   transition: background-color 0.25s ease, color 0.25s ease;
 `;
@@ -300,20 +305,22 @@ const Column = styled.div`
 `;
 
 const Greeting = styled.h1`
-  margin: 0 0 1.1rem;
-  font-weight: 700;
-  font-size: clamp(1.7rem, 5vw, 2.15rem);
-  line-height: 1.1;
-  letter-spacing: -0.01em;
+  margin: 0 0 1.6rem;
+  font-weight: 300;
+  font-size: clamp(2rem, 6vw, 2.8rem);
+  line-height: 1.2;
+  letter-spacing: -0.05rem;
+  color: ${(props) => props.theme.text};
 `;
 
 const Prose = styled.p`
   margin: 0;
-  font-size: clamp(1rem, 2.6vw, 1.12rem);
+  font-size: clamp(1rem, 2.6vw, 1.05rem);
   line-height: 1.6;
 
   strong {
     font-weight: 700;
+    color: ${(props) => props.theme.strong};
   }
 
   a {

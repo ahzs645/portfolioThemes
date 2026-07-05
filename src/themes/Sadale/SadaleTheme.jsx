@@ -233,16 +233,18 @@ export function SadaleTheme({ darkMode = false, onDarkModeChange }) {
                 <li key={i}>{line}</li>
               ))}
               <li>
-                Shitpost responsibly across the information superhighway.{' '}
-                <ClickMe
-                  type="button"
-                  onClick={() => setClicked((v) => !v)}
-                  aria-pressed={clicked}
-                >
-                  😀 click me 😀
-                </ClickMe>
+                Shitpost responsibly across the information superhighway.
+                <BounceBox>
+                  <ClickMe
+                    type="button"
+                    onClick={() => setClicked((v) => !v)}
+                    aria-pressed={clicked}
+                  >
+                    😀 click me 😀
+                  </ClickMe>
+                </BounceBox>
                 {clicked && (
-                  <Whisper> you clicked it. incredible. 10/10 — would click again.</Whisper>
+                  <Whisper>you clicked it. incredible. 10/10 — would click again.</Whisper>
                 )}
               </li>
             </UL>
@@ -580,10 +582,12 @@ const RetroButton = styled.button`
   }
 `;
 
-/* WordArt */
-const bob = keyframes`
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+/* WordArt — the source flashes each letter between a dark brown and bright
+ * orange while it bobs (animated-text 0.2s alternate); we keep the same idea
+ * but at a slightly gentler cadence. */
+const flash = keyframes`
+  from { transform: translateY(0); color: #7f4c00; }
+  to   { transform: translateY(-5px); color: #ff9900; }
 `;
 
 const WordArt = styled.div`
@@ -619,7 +623,7 @@ const Letter = styled.span`
     6px 6px 9px rgba(60, 30, 0, 0.45);
 
   @media (prefers-reduced-motion: no-preference) {
-    animation: ${bob} 1.8s ease-in-out infinite;
+    animation: ${flash} 0.45s ease-in-out infinite alternate;
     animation-delay: var(--d, 0s);
   }
 `;
@@ -678,17 +682,48 @@ const Link = styled.a`
   }
 `;
 
+// The source bounces "click me" around a little box with nested
+// alternating <marquee> tags (DVD-logo style); we reproduce that with two
+// independent alternating position animations at different periods.
+const bounceX = keyframes`
+  from { left: 2px; }
+  to   { left: calc(100% - 118px); }
+`;
+const bounceY = keyframes`
+  from { top: 2px; }
+  to   { top: calc(100% - 32px); }
+`;
+
+const BounceBox = styled.div`
+  position: relative;
+  width: min(240px, 100%);
+  height: 82px;
+  margin: 0.4rem 0 0.2rem;
+  border: 1px dashed ${(p) => p.theme.rule};
+  overflow: hidden;
+`;
+
 const ClickMe = styled.button`
+  position: absolute;
+  top: 2px;
+  left: 2px;
   font-family: inherit;
   font-weight: bold;
   font-size: 0.95em;
   padding: 0.05rem 0.35rem;
+  white-space: nowrap;
   cursor: pointer;
   color: ${(p) => p.theme.text};
   background: ${(p) => p.theme.btnBg};
   border: 2px solid ${(p) => p.theme.btnBorderLight};
   border-right-color: ${(p) => p.theme.btnBorderDarkReal};
   border-bottom-color: ${(p) => p.theme.btnBorderDarkReal};
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation:
+      ${bounceX} 2.7s linear infinite alternate,
+      ${bounceY} 1.9s linear infinite alternate;
+  }
 
   &:active {
     border-color: ${(p) => p.theme.btnBorderDarkReal};

@@ -7,6 +7,7 @@ import {
   formatRange,
   parseDateParts,
   pickSocialUrl,
+  getInitials,
   MONTHS_LONG,
 } from '../../utils/cvHelpers';
 
@@ -246,9 +247,9 @@ export function JenLiuTheme({ darkMode = false, onDarkModeChange }) {
 
           <Portrait>
             {avatarSrc ? (
-              <img src={avatarSrc} alt={`very okay drawing of ${name}`} />
+              <img src={avatarSrc} alt={name} />
             ) : (
-              <Placeholder>very okay drawing of {name}</Placeholder>
+              <Placeholder aria-label={name}>{getInitials(name)}</Placeholder>
             )}
           </Portrait>
 
@@ -515,9 +516,9 @@ const Placeholder = styled.div`
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 10px;
-  font-style: italic;
-  font-size: 0.8rem;
+  font-weight: 700;
+  font-size: clamp(2.6rem, 7vw, 3.6rem);
+  letter-spacing: 0.04em;
   color: ${(props) => props.theme.muted};
   background: ${(props) => props.theme.placeholder};
   border: 1px solid ${(props) => props.theme.rule};
