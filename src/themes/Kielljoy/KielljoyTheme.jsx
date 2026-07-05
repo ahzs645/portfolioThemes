@@ -1,54 +1,80 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
+import styled, { ThemeProvider, createGlobalStyle, keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { formatRange, formatDate } from '../../utils/cvHelpers';
 
 /**
  * KielljoyTheme — a CV-driven remake of kielljoy.neocities.org.
  *
- * The source is an intentionally sparse neocities landing page: a lowercase
- * handle in bold serif Times, trailed by a hard-blinking text cursor bar
- * ("kielljoy|"), above a tiny bullet nav where every bullet marker is a
- * different bright color (magenta, green, blue) and the links are the classic
- * underlined browser blue. We keep that airy retro-personal-site voice, then
- * fill the page below with quiet serif CV sections so it isn't empty.
+ * The source is a stark, dark neocities landing page: a big lowercase handle
+ * ("kielljoy|") set in a chunky, slightly glitchy PIXEL display font in bright
+ * blue, trailed by a hard-blinking block cursor, above a tiny vertical nav where
+ * every label is a different bright color (magenta "about", green "blog", blue
+ * "etc"). The glyphs read as pixelated with a faint RGB-split / chromatic
+ * aberration (a magenta shadow one way, a cyan shadow the other).
  *
- * Dark mode is a nod to the site's *intended* stylesheet (2024.css), which
- * paints a black ground with magenta (#CF00FF) text and a blue cursor.
+ * This theme is DARK-NATIVE: the black + blue-pixel look is the default. A soft
+ * light variant is offered via the toggle, but the star (and the screenshot) is
+ * the black page. Below the hero we fill the page with the CV sections in a
+ * readable mono face on black so the page isn't empty.
  */
 
-// Bullet-marker colors, straight from the source's inline <li style="color:…">
-// declarations (including the two it keeps commented out for later).
-const DOT_COLORS = ['#ff008f', '#00ff1c', '#5000ff', '#00cfff', '#ffe300', '#ff6a00'];
+// Per-item nav colors, matching the source's bright accents:
+// about → magenta, blog → green, etc → blue, then more for extra CV sections.
+const NAV_COLORS = ['#ff2d95', '#22e06a', '#4060ff', '#00e1ff', '#ffcf33', '#ff6a3d'];
 
-const lightTheme = {
-  bg: '#ffffff',
-  heading: '#000000',
-  text: '#1c1c1c',
-  muted: '#585858',
-  faint: '#8a8a8a',
-  link: '#0000ee',
-  linkHover: '#4b4bff',
-  cursor: '#000000',
-  rule: '#e6e6e6',
-};
+// --- Palettes -------------------------------------------------------------
 
+// Black + blue-pixel look — the default, dark-native palette.
 const darkTheme = {
-  bg: '#0b0b0e',
-  heading: '#f4f2f6',
-  text: '#d8d3de',
-  muted: '#9b93a6',
-  faint: '#6f6879',
-  link: '#7db4ff',
-  linkHover: '#aaccff',
-  cursor: '#cf00ff', // magenta cursor — echoes the real 2024.css palette
-  rule: '#242029',
+  bg: '#050505',
+  name: '#3b5bff', // bright blue wordmark
+  heading: '#4060ff', // section labels / accent blue
+  text: '#c9c9d2', // light-grey body
+  muted: '#8f8f9c',
+  faint: '#5f5f6b',
+  link: '#5b8cff',
+  linkHover: '#9cbcff',
+  cursor: '#4060ff', // blue block cursor
+  rule: '#1b1b22',
+  glitchA: '#ff2d95', // magenta RGB-split
+  glitchB: '#00e1ff', // cyan RGB-split
 };
 
-const SERIF = "'Times New Roman', Times, Georgia, serif";
+// Optional light variant — keeps the pixel type and blue name, on paper-white.
+const lightTheme = {
+  bg: '#f4f4f6',
+  name: '#2233dd',
+  heading: '#2233dd',
+  text: '#1c1c24',
+  muted: '#55555f',
+  faint: '#8a8a92',
+  link: '#1b3fd6',
+  linkHover: '#4060ff',
+  cursor: '#2233dd',
+  rule: '#dcdce2',
+  glitchA: '#ff2d95',
+  glitchB: '#00b4d8',
+};
+
+// 'Departure Mono' is the pixel/blocky display face (shipped via @font-face);
+// use it for the NAME and NAV. Body text uses a clean mono for readability.
+const PIXEL = "'Departure Mono', 'Geist Mono', 'JetBrains Mono', monospace";
+const MONO = "'Geist Mono', 'JetBrains Mono', 'Departure Mono', monospace";
 
 const GlobalStyle = createGlobalStyle`
   body { background-color: ${(props) => props.theme.bg}; }
+`;
+
+// Chromatic-aberration jitter: the wordmark's magenta/cyan shadows drift a
+// pixel or two on a short, stepped loop for a subtle digital-glitch feel.
+const glitch = keyframes`
+  0%   { text-shadow: -2px 0 var(--gA), 2px 0 var(--gB); }
+  20%  { text-shadow: -3px 0 var(--gA), 2px 1px var(--gB); }
+  40%  { text-shadow: -1px 1px var(--gA), 3px 0 var(--gB); }
+  60%  { text-shadow: -2px -1px var(--gA), 2px 1px var(--gB); }
+  80%  { text-shadow: -3px 1px var(--gA), 1px -1px var(--gB); }
+  100% { text-shadow: -2px 0 var(--gA), 2px 0 var(--gB); }
 `;
 
 function articleFor(word = '') {
@@ -61,7 +87,10 @@ function displayHost(url = '') {
 
 export function KielljoyTheme({ darkMode = false, onDarkModeChange }) {
   const cv = useCV() || {};
-  const theme = darkMode ? darkTheme : lightTheme;
+  // Dark-native: the black pixel look is the default (darkMode=false); the
+  // light variant is the alternate. darkMode is read directly, per contract.
+  const theme = darkMode ? lightTheme : darkTheme;
+  const isDark = !darkMode;
 
   // Hard-blinking cursor bar. A JS interval (not a CSS animation) so we can be
   // certain it's torn down on unmount, per the theme contract.
@@ -96,19 +125,19 @@ export function KielljoyTheme({ darkMode = false, onDarkModeChange }) {
       return existing.split(/\n{2,}/).map((s) => s.trim()).filter(Boolean);
     }
 
-    let intro = `Hi, I'm ${firstName}.`;
+    let intro = `hi, i'm ${firstName}.`;
     if (role) {
-      intro += ` I'm ${articleFor(role)} ${role}`;
+      intro += ` i'm ${articleFor(role)} ${role}`;
       if (company) intro += ` at ${company}`;
       if (location) intro += `, based in ${location}`;
       intro += '.';
     } else if (location) {
-      intro += ` Based in ${location}.`;
+      intro += ` based in ${location}.`;
     }
 
     return [
       intro,
-      "This is a small, quiet corner of the internet — somewhere to keep my work, projects, and a few notes on what I'm working on.",
+      "this is a small, dark corner of the internet — somewhere to keep my work, projects, and a few notes on what i'm building.",
     ];
   }, [cv.about, firstName, role, company, location]);
 
@@ -121,15 +150,15 @@ export function KielljoyTheme({ darkMode = false, onDarkModeChange }) {
 
   const hasElsewhere = Boolean(email || website || socialList.length);
 
-  // Sections that actually have content — drives both the bullet nav and the
-  // rendered blocks below so they never drift out of sync.
+  // Sections that actually have content — drives both the nav and the rendered
+  // blocks below so they never drift out of sync.
   const navSections = useMemo(() => {
     const list = [{ id: 'about', label: 'about' }];
-    if (experience.length) list.push({ id: 'experience', label: 'experience' });
+    if (experience.length) list.push({ id: 'experience', label: 'blog' });
     if (projects.length) list.push({ id: 'projects', label: 'projects' });
-    if (education.length) list.push({ id: 'education', label: 'education' });
+    if (education.length) list.push({ id: 'education', label: 'edu' });
     if (awards.length) list.push({ id: 'awards', label: 'awards' });
-    if (hasElsewhere) list.push({ id: 'elsewhere', label: 'elsewhere' });
+    if (hasElsewhere) list.push({ id: 'elsewhere', label: 'etc' });
     return list;
   }, [experience.length, projects.length, education.length, awards.length, hasElsewhere]);
 
@@ -148,23 +177,27 @@ export function KielljoyTheme({ darkMode = false, onDarkModeChange }) {
       <Page>
         <Column>
           <HeaderRow>
-            <Title>
+            <Title $animate={isDark} aria-label={handle}>
               {handle}
               <Cursor $on={cursorOn} aria-hidden="true">|</Cursor>
             </Title>
             <Toggle
               type="button"
               onClick={() => onDarkModeChange?.(!darkMode)}
-              title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             >
-              {darkMode ? 'light' : 'dark'}
+              {isDark ? 'light' : 'dark'}
             </Toggle>
           </HeaderRow>
 
           <Nav>
             {navSections.map((s, i) => (
-              <NavItem key={s.id} style={{ color: DOT_COLORS[i % DOT_COLORS.length] }}>
-                <NavLink href={`#${s.id}`} onClick={scrollTo(s.id)}>
+              <NavItem key={s.id}>
+                <NavLink
+                  href={`#${s.id}`}
+                  onClick={scrollTo(s.id)}
+                  style={{ color: NAV_COLORS[i % NAV_COLORS.length] }}
+                >
                   {s.label}
                 </NavLink>
               </NavItem>
@@ -180,7 +213,7 @@ export function KielljoyTheme({ darkMode = false, onDarkModeChange }) {
 
           {experience.length > 0 && (
             <Section id="experience" ref={setRef('experience')}>
-              <SectionLabel>experience</SectionLabel>
+              <SectionLabel>blog</SectionLabel>
               {experience.map((exp, i) => (
                 <Entry key={`exp-${i}`}>
                   <EntryTitle>{exp.title}</EntryTitle>
@@ -231,7 +264,7 @@ export function KielljoyTheme({ darkMode = false, onDarkModeChange }) {
 
           {education.length > 0 && (
             <Section id="education" ref={setRef('education')}>
-              <SectionLabel>education</SectionLabel>
+              <SectionLabel>edu</SectionLabel>
               {education.map((edu, i) => (
                 <Entry key={`edu-${i}`}>
                   <EntryTitle>
@@ -274,7 +307,7 @@ export function KielljoyTheme({ darkMode = false, onDarkModeChange }) {
 
           {hasElsewhere && (
             <Section id="elsewhere" ref={setRef('elsewhere')}>
-              <SectionLabel>elsewhere</SectionLabel>
+              <SectionLabel>etc</SectionLabel>
               <Elsewhere>
                 {[
                   email && { label: email, href: `mailto:${email}`, external: false },
@@ -303,7 +336,7 @@ export function KielljoyTheme({ darkMode = false, onDarkModeChange }) {
             </Section>
           )}
 
-          <Footer>a quiet page on the internet — {new Date().getFullYear()}</Footer>
+          <Footer>a dark page on the internet — {new Date().getFullYear()}</Footer>
         </Column>
       </Page>
     </ThemeProvider>
@@ -316,13 +349,17 @@ const Page = styled.div`
   box-sizing: border-box;
   background-color: ${(props) => props.theme.bg};
   color: ${(props) => props.theme.text};
-  font-family: ${SERIF};
+  font-family: ${MONO};
   padding: clamp(2rem, 6vh, 4.5rem) clamp(1.25rem, 5vw, 3.5rem) 5rem;
   transition: background-color 0.25s ease, color 0.25s ease;
+
+  @media (max-width: 390px) {
+    padding: 2rem 1.1rem 4rem;
+  }
 `;
 
 const Column = styled.div`
-  max-width: 42rem;
+  max-width: 44rem;
   width: 100%;
 `;
 
@@ -333,39 +370,60 @@ const HeaderRow = styled.div`
   gap: 1rem;
 `;
 
+// The glitchy blue pixel wordmark. A chromatic-aberration split (magenta one
+// way, cyan the other) drifts a pixel or two on a short stepped loop for a
+// subtle digital-glitch feel. Motion is paused for reduced-motion users, which
+// leaves the static split shadow in place.
 const Title = styled.h1`
+  --gA: ${(props) => props.theme.glitchA};
+  --gB: ${(props) => props.theme.glitchB};
   margin: 0;
-  font-family: ${SERIF};
-  font-weight: 700;
-  color: ${(props) => props.theme.heading};
-  font-size: clamp(2.1rem, 8vw, 3rem);
+  font-family: ${PIXEL};
+  font-weight: 400;
+  color: ${(props) => props.theme.name};
+  font-size: clamp(2.4rem, 9vw, 4rem);
   line-height: 1.05;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   word-break: break-word;
+  text-shadow: -2px 0 var(--gA), 2px 0 var(--gB);
+  animation: ${glitch} 2.8s steps(3, jump-none) infinite;
+  animation-play-state: ${(props) => (props.$animate ? 'running' : 'paused')};
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+
+  @media (max-width: 390px) {
+    font-size: 2.35rem;
+  }
 `;
 
 const Cursor = styled.span`
-  font-weight: 100;
+  font-family: ${PIXEL};
+  font-weight: 400;
   color: ${(props) => props.theme.cursor};
   opacity: ${(props) => (props.$on ? 1 : 0)};
-  margin-left: 0.02em;
+  text-shadow: none;
+  margin-left: 0.04em;
 `;
 
 const Toggle = styled.button`
   flex: 0 0 auto;
-  margin-top: 0.6rem;
+  margin-top: 0.75rem;
   padding: 0;
   border: 0;
   background: none;
   cursor: pointer;
-  font-family: ${SERIF};
-  font-size: 1rem;
+  font-family: ${PIXEL};
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: ${(props) => props.theme.link};
-  text-decoration: underline;
-  text-underline-offset: 2px;
 
   &:hover {
     color: ${(props) => props.theme.linkHover};
+    text-shadow: 0 0 8px ${(props) => props.theme.linkHover};
   }
 
   &:focus-visible {
@@ -375,60 +433,63 @@ const Toggle = styled.button`
 `;
 
 const Nav = styled.ul`
-  list-style: disc;
-  padding-left: 1.4em;
-  margin: 1.6rem 0 0;
+  list-style: none;
+  padding: 0;
+  margin: 2rem 0 0;
 `;
 
-// The bullet marker inherits the <li>'s color (a bright per-item accent),
-// exactly as the source does; the link itself stays underlined blue.
 const NavItem = styled.li`
-  margin: 0.15rem 0;
-  font-size: 1.35rem;
-  line-height: 1.5;
-
-  &::marker {
-    font-size: 1em;
-  }
+  margin: 0.1rem 0;
+  line-height: 1.4;
 `;
 
+// Underline-less pixel-font nav links, each a bright accent color, glowing
+// slightly on hover — straight out of the source's neocities palette.
 const NavLink = styled.a`
-  color: ${(props) => props.theme.link};
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  font-size: 1.1rem;
+  font-family: ${PIXEL};
+  font-size: clamp(1.4rem, 4vw, 1.9rem);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  transition: text-shadow 0.15s ease, filter 0.15s ease;
 
-  &:hover {
-    color: ${(props) => props.theme.linkHover};
+  &:hover,
+  &:focus-visible {
+    text-shadow: 0 0 10px currentColor;
+    filter: brightness(1.2);
   }
 
   &:focus-visible {
-    outline: 2px solid ${(props) => props.theme.link};
+    outline: 2px solid currentColor;
     outline-offset: 3px;
   }
 `;
 
 const Section = styled.section`
-  margin-top: 2.75rem;
+  margin-top: 3rem;
   scroll-margin-top: calc(var(--app-top-offset, 0px) + 1rem);
 `;
 
 const SectionLabel = styled.h2`
   margin: 0 0 1rem;
-  font-family: ${SERIF};
-  font-weight: 700;
-  font-size: 1.5rem;
+  font-family: ${PIXEL};
+  font-weight: 400;
+  font-size: 1.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: ${(props) => props.theme.heading};
   border-bottom: 1px solid ${(props) => props.theme.rule};
-  padding-bottom: 0.35rem;
+  padding-bottom: 0.4rem;
+  text-shadow: -1px 0 ${(props) => props.theme.glitchA}, 1px 0 ${(props) => props.theme.glitchB};
 `;
 
 const Paragraph = styled.p`
   margin: 0 0 0.9rem;
-  font-size: 1.0625rem;
-  line-height: 1.65;
+  font-family: ${MONO};
+  font-size: 0.98rem;
+  line-height: 1.7;
   color: ${(props) => props.theme.text};
-  max-width: 38rem;
+  max-width: 40rem;
 `;
 
 const Entry = styled.div`
@@ -436,56 +497,66 @@ const Entry = styled.div`
 `;
 
 const EntryTitle = styled.div`
-  font-size: 1.0625rem;
-  font-weight: 700;
+  font-family: ${MONO};
+  font-size: 1rem;
+  font-weight: 600;
   color: ${(props) => props.theme.heading};
 `;
 
 const EntryMeta = styled.div`
-  font-size: 1rem;
-  font-style: italic;
+  font-family: ${MONO};
+  font-size: 0.92rem;
   color: ${(props) => props.theme.muted};
 `;
 
 const EntryDate = styled.div`
-  font-size: 0.9rem;
+  font-family: ${MONO};
+  font-size: 0.82rem;
   color: ${(props) => props.theme.faint};
   margin-top: 0.1rem;
 `;
 
 const Highlights = styled.ul`
-  list-style: square;
+  list-style: none;
   margin: 0.5rem 0 0;
-  padding-left: 1.3em;
+  padding-left: 1.1em;
 
   li {
-    font-size: 0.98rem;
-    line-height: 1.55;
+    position: relative;
+    font-family: ${MONO};
+    font-size: 0.92rem;
+    line-height: 1.6;
     color: ${(props) => props.theme.text};
     margin: 0.2rem 0;
   }
 
-  &::marker {
-    color: ${(props) => props.theme.faint};
+  li::before {
+    content: '>';
+    position: absolute;
+    left: -1.1em;
+    color: ${(props) => props.theme.heading};
   }
 `;
 
 const Summary = styled.p`
   margin: 0.35rem 0 0;
-  font-size: 1rem;
-  line-height: 1.6;
+  font-family: ${MONO};
+  font-size: 0.94rem;
+  line-height: 1.65;
   color: ${(props) => props.theme.text};
-  max-width: 38rem;
+  max-width: 40rem;
 `;
 
 const InlineLink = styled.a`
   color: ${(props) => props.theme.link};
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration: none;
+  border-bottom: 1px solid ${(props) => props.theme.rule};
   word-break: break-word;
+  transition: color 0.15s ease, text-shadow 0.15s ease;
 
   &:hover {
     color: ${(props) => props.theme.linkHover};
+    text-shadow: 0 0 8px ${(props) => props.theme.linkHover};
   }
 
   &:focus-visible {
@@ -495,7 +566,8 @@ const InlineLink = styled.a`
 `;
 
 const Elsewhere = styled.div`
-  font-size: 1.0625rem;
+  font-family: ${MONO};
+  font-size: 0.98rem;
   line-height: 1.9;
 `;
 
@@ -505,7 +577,7 @@ const Sep = styled.span`
 
 const Footer = styled.footer`
   margin-top: 3.5rem;
-  font-size: 0.85rem;
-  font-style: italic;
+  font-family: ${MONO};
+  font-size: 0.8rem;
   color: ${(props) => props.theme.faint};
 `;

@@ -13,61 +13,73 @@ import { withBase } from '../../utils/assetPath';
 /**
  * DonghoonTheme — a faithful, CV-driven remake of donghoon.io.
  *
- * Donghoon Shin's homepage is a clean academic researcher page: a bold serif
- * name, a bio built from many inline links to affiliations, a top-right nav
- * that anchors to sections, a "Selected publications" strip of horizontally
+ * Donghoon Shin's homepage is a clean academic researcher page: a serif name,
+ * a bio built from many inline links to affiliations, a top-right nav that
+ * anchors to sections, a "Selected publications" strip of horizontally
  * scrolling cards (each with a venue/year badge, title, blurb, and small
  * action links), and compact project cards. We rebuild that structure from the
  * app's CV.yaml rather than reproducing Donghoon's own content.
  *
- * Palette + type notes (from the source CSS): body is Geist (a clean sans),
- * headings and titles are Newsreader (a serif); the ink is a warm charcoal
- * (--ink: 44 41 37 → #2c2925) on a near-white surface; section titles are
- * small, uppercase, letter-spaced; venue badges read like "CHI '24". The
- * reference screenshot renders classic academic blue links (the styled site
- * uses a quieter grey), so per the brief we keep the airy white/blue-link look.
+ * Palette + type notes (matched to the source): the paper is a warm CREAM
+ * (--surface #f9f6f0, a slightly darker #efeae0 for cards); the ink is a warm
+ * charcoal (#2c2925, not pure black); links are a quiet, warm muted GREY
+ * (~#4a4744) that darkens toward the ink and picks up the accent on hover —
+ * inline bio links read as softly-underlined grey text, never blue. The accent
+ * is a muted OLIVE/gold (#8a850c) used sparingly (nav underline, small marks,
+ * venue-badge borders). Body text is a clean light sans (Geist) at a
+ * comfortable size with line-height ~1.7; the name, card titles and section
+ * sub-headings are a serif (Newsreader, loaded via this theme's own @import
+ * below). Section titles are small, uppercase, letter-spaced, muted, with a
+ * thin bottom rule.
  */
 
 const SERIF = "'Newsreader', 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, 'Times New Roman', serif";
 const SANS = "'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, 'Helvetica Neue', Arial, sans-serif";
 
 const lightTheme = {
-  page: '#ffffff',
-  card: '#ffffff',
-  cardAlt: '#faf9f7',
+  page: '#f9f6f0',
+  card: '#f9f6f0',
+  cardAlt: '#efeae0',
   ink: '#2c2925',
-  inkSoft: 'rgba(44, 41, 37, 0.64)',
-  inkFaint: 'rgba(44, 41, 37, 0.44)',
-  link: '#1155cc',
-  linkHover: '#0b3d91',
+  inkSoft: 'rgba(44, 41, 37, 0.66)',
+  inkFaint: 'rgba(44, 41, 37, 0.46)',
+  link: '#4a4744',
+  linkHover: '#2c2925',
+  linkUnderline: 'rgba(44, 41, 37, 0.30)',
+  accent: '#8a850c',
+  accentSoft: 'rgba(138, 133, 12, 0.42)',
   border: 'rgba(44, 41, 37, 0.14)',
-  borderStrong: 'rgba(44, 41, 37, 0.30)',
-  badgeBg: 'rgba(44, 41, 37, 0.05)',
+  borderStrong: 'rgba(44, 41, 37, 0.28)',
+  badgeBg: 'rgba(138, 133, 12, 0.08)',
   badgeInk: 'rgba(44, 41, 37, 0.72)',
-  badgeBorder: 'rgba(44, 41, 37, 0.14)',
-  navBg: 'rgba(255, 255, 255, 0.86)',
-  buttonBg: 'rgba(255, 255, 255, 0.9)',
+  badgeBorder: 'rgba(138, 133, 12, 0.34)',
+  navBg: 'rgba(249, 246, 240, 0.85)',
+  buttonBg: 'rgba(249, 246, 240, 0.9)',
 };
 
 const darkTheme = {
-  page: '#14161a',
-  card: '#1a1d22',
-  cardAlt: '#1e2127',
-  ink: '#e7e6e3',
-  inkSoft: 'rgba(231, 230, 227, 0.62)',
-  inkFaint: 'rgba(231, 230, 227, 0.40)',
-  link: '#8ab4f8',
-  linkHover: '#adc8ff',
-  border: 'rgba(255, 255, 255, 0.12)',
-  borderStrong: 'rgba(255, 255, 255, 0.26)',
-  badgeBg: 'rgba(255, 255, 255, 0.06)',
-  badgeInk: 'rgba(231, 230, 227, 0.74)',
-  badgeBorder: 'rgba(255, 255, 255, 0.14)',
-  navBg: 'rgba(20, 22, 26, 0.86)',
-  buttonBg: 'rgba(26, 29, 34, 0.9)',
+  page: '#1c1a16',
+  card: '#211e19',
+  cardAlt: '#26221c',
+  ink: '#ece7dc',
+  inkSoft: 'rgba(236, 231, 220, 0.64)',
+  inkFaint: 'rgba(236, 231, 220, 0.42)',
+  link: '#c3bcae',
+  linkHover: '#ece7dc',
+  linkUnderline: 'rgba(236, 231, 220, 0.32)',
+  accent: '#c9c24e',
+  accentSoft: 'rgba(201, 194, 78, 0.42)',
+  border: 'rgba(236, 231, 220, 0.13)',
+  borderStrong: 'rgba(236, 231, 220, 0.26)',
+  badgeBg: 'rgba(201, 194, 78, 0.10)',
+  badgeInk: 'rgba(236, 231, 220, 0.74)',
+  badgeBorder: 'rgba(201, 194, 78, 0.32)',
+  navBg: 'rgba(28, 26, 22, 0.85)',
+  buttonBg: 'rgba(33, 30, 25, 0.9)',
 };
 
 const GlobalStyle = createGlobalStyle`
+  @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..500&display=swap');
   body { background-color: ${(p) => p.theme.page}; }
 `;
 
@@ -129,6 +141,16 @@ export function DonghoonTheme({ darkMode = false, onDarkModeChange }) {
   const theme = darkMode ? darkTheme : lightTheme;
 
   const name = cv.name || 'Your Name';
+  const initials = useMemo(
+    () =>
+      String(name)
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((w) => w[0]?.toUpperCase() || '')
+        .join('') || '·',
+    [name],
+  );
   const location = cv.location || null;
   const website = cv.website || null;
   const email = cv.email || null;
@@ -369,11 +391,13 @@ export function DonghoonTheme({ darkMode = false, onDarkModeChange }) {
               </Bio>
             </HeroText>
 
-            {cv.avatar && (
-              <Portrait>
+            <Portrait>
+              {cv.avatar ? (
                 <img src={withBase(cv.avatar)} alt={name} />
-              </Portrait>
-            )}
+              ) : (
+                <PortraitPlaceholder aria-hidden="true">{initials}</PortraitPlaceholder>
+              )}
+            </Portrait>
           </Hero>
 
           {pubCards.length > 0 && (
@@ -632,19 +656,25 @@ const NavLink = styled.a`
     left: 0;
     right: 0;
     bottom: -0.28rem;
-    height: 1px;
-    background: currentColor;
+    height: 1.5px;
+    background: ${(p) => p.theme.accent};
     transform: scaleX(0);
     transform-origin: left center;
     transition: transform 0.22s ease;
   }
 
   &:hover {
-    color: ${(p) => p.theme.link} !important;
+    color: ${(p) => p.theme.ink} !important;
   }
 
   &:hover::after {
     transform: scaleX(1);
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${(p) => p.theme.accent};
+    outline-offset: 3px;
+    border-radius: 2px;
   }
 `;
 
@@ -667,7 +697,7 @@ const ThemeToggle = styled.button`
   }
 
   &:focus-visible {
-    outline: 2px solid ${(p) => p.theme.link};
+    outline: 2px solid ${(p) => p.theme.accent};
     outline-offset: 2px;
   }
 `;
@@ -715,13 +745,32 @@ const Portrait = styled.div`
   }
 `;
 
+const PortraitPlaceholder = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 6px;
+  border: 1px solid ${(p) => p.theme.border};
+  background:
+    radial-gradient(120% 120% at 30% 20%, ${(p) => p.theme.card} 0%, ${(p) => p.theme.cardAlt} 100%);
+  color: ${(p) => p.theme.inkFaint};
+  font-family: ${SERIF};
+  font-size: clamp(2.4rem, 8vw, 3.4rem);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  user-select: none;
+`;
+
 const Name = styled.h1`
   margin: 0;
   font-family: ${SERIF};
-  font-size: clamp(1.7rem, 4vw, 2.05rem);
-  font-weight: 600;
+  font-size: clamp(1.85rem, 4vw, 2.2rem);
+  font-weight: 500;
   line-height: 1.12;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.005em;
   color: ${(p) => p.theme.ink};
 `;
 
@@ -734,17 +783,19 @@ const Subtitle = styled.p`
 
 const Anchor = styled.a`
   color: ${(p) => p.theme.link};
-  text-decoration: none;
-  transition: color 0.16s ease;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: ${(p) => p.theme.linkUnderline};
+  text-underline-offset: 2px;
+  transition: color 0.16s ease, text-decoration-color 0.16s ease;
 
   &:hover {
     color: ${(p) => p.theme.linkHover};
-    text-decoration: underline;
-    text-underline-offset: 2px;
+    text-decoration-color: ${(p) => p.theme.accent};
   }
 
   &:focus-visible {
-    outline: 2px solid ${(p) => p.theme.link};
+    outline: 2px solid ${(p) => p.theme.accent};
     outline-offset: 2px;
     border-radius: 2px;
   }
@@ -752,6 +803,10 @@ const Anchor = styled.a`
 
 const FauxLink = styled.span`
   color: ${(p) => p.theme.link};
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: ${(p) => p.theme.linkUnderline};
+  text-underline-offset: 2px;
 `;
 
 const Bio = styled.div`
@@ -1016,13 +1071,14 @@ const ProjectTitle = styled.h3`
   color: ${(p) => p.theme.ink};
 
   a {
-    color: ${(p) => p.theme.link};
+    color: ${(p) => p.theme.ink};
     text-decoration: none;
   }
   a:hover {
     color: ${(p) => p.theme.linkHover};
     text-decoration: underline;
-    text-underline-offset: 2px;
+    text-decoration-color: ${(p) => p.theme.accent};
+    text-underline-offset: 3px;
   }
 `;
 
