@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
+import styled, { ThemeProvider, createGlobalStyle, keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { formatDate, isPresent, getInitials } from '../../utils/cvHelpers';
 import { withBase } from '../../utils/assetPath';
@@ -47,6 +47,19 @@ const darkTheme = {
 
 const GlobalStyle = createGlobalStyle`
   body { background-color: ${(props) => props.theme.background}; }
+`;
+
+// The live site enters with tailwind's animate-in fade/slide; we mirror that
+// with a gentle staggered fade-up on load, plus a blinking caret after the
+// name (the source ships a caret-blink keyframe).
+const fadeUp = keyframes`
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+`;
+
+const caretBlink = keyframes`
+  0%, 45% { opacity: 1; }
+  55%, 100% { opacity: 0; }
 `;
 
 const SERIF_STACK =
@@ -254,7 +267,10 @@ export function KieranComputerTheme({ darkMode = false, onDarkModeChange }) {
             )}
           </AvatarFrame>
 
-          <Name>{name}</Name>
+          <Name>
+            {name}
+            <Caret aria-hidden="true" />
+          </Name>
 
           <Intro>{intro}</Intro>
 
@@ -355,6 +371,34 @@ const ToggleButton = styled.button`
 const Main = styled.main`
   max-width: 36rem;
   margin: 0;
+
+  @media (prefers-reduced-motion: no-preference) {
+    > * {
+      opacity: 0;
+      animation: ${fadeUp} 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    > *:nth-child(1) { animation-delay: 0.05s; }
+    > *:nth-child(2) { animation-delay: 0.14s; }
+    > *:nth-child(3) { animation-delay: 0.23s; }
+    > *:nth-child(4) { animation-delay: 0.32s; }
+    > *:nth-child(5) { animation-delay: 0.41s; }
+    > *:nth-child(6) { animation-delay: 0.50s; }
+    > *:nth-child(7) { animation-delay: 0.59s; }
+    > *:nth-child(8) { animation-delay: 0.68s; }
+  }
+`;
+
+const Caret = styled.span`
+  display: inline-block;
+  width: 0.58em;
+  height: 1.05em;
+  margin-left: 0.1em;
+  transform: translateY(0.12em);
+  background: ${(props) => props.theme.accent};
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: ${caretBlink} 1.25s steps(1) infinite;
+  }
 `;
 
 const AvatarFrame = styled.div`
