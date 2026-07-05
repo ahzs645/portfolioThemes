@@ -8,14 +8,15 @@ import { withBase } from '../../utils/assetPath';
  * TylerLorenzenTheme — a CV-driven remake of tylerlorenzen.tech's design.
  *
  * The source is a music-streaming-inspired (Spotify-like) personal site: a
- * near-black charcoal ground, a vibrant green accent, rounded elevated cards,
- * a streaming-playlist treatment for work history, and a fun "now playing"
- * player bar pinned to the bottom. We rebuild that language from CV.yaml
- * (Ahmad Jalil) rather than reusing Tyler's content.
+ * near-black charcoal ground (#181818/#282828), a coral accent (#fc615c),
+ * rounded elevated cards, a streaming-playlist treatment for work history,
+ * and a fun "now playing" player bar pinned to the bottom. We rebuild that
+ * language from CV.yaml (Ahmad Jalil) rather than reusing Tyler's content.
  */
 
-const SPOTIFY_GREEN = '#1db954';
-const SPOTIFY_GREEN_HOVER = '#1ed760';
+// The source's real accent is a warm coral (#fc615c), not Spotify green.
+const CORAL = '#fc615c';
+const CORAL_HOVER = '#ff7a75';
 
 const darkTheme = {
   bg: '#121212',
@@ -29,10 +30,10 @@ const darkTheme = {
   faint: '#727272',
   border: 'rgba(255, 255, 255, 0.08)',
   borderStrong: 'rgba(255, 255, 255, 0.16)',
-  accent: SPOTIFY_GREEN,
-  accentHover: SPOTIFY_GREEN_HOVER,
-  accentText: '#000000',
-  onAccentGlow: 'rgba(29, 185, 84, 0.35)',
+  accent: CORAL,
+  accentHover: CORAL_HOVER,
+  accentText: '#ffffff',
+  onAccentGlow: 'rgba(252, 97, 92, 0.35)',
 };
 
 const lightTheme = {
@@ -47,10 +48,10 @@ const lightTheme = {
   faint: '#8a9199',
   border: 'rgba(0, 0, 0, 0.08)',
   borderStrong: 'rgba(0, 0, 0, 0.14)',
-  accent: '#159c43',
-  accentHover: '#12873a',
+  accent: '#e5514c',
+  accentHover: '#fc615c',
   accentText: '#ffffff',
-  onAccentGlow: 'rgba(21, 156, 67, 0.25)',
+  onAccentGlow: 'rgba(229, 81, 76, 0.25)',
 };
 
 const GlobalStyle = createGlobalStyle`
