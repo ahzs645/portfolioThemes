@@ -626,6 +626,14 @@ export const PORTFOLIO_THEMES = [
     source: 'https://www.wintongtawee.dev',
     Component: lazyTheme(() => import('./WinTongtawee/WinTongtaweeTheme'), 'WinTongtaweeTheme'),
   },
+  {
+    id: 'donchuru',
+    slug: 'quiet-intro',
+    name: 'Quiet Intro',
+    description: 'A single quiet paragraph of Inter prose on a near-white ground — a "hi, i\'m ___" greeting that folds work, writing, and contact into plain sentences with understated underlined links, inspired by donchuru.github.io.',
+    source: 'https://donchuru.github.io',
+    Component: lazyTheme(() => import('./Donchuru/DonchuruTheme'), 'DonchuruTheme'),
+  },
 ];
 
 if (import.meta.env?.DEV) {
