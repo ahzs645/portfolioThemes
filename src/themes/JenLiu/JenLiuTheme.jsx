@@ -23,17 +23,19 @@ import {
  * add a quiet retro dark palette for the shell's dark-mode toggle.
  */
 
+// Real jenliujenliu.com palette: black text on a mint-green ground, with a
+// hot-pink name/portrait and a dotted-magenta news box.
 const lightTheme = {
-  bg: '#ffffff',
-  text: '#101010',
-  heading: '#0000ee',
-  link: '#0000ee',
-  visited: '#551a8b',
-  muted: '#555555',
+  bg: '#dbffea',
+  text: '#000000',
+  heading: '#ff2d95',
+  link: '#000000',
+  visited: '#000000',
+  muted: 'rgba(0, 0, 0, 0.5)',
   news: '#ff00ff',
-  newsInk: '#101010',
-  rule: '#dddddd',
-  placeholder: '#fafafa',
+  newsInk: '#000000',
+  rule: 'rgba(0, 0, 0, 0.4)',
+  placeholder: '#c6f4d8',
 };
 
 const darkTheme = {

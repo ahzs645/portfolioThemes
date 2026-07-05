@@ -50,8 +50,8 @@ function solarElevation(date, lat, lng) {
 // ---- Sky bands: solar elevation (deg) -> vertical gradient stops (top, bottom).
 // Anchors are interpolated so the sky shifts smoothly minute to minute.
 const SKY = [
-  { e: 60, top: '#3d72b6', bottom: '#dbe8f5' }, // clear day, sun high
-  { e: 20, top: '#5786c2', bottom: '#e4eef7' }, // day
+  { e: 60, top: '#9dc0e6', bottom: '#eef4fa' }, // clear day, sun high — pale airy sky
+  { e: 20, top: '#a9c9e8', bottom: '#eef4fa' }, // day
   { e: 10, top: '#7b8fd0', bottom: '#f3d6ad' }, // low sun, warming
   { e: 3, top: '#9a9ed0', bottom: '#f4bf90' }, // golden hour, periwinkle -> peach
   { e: 0, top: '#9a86bb', bottom: '#e39a6b' }, // sunrise / sunset horizon

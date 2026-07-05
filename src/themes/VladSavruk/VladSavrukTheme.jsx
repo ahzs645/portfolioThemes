@@ -466,31 +466,6 @@ export function VladSavrukTheme({ darkMode = false, onDarkModeChange }) {
             </Section>
           )}
 
-          {count > 0 && (
-            <Works>
-              <WorksHead>
-                <span className="label">Selected works</span>
-                <span className="hint" aria-hidden="true">tap to view in the coverflow</span>
-              </WorksHead>
-              <ul>
-                {projects.map((p, i) => (
-                  <li key={`row-${p.name}-${i}`}>
-                    <WorkRow type="button" onClick={() => selectCard(i)} $active={i === activeIndex}>
-                      <span className="wyear">{p.date || ''}</span>
-                      <span className="wname">{p.name}</span>
-                      <span className="wnum">{String(i + 1).padStart(2, '0')}</span>
-                    </WorkRow>
-                    {p.url && (
-                      <a className="wlink" href={p.url} target="_blank" rel="noopener noreferrer" aria-label={`Open ${p.name}`}>
-                        <Arrow />
-                      </a>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </Works>
-          )}
-
           <Footer>
             {location && (
               <p>
@@ -878,100 +853,6 @@ const StatusPill = styled.span`
     border-radius: 50%;
     margin-right: 0.35rem;
     background: ${(p) => (p.$active ? '#22c55e' : p.theme.faint)};
-  }
-`;
-
-const Works = styled.div`
-  padding-top: 3.5rem;
-
-  ul {
-    list-style: none;
-    margin: 0.6rem 0 0;
-    padding: 0;
-    border-top: 1px solid ${(p) => p.theme.line};
-  }
-  li {
-    display: flex;
-    align-items: baseline;
-    gap: 0.4rem;
-    border-bottom: 1px solid ${(p) => p.theme.line};
-  }
-  .wlink {
-    flex-shrink: 0;
-    padding: 0 0.4rem;
-    color: ${(p) => p.theme.faint};
-    display: inline-flex;
-    align-items: center;
-    transition: color 0.2s ease;
-    &:hover {
-      color: ${(p) => p.theme.ink};
-    }
-  }
-`;
-
-const WorksHead = styled.div`
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-
-  .label {
-    font-family: ${(p) => p.theme.serif};
-    font-style: italic;
-    font-size: 0.9rem;
-    color: ${(p) => p.theme.body};
-  }
-  .hint {
-    font-size: 0.72rem;
-    font-style: italic;
-    color: ${(p) => p.theme.faint};
-  }
-`;
-
-const WorkRow = styled.button`
-  flex: 1 1 auto;
-  min-width: 0;
-  display: grid;
-  grid-template-columns: 56px 1fr auto;
-  gap: 1.1rem;
-  align-items: baseline;
-  padding: 0.7rem 0;
-  background: none;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-  font-family: inherit;
-  color: inherit;
-
-  .wyear {
-    font-size: 0.8rem;
-    color: ${(p) => p.theme.faint};
-    font-variant-numeric: tabular-nums;
-  }
-  .wname {
-    min-width: 0;
-    font-size: 0.85rem;
-    color: ${(p) => (p.$active ? p.theme.ink : p.theme.name)};
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    text-decoration: underline;
-    text-decoration-color: ${(p) => (p.$active ? p.theme.underline : 'transparent')};
-    text-underline-offset: 3px;
-    transition: text-decoration-color 0.2s ease;
-  }
-  .wnum {
-    font-size: 0.72rem;
-    color: ${(p) => p.theme.faint};
-    font-variant-numeric: tabular-nums;
-  }
-  &:hover .wname {
-    text-decoration-color: ${(p) => p.theme.underline};
-  }
-  &:focus-visible {
-    outline: 2px solid ${(p) => p.theme.muted};
-    outline-offset: 2px;
-    border-radius: 4px;
   }
 `;
 
