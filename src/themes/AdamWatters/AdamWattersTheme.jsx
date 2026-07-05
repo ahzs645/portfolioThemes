@@ -1,81 +1,102 @@
-import React, { useMemo, useRef } from 'react';
-import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
+import React, { useMemo, useState } from 'react';
+import styled, { ThemeProvider, createGlobalStyle, css } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-import { pickSocialUrl, getInitials, truncateText } from '../../utils/cvHelpers';
+import {
+  pickSocialUrl,
+  getSkillLabel,
+  formatDate,
+  formatRange,
+  parseDateParts,
+} from '../../utils/cvHelpers';
 
 /**
  * AdamWattersTheme — a CV-driven remake of adamwatters.co.
  *
- * The source is a quiet, LIGHT maker / creative-technologist portfolio: a
- * reader-style React SPA on a white ground with black text, hairline
- * low-opacity borders, a Tailwind system sans for body and a mono for the
- * small labels and dates. Its top nav carries "Home / Projects / Essays", the
- * home view is a short warm bio, projects read as a grid of aspect-video
- * cards, and writing is a minimal dated blog index. The real site's signature
- * flourish is a soft yellow accent (Tailwind yellow-200) over an optional dark
- * ground — echoed here in the dark variant and in the section eyebrows.
- *
- * We rebuild that design from this app's CV (useCV), never Adam's content.
+ * The real site is dark, minimal and text-only: a near-black, faintly blue
+ * ground with muted grey type and underlined links. A ~200px left column
+ * holds a vertical stack of bordered, rounded, navy-tinted buttons — one per
+ * view (home / bio / essays / projects / side quests) plus one external
+ * social button. Clicking a button swaps the main content via React state
+ * (no routing). The home view is a terse, dash-separated intro built from the
+ * CV. We rebuild that voice and layout from useCV(), never Adam's content.
  */
 
-const SANS =
-  'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 const MONO =
-  'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+  'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
-const lightTheme = {
-  bg: '#ffffff',
-  text: '#141414',
-  muted: 'rgba(0, 0, 0, 0.56)',
-  faint: 'rgba(0, 0, 0, 0.4)',
-  border: 'rgba(0, 0, 0, 0.1)',
-  borderFaint: 'rgba(0, 0, 0, 0.06)',
-  surface: 'rgba(0, 0, 0, 0.015)',
-  surfaceHover: 'rgba(0, 0, 0, 0.035)',
-  navBg: 'rgba(255, 255, 255, 0.82)',
-  accent: '#a16207',
-  shadow: '0 1px 2px 0 rgba(0, 0, 0, 0.04)',
+// Dark is the site's native mode: near-black, slightly blue-tinted, muted grey.
+const darkTheme = {
+  bg: '#0a0c10',
+  text: '#8a8f98',
+  bright: '#e6e8ec',
+  faint: '#5b626d',
+  link: '#9aa0a8',
+  linkHover: '#f4f5f7',
+  linkLine: '#39424f',
+  navBg: '#141b28',
+  navBorder: '#26303f',
+  navText: '#8a8f98',
+  navLine: '#3a4557',
+  navHoverBg: '#182234',
+  navActiveBg: '#1c2740',
+  navActiveBorder: '#33405a',
+  navActiveText: '#e6e8ec',
+  focus: '#5b83c0',
 };
 
-const darkTheme = {
-  bg: '#0b0b0c',
-  text: '#d6d6d6',
-  muted: 'rgba(255, 255, 255, 0.52)',
-  faint: 'rgba(255, 255, 255, 0.38)',
-  border: 'rgba(255, 255, 255, 0.12)',
-  borderFaint: 'rgba(255, 255, 255, 0.07)',
-  surface: 'rgba(255, 255, 255, 0.03)',
-  surfaceHover: 'rgba(255, 255, 255, 0.06)',
-  navBg: 'rgba(11, 11, 12, 0.82)',
-  accent: '#fde68a',
-  shadow: '0 1px 2px 0 rgba(0, 0, 0, 0.4)',
+// A tasteful light variant so the shell's dark-mode toggle still reads well.
+const lightTheme = {
+  bg: '#f6f7f9',
+  text: '#5a6472',
+  bright: '#1b2430',
+  faint: '#8a93a1',
+  link: '#4b5563',
+  linkHover: '#0a0c10',
+  linkLine: '#c4ccd6',
+  navBg: '#eceff3',
+  navBorder: '#d5dae1',
+  navText: '#5a6472',
+  navLine: '#b7c0cc',
+  navHoverBg: '#e4e8ee',
+  navActiveBg: '#dde3ec',
+  navActiveBorder: '#c2cad6',
+  navActiveText: '#1b2430',
+  focus: '#3b6fbf',
 };
 
 const GlobalStyle = createGlobalStyle`
   body { background-color: ${(props) => props.theme.bg}; }
 `;
 
-// A 2-char mono monogram for a project (projects have no images on the source).
-function monogram(name = '') {
-  const initials = getInitials(name, 2);
-  if (initials && initials.length >= 2) return initials;
-  const clean = String(name).replace(/[^A-Za-z0-9]/g, '');
-  return (clean.slice(0, 2) || '··').toUpperCase();
+// A sortable numeric key from a CV date ("2025", "2024-08", "present").
+function sortKey(value) {
+  const parts = parseDateParts(value);
+  if (!parts) return 0;
+  if (parts.present) return Number.MAX_SAFE_INTEGER;
+  return (parts.year || 0) * 10000 + (parts.month || 0) * 100 + (parts.day || 0);
 }
 
-// Year-ish date string for the mono date columns.
+// Year-only label, e.g. "2024" or "present".
 function yearLabel(value) {
-  if (!value) return '';
-  const match = String(value).match(/\d{4}/);
-  return match ? match[0] : String(value);
+  return formatDate(value, { month: 'none', presentLabel: 'present', fallback: '' });
 }
 
-export function AdamWattersTheme({ darkMode = false, onDarkModeChange }) {
+// A quiet "2022 – present" style range for list rows.
+function rangeLabel(start, end) {
+  return formatRange(start, end, {
+    month: 'none',
+    presentLabel: 'present',
+    ongoingWhenNoEnd: true,
+  });
+}
+
+export function AdamWattersTheme({ darkMode = false }) {
   const cv = useCV() || {};
   const theme = darkMode ? darkTheme : lightTheme;
 
+  const [view, setView] = useState('home');
+
   const name = cv.name || 'Your Name';
-  const email = cv.email || null;
   const website = cv.website || null;
   const location = cv.location || null;
 
@@ -83,231 +104,304 @@ export function AdamWattersTheme({ darkMode = false, onDarkModeChange }) {
   const github = pickSocialUrl(socials, ['github']);
   const linkedin = pickSocialUrl(socials, ['linkedin']);
 
-  const topRef = useRef(null);
-  const projectsRef = useRef(null);
-  const essaysRef = useRef(null);
-
-  const scrollTo = (ref) =>
-    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-  const projects = useMemo(() => (cv.projects || []).slice(0, 12), [cv.projects]);
-
-  // A warm, synthesized maker/technologist intro (cv.about is empty).
-  const eyebrow = 'Maker · Researcher';
-  const bio = useMemo(() => {
-    if (cv.about && cv.about.trim()) {
-      return cv.about.trim().split(/\n{2,}/).slice(0, 2);
+  // The external nav button: prefer X/Twitter (the source's last item), then
+  // GitHub, then LinkedIn — labelled by its network, opens in a new tab.
+  const external = useMemo(() => {
+    const twitter = pickSocialUrl(socials, ['twitter', 'x']);
+    if (twitter) {
+      const net = socials.find((s) =>
+        ['twitter', 'x'].includes(String(s.network || '').toLowerCase()),
+      );
+      return { url: twitter, label: String(net?.network || 'twitter').toLowerCase() };
     }
-    // Derive the degree/field/institution from CV so the copy stays truthful.
-    const highest =
+    if (github) return { url: github, label: 'github' };
+    if (linkedin) return { url: linkedin, label: 'linkedin' };
+    return null;
+  }, [socials, github, linkedin]);
+
+  // A few skill/domain keywords for the intro line.
+  const keywordText = useMemo(() => {
+    const fromSkills = (cv.skills || []).map(getSkillLabel).filter(Boolean);
+    if (fromSkills.length) return fromSkills.slice(0, 3).join(', ').toLowerCase();
+    const skillsRow = (cv.certificationsSkills || []).find((r) =>
+      /skill/i.test(r?.label || ''),
+    );
+    if (skillsRow?.details) {
+      const parts = String(skillsRow.details)
+        .split(/[;,]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (parts.length) return parts.slice(0, 3).join(', ').toLowerCase();
+    }
+    const area = (cv.education || [])[0]?.area;
+    if (area) return String(area).toLowerCase();
+    return 'software, research, data';
+  }, [cv.skills, cv.certificationsSkills, cv.education]);
+
+  // Earliest plausible "making software since" year across the CV.
+  const sinceYear = useMemo(() => {
+    const years = [];
+    const push = (v) => {
+      const p = parseDateParts(v);
+      if (p?.year) years.push(p.year);
+    };
+    (cv.experience || []).forEach((e) => push(e.startDate));
+    (cv.education || []).forEach((e) => push(e.start_date));
+    (cv.projects || []).forEach((p) => push(p.date));
+    return years.length ? Math.min(...years) : null;
+  }, [cv.experience, cv.education, cv.projects]);
+
+  // Essays index = publications + presentations, newest first.
+  const essays = useMemo(() => {
+    const pubs = (cv.publications || []).map((p, i) => ({
+      key: `pub-${i}`,
+      title: p.title || p.name || 'Untitled',
+      href: p.doi ? `https://doi.org/${p.doi}` : p.url || null,
+      date: p.date,
+      sort: sortKey(p.date),
+    }));
+    const talks = (cv.presentations || []).map((t, i) => ({
+      key: `talk-${i}`,
+      title: t.name || t.title || 'Untitled',
+      href: t.url || null,
+      date: t.date,
+      sort: sortKey(t.date),
+    }));
+    return [...pubs, ...talks].sort((a, b) => b.sort - a.sort);
+  }, [cv.publications, cv.presentations]);
+
+  const newestEssay = essays[0] || null;
+
+  // Bio prose — synthesize from role / education / location when about is empty.
+  const bioParas = useMemo(() => {
+    if (cv.about && cv.about.trim()) {
+      return cv.about.trim().split(/\n{2,}/).slice(0, 3);
+    }
+    const role = cv.currentJobTitle;
+    const edu =
       (cv.education || []).find((e) => /phd|doctor/i.test(e.degree || '')) ||
       (cv.education || [])[0] ||
       null;
-    const degree = highest?.degree ? `${highest.degree} researcher` : 'researcher';
-    const field = highest?.area || 'environmental studies';
-    const focus =
-      Array.isArray(highest?.highlights) && highest.highlights[0]
-        ? String(highest.highlights[0]).replace(/^focus on\s*/i, '')
-        : 'air quality and environmental health';
-    const at = highest?.institution ? ` at ${highest.institution}` : '';
-    const place = location ? `, based in ${location}` : '';
-    const lead = `I'm a ${degree} in ${field}${at}${place}, working on ${focus}.`;
-    const maker =
-      `Mostly, I like building things — open-source tools for wrangling ` +
-      `research data, small web utilities, and hardware-adjacent experiments ` +
-      `that live somewhere between the lab bench and the browser.`;
-    return [lead, maker];
-  }, [cv.about, cv.education, location]);
+    const out = [];
+    const lead =
+      `${name}${location ? `, based in ${location},` : ''} is a ` +
+      `${role ? role.toLowerCase() : 'maker and researcher'}.`;
+    out.push(lead);
+    if (edu) {
+      const degree = [edu.degree, edu.area].filter(Boolean).join(' in ');
+      out.push(
+        `${degree || 'A graduate'}${edu.institution ? ` at ${edu.institution}` : ''}` +
+          ` — mostly building small software along the way.`,
+      );
+    } else {
+      out.push('Mostly building small software along the way.');
+    }
+    return out;
+  }, [cv.about, cv.currentJobTitle, cv.education, name, location]);
 
-  // "Essays"-style writing index: publications + presentations, dated + deked.
-  const writing = useMemo(() => {
-    const pubs = (cv.publications || []).map((p) => ({
-      key: `pub-${p.title || p.name}`,
-      title: p.title || p.name || 'Untitled',
-      dek: p.journal || (Array.isArray(p.authors) ? p.authors.join(', ') : ''),
-      date: yearLabel(p.date),
-      href: p.doi ? `https://doi.org/${p.doi}` : p.url || null,
-      kind: 'Paper',
-    }));
-    const talks = (cv.presentations || []).map((t) => ({
-      key: `talk-${t.name}`,
-      title: t.name || 'Untitled',
-      dek: [t.summary, t.location].filter(Boolean).join(' · '),
-      date: yearLabel(t.date),
-      href: t.url || null,
-      kind: 'Talk',
-    }));
-    return [...pubs, ...talks].sort(
-      (a, b) => (parseInt(b.date, 10) || 0) - (parseInt(a.date, 10) || 0)
+  const experience = useMemo(() => (cv.experience || []).slice(0, 12), [cv.experience]);
+  const projects = useMemo(() => (cv.projects || []).slice(0, 16), [cv.projects]);
+  const volunteer = useMemo(() => (cv.volunteer || []).slice(0, 12), [cv.volunteer]);
+  const awards = useMemo(() => (cv.awards || []).slice(0, 12), [cv.awards]);
+
+  const views = [
+    { id: 'home', label: 'home' },
+    { id: 'bio', label: 'bio' },
+    { id: 'essays', label: 'essays' },
+    { id: 'projects', label: 'projects' },
+    { id: 'sidequests', label: 'side quests' },
+  ];
+
+  const renderHome = () => (
+    <>
+      <Lede>
+        {website ? (
+          <A href={website} target="_blank" rel="noopener noreferrer">
+            {name}
+          </A>
+        ) : (
+          <Bright>{name}</Bright>
+        )}
+        {' here ----- '}
+        {keywordText}
+        {' ----- '}
+        {github ? (
+          <A href={github} target="_blank" rel="noopener noreferrer">
+            making software
+          </A>
+        ) : (
+          'making software'
+        )}
+        {sinceYear ? ` since ${sinceYear}, with ` : ', with '}
+        <LinkButton type="button" onClick={() => setView('sidequests')}>
+          side quests
+        </LinkButton>
+        {' along the way.'}
+      </Lede>
+
+      {newestEssay && (
+        <NewestBlock>
+          <NewestLabel>newest essay:</NewestLabel>
+          <div>
+            {newestEssay.href ? (
+              <ABright href={newestEssay.href} target="_blank" rel="noopener noreferrer">
+                {newestEssay.title}
+              </ABright>
+            ) : (
+              <Bright>{newestEssay.title}</Bright>
+            )}
+          </div>
+        </NewestBlock>
+      )}
+    </>
+  );
+
+  const renderBio = () => (
+    <>
+      {bioParas.map((para, i) => (
+        <Para key={i}>{para}</Para>
+      ))}
+      {experience.length > 0 && (
+        <Block>
+          <MiniLabel>experience</MiniLabel>
+          {experience.map((exp, i) => (
+            <Row key={`exp-${i}`}>
+              <RowMain>
+                <Bright>{exp.company}</Bright>
+                {exp.title ? ` · ${exp.title}` : ''}
+              </RowMain>
+              {rangeLabel(exp.startDate, exp.endDate) && (
+                <RowMeta>{rangeLabel(exp.startDate, exp.endDate)}</RowMeta>
+              )}
+            </Row>
+          ))}
+        </Block>
+      )}
+    </>
+  );
+
+  const renderEssays = () =>
+    essays.length === 0 ? (
+      <Para>Nothing published yet.</Para>
+    ) : (
+      <Block>
+        {essays.map((item) => (
+          <EssayRow key={item.key}>
+            <EssayTitle>
+              {item.href ? (
+                <A href={item.href} target="_blank" rel="noopener noreferrer">
+                  {item.title}
+                </A>
+              ) : (
+                item.title
+              )}
+            </EssayTitle>
+            {yearLabel(item.date) && <RowMeta>{yearLabel(item.date)}</RowMeta>}
+          </EssayRow>
+        ))}
+      </Block>
     );
-  }, [cv.publications, cv.presentations]);
 
-  const footerLinks = [
-    github && { label: 'github', url: github },
-    linkedin && { label: 'linkedin', url: linkedin },
-    email && { label: 'email', url: `mailto:${email}` },
-    website && { label: 'website', url: website },
-  ].filter(Boolean);
+  const renderProjects = () =>
+    projects.length === 0 ? (
+      <Para>No projects listed.</Para>
+    ) : (
+      <Block>
+        {projects.map((project, i) => (
+          <Row key={`proj-${i}`}>
+            <RowMain>
+              {project.url ? (
+                <A href={project.url} target="_blank" rel="noopener noreferrer">
+                  {project.name}
+                </A>
+              ) : (
+                <Bright>{project.name}</Bright>
+              )}
+              {project.summary && <RowSub>{project.summary}</RowSub>}
+            </RowMain>
+          </Row>
+        ))}
+      </Block>
+    );
+
+  const renderSideQuests = () => (
+    <>
+      {volunteer.length === 0 && awards.length === 0 && (
+        <Para>No side quests logged.</Para>
+      )}
+      {volunteer.length > 0 && (
+        <Block>
+          <MiniLabel>volunteering</MiniLabel>
+          {volunteer.map((v, i) => (
+            <Row key={`vol-${i}`}>
+              <RowMain>
+                <Bright>{v.company}</Bright>
+                {v.title ? ` · ${v.title}` : ''}
+              </RowMain>
+              {rangeLabel(v.startDate, v.endDate) && (
+                <RowMeta>{rangeLabel(v.startDate, v.endDate)}</RowMeta>
+              )}
+            </Row>
+          ))}
+        </Block>
+      )}
+      {awards.length > 0 && (
+        <Block>
+          <MiniLabel>awards</MiniLabel>
+          {awards.map((a, i) => (
+            <Row key={`award-${i}`}>
+              <RowMain>
+                <Bright>{a.name}</Bright>
+                {a.summary && <RowSub>{a.summary}</RowSub>}
+              </RowMain>
+              {yearLabel(a.date) && <RowMeta>{yearLabel(a.date)}</RowMeta>}
+            </Row>
+          ))}
+        </Block>
+      )}
+    </>
+  );
+
+  const content = {
+    home: renderHome,
+    bio: renderBio,
+    essays: renderEssays,
+    projects: renderProjects,
+    sidequests: renderSideQuests,
+  };
 
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyle />
-      <Page ref={topRef}>
-        <Nav>
-          <NavInner>
-            <Brand type="button" onClick={() => scrollTo(topRef)}>
-              {name}
-            </Brand>
-            <NavLinks>
-              <NavItem type="button" onClick={() => scrollTo(projectsRef)}>
-                Projects
-              </NavItem>
-              <NavItem type="button" onClick={() => scrollTo(essaysRef)}>
-                Essays
-              </NavItem>
-              <ThemeToggle
-                type="button"
-                onClick={() => onDarkModeChange?.(!darkMode)}
-                aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-                title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-              >
-                {darkMode ? (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="4" />
-                    <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-                  </svg>
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
-                  </svg>
-                )}
-              </ThemeToggle>
-            </NavLinks>
-          </NavInner>
-        </Nav>
-
-        <Wrap>
-          <Hero>
-            <Eyebrow>{eyebrow}</Eyebrow>
-            <HeroName>{name}</HeroName>
-            {bio.map((line, i) => (
-              <Lede key={i}>{line}</Lede>
-            ))}
-            <HeroLinks>
-              {website && (
-                <HeroLink href={website} target="_blank" rel="noopener noreferrer">
-                  {website.replace(/^https?:\/\//, '')}
-                </HeroLink>
+      <Page>
+        <Shell>
+          <Sidebar aria-label="Sections">
+            <NavList>
+              {views.map((v) => (
+                <NavButton
+                  key={v.id}
+                  type="button"
+                  $active={view === v.id}
+                  aria-current={view === v.id ? 'page' : undefined}
+                  onClick={() => setView(v.id)}
+                >
+                  {v.label}
+                </NavButton>
+              ))}
+              {external && (
+                <NavExternal
+                  href={external.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {external.label}
+                </NavExternal>
               )}
-              {email && <HeroLink href={`mailto:${email}`}>{email}</HeroLink>}
-              {github && (
-                <HeroLink href={github} target="_blank" rel="noopener noreferrer">
-                  github
-                </HeroLink>
-              )}
-            </HeroLinks>
-          </Hero>
+            </NavList>
+          </Sidebar>
 
-          {projects.length > 0 && (
-            <Section ref={projectsRef}>
-              <SectionHead>
-                <SectionLabel>Projects</SectionLabel>
-                <SectionMeta>{projects.length} things I've built</SectionMeta>
-              </SectionHead>
-              <Grid>
-                {projects.map((project, idx) => {
-                  const inner = (
-                    <>
-                      <Thumb>
-                        <Monogram>{monogram(project.name)}</Monogram>
-                        {project.date && <ThumbDate>{yearLabel(project.date)}</ThumbDate>}
-                      </Thumb>
-                      <CardBody>
-                        <CardTitle>{project.name}</CardTitle>
-                        {project.summary && (
-                          <CardDesc>{truncateText(project.summary, 130)}</CardDesc>
-                        )}
-                      </CardBody>
-                    </>
-                  );
-                  return project.url ? (
-                    <Card
-                      as="a"
-                      key={`proj-${idx}`}
-                      href={project.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {inner}
-                    </Card>
-                  ) : (
-                    <Card as="div" key={`proj-${idx}`} $static>
-                      {inner}
-                    </Card>
-                  );
-                })}
-              </Grid>
-            </Section>
-          )}
-
-          {writing.length > 0 && (
-            <Section ref={essaysRef}>
-              <SectionHead>
-                <SectionLabel>Essays</SectionLabel>
-                <SectionMeta>Papers &amp; talks</SectionMeta>
-              </SectionHead>
-              <WriteList>
-                {writing.map((item) => {
-                  const row = (
-                    <>
-                      <WriteDate>{item.date || '—'}</WriteDate>
-                      <WriteMain>
-                        <WriteTitle>
-                          {item.title}
-                          <Kind>{item.kind}</Kind>
-                        </WriteTitle>
-                        {item.dek && <WriteDek>{item.dek}</WriteDek>}
-                      </WriteMain>
-                    </>
-                  );
-                  return item.href ? (
-                    <WriteRow
-                      as="a"
-                      key={item.key}
-                      href={item.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {row}
-                    </WriteRow>
-                  ) : (
-                    <WriteRow as="div" key={item.key} $static>
-                      {row}
-                    </WriteRow>
-                  );
-                })}
-              </WriteList>
-            </Section>
-          )}
-
-          <Footer>
-            <FooterName>{name}</FooterName>
-            {footerLinks.length > 0 && (
-              <FooterLinks>
-                {footerLinks.map((link) => (
-                  <FooterLink
-                    key={link.label}
-                    href={link.url}
-                    target={link.url.startsWith('mailto:') ? undefined : '_blank'}
-                    rel="noopener noreferrer"
-                  >
-                    {link.label}
-                  </FooterLink>
-                ))}
-              </FooterLinks>
-            )}
-          </Footer>
-        </Wrap>
+          <Content>{(content[view] || renderHome)()}</Content>
+        </Shell>
       </Page>
     </ThemeProvider>
   );
@@ -318,404 +412,255 @@ const Page = styled.div`
   width: 100%;
   background-color: ${(props) => props.theme.bg};
   color: ${(props) => props.theme.text};
-  font-family: ${SANS};
-  font-size: 16px;
-  line-height: 1.5;
+  font-family: ${MONO};
+  font-size: 15px;
+  line-height: 1.7;
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.25s ease, color 0.25s ease;
 `;
 
-const Nav = styled.nav`
-  position: sticky;
-  top: var(--app-top-offset, 0px);
-  z-index: 20;
-  background: ${(props) => props.theme.navBg};
-  backdrop-filter: saturate(180%) blur(10px);
-  -webkit-backdrop-filter: saturate(180%) blur(10px);
-  border-bottom: 1px solid ${(props) => props.theme.borderFaint};
+const Shell = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(2rem, 6vw, 5rem);
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: clamp(2.5rem, 9vh, 5.5rem) 1.75rem 5rem;
+  box-sizing: border-box;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    gap: 1.75rem;
+    padding: 1.5rem 1.25rem 4rem;
+  }
 `;
 
-const NavInner = styled.div`
-  max-width: 44rem;
-  margin: 0 auto;
-  padding: 0.75rem 1.25rem;
+const Sidebar = styled.nav`
+  flex: 0 0 auto;
+  align-self: flex-start;
+  position: sticky;
+  top: calc(var(--app-top-offset, 0px) + clamp(2.5rem, 9vh, 5.5rem));
+
+  @media (max-width: 640px) {
+    position: static;
+    top: auto;
+    width: 100%;
+  }
+`;
+
+const NavList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 190px;
+
+  @media (max-width: 640px) {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 10px;
+  }
+`;
+
+const navButtonStyles = css`
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid
+    ${(props) => (props.$active ? props.theme.navActiveBorder : props.theme.navBorder)};
+  background: ${(props) => (props.$active ? props.theme.navActiveBg : props.theme.navBg)};
+  color: ${(props) => (props.$active ? props.theme.navActiveText : props.theme.navText)};
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  text-align: left;
+  text-transform: lowercase;
+  text-decoration: underline;
+  text-decoration-color: ${(props) => props.theme.navLine};
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background: ${(props) => props.theme.navHoverBg};
+    color: ${(props) => props.theme.navActiveText};
+    text-decoration-color: currentColor;
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${(props) => props.theme.focus};
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 640px) {
+    width: auto;
+    min-height: 40px;
+  }
 `;
 
-const Brand = styled.button`
-  font-family: ${MONO};
-  font-size: 0.8125rem;
-  letter-spacing: 0.01em;
-  color: ${(props) => props.theme.text};
+const NavButton = styled.button`
+  ${navButtonStyles}
+`;
+
+const NavExternal = styled.a`
+  ${navButtonStyles}
+`;
+
+const Content = styled.div`
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 42rem;
+`;
+
+const A = styled.a`
+  color: ${(props) => props.theme.link};
+  text-decoration: underline;
+  text-decoration-color: ${(props) => props.theme.linkLine};
+  text-underline-offset: 3px;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    color: ${(props) => props.theme.linkHover};
+    text-decoration-color: currentColor;
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${(props) => props.theme.focus};
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+`;
+
+const ABright = styled(A)`
+  color: ${(props) => props.theme.bright};
+`;
+
+const LinkButton = styled.button`
+  font: inherit;
+  color: ${(props) => props.theme.link};
   background: none;
   border: none;
   padding: 0;
   cursor: pointer;
-  max-width: 55vw;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-decoration: underline;
+  text-decoration-color: ${(props) => props.theme.linkLine};
+  text-underline-offset: 3px;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
 
   &:hover {
-    color: ${(props) => props.theme.accent};
-  }
-`;
-
-const NavLinks = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1.1rem;
-`;
-
-const NavItem = styled.button`
-  font-family: ${MONO};
-  font-size: 0.6875rem;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: ${(props) => props.theme.muted};
-  background: none;
-  border: none;
-  padding: 0.15rem 0;
-  cursor: pointer;
-  transition: color 0.15s ease;
-
-  &:hover {
-    color: ${(props) => props.theme.text};
+    color: ${(props) => props.theme.linkHover};
+    text-decoration-color: currentColor;
   }
 
   &:focus-visible {
-    outline: 2px solid ${(props) => props.theme.accent};
-    outline-offset: 3px;
-  }
-`;
-
-const ThemeToggle = styled.button`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 0.375rem;
-  border: 1px solid ${(props) => props.theme.border};
-  background: ${(props) => props.theme.surface};
-  color: ${(props) => props.theme.muted};
-  cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-
-  &:hover {
-    color: ${(props) => props.theme.text};
-    background: ${(props) => props.theme.surfaceHover};
-  }
-
-  &:focus-visible {
-    outline: 2px solid ${(props) => props.theme.accent};
+    outline: 2px solid ${(props) => props.theme.focus};
     outline-offset: 2px;
+    border-radius: 2px;
   }
 `;
 
-const Wrap = styled.main`
-  max-width: 44rem;
-  margin: 0 auto;
-  padding: 0 1.25rem 5rem;
-  box-sizing: border-box;
-`;
-
-const Hero = styled.header`
-  padding: clamp(3rem, 9vh, 5.5rem) 0 2.75rem;
-`;
-
-const Eyebrow = styled.div`
-  font-family: ${MONO};
-  font-size: 0.6875rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: ${(props) => props.theme.accent};
-  margin-bottom: 0.9rem;
-`;
-
-const HeroName = styled.h1`
-  font-size: clamp(1.875rem, 6vw, 2.75rem);
-  line-height: 1.1;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  margin: 0 0 1.4rem;
+const Bright = styled.span`
+  color: ${(props) => props.theme.bright};
 `;
 
 const Lede = styled.p`
-  font-size: 1.0625rem;
-  line-height: 1.65;
-  color: ${(props) => props.theme.muted};
-  max-width: 38rem;
-  margin: 0 0 0.9rem;
-
-  &:last-of-type {
-    color: ${(props) => props.theme.muted};
-  }
-`;
-
-const HeroLinks = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem 1.25rem;
-  margin-top: 1.75rem;
-`;
-
-const HeroLink = styled.a`
-  font-family: ${MONO};
-  font-size: 0.75rem;
-  letter-spacing: 0.02em;
+  margin: 0;
+  font-size: 1rem;
+  line-height: 2;
   color: ${(props) => props.theme.text};
-  text-decoration: none;
-  border-bottom: 1px solid ${(props) => props.theme.border};
-  padding-bottom: 1px;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  max-width: 40rem;
+`;
 
-  &:hover {
-    color: ${(props) => props.theme.accent};
-    border-color: ${(props) => props.theme.accent};
+const NewestBlock = styled.div`
+  margin-top: 2.5rem;
+  line-height: 2;
+`;
+
+const NewestLabel = styled.span`
+  display: block;
+  color: ${(props) => props.theme.bright};
+  font-weight: 600;
+`;
+
+const Para = styled.p`
+  margin: 0 0 1.1rem;
+  color: ${(props) => props.theme.text};
+  max-width: 40rem;
+
+  &:last-child {
+    margin-bottom: 0;
   }
 `;
 
-const Section = styled.section`
-  padding-top: 2.75rem;
-  scroll-margin-top: calc(var(--app-top-offset, 0px) + 4rem);
-  border-top: 1px solid ${(props) => props.theme.borderFaint};
-  margin-top: 2.75rem;
+const Block = styled.section`
+  margin-top: 2.5rem;
+
+  &:first-child {
+    margin-top: 0;
+  }
 `;
 
-const SectionHead = styled.div`
+const MiniLabel = styled.h2`
+  margin: 0 0 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: ${(props) => props.theme.faint};
+`;
+
+const Row = styled.div`
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.75rem;
-`;
-
-const SectionLabel = styled.h2`
-  font-family: ${MONO};
-  font-size: 0.75rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-weight: 500;
-  color: ${(props) => props.theme.accent};
-  margin: 0;
-`;
-
-const SectionMeta = styled.span`
-  font-family: ${MONO};
-  font-size: 0.6875rem;
-  letter-spacing: 0.02em;
-  color: ${(props) => props.theme.faint};
-  text-align: right;
-`;
-
-const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1.5rem 1.25rem;
+  gap: 1.25rem;
+  padding: 0.55rem 0;
 
   @media (max-width: 480px) {
-    grid-template-columns: 1fr;
-    gap: 1.75rem;
+    flex-direction: column;
+    gap: 0.15rem;
   }
 `;
 
-const Card = styled.a`
-  display: flex;
-  flex-direction: column;
-  text-decoration: none;
-  color: inherit;
-  cursor: ${(props) => (props.$static ? 'default' : 'pointer')};
-
-  &:focus-visible {
-    outline: 2px solid ${(props) => props.theme.accent};
-    outline-offset: 4px;
-    border-radius: 0.5rem;
-  }
+const RowMain = styled.div`
+  min-width: 0;
+  color: ${(props) => props.theme.text};
 `;
 
-const Thumb = styled.div`
-  position: relative;
-  aspect-ratio: 16 / 9;
-  width: 100%;
-  border: 1px solid ${(props) => props.theme.border};
-  border-radius: 0.5rem;
-  background: ${(props) => props.theme.surface};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  box-shadow: ${(props) => props.theme.shadow};
-  transition: border-color 0.18s ease, background 0.18s ease;
-
-  ${Card}[href]:hover & {
-    border-color: ${(props) => props.theme.accent};
-    background: ${(props) => props.theme.surfaceHover};
-  }
-`;
-
-const Monogram = styled.span`
-  font-family: ${MONO};
-  font-size: 1.75rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
+const RowSub = styled.p`
+  margin: 0.3rem 0 0;
   color: ${(props) => props.theme.faint};
-  transition: color 0.18s ease;
-
-  ${Card}[href]:hover & {
-    color: ${(props) => props.theme.text};
-  }
+  font-size: 0.875rem;
+  line-height: 1.6;
 `;
 
-const ThumbDate = styled.span`
-  position: absolute;
-  top: 0.55rem;
-  right: 0.6rem;
-  font-family: ${MONO};
-  font-size: 0.625rem;
-  letter-spacing: 0.05em;
+const RowMeta = styled.span`
+  flex: 0 0 auto;
   color: ${(props) => props.theme.faint};
-`;
-
-const CardBody = styled.div`
-  padding-top: 0.85rem;
-`;
-
-const CardTitle = styled.div`
-  font-size: 0.9375rem;
-  font-weight: 600;
-  line-height: 1.35;
-  margin-bottom: 0.35rem;
-
-  ${Card}[href]:hover & {
-    text-decoration: underline;
-    text-decoration-color: ${(props) => props.theme.accent};
-    text-underline-offset: 3px;
-  }
-`;
-
-const CardDesc = styled.p`
   font-size: 0.8125rem;
-  line-height: 1.55;
-  color: ${(props) => props.theme.muted};
-  margin: 0;
-`;
-
-const WriteList = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const WriteRow = styled.a`
-  display: grid;
-  grid-template-columns: 3.5rem 1fr;
-  gap: 1rem;
-  padding: 1.1rem 0;
-  text-decoration: none;
-  color: inherit;
-  border-top: 1px solid ${(props) => props.theme.borderFaint};
-  cursor: ${(props) => (props.$static ? 'default' : 'pointer')};
-  transition: opacity 0.15s ease;
-
-  &:first-child {
-    border-top: none;
-  }
-
-  &:focus-visible {
-    outline: 2px solid ${(props) => props.theme.accent};
-    outline-offset: 3px;
-    border-radius: 0.25rem;
-  }
-
-  @media (max-width: 480px) {
-    grid-template-columns: 3rem 1fr;
-    gap: 0.75rem;
-  }
-`;
-
-const WriteDate = styled.span`
-  font-family: ${MONO};
-  font-size: 0.75rem;
-  color: ${(props) => props.theme.faint};
-  padding-top: 0.15rem;
   white-space: nowrap;
 `;
 
-const WriteMain = styled.div`
-  min-width: 0;
-`;
-
-const WriteTitle = styled.div`
-  font-size: 0.9375rem;
-  font-weight: 600;
-  line-height: 1.4;
-  color: ${(props) => props.theme.text};
-
-  /* Only real links (rendered as <a href>) get the accent on hover. */
-  ${WriteRow}[href]:hover & {
-    color: ${(props) => props.theme.accent};
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-`;
-
-const Kind = styled.span`
-  display: inline-block;
-  margin-left: 0.55rem;
-  font-family: ${MONO};
-  font-size: 0.5625rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: ${(props) => props.theme.faint};
-  border: 1px solid ${(props) => props.theme.border};
-  border-radius: 0.25rem;
-  padding: 0.05rem 0.35rem;
-  vertical-align: middle;
-  transform: translateY(-1px);
-`;
-
-const WriteDek = styled.p`
-  font-size: 0.8125rem;
-  line-height: 1.5;
-  color: ${(props) => props.theme.muted};
-  margin: 0.3rem 0 0;
-`;
-
-const Footer = styled.footer`
-  margin-top: 4rem;
-  padding-top: 1.75rem;
-  border-top: 1px solid ${(props) => props.theme.borderFaint};
+const EssayRow = styled.div`
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.75rem 1.5rem;
-`;
+  gap: 1.25rem;
+  padding: 0.6rem 0;
 
-const FooterName = styled.span`
-  font-family: ${MONO};
-  font-size: 0.75rem;
-  color: ${(props) => props.theme.faint};
-`;
-
-const FooterLinks = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.1rem;
-`;
-
-const FooterLink = styled.a`
-  font-family: ${MONO};
-  font-size: 0.75rem;
-  letter-spacing: 0.02em;
-  color: ${(props) => props.theme.muted};
-  text-decoration: none;
-  transition: color 0.15s ease;
-
-  &:hover {
-    color: ${(props) => props.theme.accent};
+  @media (max-width: 480px) {
+    flex-direction: column;
+    gap: 0.2rem;
   }
+`;
+
+const EssayTitle = styled.div`
+  min-width: 0;
+  color: ${(props) => props.theme.text};
 `;

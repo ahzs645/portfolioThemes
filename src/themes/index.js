@@ -732,9 +732,9 @@ export const PORTFOLIO_THEMES = [
   },
   {
     id: 'adam-watters',
-    slug: 'maker-log',
-    name: 'Maker Log',
-    description: 'A clean, light maker portfolio with hairline borders and monospace labels — a warm intro, a Projects grid of aspect-video cards, and a dated Essays index, inspired by adamwatters.co.',
+    slug: 'side-quests',
+    name: 'Side Quests',
+    description: 'A dark, minimal left-nav portfolio — a stacked rail of bordered buttons switches between a terse dash-separated intro, bio, essays, projects, and side quests, inspired by adamwatters.co.',
     source: 'https://adamwatters.co',
     Component: lazyTheme(() => import('./AdamWatters/AdamWattersTheme'), 'AdamWattersTheme'),
   },

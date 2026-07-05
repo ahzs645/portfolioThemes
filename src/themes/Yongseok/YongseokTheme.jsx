@@ -98,25 +98,7 @@ const DISTORTIONS = [
 
 const CYCLE_SEC = 7; // hold each distortion this long before cross-fading
 const BLEND_SEC = 1.4; // cross-fade into the next distortion over this long
-const WORDMARK_COLOR = 'rgba(190,206,255,0.95)';
 const BRIGHT_COLOR = 'rgba(214,226,255,0.98)';
-
-/** A centred, boxed ASCII wordmark of `name`; degrades gracefully when narrow. */
-function makeBanner(rawName, cols) {
-  const label =
-    String(rawName || '')
-      .toUpperCase()
-      .replace(/\s+/g, ' ')
-      .trim() || 'HELLO';
-  const padded = `  ${label}  `;
-  const maxInner = Math.max(3, cols - 4);
-  if (padded.length > maxInner) {
-    const inner = Math.max(1, cols - 2);
-    return [label.length > inner ? label.slice(0, inner) : label];
-  }
-  const bar = '═'.repeat(padded.length);
-  return [`╔${bar}╗`, `║${padded}║`, `╚${bar}╝`];
-}
 
 /**
  * A warping field of monospace glyphs confined to the hero canvas. A grid of
@@ -149,7 +131,11 @@ function AsciiWarp({ name }) {
     let mark = [];
     const start = typeof performance !== 'undefined' ? performance.now() : Date.now();
 
-    // Seed the grid: a fixed glyph + colour per cell, wordmark region reserved.
+    // Seed the grid as a SPARSE, faint field: a stream of readable-ish text
+    // (name + role + charset) flows through the cells but most cells are left
+    // blank, so the panel reads as scattered warping fragments rather than a
+    // solid wall — matching the source's airy look. The glowing name overlay
+    // (rendered above the canvas) is the real centrepiece.
     function build() {
       const w = canvas.clientWidth;
       const h = canvas.clientHeight;
@@ -160,33 +146,21 @@ function AsciiWarp({ name }) {
       colors = new Array(total);
       mark = new Array(total);
 
-      const banner = makeBanner(name, cols);
-      let bw = 0;
-      for (const line of banner) bw = Math.max(bw, line.length);
-      const bh = banner.length;
-      const startCol = Math.floor((cols - bw) / 2);
-      const startRow = Math.floor((rows - bh) / 2);
-
-      for (let j = 0; j < rows; j += 1) {
-        for (let i = 0; i < cols; i += 1) {
-          const k = j * cols + i;
-          let ch = GLYPHS[(Math.random() * GLYPHS.length) | 0];
-          let wm = false;
-          const bj = j - startRow;
-          if (bj >= 0 && bj < bh) {
-            const line = banner[bj];
-            const bi = i - startCol;
-            if (bi >= 0 && bi < line.length && line[bi] !== ' ') {
-              ch = line[bi];
-              wm = true;
-            }
-          }
-          glyphs[k] = ch;
-          mark[k] = wm;
-          colors[k] = wm
-            ? WORDMARK_COLOR
-            : `rgba(129,161,255,${(0.3 + Math.random() * 0.45).toFixed(2)})`;
+      const stream = `${name} ${name} making things ${GLYPHS}`.toLowerCase().replace(/\s+/g, ' ');
+      let s = 0;
+      for (let k = 0; k < total; k += 1) {
+        mark[k] = false;
+        // Leave most cells empty for a sparse, breathing field.
+        if (Math.random() < 0.58) {
+          glyphs[k] = ' ';
+          colors[k] = 'rgba(0,0,0,0)';
+          continue;
         }
+        let ch = Math.random() < 0.45 ? stream[s % stream.length] : GLYPHS[(Math.random() * GLYPHS.length) | 0];
+        s += 1;
+        if (ch === ' ') ch = GLYPHS[(Math.random() * GLYPHS.length) | 0];
+        glyphs[k] = ch;
+        colors[k] = `rgba(150,175,255,${(0.12 + Math.random() * 0.26).toFixed(2)})`;
       }
     }
 
@@ -228,6 +202,7 @@ function AsciiWarp({ name }) {
       for (let j = 0; j < rows; j += 1) {
         for (let i = 0; i < cols; i += 1) {
           const k = j * cols + i;
+          if (glyphs[k] === ' ') continue;
           const bx = (i + 0.5) / cols;
           const by = (j + 0.5) / rows;
           const p = distA(bx, by, cx, cy, t);
@@ -250,7 +225,7 @@ function AsciiWarp({ name }) {
       // A little flicker: mutate a handful of non-wordmark glyphs each frame.
       for (let m = 0; m < cols; m += 1) {
         const k = (Math.random() * glyphs.length) | 0;
-        if (!mark[k]) glyphs[k] = GLYPHS[(Math.random() * GLYPHS.length) | 0];
+        if (glyphs[k] !== ' ') glyphs[k] = GLYPHS[(Math.random() * GLYPHS.length) | 0];
       }
       draw(t);
       raf = requestAnimationFrame(frame);

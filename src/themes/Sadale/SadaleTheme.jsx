@@ -623,7 +623,7 @@ const Letter = styled.span`
     6px 6px 9px rgba(60, 30, 0, 0.45);
 
   @media (prefers-reduced-motion: no-preference) {
-    animation: ${flash} 0.45s ease-in-out infinite alternate;
+    animation: ${flash} 0.3s ease-in-out infinite alternate;
     animation-delay: var(--d, 0s);
   }
 `;
