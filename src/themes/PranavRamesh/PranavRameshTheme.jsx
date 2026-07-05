@@ -16,19 +16,21 @@ import { formatDate, formatRange, pickSocialUrl } from '../../utils/cvHelpers';
 
 const MONO = `'JetBrains Mono', 'Fira Mono', 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace`;
 
+// Match the source's DOS-terminal palette: bright cyan name, white subtitle,
+// grey output, and a bright-yellow prompt on near-black.
 const darkTheme = {
-  bg: '#0d0d0d',
-  fg: '#ada99f',
-  dim: '#6b685f',
-  name: '#ecd8a8',
-  prompt: '#e0b667',
-  title: '#d8d3c6',
-  head: '#ecd8a8',
-  link: '#e6d5a6',
-  cmd: '#e4dfd2',
+  bg: '#0c0c0c',
+  fg: '#aaaaaa',
+  dim: '#555555',
+  name: '#34d6e6',
+  prompt: '#f2c94c',
+  title: '#dddddd',
+  head: '#e8e8e8',
+  link: '#e0e0e0',
+  cmd: '#e8e8e8',
   error: '#d98a72',
-  border: 'rgba(236, 216, 168, 0.16)',
-  sel: 'rgba(236, 216, 168, 0.22)',
+  border: 'rgba(255, 255, 255, 0.14)',
+  sel: 'rgba(52, 214, 230, 0.22)',
 };
 
 const lightTheme = {

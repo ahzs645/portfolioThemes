@@ -62,8 +62,9 @@ const caretBlink = keyframes`
   55%, 100% { opacity: 0; }
 `;
 
+// The real kieran.computer is a clean sans-serif black card, not serif.
 const SERIF_STACK =
-  "'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, 'Times New Roman', Times, serif";
+  "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
 // A tiny outbound arrow, matching the source's inline ↗ glyph.
 function ExternalArrow() {
