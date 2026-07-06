@@ -1,16 +1,27 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
+import styled, { ThemeProvider, createGlobalStyle, keyframes } from 'styled-components';
+import figlet from 'figlet';
+import rectanglesFont from 'figlet/importable-fonts/Rectangles.js';
 import { useCV } from '../../contexts/ConfigContext';
 import { formatRange, formatDate, parseDateParts, isPresent } from '../../utils/cvHelpers';
+import { nameToHangul, nameToKatakana } from '../../utils/transliterate';
+
+// The source wordmark is figlet's "Rectangles" font; registering it here lets
+// us typeset the CV owner's name in the exact same letterforms at runtime.
+figlet.parseFont('Rectangles', rectanglesFont);
 
 /**
  * YongseokTheme — a faithful CV-driven remake of yongseok.me.
  *
  * The source is a three-page blog. The HOME page is nothing but a top bar
  * (centered "장용석 블로그" wordmark; KO | EN | JA switch, ticking clock, and
- * "/ blog / about" links on the right) over a full-viewport dark panel of
- * warping monospace glyphs with a boxed ASCII "Enter the Blog" wordmark at
- * its centre — clicking it enters the blog. The BLOG page is a sidebar of
+ * "/ blog / about" links on the right) over a full-viewport dark panel — the
+ * source's `home-cover-element`, ported verbatim from its recovered script:
+ * a 60×200 DOM text grid of "/helloWorld <ECMAScript spec>" sentences pushed
+ * through a spiral distortion each frame, an ASCII "Enter the Blog" wordmark
+ * stamped into the centre row-by-row (each row garbled before settling),
+ * radial "barcode" speed-lines on hover, an RGB-split textShadow glitch, and
+ * a click that enters the blog. The BLOG page is a sidebar of
  * categories (#tag counts) and series beside a year-grouped post list of
  * titles + summaries. The ABOUT page opens "Hi! 👋 My name is … and I am a
  * … Based in …" and stacks Work Experience, Education, dated contribution
@@ -40,8 +51,8 @@ const dark = {
   accent: '#a5b4fc',
 };
 
-// The hero panel is dark in both modes (like the source), so its palette is fixed.
-const HERO_BG = '#0c1024';
+// The hero panel is dark in both modes; rgb(9,3,44) is the source's :host bg.
+const HERO_BG = 'rgb(9, 3, 44)';
 
 const GlobalStyle = createGlobalStyle`
   body { background: ${(props) => props.theme.bg}; }
@@ -80,8 +91,6 @@ const LOCALES = {
   },
 };
 
-const GLYPHS = 'アイウエオカキクケコサシスセソタチツテトナニヌ0123456789<>[]{}/\\=+*-abcdef';
-
 function useClock() {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -118,196 +127,310 @@ function stampRange(start, end, isCurrent) {
   return e;
 }
 
-/**
- * Geometric distortions ported from the source's index.astro script. Each takes
- * a NORMALIZED (0..1) coordinate and a centre (cx,cy) and returns a displaced
- * normalized coordinate. The hero passes every glyph's grid position through the
- * active distortion each frame, so the whole field ripples and swirls.
- */
-const DISTORTIONS = [
-  // wave — a vertical ripple travelling across the field
-  (x, y, cx, cy, time) => [x, y + Math.sin(x * 10 + time * 2) * 0.05],
-  // spiral — rotate each point about the centre by an angle that grows with radius
-  (x, y, cx, cy, time) => {
+// ---------------------------------------------------------------------------
+// home-cover-element, ported verbatim from the source's recovered
+// index.astro script (a Lit component). Same grid, sentences, distortions,
+// overlay timing, garble charset, barcode speed-lines, and glitch styling.
+// ---------------------------------------------------------------------------
+
+// Distortion library from the source; only 'spiral' is active (the element is
+// mounted without a transforms attribute, so it keeps its default).
+const TRANSFORMS = {
+  spiral: ({ x, y, cx, cy, time }) => {
     const a = x - cx;
     const o = y - cy;
-    const s = Math.sqrt(a * a + o * o);
+    const s = Math.sqrt(a ** 2 + o ** 2);
     const c = Math.atan2(o, a) - Math.sqrt(s) * time * 0.5;
     return [cx + Math.cos(c) * s, cy + Math.sin(c) * s];
   },
-  // zoom — a pulsing scale in and out from the centre
-  (x, y, cx, cy, time) => {
+  wave: ({ x, y, time }) => [x, y + Math.sin(x * 10 + time * 2) * 0.05],
+  zoom: ({ x, y, cx, cy, time }) => {
     const a = Math.sin(time) * 0.5 + 1;
     const o = x - cx;
     const s = y - cy;
     return [cx + o * a, cy + s * a];
   },
-  // hurricane — a swirling shear whose strength grows with distance
-  (x, y, cx, cy, time) => {
+  shake: ({ x, y, time }) => [x + Math.sin(time * 10) * 0.1, y],
+  rotate: ({ x, y, cx, cy, time }) => {
+    const a = time * 0.1;
+    const o = x - cx;
+    const s = y - cy;
+    return [cx + o * Math.cos(a) - s * Math.sin(a), cy + o * Math.sin(a) + s * Math.cos(a)];
+  },
+  hurricane: ({ x, y, cx, cy, time }) => {
     const a = time * 0.5;
     const o = x - cx;
     const s = y - cy;
-    const c = Math.sqrt(o * o + s * s);
+    const c = Math.sqrt(o ** 2 + s ** 2);
     return [
       cx + o * Math.cos(a) - s * Math.sin(a) * c * 0.01,
       cy + o * Math.sin(a) + s * Math.cos(a) * c * 0.01,
     ];
   },
+  celestialOrbit: ({ x, y, cx, cy, time }) => {
+    const a = x - cx;
+    const o = y - cy;
+    const s = Math.sqrt(a ** 2 + o ** 2);
+    const c = Math.atan2(o, a);
+    const tau = 2 * Math.PI;
+    const f = c + ((time * 1) % tau);
+    return [cx + Math.cos(f) * s, cy + Math.sin(f) * (s * 0.6)];
+  },
+  fractalMotion: ({ x, y, cx, cy, time }) => {
+    const a = x - cx;
+    const o = y - cy;
+    const s = Math.sqrt(a ** 2 + o ** 2);
+    const c = Math.atan2(o, a);
+    const l = Math.sin(time) * 0.5 + 1.5;
+    const u = c + Math.sin(time * 0.5) * 2 * Math.PI;
+    return [cx + Math.cos(u) * s * l, cy + Math.sin(u) * s * l];
+  },
+};
+
+const ACTIVE_TRANSFORMS = ['spiral'];
+
+// The source's ASCII "Enter the Blog" wordmark, verbatim — kept as the
+// fallback if figlet can't typeset the CV name.
+const OVERLAY_FALLBACK = [
+  ' _____     _              _   _          _   _         ',
+  '|   __|___| |_ ___ ___   | |_| |_ ___   | |_| |___ ___ ',
+  '|   __|   |  _| -_|  _|  |  _|   | -_|  | . | | . | . |',
+  '|_____|_|_|_| |___|_|    |_| |_|_|___|  |___|_|___|_  |',
+  '                                                  |___|',
 ];
 
-const CYCLE_SEC = 7; // hold each distortion this long before cross-fading
-const BLEND_SEC = 1.4; // cross-fade into the next distortion over this long
-const BRIGHT_COLOR = 'rgba(214,226,255,0.98)';
+// Typeset text as an ASCII wordmark in the source's Rectangles figlet font.
+function asciiWordmark(text) {
+  try {
+    const lines = figlet.textSync(text, { font: 'Rectangles' }).split('\n');
+    while (lines.length && !lines[0].trim()) lines.shift();
+    while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+    if (lines.length) return lines;
+  } catch {
+    // Non-Latin or otherwise untypesettable names fall back to the source art.
+  }
+  return OVERLAY_FALLBACK;
+}
+
+// The source fills the field with "/helloWorld <ECMAScript spec overview>"
+// lines — kept verbatim so the warping wall of text reads the same.
+const FIELD_TEXT = `
+/helloWorld This section contains a non-normative overview of the ECMAScript language.
+/helloWorld ECMAScript is an object-oriented programming language for performing computations and manipulating computational objects within a host environment.
+/helloWorld ECMAScript as defined here is not intended to be computationally self-sufficient; indeed, there are no provisions in this specification for input of external data or output of computed results.
+/helloWorld Instead, it is expected that the computational environment of an ECMAScript program will provide not only the objects and other facilities described in this specification but also certain environment-specific objects, whose description and behaviour are beyond the scope of this specification except to indicate that they may provide certain properties that can be accessed and certain functions that can be called from an ECMAScript program.
+/helloWorld ECMAScript was originally designed to be used as a scripting language, but has become widely used as a general-purpose programming language.
+/helloWorld A scripting language is a programming language that is used to manipulate, customize, and automate the facilities of an existing system.
+/helloWorld In such systems, useful functionality is already available through a user interface, and the scripting language is a mechanism for exposing that functionality to program control.
+/helloWorld In this way, the existing system is said to provide a host environment of objects and facilities, which completes the capabilities of the scripting language.
+/helloWorld A scripting language is intended for use by both professional and non-professional programmers.
+/helloWorld ECMAScript was originally designed to be a Web scripting language, providing a mechanism to enliven Web pages in browsers and to perform server computation as part of a Web-based client-server architecture.
+/helloWorld ECMAScript is now used to provide core scripting capabilities for a variety of host environments.
+/helloWorld Therefore the core language is specified in this document apart from any particular host environment.
+/helloWorld ECMAScript usage has moved beyond simple scripting and it is now used for the full spectrum of programming tasks in many different environments and scales.
+/helloWorld As the usage of ECMAScript has expanded, so have the features and facilities it provides.
+/helloWorld ECMAScript is now a fully featured general-purpose programming language.
+`;
+
+const COVER_ROWS = 60;
+const COVER_COLS = 200;
+const OVERLAY_DELAY = 4.5; // scaled seconds before the wordmark starts stamping
+const OVERLAY_ROW_INTERVAL = 0.25; // one wordmark row lands every quarter second
+const OVERLAY_GARBLE_WINDOW = 0.15; // each row shows garbage this long first
+const GARBLE_CHARS = '|_-/\\[]{}#@$%&*!?~^+=<>';
+const SPEEDLINE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
 /**
- * A warping field of monospace glyphs confined to the hero canvas. A grid of
- * mono cells fills the panel; every frame each cell's base position is pushed
- * through the active distortion and the glyph is drawn at the displaced spot —
- * the field undulates and swirls instead of falling.
+ * The warping text-grid hero. Renders COVER_ROWS plain-text row divs and
+ * mutates their textContent directly each animation frame (like the source's
+ * per-frame Lit re-render, without React reconciliation in the hot path).
  */
-function AsciiWarp({ name }) {
-  const canvasRef = useRef(null);
+function HomeCover({ overlayArt, barcodeText, onEnter }) {
+  const gridRef = useRef(null);
+  const stateRef = useRef({ time: 0, hovering: false });
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return undefined;
-    const ctx = canvas.getContext('2d');
+    const grid = gridRef.current;
+    if (!grid) return undefined;
+    const state = stateRef.current;
     const reduce =
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-    const fontSize = 15;
-    const cellW = fontSize * 0.62; // monospace advance width
-    const cellH = fontSize * 1.15; // line height
+    const sentences = FIELD_TEXT.split(/[\n\r]/)
+      .filter((l) => l.length > 0)
+      .map((l) => `${l} `);
+
+    const getCharAt = (x, y) => {
+      const s = sentences[y % sentences.length];
+      return s[Math.min(x, s.length - 1)] || ' ';
+    };
+
+    // 8-bit barcode of the site host, e.g. "yongseok.me" in the source.
+    const barcode = [];
+    for (const ch of barcodeText) {
+      const n = ch.charCodeAt(0);
+      for (let b = 7; b >= 0; b -= 1) barcode.push(!!((n >> b) & 1));
+    }
+
+    const rowEls = [];
+    for (let r = 0; r < COVER_ROWS; r += 1) {
+      const div = document.createElement('div');
+      div.className = 'row';
+      grid.appendChild(div);
+      rowEls.push(div);
+    }
+
+    const transformer = (input) =>
+      ACTIVE_TRANSFORMS.reduce(
+        (acc, key) => TRANSFORMS[key]({ ...input, x: acc[0], y: acc[1] }),
+        [input.x, input.y],
+      );
+
+    const overlayWidth = Math.max(...overlayArt.map((l) => l.length));
+    const overlayHeight = overlayArt.length;
+
+    function applyOverlay(cells, time) {
+      const t = time - OVERLAY_DELAY;
+      const left = Math.floor((COVER_COLS - overlayWidth) / 2);
+      const top = Math.floor((COVER_ROWS - overlayHeight) / 2);
+      for (let r = 0; r < overlayHeight; r += 1) {
+        const rowStart = r * OVERLAY_ROW_INTERVAL;
+        if (t < rowStart) break;
+        const garbled = t - rowStart < OVERLAY_GARBLE_WINDOW;
+        const line = overlayArt[r];
+        for (let cIdx = 0; cIdx < line.length; cIdx += 1) {
+          const ch = line[cIdx];
+          const x = left + cIdx;
+          const y = top + r;
+          if (x < 0 || x >= COVER_COLS || y < 0 || y >= COVER_ROWS) continue;
+          if (ch === ' ') cells[y][x] = ' ';
+          else if (garbled) cells[y][x] = GARBLE_CHARS[Math.floor(Math.random() * GARBLE_CHARS.length)];
+          else cells[y][x] = ch;
+        }
+      }
+    }
+
+    // Rotating radial sunburst whose spokes follow the barcode's 1-bits.
+    function applySpeedLines(cells, time) {
+      const cx = COVER_COLS / 2;
+      const cy = COVER_ROWS / 2;
+      const len = barcode.length;
+      const spin = time * 0.15;
+      for (let y = 0; y < COVER_ROWS; y += 1) {
+        for (let x = 0; x < COVER_COLS; x += 1) {
+          const dx = x - cx;
+          const dy = (y - cy) * 1.7;
+          if (dx === 0 && dy === 0) continue;
+          const pos =
+            ((((Math.atan2(dy, dx) + Math.PI * 2) % (Math.PI * 2)) + spin) / (Math.PI * 2)) * len;
+          const idx = ((Math.floor(pos) % len) + len) % len;
+          if (barcode[idx]) {
+            const c =
+              Math.abs(Math.floor(Math.sin(x * 0.3 + y * 0.7 + time) * 52)) % 52;
+            cells[y][x] = SPEEDLINE_CHARS[c];
+          }
+        }
+      }
+    }
+
+    function draw(time) {
+      const cells = Array.from({ length: COVER_ROWS }, () => Array(COVER_COLS).fill(' '));
+      for (let y = 0; y < COVER_ROWS; y += 1) {
+        for (let x = 0; x < COVER_COLS; x += 1) {
+          const [nx, ny] = transformer({
+            x: x / COVER_COLS,
+            y: y / COVER_ROWS,
+            cx: 0.5,
+            cy: 0.5,
+            time,
+          });
+          const tx = Math.floor(nx * COVER_COLS);
+          const ty = Math.floor(ny * COVER_ROWS);
+          if (tx >= 0 && tx < COVER_COLS && ty >= 0 && ty < COVER_ROWS) {
+            cells[ty][tx] = getCharAt(x, y);
+          }
+        }
+      }
+      if (time >= OVERLAY_DELAY) {
+        if (state.hovering) applySpeedLines(cells, time);
+        applyOverlay(cells, time);
+      }
+      for (let r = 0; r < COVER_ROWS; r += 1) {
+        rowEls[r].textContent = cells[r].join('');
+      }
+    }
 
     let raf = 0;
-    let cols = 0;
-    let rows = 0;
-    let glyphs = [];
-    let colors = [];
-    let mark = [];
-    const start = typeof performance !== 'undefined' ? performance.now() : Date.now();
-
-    // Seed the grid as a SPARSE, faint field: a stream of readable-ish text
-    // (name + role + charset) flows through the cells but most cells are left
-    // blank, so the panel reads as scattered warping fragments rather than a
-    // solid wall — matching the source's airy look. The boxed "Enter the Blog"
-    // overlay (rendered above the canvas) is the real centrepiece.
-    function build() {
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
-      cols = Math.max(1, Math.floor(w / cellW));
-      rows = Math.max(1, Math.floor(h / cellH));
-      const total = cols * rows;
-      glyphs = new Array(total);
-      colors = new Array(total);
-      mark = new Array(total);
-
-      const stream = `${name} ${name} making things ${GLYPHS}`.toLowerCase().replace(/\s+/g, ' ');
-      let s = 0;
-      for (let k = 0; k < total; k += 1) {
-        mark[k] = false;
-        // Leave most cells empty for a sparse, breathing field.
-        if (Math.random() < 0.58) {
-          glyphs[k] = ' ';
-          colors[k] = 'rgba(0,0,0,0)';
-          continue;
-        }
-        let ch = Math.random() < 0.45 ? stream[s % stream.length] : GLYPHS[(Math.random() * GLYPHS.length) | 0];
-        s += 1;
-        if (ch === ' ') ch = GLYPHS[(Math.random() * GLYPHS.length) | 0];
-        glyphs[k] = ch;
-        colors[k] = `rgba(150,175,255,${(0.12 + Math.random() * 0.26).toFixed(2)})`;
-      }
-    }
-
-    function resize() {
-      const parent = canvas.parentElement;
-      const w = parent.clientWidth;
-      const h = parent.clientHeight;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.max(1, Math.round(w * dpr));
-      canvas.height = Math.max(1, Math.round(h * dpr));
-      canvas.style.width = `${w}px`;
-      canvas.style.height = `${h}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.font = `${fontSize}px 'JetBrains Mono', monospace`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      build();
-    }
-
-    // Render one frame at animation time `t` (seconds).
-    function draw(t) {
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
-      ctx.fillStyle = HERO_BG;
-      ctx.fillRect(0, 0, w, h);
-
-      // Pick the active distortion and cross-fade into the next near the end.
-      const n = DISTORTIONS.length;
-      const pos = t / CYCLE_SEC;
-      const idx = Math.floor(pos) % n;
-      const distA = DISTORTIONS[idx];
-      const distB = DISTORTIONS[(idx + 1) % n];
-      const frac = pos - Math.floor(pos);
-      const blendStart = 1 - BLEND_SEC / CYCLE_SEC;
-      const mix = frac > blendStart ? (frac - blendStart) / (BLEND_SEC / CYCLE_SEC) : 0;
-
-      const cx = 0.5;
-      const cy = 0.5;
-      for (let j = 0; j < rows; j += 1) {
-        for (let i = 0; i < cols; i += 1) {
-          const k = j * cols + i;
-          if (glyphs[k] === ' ') continue;
-          const bx = (i + 0.5) / cols;
-          const by = (j + 0.5) / rows;
-          const p = distA(bx, by, cx, cy, t);
-          let nx = p[0];
-          let ny = p[1];
-          if (mix > 0) {
-            const q = distB(bx, by, cx, cy, t);
-            nx += (q[0] - nx) * mix;
-            ny += (q[1] - ny) * mix;
-          }
-          ctx.fillStyle = !mark[k] && Math.random() > 0.994 ? BRIGHT_COLOR : colors[k];
-          ctx.fillText(glyphs[k], nx * w, ny * h);
-        }
-      }
-    }
-
-    function frame() {
-      const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
-      const t = (now - start) / 1000;
-      // A little flicker: mutate a handful of non-wordmark glyphs each frame.
-      for (let m = 0; m < cols; m += 1) {
-        const k = (Math.random() * glyphs.length) | 0;
-        if (glyphs[k] !== ' ') glyphs[k] = GLYPHS[(Math.random() * GLYPHS.length) | 0];
-      }
-      draw(t);
+    let begin = null;
+    function frame(now) {
+      if (begin === null) begin = now;
+      // The source runs its clock at 1.5× real time.
+      const time = ((now - begin) / 1000) * 1.5;
+      state.time = time;
+      draw(time);
       raf = requestAnimationFrame(frame);
     }
 
-    resize();
     if (reduce) {
-      draw(0.8); // a single, gently distorted static frame
+      // One static frame with the wordmark fully stamped.
+      state.time = OVERLAY_DELAY + overlayHeight * OVERLAY_ROW_INTERVAL + 1;
+      draw(state.time);
     } else {
       raf = requestAnimationFrame(frame);
     }
 
-    const ro = new ResizeObserver(() => {
-      resize();
-      if (reduce) draw(0.8);
-    });
-    ro.observe(canvas.parentElement);
-
     return () => {
       cancelAnimationFrame(raf);
-      ro.disconnect();
+      rowEls.forEach((el) => el.remove());
     };
-  }, [name]);
+  }, [overlayArt, barcodeText]);
 
-  return <Canvas ref={canvasRef} aria-hidden="true" />;
+  // Hover only counts inside the wordmark's padded bounding box, like the source.
+  const handleMouseMove = (e) => {
+    const state = stateRef.current;
+    if (state.time < OVERLAY_DELAY) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const nx = (e.clientX - rect.left) / rect.width;
+    const ny = (e.clientY - rect.top) / rect.height;
+    const w = Math.max(...overlayArt.map((l) => l.length));
+    const h = overlayArt.length;
+    const pad = 0.03;
+    const left = (COVER_COLS - w) / 2 / COVER_COLS - pad;
+    const right = left + w / COVER_COLS + pad * 2;
+    const top = (COVER_ROWS - h) / 2 / COVER_ROWS - pad;
+    const bottom = top + h / COVER_ROWS + pad * 2;
+    stateRef.current.hovering = nx >= left && nx <= right && ny >= top && ny <= bottom;
+    e.currentTarget.style.cursor = stateRef.current.hovering ? 'pointer' : '';
+  };
+
+  const handleMouseLeave = (e) => {
+    stateRef.current.hovering = false;
+    e.currentTarget.style.cursor = '';
+  };
+
+  const handleClick = () => {
+    if (stateRef.current.time >= OVERLAY_DELAY) onEnter();
+  };
+
+  return (
+    <CoverHost>
+      <CoverGrid
+        ref={gridRef}
+        role="button"
+        tabIndex={0}
+        aria-label="Enter the blog"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        onClick={handleClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') handleClick();
+        }}
+      >
+        <div className="glass" aria-hidden="true" />
+      </CoverGrid>
+    </CoverHost>
+  );
 }
 
 export function YongseokTheme({ darkMode = false, onDarkModeChange }) {
@@ -336,6 +459,22 @@ export function YongseokTheme({ darkMode = false, onDarkModeChange }) {
     setPage(target);
     scrollRef.current?.scrollTo?.({ top: 0 });
   };
+
+  // The cover wordmark is the CV owner's name, typeset in the source's
+  // Rectangles figlet font (like In Orbit, the hero is name-driven).
+  const overlayArt = useMemo(() => asciiWordmark(name), [name]);
+
+  // The brand follows the locale like the source's "장용석 블로그": the name
+  // itself is transliterated — Hangul for KO, katakana for JA.
+  const localizedName = useMemo(
+    () => ({
+      EN: name,
+      KO: nameToHangul(name) || name,
+      JA: nameToKatakana(name) || name,
+    }),
+    [name],
+  );
+  const brand = t.brand(localizedName[locale]);
 
   // --- Blog page data ---------------------------------------------------------
   // The CV has no blog posts, so publications, presentations, projects, and
@@ -436,7 +575,8 @@ export function YongseokTheme({ darkMode = false, onDarkModeChange }) {
         {darkMode ? '☀' : '☾'}
       </button>
       <span className="copy">
-        © {new Date().getFullYear()} | {t.brand(name.toLowerCase())}
+        © {new Date().getFullYear()} |{' '}
+        {locale === 'EN' ? t.brand(name.toLowerCase()) : brand}
       </span>
     </Footer>
   );
@@ -448,7 +588,7 @@ export function YongseokTheme({ darkMode = false, onDarkModeChange }) {
         <Bar>
           <span />
           <BrandLink href="#home" onClick={goTo('home')}>
-            {t.brand(name)}
+            {brand}
           </BrandLink>
           <BarRight>
             <Langs>
@@ -476,12 +616,17 @@ export function YongseokTheme({ darkMode = false, onDarkModeChange }) {
         {page === 'home' && (
           <>
             <Hero>
-              <AsciiWarp name={name} />
-              <HeroInner>
-                <EnterBlog type="button" onClick={goTo('blog')}>
-                  {t.enter}
-                </EnterBlog>
-              </HeroInner>
+              <HomeCover
+                overlayArt={overlayArt}
+                barcodeText={
+                  (cv.website || '').replace(/^https?:\/\//i, '').replace(/\/.*$/, '') ||
+                  name.toLowerCase().replace(/\s+/g, '')
+                }
+                onEnter={() => {
+                  setPage('blog');
+                  scrollRef.current?.scrollTo?.({ top: 0 });
+                }}
+              />
             </Hero>
             <HomeFooter>{footer}</HomeFooter>
           </>
@@ -695,9 +840,12 @@ const Page = styled.div`
 `;
 
 // Source top bar: empty left, the wordmark dead-centre, controls right.
+// The Page is its own scroll container (it already starts below the app
+// bar), so the bar sticks to the very top — no app offset, which would
+// double-count and float the bar mid-page.
 const Bar = styled.header`
   position: sticky;
-  top: var(--app-top-offset, 0px);
+  top: 0;
   z-index: 5;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -777,51 +925,93 @@ const NavLinks = styled.nav`
   }
 `;
 
-// The home page is nothing but the rain panel (minus bar and footer).
+// The home page is nothing but the cover panel (minus bar and footer).
 const Hero = styled.div`
   position: relative;
-  height: calc(100dvh - var(--app-top-offset, 0px) - 8.5rem);
+  height: calc(100dvh - var(--app-top-offset, 0px) - 8.75rem);
   min-height: 320px;
   margin: 1rem 1.25rem 0;
-  border-radius: 10px;
+  border-radius: 0.5rem;
   background: ${HERO_BG};
   overflow: hidden;
 `;
 
-const Canvas = styled.canvas`
-  position: absolute;
-  inset: 0;
-`;
-
-const HeroInner = styled.div`
-  position: relative;
-  z-index: 1;
-  height: 100%;
+// The source's :host styles: centered JetBrains Mono grid on deep navy.
+const CoverHost = styled.div`
   display: flex;
-  align-items: center;
   justify-content: center;
-  text-align: center;
-  padding: 1rem;
+  align-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-optical-sizing: auto;
+  background-color: ${HERO_BG};
+  color: rgb(96, 124, 198);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
 `;
 
-// The clickable stand-in for the source's ASCII "Enter the Blog" wordmark.
-const EnterBlog = styled.button`
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  font-size: clamp(1.4rem, 5vw, 3rem);
-  letter-spacing: 0.08em;
-  padding: 0.6em 1.1em;
-  color: #d6e2ff;
-  background: rgba(12, 16, 36, 0.35);
-  border: 3px double rgba(150, 175, 255, 0.75);
-  cursor: pointer;
-  text-shadow: 0 0 24px rgba(129, 161, 255, 0.8);
-  transition: color 0.2s ease, border-color 0.2s ease, text-shadow 0.2s ease;
+// The source's RGB-split glitch, keyframe values copied verbatim.
+const textShadowGlitch = keyframes`
+  0% { text-shadow: 0.4389924193300864px 0 1px rgba(0,30,255,0.5), -0.4389924193300864px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  5% { text-shadow: 2.7928974010788217px 0 1px rgba(0,30,255,0.5), -2.7928974010788217px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  10% { text-shadow: 0.02956275843481219px 0 1px rgba(0,30,255,0.5), -0.02956275843481219px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  15% { text-shadow: 0.40218538552878136px 0 1px rgba(0,30,255,0.5), -0.40218538552878136px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  20% { text-shadow: 3.4794037899852017px 0 1px rgba(0,30,255,0.5), -3.4794037899852017px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  25% { text-shadow: 1.6125630401149584px 0 1px rgba(0,30,255,0.5), -1.6125630401149584px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  30% { text-shadow: 0.7015590085143956px 0 1px rgba(0,30,255,0.5), -0.7015590085143956px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  35% { text-shadow: 3.896914047650351px 0 1px rgba(0,30,255,0.5), -3.896914047650351px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  40% { text-shadow: 3.870905614848819px 0 1px rgba(0,30,255,0.5), -3.870905614848819px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  45% { text-shadow: 2.231056963361899px 0 1px rgba(0,30,255,0.5), -2.231056963361899px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  50% { text-shadow: 0.08084290417898504px 0 1px rgba(0,30,255,0.5), -0.08084290417898504px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  55% { text-shadow: 2.3758461067427543px 0 1px rgba(0,30,255,0.5), -2.3758461067427543px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  60% { text-shadow: 2.202193051050636px 0 1px rgba(0,30,255,0.5), -2.202193051050636px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  65% { text-shadow: 2.8638780614874975px 0 1px rgba(0,30,255,0.5), -2.8638780614874975px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  70% { text-shadow: 0.48874025155497314px 0 1px rgba(0,30,255,0.5), -0.48874025155497314px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  75% { text-shadow: 1.8948491305757957px 0 1px rgba(0,30,255,0.5), -1.8948491305757957px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  80% { text-shadow: 0.0833037308038857px 0 1px rgba(0,30,255,0.5), -0.0833037308038857px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  85% { text-shadow: 0.09769827255241735px 0 1px rgba(0,30,255,0.5), -0.09769827255241735px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  90% { text-shadow: 3.443339761481782px 0 1px rgba(0,30,255,0.5), -3.443339761481782px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  95% { text-shadow: 2.1841838852799786px 0 1px rgba(0,30,255,0.5), -2.1841838852799786px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+  100% { text-shadow: 2.6208764473832513px 0 1px rgba(0,30,255,0.5), -2.6208764473832513px 0 1px rgba(255,0,80,0.3), 0 0 3px; }
+`;
 
-  &:hover {
-    color: #ffffff;
-    border-color: rgba(214, 226, 255, 0.95);
-    text-shadow: 0 0 34px rgba(170, 195, 255, 1);
+// #text-grid + .glass + .row from the source component.
+const CoverGrid = styled.div`
+  font-size: 20px;
+  transform: translate(0);
+  display: flex;
+  flex-direction: column;
+  animation: ${textShadowGlitch} 1s infinite;
+  outline: none;
+
+  @media (max-width: 768px) {
+    zoom: 0.6;
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    opacity: 0.3;
+  }
+
+  .row {
+    line-height: 20px;
+    display: inline-block;
+    white-space: pre;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
   }
 `;
 

@@ -398,7 +398,7 @@ const Rail = styled.h1`
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   position: sticky;
-  top: calc(var(--app-top-offset, 0px) + 2rem);
+  top: 2rem;
   align-self: flex-start;
   flex-shrink: 0;
   margin: 0;
@@ -444,7 +444,7 @@ const Intro = styled.p`
 
 const Section = styled.section`
   margin: 2rem 0;
-  scroll-margin-top: calc(var(--app-top-offset, 0px) + 1rem);
+  scroll-margin-top: 1rem;
 
   ul {
     list-style: none;

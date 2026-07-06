@@ -11,40 +11,23 @@ import * as THREE from 'three';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useGLTF, useTexture } from '@react-three/drei';
 import { useCV } from '../../contexts/ConfigContext';
-import { getInitials, pickSocialUrl } from '../../utils/cvHelpers';
+import { pickSocialUrl } from '../../utils/cvHelpers';
 import { canUseWebGL, usePrefersReducedMotion } from '../../utils/rendering';
 // Vite hashes + base-path-resolves these imports; do NOT wrap in withBase.
 import giraffeUrl from './assets/giraffe.glb';
 import dotUrl from './assets/dot.jpg';
 import ibmPlexSansUrl from './assets/fonts/ibm-plex-sans-latin.woff2';
 import inknutAntiquaUrl from './assets/fonts/inknut-antiqua-latin.woff2';
-import liveLabImage from './assets/projects/live-lab-broadcaster.png';
-import ariumImage from './assets/projects/arium.png';
-import yorbImage from './assets/projects/yorb.png';
-import soundscapeImage from './assets/projects/nyc-soundscape.jpg';
 
 /**
  * AidanNelsonTheme — a CV-driven remake of aidanjnelson.com.
  *
- * Aidan Nelson's site is a quiet editorial reader on warm white: a small plain
- * name at the very top, a big bold serif "Hello and welcome!" greeting, one or
- * two generous serif bio paragraphs, and a "Find me on … or write an
- * old-fashioned email to <mono>name at gmail dot com</mono>" line. A thin rule
- * separates that intro from a bold "Projects" heading and a list of projects —
- * each a small tile + a bold blue linked title + a one-line description, the
- * entries divided by hairline rules. We rebuild that voice from CV.yaml.
- *
- * Source type/colors: body font-family "IBM Plex Sans"; headings "Inknut
- * Antiqua, serif"; page background #fffffa; body text #262626; the tile accent
- * palette (#300032 purple, #4a4a4a gray, #3265c4 blue, #c43235 red) comes
- * straight from the source stylesheet. The reference render shows the reader in
- * a browser-default serif with classic blue underlined links and a monospace
- * email, which is the look this remake commits to.
+ * Aidan Nelson's site is a quiet Hugo/Bootstrap reader on warm white: a
+ * shadowed Inknut Antiqua name, IBM Plex Sans prose, magenta body links, a
+ * dotted WebGL giraffe backdrop, and off-white project cards with source
+ * thumbnails, black hairlines, and understated hover shadows. We rebuild that
+ * voice from CV.yaml.
  */
-
-// Accent tiles cycle through the source stylesheet's own bg-* palette.
-const TILE_COLORS = ['#300032', '#3265c4', '#c43235', '#4a4a4a'];
-const SOURCE_PROJECT_IMAGES = [liveLabImage, ariumImage, yorbImage, soundscapeImage];
 
 const SOURCE_SANS =
   "'Aidan IBM Plex Sans', 'IBM Plex Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
@@ -73,6 +56,7 @@ const lightTheme = {
   thumbBorder: 'transparent',
   toggleBorder: 'rgba(0, 0, 0, 0.18)',
   nameShadow: '2px 0 4px rgba(255, 0, 144, 0.31)',
+  code: '#d63384',
   bodyFont: SOURCE_SANS,
   headingFont: SOURCE_HEADING,
   contentFontSize: '18px',
@@ -86,8 +70,8 @@ const darkTheme = {
   heading: '#f4f1ea',
   name: '#f4f1ea',
   muted: '#b6b2a7',
-  link: '#8ab4f8',
-  linkHover: '#adc8fb',
+  link: '#ff7bd4',
+  linkHover: '#ffb3e7',
   rule: 'rgba(255, 255, 255, 0.16)',
   subtleRule: 'rgba(255, 255, 255, 0.16)',
   cardBackground: 'rgba(24, 23, 18, 0.84)',
@@ -98,9 +82,10 @@ const darkTheme = {
   thumbBorder: 'rgba(255, 255, 255, 0.14)',
   toggleBorder: 'rgba(255, 255, 255, 0.24)',
   nameShadow: 'none',
-  bodyFont: SERIF,
-  headingFont: SERIF,
-  contentFontSize: 'clamp(1.05rem, 2.4vw, 1.18rem)',
+  code: '#f0a6d8',
+  bodyFont: SOURCE_SANS,
+  headingFont: SOURCE_HEADING,
+  contentFontSize: '18px',
   projectTitleColor: '#f4f1ea',
   dark: true,
 };
@@ -204,9 +189,11 @@ function Ground({ darkMode }) {
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
       <planeGeometry args={[GROUND_SIZE, GROUND_SIZE]} />
-      {/* On dark backgrounds a mid-grey tint keeps the lit grid faint and the
-          reader legible; on light it stays white (no tint). */}
-      <meshLambertMaterial map={texture} color={darkMode ? '#6c6a61' : '#ffffff'} />
+      {darkMode ? (
+        <meshLambertMaterial map={texture} color="#6c6a61" />
+      ) : (
+        <meshBasicMaterial map={texture} color="#ffffff" toneMapped={false} />
+      )}
     </mesh>
   );
 }
@@ -336,19 +323,19 @@ function GiraffeBackdrop({ drift, cap, darkMode }) {
           camera={{ fov: 25, near: 0.1, far: 2000, position: [0, 20, 34] }}
           style={{ pointerEvents: 'none' }}
         >
-          <hemisphereLight args={[0xffffff, 0xffffff, 0.8]} position={[0, 50, 0]} />
+          <hemisphereLight args={[0xffffff, 0xffffff, 0.6]} position={[0, 50, 0]} />
           <directionalLight
-            intensity={1}
+            intensity={0.5}
             position={[30, 52, 30]}
             castShadow
             shadow-mapSize-width={1024}
             shadow-mapSize-height={1024}
             shadow-camera-near={0.5}
             shadow-camera-far={500}
-            shadow-camera-left={-120}
-            shadow-camera-right={120}
-            shadow-camera-top={120}
-            shadow-camera-bottom={-120}
+            shadow-camera-left={-100}
+            shadow-camera-right={100}
+            shadow-camera-top={100}
+            shadow-camera-bottom={-100}
             shadow-bias={-0.0001}
           />
           <CameraRig drift={drift} />
@@ -484,42 +471,27 @@ export function AidanNelsonTheme({ darkMode = false }) {
               <ProjectsHeading>Projects</ProjectsHeading>
 
               <ProjectList>
-                {projects.map((project, index) => {
-                  const image = SOURCE_PROJECT_IMAGES[index % SOURCE_PROJECT_IMAGES.length];
-
-                  return (
-                    <ProjectCard
-                      key={`${project.name}-${index}`}
-                      as={project.url ? 'a' : 'div'}
-                      href={project.url || undefined}
-                      target={project.url ? '_blank' : undefined}
-                      rel={project.url ? 'noopener noreferrer' : undefined}
-                    >
-                      <ProjectMedia>
-                        {image ? (
-                          <ProjectImage src={image} alt="" aria-hidden="true" />
-                        ) : (
-                          <Thumb $bg={TILE_COLORS[index % TILE_COLORS.length]}>
-                            {getInitials(project.name, 1, '•')}
-                          </Thumb>
-                        )}
-                      </ProjectMedia>
-                      <ProjectInfo>
-                        <ProjectTitleText>{project.name}</ProjectTitleText>
-                        <ProjectTitleRule aria-hidden="true" />
-                        {project.summary && <ProjectDesc>{project.summary}</ProjectDesc>}
-                      </ProjectInfo>
-                    </ProjectCard>
-                  );
-                })}
+                {projects.map((project, index) => (
+                  <ProjectCard
+                    key={`${project.name}-${index}`}
+                    as={project.url ? 'a' : 'div'}
+                    href={project.url || undefined}
+                    target={project.url ? '_blank' : undefined}
+                    rel={project.url ? 'noopener noreferrer' : undefined}
+                  >
+                    <ProjectInfo>
+                      <ProjectTitleText>{project.name}</ProjectTitleText>
+                      <ProjectTitleRule aria-hidden="true" />
+                      {project.summary && <ProjectDesc>{project.summary}</ProjectDesc>}
+                    </ProjectInfo>
+                  </ProjectCard>
+                ))}
               </ProjectList>
             </>
           )}
         </Reader>
         {showBackdrop && (
-          <Hint aria-hidden="true">
-            {darkMode ? 'click anywhere\u200a↝\u200adrop a giraffe' : '↓ click here ↓'}
-          </Hint>
+          <Hint aria-hidden="true">↓ click here ↓</Hint>
         )}
       </Page>
     </ThemeProvider>
@@ -536,10 +508,11 @@ const Page = styled.div`
      as the fallback whenever the canvas is absent. */
   background-color: transparent;
   color: ${(props) => props.theme.text};
-  font-family: ${SERIF};
+  font-family: ${(props) => props.theme.bodyFont};
   box-sizing: border-box;
   display: flex;
   justify-content: center;
+  overflow-x: hidden;
 `;
 
 // Full-bleed backdrop pinned behind the reader. pointer-events:none guarantees
@@ -557,86 +530,67 @@ const CanvasLayer = styled.div`
 
 const Hint = styled.p`
   position: fixed;
-  left: 50%;
-  bottom: max(0.9rem, env(safe-area-inset-bottom, 0px));
-  transform: translateX(-50%);
+  right: 8vw;
+  top: calc(var(--app-top-offset, 0px) + 4.5rem);
   z-index: 2;
   margin: 0;
-  padding: 0.3rem 0.7rem;
-  font-family: ${MONO};
-  font-size: 0.72rem;
-  letter-spacing: 0.02em;
+  padding: 0;
+  font-family: ${(props) => props.theme.headingFont};
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0;
   white-space: nowrap;
   color: ${(props) => props.theme.muted};
-  opacity: 0.72;
+  opacity: 1;
   pointer-events: none;
   user-select: none;
+
+  @media (max-width: 991.98px) {
+    display: none;
+  }
 `;
 
 const Reader = styled.main`
   width: 100%;
-  max-width: 48rem;
-  padding: clamp(2rem, 6vw, 4rem) clamp(1.15rem, 5vw, 2.5rem) 5rem;
+  max-width: 56rem;
+  min-height: 100%;
+  padding: 1px 5% 15px;
   box-sizing: border-box;
+  z-index: 2;
 `;
 
 const TopRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: clamp(1.75rem, 5vw, 3rem);
+  margin: 0;
 `;
 
 const NameLine = styled.div`
-  font-family: ${SERIF};
+  font-family: ${(props) => props.theme.headingFont};
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.2em;
+  line-height: 1.2;
+  padding-top: 2em;
+  padding-bottom: 1em;
   color: ${(props) => props.theme.name};
-`;
-
-const ToggleButton = styled.button`
-  flex: none;
-  width: 2.1rem;
-  height: 2.1rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  line-height: 1;
-  border-radius: 999px;
-  border: 1px solid ${(props) => props.theme.toggleBorder};
-  background: transparent;
-  color: ${(props) => props.theme.muted};
-  cursor: pointer;
-  transition: border-color 0.2s ease, color 0.2s ease;
-
-  &:hover {
-    color: ${(props) => props.theme.heading};
-    border-color: ${(props) => props.theme.link};
-  }
-
-  &:focus-visible {
-    outline: 2px solid ${(props) => props.theme.link};
-    outline-offset: 2px;
-  }
+  text-shadow: ${(props) => props.theme.nameShadow};
 `;
 
 const Greeting = styled.h1`
-  font-family: ${SERIF};
-  font-weight: 700;
-  font-size: clamp(2rem, 5.5vw, 2.75rem);
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-  margin: 0 0 1.5rem;
+  font-family: ${(props) => props.theme.headingFont};
+  font-weight: 500;
+  font-size: clamp(1.8rem, 3vw, 2rem);
+  line-height: 1.2;
+  letter-spacing: 0;
+  margin: 0;
+  padding-top: 1em;
+  padding-bottom: 1em;
   color: ${(props) => props.theme.heading};
 `;
 
 const Bio = styled.p`
-  font-family: ${SERIF};
-  font-size: clamp(1.05rem, 2.4vw, 1.18rem);
-  line-height: 1.68;
-  margin: 0 0 1.35rem;
+  font-family: ${(props) => props.theme.bodyFont};
+  font-size: ${(props) => props.theme.contentFontSize};
+  line-height: 1.5;
+  margin: 0 0 1rem;
   color: ${(props) => props.theme.text};
 
   strong {
@@ -662,15 +616,14 @@ const TextLink = styled.a`
 
 const MonoLink = styled.a`
   font-family: ${MONO};
-  font-size: 0.9em;
-  color: ${(props) => props.theme.muted};
+  font-size: 0.875em;
+  color: ${(props) => props.theme.code};
   text-decoration: none;
   white-space: nowrap;
 
   &:hover {
-    color: ${(props) => props.theme.heading};
-    text-decoration: underline;
-    text-underline-offset: 2px;
+    color: ${(props) => props.theme.code};
+    text-decoration: none;
   }
 
   &:focus-visible {
@@ -682,15 +635,20 @@ const MonoLink = styled.a`
 const Divider = styled.hr`
   border: 0;
   height: 1px;
-  background: ${(props) => props.theme.rule};
-  margin: clamp(2rem, 5vw, 2.75rem) 0;
+  background-color: currentColor;
+  color: inherit;
+  opacity: 0.25;
+  margin: 1rem 0;
 `;
 
 const ProjectsHeading = styled.h2`
-  font-family: ${SERIF};
-  font-weight: 700;
-  font-size: clamp(1.4rem, 3.6vw, 1.75rem);
-  margin: 0 0 1.5rem;
+  font-family: ${(props) => props.theme.headingFont};
+  font-weight: 500;
+  font-size: clamp(1.55rem, 2.8vw, 1.75rem);
+  line-height: 1.2;
+  margin: 0;
+  padding-top: 1em;
+  padding-bottom: 1em;
   color: ${(props) => props.theme.heading};
 `;
 
@@ -699,74 +657,76 @@ const ProjectList = styled.div`
   flex-direction: column;
 `;
 
-const Rule = styled.hr`
-  border: 0;
-  height: 1px;
-  background: ${(props) => props.theme.rule};
-  margin: 1.5rem 0;
-`;
+const ProjectCard = styled.a`
+  display: block;
+  margin-bottom: 2em;
+  padding: 1em 0;
+  border: 1px solid ${(props) => props.theme.cardBorder};
+  border-radius: 5px;
+  background-color: ${(props) => props.theme.cardBackground};
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
 
-const ProjectRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: clamp(1rem, 3vw, 1.5rem);
-`;
+  &:hover,
+  &:focus-visible {
+    border-color: ${(props) => props.theme.cardHoverBorder};
+    background-color: ${(props) => props.theme.cardHoverBackground};
+    box-shadow: ${(props) => props.theme.cardShadow};
+    color: inherit;
+    text-decoration: none;
+    outline: none;
+  }
 
-const Thumb = styled.div`
-  flex: none;
-  width: clamp(64px, 16vw, 104px);
-  height: clamp(64px, 16vw, 104px);
-  border-radius: 3px;
-  border: 1px solid ${(props) => props.theme.thumbBorder};
-  background: ${(props) => props.$bg || '#4a4a4a'};
-  color: #fffffa;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: ${SERIF};
-  font-weight: 700;
-  font-size: clamp(1.5rem, 5vw, 2.25rem);
-  line-height: 1;
-  user-select: none;
+  &:focus-visible {
+    outline: 2px solid ${(props) => props.theme.link};
+    outline-offset: 3px;
+  }
+
+  @media (max-width: 767.98px) {
+    border-color: ${(props) => (props.theme.dark ? props.theme.cardBorder : '#000')};
+    background-color: ${(props) => props.theme.cardHoverBackground};
+    margin-top: 6em;
+    margin-bottom: 6em;
+    padding: 1em;
+  }
 `;
 
 const ProjectInfo = styled.div`
   min-width: 0;
   flex: 1 1 auto;
-`;
+  padding: 0 1rem;
 
-const projectTitleStyles = `
-  display: inline-block;
-  font-weight: 700;
-  font-size: clamp(1.02rem, 2.4vw, 1.15rem);
-  line-height: 1.3;
-  margin-bottom: 0.35rem;
-`;
-
-const ProjectTitle = styled.a`
-  ${projectTitleStyles}
-  color: ${(props) => props.theme.link};
-  text-decoration: underline;
-  text-underline-offset: 2px;
-
-  &:hover {
-    color: ${(props) => props.theme.linkHover};
-  }
-
-  &:focus-visible {
-    outline: 2px solid ${(props) => props.theme.link};
-    outline-offset: 2px;
+  @media (min-width: 768px) {
+    padding-left: 1.5em;
+    padding-right: 1.5em;
   }
 `;
 
-const ProjectTitlePlain = styled.span`
-  ${projectTitleStyles}
-  color: ${(props) => props.theme.heading};
+const ProjectTitleText = styled.h5`
+  margin: 0;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
+  font-family: ${(props) => props.theme.bodyFont};
+  font-size: 1em;
+  font-weight: 600;
+  line-height: 1.2;
+  color: ${(props) => props.theme.projectTitleColor};
+`;
+
+const ProjectTitleRule = styled.hr`
+  width: 50%;
+  height: 1px;
+  border: 0;
+  margin: 1rem 0;
+  background-color: ${(props) => props.theme.rule};
+  opacity: 1;
 `;
 
 const ProjectDesc = styled.p`
   margin: 0;
-  font-size: clamp(0.95rem, 2.2vw, 1.05rem);
+  font-size: 1rem;
   line-height: 1.5;
   color: ${(props) => props.theme.muted};
+  text-shadow: ${(props) => (props.theme.dark ? 'none' : '5px 5px 15px rgba(51, 51, 51, 0.2)')};
 `;

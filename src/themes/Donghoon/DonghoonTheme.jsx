@@ -9,6 +9,8 @@ import {
   pickSocialUrl,
 } from '../../utils/cvHelpers';
 import { withBase } from '../../utils/assetPath';
+import geistFont from './assets/fonts/geist.woff2';
+import newsreaderFont from './assets/fonts/newsreader.woff2';
 
 /**
  * DonghoonTheme — a faithful, CV-driven remake of donghoon.io.
@@ -33,8 +35,8 @@ import { withBase } from '../../utils/assetPath';
  * thin bottom rule.
  */
 
-const SERIF = "'Newsreader', 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, 'Times New Roman', serif";
-const SANS = "'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, 'Helvetica Neue', Arial, sans-serif";
+const SERIF = "'Donghoon Newsreader', 'Newsreader', 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, 'Times New Roman', serif";
+const SANS = "'Donghoon Geist', 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, 'Helvetica Neue', Arial, sans-serif";
 
 const lightTheme = {
   page: '#f9f6f0',
@@ -79,16 +81,31 @@ const darkTheme = {
 };
 
 const GlobalStyle = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..500&display=swap');
+  @font-face {
+    font-family: 'Donghoon Geist';
+    src: url(${geistFont}) format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: 'Donghoon Newsreader';
+    src: url(${newsreaderFont}) format('woff2');
+    font-weight: 200 800;
+    font-style: normal;
+    font-display: swap;
+  }
+
   body { background-color: ${(p) => p.theme.page}; }
 `;
 
 const NAV_ITEMS = [
   { id: 'top', label: 'Home' },
-  { id: 'publications', label: 'Publications' },
-  { id: 'projects', label: 'Projects' },
+  { id: 'publications', label: 'Publication' },
+  { id: 'projects', label: 'Project' },
   { id: 'cv', label: 'CV' },
-  { id: 'links', label: 'Links' },
+  { id: 'links', label: 'others' },
 ];
 
 function yearOf(date) {
@@ -136,21 +153,13 @@ function RefLink({ href, children }) {
   return <FauxLink>{children}</FauxLink>;
 }
 
-export function DonghoonTheme({ darkMode = false, onDarkModeChange }) {
-  const cv = useCV() || {};
+export function DonghoonTheme({ darkMode = false }) {
+  const cvData = useCV();
+  const cv = useMemo(() => cvData || {}, [cvData]);
   const theme = darkMode ? darkTheme : lightTheme;
 
   const name = cv.name || 'Your Name';
-  const initials = useMemo(
-    () =>
-      String(name)
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((w) => w[0]?.toUpperCase() || '')
-        .join('') || '·',
-    [name],
-  );
+  const avatarSrc = cv.avatar ? withBase(cv.avatar) : null;
   const location = cv.location || null;
   const website = cv.website || null;
   const email = cv.email || null;
@@ -269,6 +278,9 @@ export function DonghoonTheme({ darkMode = false, onDarkModeChange }) {
   };
 
   const updatedLabel = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const renderPortrait = () => (
+    avatarSrc ? <img src={avatarSrc} alt={name} /> : null
+  );
 
   return (
     <ThemeProvider theme={theme}>
@@ -284,30 +296,14 @@ export function DonghoonTheme({ darkMode = false, onDarkModeChange }) {
               </li>
             ))}
           </NavLinks>
-          <ThemeToggle
-            type="button"
-            onClick={() => onDarkModeChange?.(!darkMode)}
-            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {darkMode ? (
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="4" />
-                <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-              </svg>
-            ) : (
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
-            )}
-          </ThemeToggle>
         </Nav>
 
         <Content>
           <Hero id="top">
             <HeroText>
               <Name>{name}</Name>
-              {subtitle && <Subtitle>{subtitle}</Subtitle>}
+              {subtitle && <ScreenReaderOnly>{subtitle}</ScreenReaderOnly>}
+              {avatarSrc && <MobilePortrait>{renderPortrait()}</MobilePortrait>}
 
               <Bio>
                 <p>
@@ -391,13 +387,11 @@ export function DonghoonTheme({ darkMode = false, onDarkModeChange }) {
               </Bio>
             </HeroText>
 
-            <Portrait>
-              {cv.avatar ? (
-                <img src={withBase(cv.avatar)} alt={name} />
-              ) : (
-                <PortraitPlaceholder aria-hidden="true">{initials}</PortraitPlaceholder>
-              )}
-            </Portrait>
+            {avatarSrc && (
+              <Portrait>
+                {renderPortrait()}
+              </Portrait>
+            )}
           </Hero>
 
           {pubCards.length > 0 && (
@@ -426,23 +420,28 @@ export function DonghoonTheme({ darkMode = false, onDarkModeChange }) {
                   <ScrollerInner>
                     {pubCards.map((c) => (
                       <PubCard key={c.key}>
-                        <PubTop>
-                          <Badge>{c.year}</Badge>
-                          <Kind>{c.kind}</Kind>
-                        </PubTop>
-                        <PubTitle>{c.title}</PubTitle>
-                        {c.venue && <PubVenue>{c.venue}</PubVenue>}
-                        {c.authors && <PubAuthors>{shortAuthors(c.authors, name)}</PubAuthors>}
-                        {c.location && <PubMetaLine>{c.location}</PubMetaLine>}
-                        {c.links.length > 0 && (
-                          <PubLinks>
+                        <CardCopy>
+                          <ProjectHead>
+                            <ProjectTitle as="p">{c.title}</ProjectTitle>
+                            <Badge>{c.year}</Badge>
+                          </ProjectHead>
+                          {c.location ? (
+                            <ProjectSummary>{c.location}</ProjectSummary>
+                          ) : c.authors ? (
+                            <ProjectSummary>{shortAuthors(c.authors, name)}</ProjectSummary>
+                          ) : (
+                            c.venue && <ProjectSummary>{c.kind}</ProjectSummary>
+                          )}
+                          <ProjectMeta>
+                            <span>{c.year}</span>
+                            <span>{c.kind}</span>
                             {c.links.map((l) => (
                               <Anchor key={l.href} href={l.href} target="_blank" rel="noopener noreferrer">
                                 {l.label}
                               </Anchor>
                             ))}
-                          </PubLinks>
-                        )}
+                          </ProjectMeta>
+                        </CardCopy>
                       </PubCard>
                     ))}
                   </ScrollerInner>
@@ -471,20 +470,31 @@ export function DonghoonTheme({ darkMode = false, onDarkModeChange }) {
                   const tech = stripTech(p.highlights?.[0] || '');
                   return (
                     <ProjectCard key={`${p.name}-${i}`}>
-                      <ProjectHead>
-                        <ProjectTitle>
-                          {p.url ? (
-                            <Anchor href={p.url} target="_blank" rel="noopener noreferrer">
-                              {p.name}
-                            </Anchor>
-                          ) : (
-                            p.name
-                          )}
-                        </ProjectTitle>
-                        {p.date && <Badge>{yearOf(p.date) || p.date}</Badge>}
-                      </ProjectHead>
-                      {p.summary && <ProjectSummary>{p.summary}</ProjectSummary>}
-                      {tech && <ProjectTech>{tech}</ProjectTech>}
+                      <CardCopy>
+                        <ProjectHead>
+                          <ProjectTitle>
+                            {p.url ? (
+                              <Anchor href={p.url} target="_blank" rel="noopener noreferrer">
+                                {p.name}
+                              </Anchor>
+                            ) : (
+                              p.name
+                            )}
+                          </ProjectTitle>
+                          {p.date && <Badge>{yearOf(p.date) || p.date}</Badge>}
+                        </ProjectHead>
+                        {p.summary && <ProjectSummary>{p.summary}</ProjectSummary>}
+                        {(tech || p.url) && (
+                          <ProjectMeta>
+                            {tech && <span>{tech}</span>}
+                            {p.url && (
+                              <Anchor href={p.url} target="_blank" rel="noopener noreferrer">
+                                Link
+                              </Anchor>
+                            )}
+                          </ProjectMeta>
+                        )}
+                      </CardCopy>
                     </ProjectCard>
                   );
                 })}
@@ -615,18 +625,22 @@ const Page = styled.div`
 `;
 
 const Nav = styled.nav`
-  position: sticky;
-  top: var(--app-top-offset, 0px);
-  z-index: 40;
+  position: relative;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.9rem;
-  flex-wrap: wrap;
-  padding: 0.85rem clamp(1rem, 5vw, 3.5rem);
-  background: ${(p) => p.theme.navBg};
-  backdrop-filter: saturate(1.4) blur(8px);
-  border-bottom: 1px solid ${(p) => p.theme.border};
+  width: 100%;
+  max-width: 1200px;
+  min-height: 2rem;
+  margin: 0 auto;
+  padding: 1.8rem 0.75rem;
+  background: transparent;
+  box-sizing: border-box;
+
+  @media (max-width: 767px) {
+    padding: 2.75rem 1rem 1rem;
+  }
 `;
 
 const NavLinks = styled.ul`
@@ -634,7 +648,7 @@ const NavLinks = styled.ul`
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 0.35rem 1.05rem;
+  gap: 1rem;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -642,22 +656,26 @@ const NavLinks = styled.ul`
 
 const NavLink = styled.a`
   position: relative;
+  display: inline-flex;
+  align-items: center;
   font-size: 0.9rem;
   font-weight: 350;
-  letter-spacing: 0.02em;
+  line-height: 1;
+  letter-spacing: 0.047em;
+  text-transform: lowercase;
   color: ${(p) => p.theme.ink} !important;
   text-decoration: none;
   cursor: pointer;
-  transition: color 0.18s ease;
+  transition: color 0.18s ease, font-weight 0.18s ease;
 
   &::after {
     content: '';
     position: absolute;
     left: 0;
     right: 0;
-    bottom: -0.28rem;
-    height: 1.5px;
-    background: ${(p) => p.theme.accent};
+    bottom: -0.08rem;
+    height: 1px;
+    background: currentColor;
     transform: scaleX(0);
     transform-origin: left center;
     transition: transform 0.22s ease;
@@ -665,6 +683,7 @@ const NavLink = styled.a`
 
   &:hover {
     color: ${(p) => p.theme.ink} !important;
+    font-weight: 500;
   }
 
   &:hover::after {
@@ -678,47 +697,41 @@ const NavLink = styled.a`
   }
 `;
 
-const ThemeToggle = styled.button`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border: 1px solid ${(p) => p.theme.border};
-  border-radius: 999px;
-  background: ${(p) => p.theme.buttonBg};
-  color: ${(p) => p.theme.inkSoft};
-  cursor: pointer;
-  transition: color 0.18s ease, border-color 0.18s ease;
-
-  &:hover {
-    color: ${(p) => p.theme.ink};
-    border-color: ${(p) => p.theme.borderStrong};
-  }
-
-  &:focus-visible {
-    outline: 2px solid ${(p) => p.theme.accent};
-    outline-offset: 2px;
-  }
-`;
-
 const Content = styled.main`
   width: 100%;
-  max-width: 860px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: clamp(1.75rem, 5vw, 3.25rem) clamp(1rem, 5vw, 3.5rem) 4rem;
+  padding: 0 0.75rem 4rem;
   box-sizing: border-box;
+
+  @media (max-width: 1200px) {
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+
+  @media (max-width: 991px) {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  @media (max-width: 575px) {
+    padding-left: 0.3rem;
+    padding-right: 0.3rem;
+  }
 `;
 
 const Hero = styled.section`
   display: flex;
-  align-items: flex-start;
-  gap: 2.25rem;
-  scroll-margin-top: calc(var(--app-top-offset, 0px) + 5rem);
+  align-items: center;
+  gap: 2rem;
+  padding: 0 0.75rem;
+  scroll-margin-top: 1rem;
 
   @media (max-width: 720px) {
-    flex-direction: column-reverse;
+    flex-direction: column;
     gap: 1.25rem;
+    align-items: flex-start;
+    padding: 0 0.45rem;
   }
 `;
 
@@ -729,69 +742,69 @@ const HeroText = styled.div`
 
 const Portrait = styled.div`
   flex: 0 0 auto;
-  width: 190px;
+  width: 225px;
   max-width: 45%;
+  text-align: center;
 
   img {
     display: block;
     width: 100%;
     height: auto;
-    border-radius: 6px;
-    border: 1px solid ${(p) => p.theme.border};
   }
 
   @media (max-width: 720px) {
-    width: 150px;
+    display: none;
   }
 `;
 
-const PortraitPlaceholder = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  border-radius: 6px;
-  border: 1px solid ${(p) => p.theme.border};
-  background:
-    radial-gradient(120% 120% at 30% 20%, ${(p) => p.theme.card} 0%, ${(p) => p.theme.cardAlt} 100%);
-  color: ${(p) => p.theme.inkFaint};
-  font-family: ${SERIF};
-  font-size: clamp(2.4rem, 8vw, 3.4rem);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  line-height: 1;
-  user-select: none;
+const MobilePortrait = styled.div`
+  display: none;
+
+  @media (max-width: 720px) {
+    display: block;
+    width: min(60%, 300px);
+    max-width: 300px;
+    margin: 1.1rem auto 1.45rem;
+
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+  }
 `;
 
 const Name = styled.h1`
-  margin: 0;
+  margin: 0 0 1.2rem;
   font-family: ${SERIF};
-  font-size: clamp(1.85rem, 4vw, 2.2rem);
+  font-size: 1.5rem;
   font-weight: 500;
-  line-height: 1.12;
-  letter-spacing: -0.005em;
+  line-height: 1.2;
+  letter-spacing: 0;
   color: ${(p) => p.theme.ink};
 `;
 
-const Subtitle = styled.p`
-  margin: 0.55rem 0 1.4rem;
-  font-size: 0.95rem;
-  font-weight: 350;
-  color: ${(p) => p.theme.inkSoft};
+const ScreenReaderOnly = styled.span`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 `;
 
 const Anchor = styled.a`
   color: ${(p) => p.theme.link};
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-decoration-color: ${(p) => p.theme.linkUnderline};
-  text-underline-offset: 2px;
-  transition: color 0.16s ease, text-decoration-color 0.16s ease;
+  font-weight: 400;
+  text-decoration: none;
+  transition: color 0.16s ease, font-weight 0.16s ease;
 
   &:hover {
     color: ${(p) => p.theme.linkHover};
-    text-decoration-color: ${(p) => p.theme.accent};
+    font-weight: 500;
   }
 
   &:focus-visible {
@@ -803,18 +816,15 @@ const Anchor = styled.a`
 
 const FauxLink = styled.span`
   color: ${(p) => p.theme.link};
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-decoration-color: ${(p) => p.theme.linkUnderline};
-  text-underline-offset: 2px;
+  font-weight: 400;
 `;
 
 const Bio = styled.div`
   p {
-    margin: 0 0 0.95rem;
-    font-size: 0.98rem;
-    font-weight: 300;
-    line-height: 1.68;
+    margin: 0 0 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 250;
+    line-height: 1.7;
     color: ${(p) => p.theme.ink};
   }
 
@@ -832,7 +842,7 @@ const Self = styled.span`
 
 const Section = styled.section`
   margin-top: 3rem;
-  scroll-margin-top: calc(var(--app-top-offset, 0px) + 5rem);
+  scroll-margin-top: 1rem;
 `;
 
 const SectionHead = styled.div`
@@ -884,6 +894,9 @@ const Scroller = styled.div`
   -ms-overflow-style: none;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
+  cursor: grab;
+  -webkit-mask: linear-gradient(90deg, transparent, white 5%, white 95%, transparent);
+  mask: linear-gradient(90deg, transparent, white 5%, white 95%, transparent);
 
   &::-webkit-scrollbar {
     display: none;
@@ -895,96 +908,54 @@ const ScrollerInner = styled.div`
   flex-wrap: nowrap;
   gap: 1rem;
   width: max-content;
-  padding: 0.35rem 0.15rem;
+  padding-block: 0.5rem;
 `;
 
 const PubCard = styled.article`
   flex: 0 0 auto;
-  width: 260px;
+  width: 215px;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.95rem 1rem 1.05rem;
-  border: 1px solid ${(p) => p.theme.border};
-  border-radius: 8px;
-  background: ${(p) => p.theme.cardAlt};
+  overflow: hidden;
+  border: 1px solid rgb(138 133 12 / 0.1);
+  background: linear-gradient(180deg, rgb(249 246 240 / 0.98), rgb(239 234 224 / 0.96));
   box-sizing: border-box;
 
+  @media (min-width: 1560px) {
+    width: 230px;
+  }
+
   @media (max-width: 460px) {
-    width: 78vw;
-    max-width: 300px;
+    width: 72vw;
+    max-width: 230px;
   }
 `;
 
-const PubTop = styled.div`
+const CardCopy = styled.div`
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: 9.25rem;
+  padding: 16px 13px 14px;
+  text-align: left;
+  box-sizing: border-box;
 `;
 
 const Badge = styled.span`
   display: inline-flex;
   align-items: center;
-  padding: 1px 7px 2px;
-  border-radius: 5px;
-  font-size: 0.66rem;
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  color: ${(p) => p.theme.badgeInk};
-  background: ${(p) => p.theme.badgeBg};
-  border: 1px solid ${(p) => p.theme.badgeBorder};
-`;
-
-const Kind = styled.span`
-  font-size: 0.66rem;
-  font-weight: 400;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: ${(p) => p.theme.inkFaint};
-`;
-
-const PubTitle = styled.h3`
-  margin: 0.15rem 0 0;
-  font-family: ${SERIF};
-  font-size: 0.98rem;
-  font-weight: 500;
-  line-height: 1.28;
-  color: ${(p) => p.theme.ink};
-`;
-
-const PubVenue = styled.p`
-  margin: 0;
-  font-size: 0.78rem;
+  justify-content: center;
+  padding: 1px 4px 0.5px;
+  border-radius: 4px;
+  font-size: 0.6rem;
   font-weight: 350;
-  font-style: italic;
-  line-height: 1.35;
-  color: ${(p) => p.theme.inkSoft};
-`;
-
-const PubAuthors = styled.p`
-  margin: 0;
-  font-size: 0.74rem;
-  font-weight: 300;
-  line-height: 1.4;
-  color: ${(p) => p.theme.inkFaint};
-`;
-
-const PubMetaLine = styled.p`
-  margin: 0;
-  font-size: 0.74rem;
-  font-weight: 300;
-  color: ${(p) => p.theme.inkFaint};
-`;
-
-const PubLinks = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem 0.9rem;
-  margin-top: auto;
-  padding-top: 0.4rem;
-  font-size: 0.78rem;
+  white-space: nowrap;
+  color: ${(p) => p.theme.ink};
+  background: ${(p) => p.theme.card};
+  border: 1px solid rgb(138 133 12 / 0.1);
+  flex: 0 0 auto;
 `;
 
 const ScrollButton = styled.button`
@@ -1035,67 +1006,104 @@ const ScrollButton = styled.button`
 /* ---------- projects ---------- */
 
 const ProjectGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  display: flex;
+  flex-wrap: nowrap;
   gap: 1rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block: 0.5rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-mask: linear-gradient(90deg, transparent, white 5%, white 95%, transparent);
+  mask: linear-gradient(90deg, transparent, white 5%, white 95%, transparent);
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 const ProjectCard = styled.article`
+  flex: 0 0 auto;
+  width: 215px;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
-  padding: 0.95rem 1.05rem 1.05rem;
-  border: 1px solid ${(p) => p.theme.border};
-  border-radius: 8px;
-  background: ${(p) => p.theme.cardAlt};
+  overflow: hidden;
+  border: 1px solid rgb(138 133 12 / 0.1);
+  background: linear-gradient(180deg, rgb(249 246 240 / 0.98), rgb(239 234 224 / 0.96));
   transition: border-color 0.18s ease;
 
   &:hover {
     border-color: ${(p) => p.theme.borderStrong};
   }
+
+  @media (min-width: 1560px) {
+    width: 230px;
+  }
+
+  @media (max-width: 460px) {
+    width: 72vw;
+    max-width: 230px;
+  }
 `;
 
 const ProjectHead = styled.div`
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 0.6rem;
+  gap: 0.75rem;
 `;
 
 const ProjectTitle = styled.h3`
   margin: 0;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
   font-family: ${SERIF};
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: 0.9rem;
+  font-weight: 400;
   line-height: 1.25;
-  color: ${(p) => p.theme.ink};
+  color: rgb(72 57 33);
+  min-width: 0;
 
   a {
-    color: ${(p) => p.theme.ink};
+    color: rgb(72 57 33);
     text-decoration: none;
   }
   a:hover {
     color: ${(p) => p.theme.linkHover};
-    text-decoration: underline;
-    text-decoration-color: ${(p) => p.theme.accent};
-    text-underline-offset: 3px;
   }
 `;
 
 const ProjectSummary = styled.p`
   margin: 0;
-  font-size: 0.83rem;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  font-size: 0.78rem;
   font-weight: 300;
-  line-height: 1.45;
-  color: ${(p) => p.theme.inkSoft};
+  line-height: 1.35;
+  color: rgb(88 72 46 / 0.78);
 `;
 
-const ProjectTech = styled.p`
-  margin: 0.1rem 0 0;
-  font-size: 0.72rem;
-  font-weight: 350;
-  letter-spacing: 0.01em;
-  color: ${(p) => p.theme.inkFaint};
+const ProjectMeta = styled.p`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.8rem;
+  margin: 0;
+  overflow: hidden;
+  font-size: 0.75rem;
+  font-weight: 300;
+  line-height: 1.35;
+  color: rgb(88 72 46 / 0.78);
+
+  span,
+  a {
+    color: rgb(72 57 33);
+    font-weight: 350;
+    white-space: nowrap;
+  }
 `;
 
 /* ---------- CV lists ---------- */
