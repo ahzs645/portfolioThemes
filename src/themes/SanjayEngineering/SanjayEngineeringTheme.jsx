@@ -12,10 +12,15 @@ import { formatRange, formatDate, isPresent } from '../../utils/cvHelpers';
  * it to a top→bottom sky — blue by day, warm gold at dawn/dusk, deep navy after
  * dark — and flip to the dark ink variant once the sun drops below the horizon.
  *
- * Everything is set in Geist Mono (regular 400, with a few thin 300 accents),
- * with a rotated "<name> · <field>" rail down the left edge, blocky Departure
- * Mono section headers (PROJECTS / WRITING / EXPERIENCE), and quiet two-column
- * rows. Rebuilt from CV.yaml, down to the "Typeset in Departure Mono" colophon.
+ * Everything — body text included — is set in Departure Mono at 16px/1.5,
+ * inside a left-hugging 36rem column: a small nav (mb-16), then a flex row of
+ * a sticky vertical 22px "<name> • <field>" rail (desktop) beside the content.
+ * On mobile the rail hides and a single 22px "<name> • <tagline>" masthead
+ * shows instead. Section headers are blocky uppercase Departure Mono at
+ * 33px/44px with -5px letter-spacing; rows are quiet two-column flex lines
+ * with no rules, and the footer carries arrow-icon profile links, an
+ * uppercase © line, and the "Typeset in Departure Mono" colophon. Rebuilt
+ * from CV.yaml.
  */
 
 // The owner's city (Prince George, BC). The sky is computed for this location,
@@ -166,9 +171,19 @@ export function SanjayEngineeringTheme({ darkMode = false }) {
   );
 
   const name = cv.name || 'Your Name';
-  const firstName = name.split(/\s+/)[0] || name;
+  const firstName = (name.split(/\s+/)[0] || name).toLowerCase();
   const field = fieldWord(cv);
   const tagline = cv.tagline || cv.headline || 'chasing clean air';
+  const builderWord = field === 'engineering' ? 'guy' : 'researcher';
+
+  // Footer profile links, CV-driven (the source lists rss + github).
+  const footerLinks = useMemo(() => {
+    const links = (cv.social || [])
+      .filter((s) => s?.url)
+      .map((s) => ({ label: String(s.network || 'link').toLowerCase(), href: s.url }));
+    if (cv.email) links.push({ label: 'email', href: `mailto:${cv.email}` });
+    return links;
+  }, [cv]);
 
   const projects = (cv.projects || []).slice(0, 8);
 
@@ -196,148 +211,172 @@ export function SanjayEngineeringTheme({ darkMode = false }) {
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyle />
-      <Page>
-        <Rail aria-hidden="true">
-          <span>
-            {firstName} · {field}
-          </span>
-        </Rail>
-
-        <Column className="antialiased">
+      <Page className="antialiased">
+        <Frame>
           <Nav>
             <a href="#projects">projects</a>
             <a href="#writing">writing</a>
             <a href="#experience">experience</a>
           </Nav>
 
-          <Masthead>
-            <div>
-              {firstName} • {field}
-            </div>
-            <div>
-              {firstName} • {tagline}
-            </div>
-          </Masthead>
+          <Body>
+            <Rail>
+              {firstName} <span>• {field}</span>
+            </Rail>
 
-          <Intro>
-            Just another {field === 'engineering' ? 'builder' : 'researcher'} who loves building
-            things{cv.location ? `, based in ${cv.location}` : ''}…
-          </Intro>
+            <Column>
+              <Masthead>
+                {firstName} <span>• {tagline}</span>
+              </Masthead>
 
-          {projects.length > 0 && (
-            <Section id="projects">
-              <Heading>Projects</Heading>
-              {projects.map((p, i) => (
-                <Row key={`p-${i}`}>
-                  {p.url ? (
-                    <RowTitle as="a" href={p.url} target="_blank" rel="noopener noreferrer">
-                      {p.name}
-                    </RowTitle>
-                  ) : (
-                    <RowTitle>{p.name}</RowTitle>
-                  )}
-                  <RowMeta>{p.summary}</RowMeta>
-                </Row>
-              ))}
-            </Section>
-          )}
+              <Intro>Just another {builderWord} who loves building...</Intro>
 
-          {writing.length > 0 && (
-            <Section id="writing">
-              <Heading>Writing</Heading>
-              {writing.map((w, i) => (
-                <Row key={`w-${i}`}>
-                  {w.url ? (
-                    <RowTitle as="a" href={w.url} target="_blank" rel="noopener noreferrer">
-                      {w.title}
-                    </RowTitle>
-                  ) : (
-                    <RowTitle>{w.title}</RowTitle>
-                  )}
-                  <RowMeta $mono>{formatDate(w.date, { month: 'numeric', fallback: w.date })}</RowMeta>
-                </Row>
-              ))}
-            </Section>
-          )}
+              {projects.length > 0 && (
+                <Section id="projects">
+                  <Heading>Projects</Heading>
+                  <div>
+                    {projects.map((p, i) =>
+                      p.url ? (
+                        <Row
+                          key={`p-${i}`}
+                          as="a"
+                          href={p.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <RowTitle>{p.name}</RowTitle>
+                          <RowMeta>{p.summary}</RowMeta>
+                        </Row>
+                      ) : (
+                        <Row key={`p-${i}`}>
+                          <RowTitle>{p.name}</RowTitle>
+                          <RowMeta>{p.summary}</RowMeta>
+                        </Row>
+                      ),
+                    )}
+                  </div>
+                </Section>
+              )}
 
-          {experience.length > 0 && (
-            <Section id="experience">
-              <Heading>Experience</Heading>
-              {experience.map((e, i) => (
-                <Row key={`e-${i}`} $stack>
-                  <RowLeft>
-                    <RowTitle>{e.title}</RowTitle>
-                    <RowMeta $mono>
-                      {formatRange(e.startDate, e.endDate, {
-                        month: 'short',
-                        ongoingWhenNoEnd: e.isCurrent,
-                        presentLabel: 'Present',
-                      }) || (isPresent(e.endDate) ? 'Present' : '')}
-                    </RowMeta>
-                  </RowLeft>
-                  <RowCompany>{e.company}</RowCompany>
-                </Row>
-              ))}
-            </Section>
-          )}
+              {writing.length > 0 && (
+                <Section id="writing">
+                  <Heading>Writing</Heading>
+                  <div>
+                    {writing.map((w, i) =>
+                      w.url ? (
+                        <Row
+                          key={`w-${i}`}
+                          as="a"
+                          href={w.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <RowTitle>{w.title}</RowTitle>
+                          <RowMeta>{formatDate(w.date, { month: 'numeric', fallback: w.date })}</RowMeta>
+                        </Row>
+                      ) : (
+                        <Row key={`w-${i}`}>
+                          <RowTitle>{w.title}</RowTitle>
+                          <RowMeta>{formatDate(w.date, { month: 'numeric', fallback: w.date })}</RowMeta>
+                        </Row>
+                      ),
+                    )}
+                  </div>
+                </Section>
+              )}
 
-          <Footer>
-            <div>
-              © {new Date().getFullYear()} {name} • {tagline}
-            </div>
-            <div className="colophon">Typeset in Departure Mono by Helena Zhang</div>
-          </Footer>
-        </Column>
+              {experience.length > 0 && (
+                <Section id="experience">
+                  <Heading>Experience</Heading>
+                  <ul>
+                    {experience.map((e, i) => (
+                      <JobRow key={`e-${i}`}>
+                        <JobLeft>
+                          <RowTitle>{e.title}</RowTitle>
+                          <JobDates>
+                            {formatRange(e.startDate, e.endDate, {
+                              month: 'short',
+                              separator: ' - ',
+                              ongoingWhenNoEnd: e.isCurrent,
+                              presentLabel: 'Present',
+                            }) || (isPresent(e.endDate) ? 'Present' : '')}
+                          </JobDates>
+                        </JobLeft>
+                        <RowMeta>{e.company}</RowMeta>
+                      </JobRow>
+                    ))}
+                  </ul>
+                </Section>
+              )}
+
+              <Footer>
+                {footerLinks.length > 0 && (
+                  <FooterLinks>
+                    {footerLinks.map((l) => (
+                      <li key={l.href}>
+                        <a
+                          href={l.href}
+                          {...(/^https?:/i.test(l.href)
+                            ? { target: '_blank', rel: 'noopener noreferrer' }
+                            : {})}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2.07102 11.3494L0.963068 10.2415L9.2017 1.98864H2.83807L2.85227 0.454545H11.8438V9.46023H10.2955L10.3097 3.09659L2.07102 11.3494Z" fill="currentColor" />
+                          </svg>
+                          <span>{l.label}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </FooterLinks>
+                )}
+                <Copyright>
+                  © {new Date().getFullYear()} {name} <span>• {tagline}</span>
+                </Copyright>
+                <Colophon>
+                  Typeset in{' '}
+                  <a href="https://departuremono.com/" target="_blank" rel="noopener noreferrer">
+                    Departure Mono
+                  </a>{' '}
+                  by Helena Zhang
+                </Colophon>
+              </Footer>
+            </Column>
+          </Body>
+        </Frame>
       </Page>
     </ThemeProvider>
   );
 }
 
+// Source metrics (Tailwind, --spacing: .25rem): body max-w-xl (36rem) mx-4
+// mt-8, main mt-6, nav aside mb-16, sections my-8, section headers my-2 at
+// 33px (44px ≥640px) with -5px letter-spacing, rows my-2 with no rules, and
+// 22px masthead / rail / intro. The whole site is set in Departure Mono at
+// the browser's 16px/1.5 base.
 const Page = styled.div`
   min-height: 100%;
   width: 100%;
   position: relative;
   background: ${(props) => props.theme.gradient};
   color: ${(props) => props.theme.ink};
-  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, 'Roboto Mono', Menlo, monospace;
+  font-family: 'Departure Mono', 'Geist Mono', ui-monospace, SFMono-Regular, 'Roboto Mono', Menlo, monospace;
   font-weight: 400;
-  font-size: 15px;
-  line-height: 1.55;
+  font-size: 16px;
+  line-height: 1.5;
   box-sizing: border-box;
-  padding: 2rem 1rem 4rem;
+  padding: 3.5rem 1rem 4rem;
   transition: background 1.5s linear, color 1.5s linear;
 `;
 
-const Rail = styled.div`
-  position: absolute;
-  left: 0.35rem;
-  top: 2rem;
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  color: ${(props) => props.theme.rail};
-  font-weight: 300;
-  letter-spacing: 0.12em;
-  font-size: 13px;
-  user-select: none;
-
-  @media (max-width: 720px) {
-    display: none;
-  }
-`;
-
-const Column = styled.main`
+const Frame = styled.main`
   max-width: 36rem;
-  margin: 0 auto 0 3rem;
-
-  @media (max-width: 720px) {
-    margin: 0 auto;
-  }
 `;
 
 const Nav = styled.nav`
   display: flex;
-  gap: 1.25rem;
-  margin-bottom: 2.5rem;
+  gap: 1.5rem;
+  margin-bottom: 4rem;
+  letter-spacing: -0.025em;
 
   a {
     color: ${(props) => props.theme.ink};
@@ -349,47 +388,94 @@ const Nav = styled.nav`
   }
 `;
 
-const Masthead = styled.header`
-  margin-bottom: 1.25rem;
-  line-height: 1.4;
-  div {
-    color: ${(props) => props.theme.head};
-    transition: color 1s linear;
+// The rail sits inside the content row (flex gap-4), not on the screen edge.
+const Body = styled.div`
+  display: flex;
+  gap: 1rem;
+`;
+
+const Rail = styled.h1`
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  position: sticky;
+  top: calc(var(--app-top-offset, 0px) + 2rem);
+  align-self: flex-start;
+  flex-shrink: 0;
+  margin: 0;
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.05em;
+  color: ${(props) => props.theme.head};
+  transition: color 1s linear;
+  user-select: none;
+
+  @media (max-width: 639px) {
+    display: none;
+  }
+`;
+
+const Column = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+// The source shows this single-line masthead only below the sm breakpoint,
+// where the vertical rail is hidden.
+const Masthead = styled.h1`
+  display: none;
+  margin: 0 0 2rem;
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.05em;
+  color: ${(props) => props.theme.head};
+  transition: color 1s linear;
+
+  @media (max-width: 639px) {
+    display: block;
   }
 `;
 
 const Intro = styled.p`
-  margin: 0 0 3rem;
+  margin: 0 0 2rem;
+  font-size: 22px;
+  line-height: 1.25;
   color: ${(props) => props.theme.ink};
-  opacity: 0.9;
 `;
 
 const Section = styled.section`
-  margin-bottom: 3rem;
+  margin: 2rem 0;
   scroll-margin-top: calc(var(--app-top-offset, 0px) + 1rem);
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
 `;
 
-const Heading = styled.h2`
-  font-family: 'Departure Mono', 'Geist Mono', ui-monospace, monospace;
+const Heading = styled.h3`
   font-weight: 400;
-  font-size: clamp(1.9rem, 6vw, 2.6rem);
-  letter-spacing: 0.02em;
+  font-size: 33px;
+  letter-spacing: -5px;
   text-transform: uppercase;
+  line-height: 1.5;
   color: ${(props) => props.theme.head};
   transition: color 1s linear;
-  margin: 0 0 1.1rem;
+  margin: 0.5rem 0;
+
+  @media (min-width: 640px) {
+    font-size: 44px;
+  }
 `;
 
 const Row = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: ${(props) => (props.$stack ? 'flex-start' : 'baseline')};
-  gap: 1.5rem;
-  padding: 0.35rem 0;
-  border-bottom: 1px solid ${(props) => props.theme.rule};
+  gap: 1rem;
+  color: inherit;
+  text-decoration: none;
 
-  &:last-child {
-    border-bottom: none;
+  &[href]:hover {
+    text-decoration: underline;
   }
 
   @media (max-width: 480px) {
@@ -398,37 +484,45 @@ const Row = styled.div`
   }
 `;
 
-const RowLeft = styled.div`
+const JobRow = styled.li`
   display: flex;
-  flex-direction: column;
-`;
-
-const RowTitle = styled.span`
-  color: ${(props) => props.theme.head};
-  font-weight: 400;
-  letter-spacing: 0.01em;
-  text-decoration: none;
-  transition: color 0.3s ease;
-
-  &[href]:hover {
-    color: ${(props) => props.theme.accent};
-  }
-`;
-
-const RowMeta = styled.span`
-  color: ${(props) => props.theme.muted};
-  text-align: right;
-  ${(props) => (props.$mono ? 'font-variant-numeric: tabular-nums; white-space: nowrap;' : '')}
+  gap: 1rem;
+  margin: 0.5rem 0;
 
   @media (max-width: 480px) {
-    text-align: left;
+    flex-direction: column;
+    gap: 0.15rem;
   }
 `;
 
-const RowCompany = styled.span`
+const JobLeft = styled.div`
+  flex: 1;
+`;
+
+const JobDates = styled.p`
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.43;
+  text-transform: uppercase;
+  color: ${(props) => props.theme.muted};
+`;
+
+const RowTitle = styled.h3`
+  flex: 1;
+  margin: 0;
+  font-size: inherit;
+  font-weight: 400;
+  color: ${(props) => props.theme.head};
+  transition: color 0.3s ease;
+`;
+
+const RowMeta = styled.p`
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.43;
   color: ${(props) => props.theme.muted};
   text-align: right;
-  white-space: nowrap;
+  align-self: flex-start;
 
   @media (max-width: 480px) {
     text-align: left;
@@ -436,13 +530,63 @@ const RowCompany = styled.span`
 `;
 
 const Footer = styled.footer`
-  margin-top: 4rem;
-  color: ${(props) => props.theme.muted};
-  font-size: 13px;
+  margin-bottom: 4rem;
+`;
 
-  .colophon {
-    margin-top: 0.35rem;
-    font-weight: 300;
-    opacity: 0.8;
+const FooterLinks = styled.ul`
+  list-style: none;
+  margin: 2rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  a {
+    display: flex;
+    align-items: center;
+    color: ${(props) => props.theme.muted};
+    text-decoration: none;
+    transition: color 0.15s ease;
+
+    &:hover {
+      color: ${(props) => props.theme.head};
+    }
+
+    span {
+      margin-left: 0.5rem;
+      height: 1.75rem;
+    }
+  }
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    gap: 1rem;
+  }
+`;
+
+const Copyright = styled.p`
+  margin: 2rem 0 0;
+  font-size: 12px;
+  line-height: 1.33;
+  text-transform: uppercase;
+  color: ${(props) => props.theme.muted};
+`;
+
+const Colophon = styled.p`
+  margin: 0.5rem 0 0;
+  font-size: 12px;
+  line-height: 1.33;
+  text-transform: uppercase;
+  color: ${(props) => props.theme.muted};
+  opacity: 0.85;
+
+  a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.15s ease;
+
+    &:hover {
+      color: ${(props) => props.theme.head};
+    }
   }
 `;

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { withBase } from '../../utils/assetPath';
@@ -14,44 +14,50 @@ import {
 /**
  * JenLiuTheme — a faithful, CV-driven remake of jenliujenliu.com.
  *
- * The source is a web-1.0 academic homepage: a white page in Times serif with
- * a big blue "✿ name ✿" link, a bulleted "• about • research" nav, a bold
- * "Main" heading, a tiny captioned portrait, plain serif bio paragraphs, a
- * "CV is available here (last updated …)" link, a spaced-out email line, and
- * — the signature — a dotted MAGENTA box titled "~* Some recent news:*~" full
- * of bold, dated entries. We rebuild that voice from this app's CV data and
- * add a quiet retro dark palette for the shell's dark-mode toggle.
+ * The source is an Indexhibit site: BLUE (rgba(0,4,255,1)) Gill Sans text on
+ * a mint ground, a fixed 200px left index with a 16px "✿ name ✿" h1 and an
+ * about/research nav (active item red + 500), and an exhibit column offset
+ * 285px. The about page holds a small hand-drawn portrait, bio paragraphs, a
+ * "CV is available here" link, a spaced-out email, and the signature dotted
+ * MAGENTA "~* Some recent news:*~" box (250px tall, gold scrollbar). The
+ * research page is a 24px "Research" title and 3px-dashed-red hr-separated
+ * groups: an italic 20px theme title, prose, then 14px linked citations.
+ * We rebuild both pages from CV.yaml; the portrait slot renders the owner's
+ * initials as an SL Wronghand handwritten signature when no avatar exists.
  */
 
-// Real jenliujenliu.com palette: black text on a mint-green ground, with a
-// hot-pink name/portrait and a dotted-magenta news box.
+// Real jenliujenliu.com palette: the site overrides Indexhibit's default ink
+// with blue rgba(0,4,255,1) on mint, dotted-magenta news box, dashed red hrs.
 const lightTheme = {
   bg: '#dbffea',
-  text: '#000000',
-  heading: '#ff2d95',
-  link: '#000000',
-  visited: '#000000',
-  muted: 'rgba(0, 0, 0, 0.5)',
+  text: '#0004ff',
+  visited: 'rgba(0, 4, 255, 0.5)',
+  active: '#ff0000',
+  hr: '#ff0000',
   news: '#ff00ff',
-  newsInk: '#000000',
-  rule: 'rgba(0, 0, 0, 0.4)',
-  placeholder: '#c6f4d8',
+  scrollbar: 'gold',
+  highlight: '#f3ffc1',
 };
 
 const darkTheme = {
   bg: '#0e0e14',
-  text: '#d7d7e0',
-  heading: '#8ab4ff',
-  link: '#8ab4ff',
-  visited: '#c6a6ff',
-  muted: '#9a9aac',
+  text: '#8ab4ff',
+  visited: 'rgba(138, 180, 255, 0.5)',
+  active: '#ff6b6b',
+  hr: '#ff6b6b',
   news: '#ff5cff',
-  newsInk: '#d7d7e0',
-  rule: '#2a2a36',
-  placeholder: '#15151d',
+  scrollbar: 'gold',
+  highlight: '#2a2a10',
 };
 
 const GlobalStyle = createGlobalStyle`
+  @font-face {
+    font-family: 'SL Wronghand';
+    src: url('${withBase('fonts/SLWronghand-Regular.ttf')}') format('truetype');
+    font-weight: 400;
+    font-display: swap;
+  }
+
   body { background-color: ${(props) => props.theme.bg}; }
 `;
 
@@ -76,9 +82,34 @@ function monthYear(value) {
   return formatDate(value, { month: 'long', year: 'full', fallback: '' });
 }
 
+// "A, B, and C" author joining for the research-page citations.
+function joinAuthors(authors = []) {
+  if (!Array.isArray(authors)) return String(authors || '');
+  if (authors.length <= 1) return authors.join('');
+  if (authors.length === 2) return authors.join(' and ');
+  return `${authors.slice(0, -1).join(', ')}, and ${authors[authors.length - 1]}`;
+}
+
+// Surface a "Focus on ..." education highlight as the research theme title.
+function findFocus(education = []) {
+  for (const entry of education) {
+    for (const h of entry?.highlights || []) {
+      const m = String(h).match(/^focus(?:ed|es|ing)?\s+on\s+(.+)$/i);
+      if (m) return m[1].replace(/\.\s*$/, '').trim();
+    }
+  }
+  return null;
+}
+
+function titleCase(text = '') {
+  return String(text).replace(/\b[a-z]/g, (c) => c.toUpperCase());
+}
+
 export function JenLiuTheme({ darkMode = false, onDarkModeChange }) {
   const cv = useCV() || {};
   const theme = darkMode ? darkTheme : lightTheme;
+  const [page, setPage] = useState('about');
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const name = cv.name || 'Your Name';
   const website = cv.website || null;
@@ -88,8 +119,6 @@ export function JenLiuTheme({ darkMode = false, onDarkModeChange }) {
   const socials = cv.social || [];
   const linkedin = pickSocialUrl(socials, ['linkedin']);
   const github = pickSocialUrl(socials, ['github']);
-  const facebook = pickSocialUrl(socials, ['facebook']);
-  const instagram = pickSocialUrl(socials, ['instagram']);
 
   const avatarSrc = cv.avatar
     ? (/^https?:\/\//i.test(cv.avatar) ? cv.avatar : withBase(cv.avatar))
@@ -99,6 +128,16 @@ export function JenLiuTheme({ darkMode = false, onDarkModeChange }) {
   const projects = cv.projects || [];
   const education = cv.education || [];
   const publications = cv.publications || [];
+  const presentations = cv.presentations || [];
+
+  const focus = findFocus(education);
+
+  const goTo = (target) => (e) => {
+    e.preventDefault();
+    setPage(target);
+    setMenuOpen(false);
+    window.scrollTo(0, 0);
+  };
 
   // --- Synthesized bio (cv.about is empty) -----------------------------------
   const bio = useMemo(() => {
@@ -111,32 +150,41 @@ export function JenLiuTheme({ darkMode = false, onDarkModeChange }) {
     const roleLine =
       `I am ${withArticle(role)}` +
       (org ? ` at ${org}` : '') +
+      (topEdu?.institution && topEdu.institution !== org
+        ? ` and ${withArticle(
+            /ph\.?\s?d|doctor/i.test(String(topEdu.degree)) ? 'doctoral researcher' : 'graduate researcher',
+          )} at ${topEdu.institution}`
+        : '') +
       (location ? `, based in ${location}` : '') +
-      '. My work sits at the intersection of air quality and ' +
-      'environmental health.';
+      '.';
     paras.push(roleLine);
 
-    paras.push(
-      'My research examines how air pollution — wildfire smoke, fine ' +
-      'particulate matter, and the everyday exhaust of the places we live — ' +
-      'moves through communities and shapes human health. I work with ' +
-      'environmental monitoring data and exposure modelling to make these ' +
-      'often-invisible exposures legible across northern British Columbia and ' +
-      'beyond.',
-    );
+    if (focus) {
+      paras.push(
+        `My research focuses on ${focus}. I work with environmental ` +
+        'monitoring data to make often-invisible exposures legible for the ' +
+        'communities that live with them.',
+      );
+    }
 
-    if (topEdu) {
-      const degree = topEdu.degree || topEdu.studyType || topEdu.area;
-      const inArea = topEdu.area && topEdu.area !== degree ? ` in ${topEdu.area}` : '';
-      const at = topEdu.institution ? ` at ${topEdu.institution}` : '';
-      if (degree) {
-        paras.push(`I pursued my ${degree}${inArea}${at}, where I built the ` +
-          'methods and questions that anchor my work today.');
-      }
+    if (github || linkedin) {
+      paras.push(
+        <>
+          You can also find me on{' '}
+          {github && (
+            <A href={github} target="_blank" rel="noopener noreferrer">GitHub</A>
+          )}
+          {github && linkedin && ' and '}
+          {linkedin && (
+            <A href={linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</A>
+          )}
+          .
+        </>,
+      );
     }
 
     return paras;
-  }, [cv.currentJobTitle, experience, education, location]);
+  }, [cv.currentJobTitle, experience, education, location, focus, github, linkedin]);
 
   // --- "~* Some recent news:*~" ------------------------------------------------
   const newsItems = useMemo(() => {
@@ -157,7 +205,7 @@ export function JenLiuTheme({ darkMode = false, onDarkModeChange }) {
       });
     });
 
-    (cv.presentations || []).forEach((p, i) => {
+    presentations.forEach((p, i) => {
       if (!p?.name) return;
       items.push({
         key: `pres-${i}`,
@@ -165,14 +213,15 @@ export function JenLiuTheme({ darkMode = false, onDarkModeChange }) {
         label: monthYear(p.date),
         content: (
           <>
-            Presented {p.name}
+            Presented "{p.name}"
+            {p.summary ? ` at ${p.summary}` : ''}
             {p.location ? ` (${p.location})` : ''}.
           </>
         ),
       });
     });
 
-    (cv.publications || []).forEach((p, i) => {
+    publications.forEach((p, i) => {
       const title = p?.title || p?.name;
       if (!title) return;
       const href = p.doi ? `https://doi.org/${p.doi}` : p.url || null;
@@ -183,13 +232,11 @@ export function JenLiuTheme({ darkMode = false, onDarkModeChange }) {
         content: (
           <>
             {href ? (
-              <A href={href} target="_blank" rel="noopener noreferrer">{title}</A>
+              <A href={href} target="_blank" rel="noopener noreferrer">"{title}"</A>
             ) : (
-              title
+              `"${title}"`
             )}
-            {p.journal ? (
-              <> is out in <em>{p.journal}</em>!</>
-            ) : null}
+            {p.journal ? <> is out in {p.journal}!</> : null}
           </>
         ),
       });
@@ -199,409 +246,430 @@ export function JenLiuTheme({ darkMode = false, onDarkModeChange }) {
       .filter((it) => it.label)
       .sort((a, b) => b.sort - a.sort)
       .slice(0, 14);
-  }, [cv.awards, cv.presentations, cv.publications]);
+  }, [cv.awards, presentations, publications]);
 
   const lastUpdated =
     newsItems[0]?.label ||
     `${MONTHS_LONG[new Date().getMonth()]} ${new Date().getFullYear()}`;
 
-  const elsewhere = [
-    website ? { label: 'website', url: website } : null,
-    linkedin ? { label: 'linkedin', url: linkedin } : null,
-    github ? { label: 'github', url: github } : null,
-    facebook ? { label: 'facebook', url: facebook } : null,
-    instagram ? { label: 'instagram', url: instagram } : null,
-  ].filter(Boolean);
+  const citation = (pub) => {
+    const authors = joinAuthors(pub.authors);
+    const parts = parseDateParts(pub.date);
+    const year = parts?.year ? `${parts.year}.` : '';
+    const doiText = pub.doi ? ` https://doi.org/${pub.doi}` : '';
+    return `${authors ? `${authors}. ` : ''}${year} "${pub.title || pub.name}". ${
+      pub.journal ? `${pub.journal}.` : ''
+    }${doiText}`;
+  };
 
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyle />
       <Page>
-        <Shell>
-          <TopBar>
-            <NameHeading>
-              {website ? (
-                <a href={website} target="_blank" rel="noopener noreferrer">
-                  ✿ {name} ✿
-                </a>
-              ) : (
-                <span>✿ {name} ✿</span>
-              )}
-            </NameHeading>
-            <Toggle
-              type="button"
-              onClick={() => onDarkModeChange?.(!darkMode)}
-              aria-pressed={darkMode}
-              title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {darkMode ? '☀ lights on' : '☾ lights off'}
-            </Toggle>
-          </TopBar>
+        <Index $open={menuOpen}>
+          <IndexContainer>
+            <Top>
+              <h1>
+                <a href="#about" onClick={goTo('about')}>✿ {name.toLowerCase()} ✿</a>
+              </h1>
+              <Hamburger
+                type="button"
+                aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+                aria-expanded={menuOpen}
+                onClick={() => setMenuOpen((v) => !v)}
+              >
+                ☰
+              </Hamburger>
+            </Top>
 
-          <Nav aria-label="sections">
-            <ul>
-              <li><A href="#about">about</A></li>
-              <li><A href="#research">research</A></li>
-            </ul>
-          </Nav>
+            <IndexNav $open={menuOpen}>
+              <ul>
+                <li className={page === 'about' ? 'active' : ''}>
+                  <a href="#about" onClick={goTo('about')}>about</a>
+                </li>
+                <li className={page === 'research' ? 'active' : ''}>
+                  <a href="#research" onClick={goTo('research')}>research</a>
+                </li>
+              </ul>
 
-          <MainHeading id="about">Main</MainHeading>
+              <Toggle
+                type="button"
+                onClick={() => onDarkModeChange?.(!darkMode)}
+                aria-pressed={darkMode}
+                title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              >
+                {darkMode ? '☀ lights on' : '☾ lights off'}
+              </Toggle>
+            </IndexNav>
+          </IndexContainer>
+        </Index>
 
-          <Portrait>
-            {avatarSrc ? (
-              <img src={avatarSrc} alt={name} />
-            ) : (
-              <Placeholder aria-label={name}>{getInitials(name)}</Placeholder>
-            )}
-          </Portrait>
+        <Exhibit>
+          <ExhibitContainer>
+            {page === 'about' && (
+              <>
+                {avatarSrc ? (
+                  <PortraitImg src={avatarSrc} alt={`very okay drawing of ${name}`} />
+                ) : (
+                  <Signature aria-label={name}>{getInitials(name)}</Signature>
+                )}
 
-          {bio.map((para, i) => (
-            <Para key={`bio-${i}`}>{para}</Para>
-          ))}
+                {bio.map((para, i) => (
+                  <p key={`bio-${i}`}>{para}</p>
+                ))}
 
-          <Para>
-            {website ? (
-              <A href={website} target="_blank" rel="noopener noreferrer">
-                CV is available here (last updated {lastUpdated})
-              </A>
-            ) : (
-              <>CV is available here (last updated {lastUpdated})</>
-            )}
-          </Para>
-
-          {email && (
-            <Para>My email is {spaceOutAt(email)}</Para>
-          )}
-
-          {newsItems.length > 0 && (
-            <NewsBox>
-              <NewsTitle>~* Some recent news:*~</NewsTitle>
-              {newsItems.map((item) => (
-                <NewsItem key={item.key}>
-                  <b>{item.label}:</b> {item.content}
-                </NewsItem>
-              ))}
-            </NewsBox>
-          )}
-
-          {projects.length > 0 && (
-            <Section id="research">
-              <SectionHeading>research</SectionHeading>
-              {projects.map((proj, i) => (
-                <QuietItem key={`proj-${i}`}>
-                  {proj.url ? (
-                    <A href={proj.url} target="_blank" rel="noopener noreferrer">
-                      {proj.name}
+                <p>
+                  {website ? (
+                    <A href={website} target="_blank" rel="noopener noreferrer">
+                      CV is available here (last updated {lastUpdated})
                     </A>
                   ) : (
-                    <strong>{proj.name}</strong>
+                    <>CV is available here (last updated {lastUpdated})</>
                   )}
-                  {proj.summary ? <> — {proj.summary}</> : null}
-                </QuietItem>
-              ))}
-            </Section>
-          )}
+                </p>
 
-          {experience.length > 0 && (
-            <Section>
-              <SectionHeading>experience</SectionHeading>
-              {experience.map((exp, i) => {
-                const range = formatRange(exp.startDate, exp.endDate, {
-                  month: 'none',
-                  ongoingWhenNoEnd: true,
-                });
-                return (
-                  <QuietItem key={`exp-${i}`}>
-                    <strong>{exp.title}</strong>
-                    {exp.company ? `, ${exp.company}` : ''}
-                    {range ? <Muted> ({range})</Muted> : null}
-                  </QuietItem>
-                );
-              })}
-            </Section>
-          )}
+                {email && <p>My email is {spaceOutAt(email)}</p>}
 
-          {education.length > 0 && (
-            <Section>
-              <SectionHeading>education</SectionHeading>
-              {education.map((edu, i) => {
-                const degree = edu.degree || edu.studyType;
-                const range = formatRange(edu.start_date, edu.end_date, {
-                  month: 'none',
-                });
-                return (
-                  <QuietItem key={`edu-${i}`}>
-                    <strong>{[degree, edu.area].filter(Boolean).join(', ')}</strong>
-                    {edu.institution ? `, ${edu.institution}` : ''}
-                    {range ? <Muted> ({range})</Muted> : null}
-                  </QuietItem>
-                );
-              })}
-            </Section>
-          )}
+                {newsItems.length > 0 && (
+                  <NewsBox>
+                    <p>~* Some recent news:*~</p>
+                    {newsItems.map((item) => (
+                      <p key={item.key}>
+                        <b>{item.label}:</b> {item.content}
+                      </p>
+                    ))}
+                  </NewsBox>
+                )}
+              </>
+            )}
 
-          {publications.length > 0 && (
-            <Section>
-              <SectionHeading>publications</SectionHeading>
-              {publications.map((pub, i) => {
-                const title = pub.title || pub.name;
-                const href = pub.doi ? `https://doi.org/${pub.doi}` : pub.url || null;
-                const authors = Array.isArray(pub.authors)
-                  ? pub.authors.join(', ')
-                  : pub.authors;
-                return (
-                  <QuietItem key={`pub-${i}`}>
-                    {href ? (
-                      <A href={href} target="_blank" rel="noopener noreferrer">
-                        {title}
-                      </A>
-                    ) : (
-                      <strong>{title}</strong>
-                    )}
-                    {authors ? <Muted> — {authors}</Muted> : null}
-                    {pub.journal ? <Muted>. <em>{pub.journal}</em></Muted> : null}
-                    {pub.date ? <Muted>, {monthYear(pub.date) || pub.date}</Muted> : null}
-                  </QuietItem>
-                );
-              })}
-            </Section>
-          )}
+            {page === 'research' && (
+              <>
+                <PageTitle>Research</PageTitle>
+                <p>
+                  I am interested in research across a wide variety of formats —
+                  from conference presentations and posters to peer-reviewed
+                  publications{focus ? `, centred on ${focus}` : ''}.
+                </p>
 
-          {elsewhere.length > 0 && (
-            <Footer>
-              <SectionHeading>elsewhere</SectionHeading>
-              <ul>
-                {elsewhere.map((link) => (
-                  <li key={link.url}>
-                    <A href={link.url} target="_blank" rel="noopener noreferrer">
-                      {link.label}
-                    </A>
-                  </li>
-                ))}
-              </ul>
-            </Footer>
-          )}
-        </Shell>
+                {email && (
+                  <p>
+                    (please contact me if you need to access an article:{' '}
+                    {spaceOutAt(email)})
+                  </p>
+                )}
+
+                <Hr />
+
+                {publications.length > 0 && (
+                  <>
+                    <GroupTitle>
+                      <i>{focus ? titleCase(focus) : 'Publications'}</i>
+                    </GroupTitle>
+                    <p>
+                      In this work, I examine {focus || 'my research questions'}{' '}
+                      through environmental monitoring, data analysis, and
+                      collaborative fieldwork.
+                    </p>
+                    {publications.map((pub, i) => {
+                      const href = pub.doi
+                        ? `https://doi.org/${pub.doi}`
+                        : pub.url || null;
+                      return (
+                        <Description key={`pub-${i}`}>
+                          {href ? (
+                            <A href={href} target="_blank" rel="noopener noreferrer">
+                              {citation(pub)}
+                            </A>
+                          ) : (
+                            citation(pub)
+                          )}
+                        </Description>
+                      );
+                    })}
+                    <Hr />
+                  </>
+                )}
+
+                {presentations.length > 0 && (
+                  <>
+                    <GroupTitle><i>Presentations and Talks</i></GroupTitle>
+                    <p>
+                      Conference presentations and posters where I have shared
+                      this research.
+                    </p>
+                    {presentations.map((pres, i) => (
+                      <Description key={`pres-${i}`}>
+                        {pres.name}.{' '}
+                        {[pres.summary, pres.location, pres.date]
+                          .filter(Boolean)
+                          .join(', ')}
+                        .
+                      </Description>
+                    ))}
+                    <Hr />
+                  </>
+                )}
+
+                {projects.length > 0 && (
+                  <>
+                    <GroupTitle><i>Projects and Tools</i></GroupTitle>
+                    <p>
+                      I also build tools that re-frame how digital methods are
+                      used for research and everyday work.
+                    </p>
+                    {projects.map((proj, i) => (
+                      <Description key={`proj-${i}`}>
+                        {proj.url ? (
+                          <A href={proj.url} target="_blank" rel="noopener noreferrer">
+                            {proj.name}
+                            {proj.date ? ` (${proj.date})` : ''}
+                          </A>
+                        ) : (
+                          <>
+                            {proj.name}
+                            {proj.date ? ` (${proj.date})` : ''}
+                          </>
+                        )}
+                        {proj.summary ? ` — ${proj.summary}` : ''}
+                      </Description>
+                    ))}
+                    <Hr />
+                  </>
+                )}
+              </>
+            )}
+          </ExhibitContainer>
+        </Exhibit>
       </Page>
     </ThemeProvider>
   );
 }
 
+// Source metrics: 16px Gill Sans at 1.4em on the mint ground, --margin: 36px
+// paddings (18px ≤900px), #index fixed at 200px wide, #exhibit offset 285px,
+// p max-width 800px, h1/h2 reset to 16px weight 500 with 3em bottom margins.
 const Page = styled.div`
   min-height: 100%;
   width: 100%;
+  max-width: 1800px;
   background-color: ${(props) => props.theme.bg};
   color: ${(props) => props.theme.text};
-  font-family: 'Times New Roman', Times, Georgia, serif;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif;
   font-size: 16px;
-  line-height: 1.4;
-  box-sizing: border-box;
-`;
-
-const Shell = styled.div`
-  max-width: 860px;
-  margin: 0;
-  padding: clamp(20px, 4vw, 36px);
+  line-height: 1.4em;
   box-sizing: border-box;
 
   * {
     box-sizing: border-box;
   }
+
+  p {
+    max-width: 800px;
+    margin: 0 0 1em;
+  }
+
+  b {
+    font-weight: 500;
+  }
 `;
 
 const A = styled.a`
-  color: ${(props) => props.theme.link};
-  text-decoration: underline;
+  color: ${(props) => props.theme.text};
+  text-decoration: none;
+  border-bottom: 1px solid ${(props) => props.theme.text};
 
   &:visited {
     color: ${(props) => props.theme.visited};
   }
 
   &:hover {
+    border-bottom: 0;
+  }
+`;
+
+const Index = styled.div`
+  position: fixed;
+  top: var(--app-top-offset, 0px);
+  left: 0;
+  width: 200px;
+  z-index: 5;
+
+  @media (max-width: 900px) {
+    width: 100vw;
+    height: ${(props) => (props.$open ? '100vh' : '55px')};
+    overflow: ${(props) => (props.$open ? 'auto' : 'hidden')};
+    background: ${(props) => (props.$open ? props.theme.bg : 'transparent')};
+  }
+`;
+
+const IndexContainer = styled.div`
+  padding: 36px;
+
+  @media (max-width: 900px) {
+    padding: 18px;
+  }
+`;
+
+const Top = styled.div`
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+
+  h1 {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.4em;
+    margin: 0 0 3em;
+  }
+
+  h1 a {
+    color: ${(props) => props.theme.text};
     text-decoration: none;
   }
 
-  &:focus-visible {
-    outline: 2px solid currentColor;
-    outline-offset: 2px;
+  h1 a:hover {
+    opacity: 0.5;
   }
 `;
 
-const TopBar = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px 16px;
-  margin-bottom: 1.2em;
+const Hamburger = styled.button`
+  display: none;
+  font-family: inherit;
+  font-size: 18px;
+  line-height: 1;
+  color: ${(props) => props.theme.text};
+  background: transparent;
+  border: none;
+  padding: 0 0 0 12px;
+  cursor: pointer;
+  align-self: flex-start;
+
+  @media (max-width: 900px) {
+    display: block;
+  }
 `;
 
-const NameHeading = styled.h1`
-  font-size: clamp(1.6rem, 6vw, 2.1rem);
-  font-weight: 700;
-  line-height: 1.1;
-  margin: 0;
-
-  a,
-  span {
-    color: ${(props) => props.theme.heading};
+const IndexNav = styled.nav`
+  ul {
+    list-style: none;
+    margin: 0 0 1em;
+    padding: 0;
   }
 
   a {
-    text-decoration: underline;
+    color: ${(props) => props.theme.text};
+    text-decoration: none;
   }
 
   a:hover {
-    text-decoration: none;
+    opacity: 0.5;
+  }
+
+  li.active a {
+    font-weight: 500;
+    color: ${(props) => props.theme.active};
+  }
+
+  @media (max-width: 900px) {
+    display: ${(props) => (props.$open ? 'block' : 'none')};
   }
 `;
 
 const Toggle = styled.button`
   font-family: inherit;
-  font-size: 0.85rem;
-  color: ${(props) => props.theme.link};
+  font-size: 11px;
+  text-transform: uppercase;
+  color: ${(props) => props.theme.text};
   background: transparent;
-  border: 1px dashed ${(props) => props.theme.news};
-  border-radius: 2px;
-  padding: 4px 10px;
+  border: none;
+  padding: 0;
+  margin-top: 2em;
   cursor: pointer;
-  white-space: nowrap;
-  min-height: 32px;
 
   &:hover {
-    color: ${(props) => props.theme.news};
-  }
-
-  &:focus-visible {
-    outline: 2px solid currentColor;
-    outline-offset: 2px;
+    opacity: 0.5;
   }
 `;
 
-const Nav = styled.nav`
-  margin: 0 0 2.4em 0;
+const Exhibit = styled.div`
+  margin: 0 0 0 285px;
 
-  ul {
-    list-style: disc;
+  @media (max-width: 900px) {
     margin: 0;
-    padding-left: 1.6em;
-  }
-
-  li {
-    margin: 0.15em 0;
+    padding-top: 100px;
   }
 `;
 
-const MainHeading = styled.h2`
-  font-size: clamp(1.4rem, 4vw, 1.8rem);
-  font-weight: 700;
-  margin: 0 0 1.1em 0;
-  scroll-margin-top: var(--app-top-offset, 0px);
-`;
+const ExhibitContainer = styled.div`
+  padding: 36px;
+  min-height: 90vh;
 
-const Portrait = styled.div`
-  margin: 0 0 1.4em 0;
+  @media (max-width: 900px) {
+    padding: 18px;
 
-  img {
-    display: block;
-    width: clamp(120px, 22vw, 170px);
-    height: auto;
-    max-width: 100%;
+    p {
+      max-width: none;
+    }
   }
 `;
 
-const Placeholder = styled.div`
-  width: clamp(120px, 22vw, 170px);
-  max-width: 100%;
-  aspect-ratio: 1 / 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-weight: 700;
-  font-size: clamp(2.6rem, 7vw, 3.6rem);
-  letter-spacing: 0.04em;
-  color: ${(props) => props.theme.muted};
-  background: ${(props) => props.theme.placeholder};
-  border: 1px solid ${(props) => props.theme.rule};
+// The source portrait is a small hand drawing at 20% width.
+const PortraitImg = styled.img`
+  width: 20%;
+  min-width: 120px;
+  height: auto;
+  margin: 0 0 1em;
 `;
 
-const Para = styled.p`
-  max-width: 800px;
-  margin: 0 0 1em 0;
+// Avatar-less stand-in for the "very okay drawing": the owner's initials as
+// an SL Wronghand handwritten signature.
+const Signature = styled.div`
+  font-family: 'SL Wronghand', 'Comic Sans MS', cursive;
+  font-size: clamp(72px, 12vw, 120px);
+  line-height: 1.1;
+  margin: 0 0 0.2em;
+  color: ${(props) => props.theme.text};
 `;
 
-const NewsBox = styled.div`
-  margin: 1.6em 0 2.4em 0;
-  max-width: 800px;
+const PageTitle = styled.p`
+  font-size: 24px;
+`;
+
+const GroupTitle = styled.p`
+  font-size: 20px;
+`;
+
+const Description = styled.p`
+  font-size: 14px;
+`;
+
+const Hr = styled.hr`
+  border: none;
+  border-top: 3px dashed ${(props) => props.theme.hr};
+  height: 10px;
   width: 100%;
-  max-height: 340px;
+  margin: 0 0 1em;
+`;
+
+// The signature dotted-magenta marquee box, styles lifted from the source's
+// inline style attribute (250px tall, gold scrollbar, 10px padding).
+const NewsBox = styled.div`
+  height: 250px;
+  width: 800px;
+  max-width: 100%;
   overflow: auto;
   border: 3px dotted ${(props) => props.theme.news};
-  padding: 12px 14px;
-  color: ${(props) => props.theme.newsInk};
+  padding: 10px;
+  margin-bottom: 2em;
 
   scrollbar-width: thin;
-  scrollbar-color: ${(props) => props.theme.news} transparent;
+  scrollbar-color: ${(props) => props.theme.scrollbar} transparent;
 
   &::-webkit-scrollbar {
     width: 10px;
   }
   &::-webkit-scrollbar-thumb {
-    background: ${(props) => props.theme.news};
-  }
-`;
-
-const NewsTitle = styled.p`
-  margin: 0 0 1em 0;
-`;
-
-const NewsItem = styled.p`
-  margin: 0 0 1em 0;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-
-  b {
-    font-weight: 700;
-  }
-`;
-
-const Section = styled.section`
-  margin: 0 0 2em 0;
-  scroll-margin-top: var(--app-top-offset, 0px);
-`;
-
-const SectionHeading = styled.h3`
-  font-size: 1.15rem;
-  font-weight: 700;
-  margin: 0 0 0.8em 0;
-`;
-
-const QuietItem = styled.p`
-  max-width: 800px;
-  margin: 0 0 0.7em 0;
-
-  strong {
-    font-weight: 700;
-  }
-`;
-
-const Muted = styled.span`
-  color: ${(props) => props.theme.muted};
-`;
-
-const Footer = styled.footer`
-  margin: 2.4em 0 0 0;
-
-  ul {
-    list-style: disc;
-    margin: 0;
-    padding-left: 1.6em;
-  }
-
-  li {
-    margin: 0.15em 0;
+    background: ${(props) => props.theme.scrollbar};
   }
 `;

@@ -1,18 +1,23 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-import { formatRange, isPresent } from '../../utils/cvHelpers';
+import { formatRange, formatDate, parseDateParts, isPresent } from '../../utils/cvHelpers';
 
 /**
  * YongseokTheme — a faithful CV-driven remake of yongseok.me.
  *
- * A quiet zinc blog shell with a top bar (a KO · EN · JA language switch, a
- * ticking clock, and blog/about links) sitting above a dark hero panel filled
- * with a warping field of monospace glyphs and a glowing monospace wordmark.
- * Below, calm "about" and "log" sections render the CV, and a floating "scroll
- * to top"
- * control mirrors the source's 위로 올라가요 button. Everything comes from
- * CV.yaml; only the chrome and the rain are borrowed.
+ * The source is a three-page blog. The HOME page is nothing but a top bar
+ * (centered "장용석 블로그" wordmark; KO | EN | JA switch, ticking clock, and
+ * "/ blog / about" links on the right) over a full-viewport dark panel of
+ * warping monospace glyphs with a boxed ASCII "Enter the Blog" wordmark at
+ * its centre — clicking it enters the blog. The BLOG page is a sidebar of
+ * categories (#tag counts) and series beside a year-grouped post list of
+ * titles + summaries. The ABOUT page opens "Hi! 👋 My name is … and I am a
+ * … Based in …" and stacks Work Experience, Education, dated contribution
+ * entries with [link] bullets, Presentations, and a "Let's Connect" footer.
+ * All content is synthesized from CV.yaml: publications, presentations,
+ * projects, and awards become the dated posts; experience and education
+ * fill the about page.
  */
 
 const light = {
@@ -43,9 +48,36 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 const LOCALES = {
-  EN: { blog: 'log', about: 'about', top: 'back to top', updated: 'updated' },
-  KO: { blog: '기록', about: '소개', top: '위로 올라가요', updated: '업데이트' },
-  JA: { blog: 'ログ', about: 'について', top: '上に戻る', updated: '更新' },
+  EN: {
+    brand: (name) => `${name}'s blog`,
+    enter: 'Enter the Blog',
+    blog: 'blog',
+    about: 'about',
+    top: 'back to top',
+    all: 'all',
+    categories: 'categories',
+    series: 'series',
+  },
+  KO: {
+    brand: (name) => `${name} 블로그`,
+    enter: 'Enter the Blog',
+    blog: 'blog',
+    about: 'about',
+    top: '위로 올라가요',
+    all: '전체',
+    categories: '카테고리',
+    series: '시리즈',
+  },
+  JA: {
+    brand: (name) => `${name}のブログ`,
+    enter: 'Enter the Blog',
+    blog: 'blog',
+    about: 'about',
+    top: '上に戻る',
+    all: 'すべて',
+    categories: 'カテゴリー',
+    series: 'シリーズ',
+  },
 };
 
 const GLYPHS = 'アイウエオカキクケコサシスセソタチツテトナニヌ0123456789<>[]{}/\\=+*-abcdef';
@@ -57,6 +89,33 @@ function useClock() {
     return () => clearInterval(id);
   }, []);
   return now.toLocaleTimeString('en-GB', { hour12: false });
+}
+
+// Sortable integer for a CV date string; "present" floats to the top.
+function dateSortKey(value) {
+  const parts = parseDateParts(value);
+  if (!parts) return -1;
+  if (parts.present) return Number.MAX_SAFE_INTEGER;
+  return parts.year * 100 + (parts.month || 0);
+}
+
+function yearOf(value) {
+  const parts = parseDateParts(value);
+  return parts?.present ? new Date().getFullYear() : parts?.year || null;
+}
+
+// "Jun2021" — the about page's compact date stamp.
+function stampDate(value) {
+  const text = formatDate(value, { month: 'short', fallback: '' });
+  return text.replace(' ', '');
+}
+
+function stampRange(start, end, isCurrent) {
+  const s = stampDate(start);
+  const e = end == null || end === '' ? (isCurrent ? '' : '') : isPresent(end) ? '' : stampDate(end);
+  if (s && e) return `${s} - ${e}`;
+  if (s) return `${s} -`;
+  return e;
 }
 
 /**
@@ -102,11 +161,9 @@ const BRIGHT_COLOR = 'rgba(214,226,255,0.98)';
 
 /**
  * A warping field of monospace glyphs confined to the hero canvas. A grid of
- * mono cells fills the panel; the centre region is seeded with a boxed ASCII
- * wordmark of the name so a recognizable shape surfaces from the noise. Every
- * frame each cell's base position is pushed through the active distortion and
- * the glyph is drawn at the displaced spot — the field undulates and swirls
- * instead of falling.
+ * mono cells fills the panel; every frame each cell's base position is pushed
+ * through the active distortion and the glyph is drawn at the displaced spot —
+ * the field undulates and swirls instead of falling.
  */
 function AsciiWarp({ name }) {
   const canvasRef = useRef(null);
@@ -134,8 +191,8 @@ function AsciiWarp({ name }) {
     // Seed the grid as a SPARSE, faint field: a stream of readable-ish text
     // (name + role + charset) flows through the cells but most cells are left
     // blank, so the panel reads as scattered warping fragments rather than a
-    // solid wall — matching the source's airy look. The glowing name overlay
-    // (rendered above the canvas) is the real centrepiece.
+    // solid wall — matching the source's airy look. The boxed "Enter the Blog"
+    // overlay (rendered above the canvas) is the real centrepiece.
     function build() {
       const w = canvas.clientWidth;
       const h = canvas.clientHeight;
@@ -256,44 +313,143 @@ function AsciiWarp({ name }) {
 export function YongseokTheme({ darkMode = false, onDarkModeChange }) {
   const cv = useCV() || {};
   const theme = darkMode ? dark : light;
-  const [locale, setLocale] = useState('EN');
+  const [locale, setLocale] = useState('KO');
+  const [page, setPage] = useState('home');
   const t = LOCALES[locale];
   const clock = useClock();
   const scrollRef = useRef(null);
 
   const name = cv.name || 'Your Name';
   const role = cv.currentJobTitle || cv.headline || '';
-  const aboutLines = useMemo(() => {
-    if (cv.about) {
-      return String(cv.about)
-        .split(/\n{2,}/)
-        .map((s) => s.replace(/\s+/g, ' ').trim())
-        .filter(Boolean);
-    }
-    const edu = cv.education?.[0];
-    return [
-      `${name} is ${role ? `a ${role.toLowerCase()} and ` : ''}a researcher${
-        cv.location ? ` based in ${cv.location}` : ''
-      }.`,
-      edu
-        ? `Currently ${edu.degree} in ${edu.area} at ${edu.institution}, focused on air quality and environmental health.`
-        : 'Focused on air quality and environmental health.',
-    ];
-  }, [cv, name, role]);
+  const email = cv.email || null;
+  const socials = cv.social || [];
 
-  const experience = (cv.experience || []).slice(0, 6);
-  const projects = (cv.projects || []).slice(0, 6);
+  const experience = cv.experience || [];
+  const education = cv.education || [];
+  const projects = cv.projects || [];
+  const publications = cv.publications || [];
+  const presentations = cv.presentations || [];
+  const awards = cv.awards || [];
+
+  const goTo = (target) => (e) => {
+    e.preventDefault();
+    setPage(target);
+    scrollRef.current?.scrollTo?.({ top: 0 });
+  };
+
+  // --- Blog page data ---------------------------------------------------------
+  // The CV has no blog posts, so publications, presentations, projects, and
+  // awards become the dated entries, tagged like the source's #categories.
+  const posts = useMemo(() => {
+    const items = [];
+    publications.forEach((p, i) => {
+      const title = p.title || p.name;
+      if (!title) return;
+      items.push({
+        key: `pub-${i}`,
+        tag: 'paper',
+        title,
+        summary: [p.journal, p.date].filter(Boolean).join(', '),
+        url: p.doi ? `https://doi.org/${p.doi}` : p.url || null,
+        sort: dateSortKey(p.date),
+        year: yearOf(p.date),
+      });
+    });
+    presentations.forEach((p, i) => {
+      if (!p?.name) return;
+      items.push({
+        key: `pres-${i}`,
+        tag: 'talk',
+        title: p.name,
+        summary: [p.summary, p.location].filter(Boolean).join(' — '),
+        url: p.url || null,
+        sort: dateSortKey(p.date),
+        year: yearOf(p.date),
+      });
+    });
+    projects.forEach((p, i) => {
+      if (!p?.name) return;
+      items.push({
+        key: `proj-${i}`,
+        tag: 'project',
+        title: p.name,
+        summary: p.summary || '',
+        url: p.url || null,
+        sort: dateSortKey(p.date),
+        year: yearOf(p.date),
+      });
+    });
+    awards.forEach((a, i) => {
+      if (!a?.name) return;
+      items.push({
+        key: `award-${i}`,
+        tag: 'award',
+        title: a.name,
+        summary: a.summary || '',
+        url: null,
+        sort: dateSortKey(a.date),
+        year: yearOf(a.date),
+      });
+    });
+    return items.filter((p) => p.year).sort((a, b) => b.sort - a.sort);
+  }, [publications, presentations, projects, awards]);
+
+  const [activeTag, setActiveTag] = useState(null);
+
+  const tagCounts = useMemo(() => {
+    const counts = new Map();
+    posts.forEach((p) => counts.set(p.tag, (counts.get(p.tag) || 0) + 1));
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  }, [posts]);
+
+  // Series — companies with several positions, like the source's post series.
+  const series = useMemo(() => {
+    const byCompany = new Map();
+    experience.forEach((e) => {
+      if (!e.company) return;
+      if (!byCompany.has(e.company)) byCompany.set(e.company, []);
+      byCompany.get(e.company).push(e.title);
+    });
+    return [...byCompany.entries()].filter(([, titles]) => titles.length > 1);
+  }, [experience]);
+
+  const visiblePosts = activeTag ? posts.filter((p) => p.tag === activeTag) : posts;
+
+  const postYears = useMemo(() => {
+    const years = [];
+    visiblePosts.forEach((p) => {
+      if (!years.includes(p.year)) years.push(p.year);
+    });
+    return years;
+  }, [visiblePosts]);
 
   const scrollTop = () => {
     scrollRef.current?.scrollTo?.({ top: 0, behavior: 'smooth' });
   };
+
+  const footer = (
+    <Footer>
+      <button type="button" className="top" onClick={scrollTop}>
+        ▲ {t.top}
+      </button>
+      <button type="button" className="mode" onClick={() => onDarkModeChange?.(!darkMode)}>
+        {darkMode ? '☀' : '☾'}
+      </button>
+      <span className="copy">
+        © {new Date().getFullYear()} | {t.brand(name.toLowerCase())}
+      </span>
+    </Footer>
+  );
 
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyle />
       <Page ref={scrollRef}>
         <Bar>
-          <BrandLink href="#top">{name.toLowerCase()} · {t.blog}</BrandLink>
+          <span />
+          <BrandLink href="#home" onClick={goTo('home')}>
+            {t.brand(name)}
+          </BrandLink>
           <BarRight>
             <Langs>
               {['KO', 'EN', 'JA'].map((l, i) => (
@@ -311,82 +467,218 @@ export function YongseokTheme({ darkMode = false, onDarkModeChange }) {
             </Langs>
             <Clock>{clock}</Clock>
             <NavLinks>
-              <a href="#log">/ {t.blog}</a>
-              <a href="#about">/ {t.about}</a>
+              <a href="#blog" onClick={goTo('blog')}>/ {t.blog}</a>
+              <a href="#about" onClick={goTo('about')}>/ {t.about}</a>
             </NavLinks>
           </BarRight>
         </Bar>
 
-        <span id="top" />
-        <Hero>
-          <AsciiWarp name={name} />
-          <HeroInner>
-            <HeroName>{name}</HeroName>
-            {role && <HeroRole>{role}</HeroRole>}
-          </HeroInner>
-        </Hero>
+        {page === 'home' && (
+          <>
+            <Hero>
+              <AsciiWarp name={name} />
+              <HeroInner>
+                <EnterBlog type="button" onClick={goTo('blog')}>
+                  {t.enter}
+                </EnterBlog>
+              </HeroInner>
+            </Hero>
+            <HomeFooter>{footer}</HomeFooter>
+          </>
+        )}
 
-        <Content>
-          <Section id="about">
-            <SectionLabel>{t.about}</SectionLabel>
-            {aboutLines.map((line, i) => (
-              <Para key={i}>{line}</Para>
-            ))}
-          </Section>
+        {page === 'blog' && (
+          <BlogLayout>
+            <Sidebar>
+              <SideGroup>
+                <SideLabel>{t.categories}</SideLabel>
+                <SideList>
+                  <li>
+                    <button
+                      type="button"
+                      className={activeTag === null ? 'active' : ''}
+                      onClick={() => setActiveTag(null)}
+                    >
+                      {t.all}
+                    </button>
+                  </li>
+                  {tagCounts.map(([tag, count]) => (
+                    <li key={tag}>
+                      <button
+                        type="button"
+                        className={activeTag === tag ? 'active' : ''}
+                        onClick={() => setActiveTag(activeTag === tag ? null : tag)}
+                      >
+                        #{tag} <em>{count}</em>
+                      </button>
+                    </li>
+                  ))}
+                </SideList>
+              </SideGroup>
 
-          {experience.length > 0 && (
-            <Section id="log">
-              <SectionLabel>{t.blog}</SectionLabel>
-              {experience.map((e, i) => (
-                <Entry key={`e-${i}`}>
-                  <EntryDate>
-                    {formatRange(e.startDate, e.endDate, {
-                      month: 'short',
-                      ongoingWhenNoEnd: e.isCurrent,
-                    }) || (isPresent(e.endDate) ? 'Present' : '')}
-                  </EntryDate>
-                  <div>
-                    <EntryTitle>{e.title}</EntryTitle>
-                    <EntryMeta>{e.company}</EntryMeta>
-                  </div>
-                </Entry>
+              {series.length > 0 && (
+                <SideGroup>
+                  <SideLabel>{t.series}</SideLabel>
+                  {series.map(([company, titles]) => (
+                    <SeriesBlock key={company}>
+                      <strong>
+                        {company} ({titles.length})
+                      </strong>
+                      <ul>
+                        {titles.map((title, i) => (
+                          <li key={`${company}-${i}`}>{title}</li>
+                        ))}
+                      </ul>
+                    </SeriesBlock>
+                  ))}
+                </SideGroup>
+              )}
+            </Sidebar>
+
+            <PostColumn>
+              {postYears.map((year) => (
+                <React.Fragment key={year}>
+                  <YearHeading>{year}</YearHeading>
+                  {visiblePosts
+                    .filter((p) => p.year === year)
+                    .map((p) => (
+                      <Post key={p.key}>
+                        {p.url ? (
+                          <PostTitle as="a" href={p.url} target="_blank" rel="noopener noreferrer">
+                            {p.title}
+                          </PostTitle>
+                        ) : (
+                          <PostTitle>{p.title}</PostTitle>
+                        )}
+                        {p.summary && <PostSummary>{p.summary}</PostSummary>}
+                        <PostTag>#{p.tag}</PostTag>
+                      </Post>
+                    ))}
+                </React.Fragment>
               ))}
-            </Section>
-          )}
+              {footer}
+            </PostColumn>
+          </BlogLayout>
+        )}
 
-          {projects.length > 0 && (
-            <Section>
-              <SectionLabel>projects</SectionLabel>
-              {projects.map((p, i) => (
-                <Entry key={`p-${i}`}>
-                  <EntryDate>{p.date}</EntryDate>
-                  <div>
-                    {p.url ? (
-                      <EntryTitle as="a" href={p.url} target="_blank" rel="noopener noreferrer">
+        {page === 'about' && (
+          <AboutColumn>
+            <Para>
+              Hi! 👋 My name is <strong>{name}</strong>
+              {role ? ` and I am a ${role.toLowerCase()}` : ''}.
+              {cv.location ? ` Based in ${cv.location}.` : ''}
+            </Para>
+
+            {experience.length > 0 && (
+              <AboutSection>
+                <AboutHeading>Work Experience</AboutHeading>
+                {experience.map((e, i) => (
+                  <StampRow key={`e-${i}`}>
+                    <Stamp>{stampRange(e.startDate, e.endDate, e.isCurrent)}</Stamp>
+                    <div>
+                      <strong>{e.company}</strong>
+                      <RowMeta>{e.title}</RowMeta>
+                    </div>
+                  </StampRow>
+                ))}
+              </AboutSection>
+            )}
+
+            {education.length > 0 && (
+              <AboutSection>
+                <AboutHeading>Education</AboutHeading>
+                {education.map((edu, i) => (
+                  <StampRow key={`edu-${i}`}>
+                    <Stamp>
+                      {stampRange(edu.start_date, edu.end_date, isPresent(edu.end_date))}
+                    </Stamp>
+                    <div>
+                      <strong>{edu.institution}</strong>
+                      <RowMeta>
+                        {[edu.degree, edu.area].filter(Boolean).join(', ')}
+                      </RowMeta>
+                    </div>
+                  </StampRow>
+                ))}
+              </AboutSection>
+            )}
+
+            {projects.length > 0 && (
+              <AboutSection>
+                <AboutHeading>Projects</AboutHeading>
+                {projects.map((p, i) => (
+                  <StampRow key={`p-${i}`} $top>
+                    <Stamp>{p.date}</Stamp>
+                    <div>
+                      <strong>
                         {p.name}
-                      </EntryTitle>
-                    ) : (
-                      <EntryTitle>{p.name}</EntryTitle>
-                    )}
-                    {p.summary && <EntryMeta>{p.summary}</EntryMeta>}
-                  </div>
-                </Entry>
-              ))}
-            </Section>
-          )}
+                        {p.url && (
+                          <>
+                            {' '}
+                            <a href={p.url} target="_blank" rel="noopener noreferrer">
+                              [link]
+                            </a>
+                          </>
+                        )}
+                      </strong>
+                      <Bullets>
+                        {p.summary && <li>{p.summary}</li>}
+                        {(p.highlights || []).map((h, j) => (
+                          <li key={j}>{h}</li>
+                        ))}
+                      </Bullets>
+                    </div>
+                  </StampRow>
+                ))}
+              </AboutSection>
+            )}
 
-          <Footer>
-            <button type="button" className="top" onClick={scrollTop}>
-              ▲ {t.top}
-            </button>
-            <button type="button" className="mode" onClick={() => onDarkModeChange?.(!darkMode)}>
-              {darkMode ? '☀' : '☾'}
-            </button>
-            <span className="copy">
-              © {new Date().getFullYear()} · {name.toLowerCase()}
-            </span>
-          </Footer>
-        </Content>
+            {presentations.length > 0 && (
+              <AboutSection>
+                <AboutHeading>Presentations</AboutHeading>
+                {presentations.map((p, i) => (
+                  <StampRow key={`pr-${i}`} $top>
+                    <Stamp>{p.date}</Stamp>
+                    <div>
+                      <strong>{p.name}</strong>
+                      <RowMeta>
+                        {[p.summary, p.location].filter(Boolean).join(' — ')}
+                      </RowMeta>
+                    </div>
+                  </StampRow>
+                ))}
+              </AboutSection>
+            )}
+
+            {(email || socials.length > 0) && (
+              <AboutSection>
+                <AboutHeading>Let&apos;s Connect</AboutHeading>
+                <Para>
+                  If you want to talk about research, tooling, or anything else,
+                  reach out any time.
+                </Para>
+                <ConnectList>
+                  {email && (
+                    <li>
+                      <a href={`mailto:${email}`}>{email}</a>
+                    </li>
+                  )}
+                  {socials
+                    .filter((s) => s?.url)
+                    .map((s) => (
+                      <li key={s.url}>
+                        <a href={s.url} target="_blank" rel="noopener noreferrer">
+                          {String(s.network || 'link').toLowerCase()}
+                        </a>
+                      </li>
+                    ))}
+                </ConnectList>
+              </AboutSection>
+            )}
+
+            {footer}
+          </AboutColumn>
+        )}
       </Page>
     </ThemeProvider>
   );
@@ -402,13 +694,14 @@ const Page = styled.div`
   line-height: 1.6;
 `;
 
+// Source top bar: empty left, the wordmark dead-centre, controls right.
 const Bar = styled.header`
   position: sticky;
   top: var(--app-top-offset, 0px);
   z-index: 5;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
   padding: 0.75rem 1.25rem;
   background: ${(props) => props.theme.barBg};
@@ -417,10 +710,11 @@ const Bar = styled.header`
   font-family: 'JetBrains Mono', monospace;
   font-size: 13px;
 
-  @media (max-width: 560px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.4rem;
+  @media (max-width: 640px) {
+    grid-template-columns: auto 1fr;
+    & > span:first-child {
+      display: none;
+    }
   }
 `;
 
@@ -428,11 +722,17 @@ const BrandLink = styled.a`
   color: ${(props) => props.theme.ink};
   text-decoration: none;
   font-weight: 500;
+  justify-self: center;
+
+  @media (max-width: 640px) {
+    justify-self: start;
+  }
 `;
 
 const BarRight = styled.div`
   display: flex;
   align-items: center;
+  justify-self: end;
   gap: 1rem;
   flex-wrap: wrap;
 `;
@@ -451,7 +751,7 @@ const Langs = styled.div`
     color: ${(props) => props.theme.muted};
     font: inherit;
     &.active {
-      color: ${(props) => props.theme.accent};
+      color: ${(props) => props.theme.ink};
       font-weight: 700;
     }
   }
@@ -472,14 +772,18 @@ const NavLinks = styled.nav`
     color: ${(props) => props.theme.ink};
     text-decoration: none;
     &:hover {
-      color: ${(props) => props.theme.accent};
+      text-decoration: underline;
     }
   }
 `;
 
+// The home page is nothing but the rain panel (minus bar and footer).
 const Hero = styled.div`
   position: relative;
-  height: clamp(260px, 46dvh, 520px);
+  height: calc(100dvh - var(--app-top-offset, 0px) - 8.5rem);
+  min-height: 320px;
+  margin: 1rem 1.25rem 0;
+  border-radius: 10px;
   background: ${HERO_BG};
   overflow: hidden;
 `;
@@ -494,96 +798,268 @@ const HeroInner = styled.div`
   z-index: 1;
   height: 100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   padding: 1rem;
-  pointer-events: none;
 `;
 
-const HeroName = styled.h1`
-  margin: 0;
+// The clickable stand-in for the source's ASCII "Enter the Blog" wordmark.
+const EnterBlog = styled.button`
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
-  font-size: clamp(2rem, 8vw, 4.5rem);
-  letter-spacing: 0.02em;
-  color: #eaf0ff;
-  text-shadow: 0 0 24px rgba(129, 161, 255, 0.6);
-`;
+  font-size: clamp(1.4rem, 5vw, 3rem);
+  letter-spacing: 0.08em;
+  padding: 0.6em 1.1em;
+  color: #d6e2ff;
+  background: rgba(12, 16, 36, 0.35);
+  border: 3px double rgba(150, 175, 255, 0.75);
+  cursor: pointer;
+  text-shadow: 0 0 24px rgba(129, 161, 255, 0.8);
+  transition: color 0.2s ease, border-color 0.2s ease, text-shadow 0.2s ease;
 
-const HeroRole = styled.p`
-  margin: 0.75rem 0 0;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: clamp(0.8rem, 2.5vw, 1rem);
-  color: rgba(180, 200, 255, 0.85);
-`;
-
-const Content = styled.main`
-  max-width: 46rem;
-  margin: 0 auto;
-  padding: 3rem 1.25rem 5rem;
-`;
-
-const Section = styled.section`
-  margin-bottom: 3rem;
-  scroll-margin-top: calc(var(--app-top-offset, 0px) + 3.5rem);
-`;
-
-const SectionLabel = styled.h2`
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: ${(props) => props.theme.accent};
-  margin: 0 0 1.25rem;
-`;
-
-const Para = styled.p`
-  margin: 0 0 1rem;
-  color: ${(props) => props.theme.ink};
-`;
-
-const Entry = styled.article`
-  display: grid;
-  grid-template-columns: 8rem 1fr;
-  gap: 1rem;
-  padding: 0.9rem 0;
-  border-top: 1px solid ${(props) => props.theme.line};
-
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
-    gap: 0.15rem;
+  &:hover {
+    color: #ffffff;
+    border-color: rgba(214, 226, 255, 0.95);
+    text-shadow: 0 0 34px rgba(170, 195, 255, 1);
   }
 `;
 
-const EntryDate = styled.div`
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8rem;
-  color: ${(props) => props.theme.muted};
-  padding-top: 0.15rem;
+const HomeFooter = styled.div`
+  max-width: none;
+  margin: 0 1.25rem;
+  padding: 0.75rem 0 1.25rem;
 `;
 
-const EntryTitle = styled.div`
+// --- Blog page ---------------------------------------------------------------
+const BlogLayout = styled.div`
+  display: grid;
+  grid-template-columns: 15rem 1fr;
+  gap: 3rem;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+
+  @media (max-width: 720px) {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+`;
+
+const Sidebar = styled.aside`
+  font-size: 0.9rem;
+`;
+
+const SideGroup = styled.div`
+  margin-bottom: 2rem;
+`;
+
+const SideLabel = styled.h2`
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: ${(props) => props.theme.muted};
+  margin: 0 0 0.75rem;
+`;
+
+const SideList = styled.ul`
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    margin: 0.2rem 0;
+  }
+
+  button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+    color: ${(props) => props.theme.ink};
+
+    em {
+      font-style: normal;
+      color: ${(props) => props.theme.muted};
+    }
+
+    &:hover,
+    &.active {
+      color: ${(props) => props.theme.accent};
+    }
+  }
+`;
+
+const SeriesBlock = styled.div`
+  margin-bottom: 1rem;
+
+  strong {
+    font-weight: 600;
+  }
+
+  ul {
+    list-style: none;
+    margin: 0.3rem 0 0;
+    padding-left: 0.9rem;
+    border-left: 2px solid ${(props) => props.theme.line};
+    color: ${(props) => props.theme.muted};
+  }
+
+  li {
+    margin: 0.2rem 0;
+    font-size: 0.85rem;
+  }
+`;
+
+const PostColumn = styled.div`
+  min-width: 0;
+`;
+
+const YearHeading = styled.h2`
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 2rem;
+  color: ${(props) => props.theme.muted};
+  margin: 0 0 0.5rem;
+
+  ${PostColumn} &:not(:first-child) {
+    margin-top: 2.5rem;
+  }
+`;
+
+const Post = styled.article`
+  padding: 0.9rem 0;
+  border-top: 1px solid ${(props) => props.theme.line};
+`;
+
+const PostTitle = styled.h3`
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: ${(props) => props.theme.ink};
   text-decoration: none;
+  display: block;
+
   &[href]:hover {
     color: ${(props) => props.theme.accent};
     text-decoration: underline;
   }
 `;
 
-const EntryMeta = styled.div`
+const PostSummary = styled.p`
+  margin: 0 0 0.35rem;
   color: ${(props) => props.theme.muted};
   font-size: 0.95rem;
+`;
+
+const PostTag = styled.span`
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: ${(props) => props.theme.accent};
+`;
+
+// --- About page ----------------------------------------------------------------
+const AboutColumn = styled.main`
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+`;
+
+const Para = styled.p`
+  margin: 0 0 1.5rem;
+`;
+
+const AboutSection = styled.section`
+  margin-bottom: 2.5rem;
+`;
+
+const AboutHeading = styled.h2`
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+`;
+
+const StampRow = styled.div`
+  display: grid;
+  grid-template-columns: 8.5rem 1fr;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  align-items: ${(props) => (props.$top ? 'start' : 'baseline')};
+
+  strong {
+    font-weight: 600;
+  }
+
+  a {
+    color: ${(props) => props.theme.accent};
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    gap: 0.1rem;
+  }
+`;
+
+const Stamp = styled.div`
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: ${(props) => props.theme.muted};
+  white-space: nowrap;
+`;
+
+const RowMeta = styled.div`
+  color: ${(props) => props.theme.muted};
+  font-size: 0.95rem;
+`;
+
+const Bullets = styled.ul`
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  color: ${(props) => props.theme.muted};
+  font-size: 0.95rem;
+
+  li {
+    margin: 0.15rem 0;
+    padding-left: 1rem;
+    text-indent: -1rem;
+
+    &::before {
+      content: '• ';
+    }
+  }
+`;
+
+const ConnectList = styled.ul`
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    margin: 0.25rem 0;
+  }
+
+  a {
+    color: ${(props) => props.theme.accent};
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 `;
 
 const Footer = styled.footer`
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding-top: 2rem;
+  margin-top: 2rem;
+  padding-top: 1.25rem;
   border-top: 1px solid ${(props) => props.theme.line};
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.8rem;

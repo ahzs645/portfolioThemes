@@ -16,6 +16,12 @@ import { canUseWebGL, usePrefersReducedMotion } from '../../utils/rendering';
 // Vite hashes + base-path-resolves these imports; do NOT wrap in withBase.
 import giraffeUrl from './assets/giraffe.glb';
 import dotUrl from './assets/dot.jpg';
+import ibmPlexSansUrl from './assets/fonts/ibm-plex-sans-latin.woff2';
+import inknutAntiquaUrl from './assets/fonts/inknut-antiqua-latin.woff2';
+import liveLabImage from './assets/projects/live-lab-broadcaster.png';
+import ariumImage from './assets/projects/arium.png';
+import yorbImage from './assets/projects/yorb.png';
+import soundscapeImage from './assets/projects/nyc-soundscape.jpg';
 
 /**
  * AidanNelsonTheme — a CV-driven remake of aidanjnelson.com.
@@ -38,7 +44,12 @@ import dotUrl from './assets/dot.jpg';
 
 // Accent tiles cycle through the source stylesheet's own bg-* palette.
 const TILE_COLORS = ['#300032', '#3265c4', '#c43235', '#4a4a4a'];
+const SOURCE_PROJECT_IMAGES = [liveLabImage, ariumImage, yorbImage, soundscapeImage];
 
+const SOURCE_SANS =
+  "'Aidan IBM Plex Sans', 'IBM Plex Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+const SOURCE_HEADING =
+  "'Aidan Inknut Antiqua', 'Inknut Antiqua', Georgia, 'Times New Roman', Times, serif";
 const SERIF =
   "Georgia, 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Times New Roman', Times, serif";
 const MONO =
@@ -47,14 +58,26 @@ const MONO =
 const lightTheme = {
   background: '#fffffa',
   text: '#262626',
-  heading: '#151515',
-  name: '#111111',
-  muted: '#4a4a46',
-  link: '#0b57d0',
-  linkHover: '#083b86',
-  rule: 'rgba(0, 0, 0, 0.14)',
-  thumbBorder: 'rgba(0, 0, 0, 0.10)',
+  heading: '#262626',
+  name: '#262626',
+  muted: '#333333',
+  link: '#b90386',
+  linkHover: '#7f005c',
+  rule: '#000000',
+  subtleRule: 'rgba(0, 0, 0, 0.25)',
+  cardBackground: '#fffffaaa',
+  cardHoverBackground: '#fffffa',
+  cardBorder: 'rgba(0, 0, 0, 0.20)',
+  cardHoverBorder: '#000000',
+  cardShadow: '3px 3px 3px rgba(132, 132, 132, 0.22)',
+  thumbBorder: 'transparent',
   toggleBorder: 'rgba(0, 0, 0, 0.18)',
+  nameShadow: '2px 0 4px rgba(255, 0, 144, 0.31)',
+  bodyFont: SOURCE_SANS,
+  headingFont: SOURCE_HEADING,
+  contentFontSize: '18px',
+  projectTitleColor: '#000000',
+  dark: false,
 };
 
 const darkTheme = {
@@ -66,11 +89,39 @@ const darkTheme = {
   link: '#8ab4f8',
   linkHover: '#adc8fb',
   rule: 'rgba(255, 255, 255, 0.16)',
+  subtleRule: 'rgba(255, 255, 255, 0.16)',
+  cardBackground: 'rgba(24, 23, 18, 0.84)',
+  cardHoverBackground: 'rgba(33, 31, 24, 0.94)',
+  cardBorder: 'rgba(255, 255, 255, 0.16)',
+  cardHoverBorder: 'rgba(255, 255, 255, 0.34)',
+  cardShadow: '3px 3px 12px rgba(0, 0, 0, 0.28)',
   thumbBorder: 'rgba(255, 255, 255, 0.14)',
   toggleBorder: 'rgba(255, 255, 255, 0.24)',
+  nameShadow: 'none',
+  bodyFont: SERIF,
+  headingFont: SERIF,
+  contentFontSize: 'clamp(1.05rem, 2.4vw, 1.18rem)',
+  projectTitleColor: '#f4f1ea',
+  dark: true,
 };
 
 const GlobalStyle = createGlobalStyle`
+  @font-face {
+    font-family: 'Aidan IBM Plex Sans';
+    src: url(${ibmPlexSansUrl}) format('woff2');
+    font-weight: 400 600;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: 'Aidan Inknut Antiqua';
+    src: url(${inknutAntiquaUrl}) format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+  }
+
   body { background-color: ${(props) => props.theme.background}; }
 `;
 
@@ -317,7 +368,7 @@ function GiraffeBackdrop({ drift, cap, darkMode }) {
 // Warm the giraffe cache so the first drop is instant.
 useGLTF.preload(giraffeUrl);
 
-export function AidanNelsonTheme({ darkMode = false, onDarkModeChange }) {
+export function AidanNelsonTheme({ darkMode = false }) {
   const cv = useCV() || {};
   const theme = darkMode ? darkTheme : lightTheme;
 
@@ -367,14 +418,6 @@ export function AidanNelsonTheme({ darkMode = false, onDarkModeChange }) {
         <Reader>
           <TopRow>
             <NameLine>{name}</NameLine>
-            <ToggleButton
-              type="button"
-              onClick={() => onDarkModeChange?.(!darkMode)}
-              aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-              title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {darkMode ? '☀' : '☾'}
-            </ToggleButton>
           </TopRow>
 
           <Greeting>Hello and welcome!</Greeting>
@@ -441,36 +484,42 @@ export function AidanNelsonTheme({ darkMode = false, onDarkModeChange }) {
               <ProjectsHeading>Projects</ProjectsHeading>
 
               <ProjectList>
-                {projects.map((project, index) => (
-                  <React.Fragment key={`${project.name}-${index}`}>
-                    {index > 0 && <Rule aria-hidden="true" />}
-                    <ProjectRow>
-                      <Thumb $bg={TILE_COLORS[index % TILE_COLORS.length]}>
-                        {getInitials(project.name, 1, '•')}
-                      </Thumb>
-                      <ProjectInfo>
-                        {project.url ? (
-                          <ProjectTitle
-                            href={project.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            {project.name}
-                          </ProjectTitle>
+                {projects.map((project, index) => {
+                  const image = SOURCE_PROJECT_IMAGES[index % SOURCE_PROJECT_IMAGES.length];
+
+                  return (
+                    <ProjectCard
+                      key={`${project.name}-${index}`}
+                      as={project.url ? 'a' : 'div'}
+                      href={project.url || undefined}
+                      target={project.url ? '_blank' : undefined}
+                      rel={project.url ? 'noopener noreferrer' : undefined}
+                    >
+                      <ProjectMedia>
+                        {image ? (
+                          <ProjectImage src={image} alt="" aria-hidden="true" />
                         ) : (
-                          <ProjectTitlePlain>{project.name}</ProjectTitlePlain>
+                          <Thumb $bg={TILE_COLORS[index % TILE_COLORS.length]}>
+                            {getInitials(project.name, 1, '•')}
+                          </Thumb>
                         )}
+                      </ProjectMedia>
+                      <ProjectInfo>
+                        <ProjectTitleText>{project.name}</ProjectTitleText>
+                        <ProjectTitleRule aria-hidden="true" />
                         {project.summary && <ProjectDesc>{project.summary}</ProjectDesc>}
                       </ProjectInfo>
-                    </ProjectRow>
-                  </React.Fragment>
-                ))}
+                    </ProjectCard>
+                  );
+                })}
               </ProjectList>
             </>
           )}
         </Reader>
         {showBackdrop && (
-          <Hint aria-hidden="true">click anywhere&#8202;↝&#8202;drop a giraffe</Hint>
+          <Hint aria-hidden="true">
+            {darkMode ? 'click anywhere\u200a↝\u200adrop a giraffe' : '↓ click here ↓'}
+          </Hint>
         )}
       </Page>
     </ThemeProvider>

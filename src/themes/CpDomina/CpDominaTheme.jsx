@@ -1,21 +1,25 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
-import { pickSocialUrl } from '../../utils/cvHelpers';
+import { pickSocialUrl, formatRange, formatDate } from '../../utils/cvHelpers';
 
 /**
  * CpDominaTheme — a faithful, CV-driven remake of www.cpdomina.net (Pedro Oliveira).
  *
- * The source is an ultra-minimal page built on the milligram CSS framework:
- * a white ground, light-weight Roboto (300) type in milligram's signature
- * grey (#606c76), a quiet "Hi" heading, and a single flowing paragraph that
- * folds inline purple (#9b4dca) links (email, GitHub, LinkedIn, CV,
- * publications) straight into the sentence. We rebuild that voice entirely
- * from CV.yaml — the greeting, links, and an optional publications block are
- * synthesized from the normalized CV rather than hardcoding Pedro's copy.
+ * The source is an ultra-minimal two-page site built on the milligram CSS
+ * framework: a white ground, light-weight Roboto (300) type in milligram's
+ * signature grey (#606c76), a centered 800px column, quiet 46px h1s, and
+ * inline purple (#9b4dca) links with no underline. The homepage is a single
+ * "Hi" paragraph; a separate /publications sub page stacks h1 sections
+ * (Publications, Patents, Selected Content) of plain paragraphs with bold
+ * quoted titles and bold [pdf] links.
+ *
+ * We rebuild both pages entirely from CV.yaml: the publications sub page
+ * maps to Publications / Presentations / Selected Projects, and a second
+ * "resume" sub page carries the remaining CV sections (experience,
+ * volunteering, education, professional development, certifications &
+ * skills, awards) in the same milligram voice.
  */
-
-const PUB_ANCHOR = 'cpdomina-publications';
 
 // milligram's default palette: primary purple links on grey body text.
 const lightTheme = {
@@ -121,9 +125,19 @@ function joinNodes(nodes) {
   });
 }
 
+// The source joins author lists as "A, B, C, and D" (plain comma pair for
+// two authors), with no emphasis on the site owner's own name.
+function joinAuthors(authors = []) {
+  if (authors.length <= 1) return authors.join('');
+  if (authors.length === 2) return authors.join(', ');
+  return `${authors.slice(0, -1).join(', ')}, and ${authors[authors.length - 1]}`;
+}
+
 export function CpDominaTheme({ darkMode = false, onDarkModeChange }) {
   const cv = useCV() || {};
   const theme = darkMode ? darkTheme : lightTheme;
+  const [page, setPage] = useState('home');
+  const topRef = useRef(null);
 
   const name = cv.name || 'me';
   const website = cv.website || null;
@@ -131,6 +145,28 @@ export function CpDominaTheme({ darkMode = false, onDarkModeChange }) {
   const socials = cv.social || [];
 
   const publications = Array.isArray(cv.publications) ? cv.publications : [];
+  const presentations = Array.isArray(cv.presentations) ? cv.presentations : [];
+  const projects = Array.isArray(cv.projects) ? cv.projects : [];
+  const experience = Array.isArray(cv.experience) ? cv.experience : [];
+  const volunteer = Array.isArray(cv.volunteer) ? cv.volunteer : [];
+  const education = Array.isArray(cv.education) ? cv.education : [];
+  const professionalDevelopment = Array.isArray(cv.professionalDevelopment)
+    ? cv.professionalDevelopment
+    : [];
+  const certificationsSkills = Array.isArray(cv.certificationsSkills)
+    ? cv.certificationsSkills
+    : [];
+  const awards = Array.isArray(cv.awards) ? cv.awards : [];
+
+  const hasPublicationsPage =
+    publications.length > 0 || presentations.length > 0 || projects.length > 0;
+  const hasResumePage =
+    experience.length > 0 ||
+    volunteer.length > 0 ||
+    education.length > 0 ||
+    professionalDevelopment.length > 0 ||
+    certificationsSkills.length > 0 ||
+    awards.length > 0;
 
   const { descriptor, locationClause, focus } = useMemo(() => {
     return {
@@ -156,12 +192,16 @@ export function CpDominaTheme({ darkMode = false, onDarkModeChange }) {
     return links;
   }, [email, socials]);
 
-  const handlePubJump = (e) => {
-    const el = document.getElementById(PUB_ANCHOR);
-    if (el) {
-      e.preventDefault();
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+  // Sub pages are internal state (app routing owns the URL); mimic the
+  // source's real page navigation by starting each page at the top.
+  useEffect(() => {
+    topRef.current?.scrollIntoView({ block: 'start' });
+    window.scrollTo(0, 0);
+  }, [page]);
+
+  const goTo = (target) => (e) => {
+    e.preventDefault();
+    setPage(target);
   };
 
   // The second sentence: "Here you can <actions>." Each action is optional so
@@ -191,21 +231,42 @@ export function CpDominaTheme({ darkMode = false, onDarkModeChange }) {
       </React.Fragment>,
     );
   }
-  if (publications.length > 0) {
+  if (hasResumePage) {
+    actions.push(
+      <React.Fragment>
+        browse my full{' '}
+        <a href="#resume" onClick={goTo('resume')}>
+          resume
+        </a>
+      </React.Fragment>,
+    );
+  }
+  if (hasPublicationsPage) {
     actions.push(
       <React.Fragment>
         check out my{' '}
-        <a href={`#${PUB_ANCHOR}`} onClick={handlePubJump}>
+        <a href="#publications" onClick={goTo('publications')}>
           publications
         </a>
       </React.Fragment>,
     );
   }
 
+  // "Name | Page" breadcrumb echoing the source sub page's document title
+  // ("Pedro Oliveira | Publications"); the name links back home.
+  const crumb = (label) => (
+    <Crumb>
+      <a href="#home" onClick={goTo('home')}>
+        {name}
+      </a>{' '}
+      | {label}
+    </Crumb>
+  );
+
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyle />
-      <Page>
+      <Page ref={topRef}>
         <Toggle
           type="button"
           onClick={() => onDarkModeChange?.(!darkMode)}
@@ -224,109 +285,245 @@ export function CpDominaTheme({ darkMode = false, onDarkModeChange }) {
           )}
         </Toggle>
 
-        <Column>
-          <section>
-            <Greeting>Hi</Greeting>
-            <Prose>
-              I&apos;m <strong>{name}</strong>, {descriptor}
-              {locationClause}.{focus ? ` My research focuses on ${focus}.` : ''}
-              {actions.length > 0 && (
+        <Container>
+          {page === 'home' && (
+            <section>
+              <Heading>Hi</Heading>
+              <Prose>
+                I&apos;m <strong>{name}</strong>, {descriptor}
+                {locationClause}.{focus ? ` My research focuses on ${focus}.` : ''}
+                {actions.length > 0 && (
+                  <>
+                    <br />
+                    Here you can {joinNodes(actions)}.
+                  </>
+                )}
+              </Prose>
+            </section>
+          )}
+
+          {page === 'publications' && (
+            <section>
+              {crumb('Publications')}
+
+              {publications.length > 0 && (
                 <>
-                  <br />
-                  Here you can {joinNodes(actions)}.
+                  <Heading>Publications</Heading>
+                  {publications.map((pub, idx) => {
+                    const title = pub.title || pub.name || 'Untitled';
+                    const href = pub.doi
+                      ? `https://doi.org/${pub.doi}`
+                      : pub.url || null;
+                    const authors = Array.isArray(pub.authors) ? pub.authors : [];
+                    const meta = [pub.journal, pub.date].filter(Boolean).join(', ');
+                    return (
+                      <Prose key={`pub-${idx}`}>
+                        {authors.length > 0 && `${joinAuthors(authors)}: `}
+                        <strong>&ldquo;{title}&rdquo;</strong>
+                        {meta && `, ${meta}`}
+                        {href && (
+                          <>
+                            {' '}
+                            <strong>
+                              <a href={href} {...linkProps(href)}>
+                                [{pub.doi ? 'doi' : 'link'}]
+                              </a>
+                            </strong>
+                          </>
+                        )}
+                      </Prose>
+                    );
+                  })}
                 </>
               )}
-            </Prose>
-          </section>
 
-          {publications.length > 0 && (
-            <Publications id={PUB_ANCHOR}>
-              <PubLabel>Publications</PubLabel>
-              {publications.map((pub, idx) => {
-                const title = pub.title || pub.name || 'Untitled';
-                const href = pub.doi
-                  ? `https://doi.org/${pub.doi}`
-                  : pub.url || null;
-                const authors = Array.isArray(pub.authors) ? pub.authors : [];
-                const meta = [pub.journal, pub.date].filter(Boolean).join(', ');
-                return (
-                  <Pub key={`pub-${idx}`}>
-                    <PubTitle>
-                      {href ? (
-                        <a href={href} {...linkProps(href)}>
-                          {title}
-                        </a>
-                      ) : (
-                        title
-                      )}
-                    </PubTitle>
-                    {(authors.length > 0 || meta) && (
-                      <PubMeta>
-                        {authors.map((a, i) => (
-                          <React.Fragment key={`${a}-${i}`}>
-                            {i > 0 ? ', ' : ''}
-                            {a === name ? <strong>{a}</strong> : a}
-                          </React.Fragment>
-                        ))}
-                        {authors.length > 0 && meta ? '. ' : ''}
-                        {meta}
-                        {meta || authors.length ? '.' : ''}
-                      </PubMeta>
-                    )}
-                  </Pub>
-                );
-              })}
-            </Publications>
+              {presentations.length > 0 && (
+                <>
+                  <Heading>Presentations</Heading>
+                  {presentations.map((pres, idx) => {
+                    const meta = [pres.summary, pres.location, pres.date]
+                      .filter(Boolean)
+                      .join(', ');
+                    return (
+                      <Prose key={`pres-${idx}`}>
+                        <strong>&ldquo;{pres.name || pres.title}&rdquo;</strong>
+                        {meta && `, ${meta}`}
+                      </Prose>
+                    );
+                  })}
+                </>
+              )}
+
+              {projects.length > 0 && (
+                <>
+                  <Heading>Selected Projects</Heading>
+                  <List>
+                    {projects.map((proj, idx) => (
+                      <li key={`proj-${idx}`}>
+                        {proj.url ? (
+                          <a href={proj.url} {...linkProps(proj.url)}>
+                            {proj.name}
+                          </a>
+                        ) : (
+                          proj.name
+                        )}
+                        {proj.summary ? ` — ${proj.summary}` : ''}
+                        {proj.date ? ` (${proj.date})` : ''}
+                      </li>
+                    ))}
+                  </List>
+                </>
+              )}
+            </section>
           )}
-        </Column>
+
+          {page === 'resume' && (
+            <section>
+              {crumb('Resume')}
+
+              {experience.length > 0 && (
+                <>
+                  <Heading>Experience</Heading>
+                  {experience.map((job, idx) => (
+                    <React.Fragment key={`job-${idx}`}>
+                      <Entry>
+                        <strong>{job.title}</strong>
+                        {job.company && `, ${job.company}`}
+                        {(job.startDate || job.endDate) &&
+                          `, ${formatRange(job.startDate, job.endDate)}`}
+                      </Entry>
+                      {job.highlights?.length > 0 && (
+                        <List>
+                          {job.highlights.map((h, i) => (
+                            <li key={i}>{h}</li>
+                          ))}
+                        </List>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </>
+              )}
+
+              {volunteer.length > 0 && (
+                <>
+                  <Heading>Volunteering</Heading>
+                  {volunteer.map((role, idx) => (
+                    <React.Fragment key={`vol-${idx}`}>
+                      <Entry>
+                        <strong>{role.title}</strong>
+                        {role.company && `, ${role.company}`}
+                        {(role.startDate || role.endDate) &&
+                          `, ${formatRange(role.startDate, role.endDate)}`}
+                      </Entry>
+                      {role.highlights?.length > 0 && (
+                        <List>
+                          {role.highlights.map((h, i) => (
+                            <li key={i}>{h}</li>
+                          ))}
+                        </List>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </>
+              )}
+
+              {education.length > 0 && (
+                <>
+                  <Heading>Education</Heading>
+                  {education.map((edu, idx) => (
+                    <React.Fragment key={`edu-${idx}`}>
+                      <Entry>
+                        <strong>
+                          {[edu.degree, edu.area].filter(Boolean).join(' in ')}
+                        </strong>
+                        {edu.institution && `, ${edu.institution}`}
+                        {(edu.start_date || edu.end_date) &&
+                          `, ${formatRange(edu.start_date, edu.end_date, { month: 'none' })}`}
+                      </Entry>
+                      {edu.highlights?.length > 0 && (
+                        <List>
+                          {edu.highlights.map((h, i) => (
+                            <li key={i}>{h}</li>
+                          ))}
+                        </List>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </>
+              )}
+
+              {professionalDevelopment.length > 0 && (
+                <>
+                  <Heading>Professional Development</Heading>
+                  {professionalDevelopment.map((course, idx) => (
+                    <Entry key={`pd-${idx}`}>
+                      <strong>{course.name}</strong>
+                      {course.summary && `, ${course.summary}`}
+                      {course.date && `, ${formatDate(course.date)}`}
+                    </Entry>
+                  ))}
+                </>
+              )}
+
+              {certificationsSkills.length > 0 && (
+                <>
+                  <Heading>Certifications &amp; Skills</Heading>
+                  {certificationsSkills.map((group, idx) => (
+                    <Entry key={`cs-${idx}`}>
+                      <strong>{group.label}:</strong> {group.details}
+                    </Entry>
+                  ))}
+                </>
+              )}
+
+              {awards.length > 0 && (
+                <>
+                  <Heading>Awards</Heading>
+                  {awards.map((award, idx) => (
+                    <React.Fragment key={`award-${idx}`}>
+                      <Entry>
+                        <strong>{award.name}</strong>
+                        {award.summary && `, ${award.summary}`}
+                        {award.date && `, ${formatDate(award.date)}`}
+                      </Entry>
+                      {award.highlights?.length > 0 && (
+                        <List>
+                          {award.highlights.map((h, i) => (
+                            <li key={i}>{h}</li>
+                          ))}
+                        </List>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </>
+              )}
+            </section>
+          )}
+        </Container>
       </Page>
     </ThemeProvider>
   );
 }
 
+// milligram: html { font-size: 62.5% } so its rem values halve nicely into
+// px — container 80rem→800px, section padding 7.5rem→75px, h1 4.6rem→46px,
+// body 1.6em→16px, paragraph margins 2.5rem→25px.
 const Page = styled.div`
   position: relative;
   min-height: 100%;
   width: 100%;
   box-sizing: border-box;
-  display: flex;
-  justify-content: flex-start;
   background-color: ${(props) => props.theme.bg};
   color: ${(props) => props.theme.text};
   font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   font-weight: 300;
-  padding: clamp(2.75rem, 10vh, 6.5rem) clamp(1.25rem, 5vw, 3.5rem) 4rem;
-  transition: background-color 0.25s ease, color 0.25s ease;
-`;
-
-const Column = styled.div`
-  width: 100%;
-  max-width: 46rem;
-`;
-
-const Greeting = styled.h1`
-  margin: 0 0 1.6rem;
-  font-weight: 300;
-  font-size: clamp(2rem, 6vw, 2.8rem);
-  line-height: 1.2;
-  letter-spacing: -0.05rem;
-  color: ${(props) => props.theme.text};
-`;
-
-const Prose = styled.p`
-  margin: 0;
-  font-size: clamp(1rem, 2.6vw, 1.05rem);
+  font-size: 16px;
   line-height: 1.6;
-
-  strong {
-    font-weight: 700;
-    color: ${(props) => props.theme.strong};
-  }
+  transition: background-color 0.25s ease, color 0.25s ease;
 
   a {
     color: ${(props) => props.theme.link};
-    text-decoration: underline;
-    text-underline-offset: 2px;
+    text-decoration: none;
     transition: color 0.15s ease;
   }
 
@@ -334,63 +531,66 @@ const Prose = styled.p`
   a:focus-visible {
     color: ${(props) => props.theme.linkHover};
   }
+
+  strong {
+    font-weight: 700;
+    color: ${(props) => props.theme.strong};
+  }
 `;
 
-const Publications = styled.section`
-  margin-top: clamp(2.75rem, 8vh, 4.5rem);
-  padding-top: 1.75rem;
-  border-top: 1px solid ${(props) => props.theme.rule};
+const Container = styled.main`
+  margin: 0 auto;
+  max-width: 800px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 75px 20px;
 `;
 
-const PubLabel = styled.h2`
-  margin: 0 0 1.1rem;
-  font-size: 1rem;
-  font-weight: 400;
-  font-style: italic;
-  color: ${(props) => props.theme.muted};
+const Heading = styled.h1`
+  margin: 0 0 20px;
+  font-weight: 300;
+  font-size: clamp(32px, 6vw, 46px);
+  line-height: 1.2;
+  letter-spacing: -1px;
+  color: ${(props) => props.theme.text};
+
+  * + & {
+    margin-top: 45px;
+  }
 `;
 
-const Pub = styled.div`
-  margin-bottom: 1.25rem;
+const Prose = styled.p`
+  margin: 0 0 25px;
 
   &:last-child {
     margin-bottom: 0;
   }
 `;
 
-const PubTitle = styled.div`
-  font-size: 1.05rem;
-  line-height: 1.5;
+const Entry = styled.p`
+  margin: 0 0 15px;
+`;
 
-  a {
-    color: ${(props) => props.theme.link};
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    transition: color 0.15s ease;
-  }
+const List = styled.ul`
+  list-style: circle inside;
+  margin: 0 0 25px;
+  padding-left: 0;
 
-  a:hover,
-  a:focus-visible {
-    color: ${(props) => props.theme.linkHover};
+  li {
+    margin-bottom: 6px;
   }
 `;
 
-const PubMeta = styled.div`
-  margin-top: 0.2rem;
-  font-size: 0.95rem;
-  line-height: 1.5;
+const Crumb = styled.p`
+  margin: 0 0 25px;
+  font-size: 14px;
   color: ${(props) => props.theme.muted};
-
-  strong {
-    font-weight: 700;
-    color: ${(props) => props.theme.text};
-  }
 `;
 
 const Toggle = styled.button`
   position: absolute;
-  top: clamp(1rem, 4vw, 1.75rem);
-  right: clamp(1rem, 4vw, 2rem);
+  top: clamp(16px, 4vw, 28px);
+  right: clamp(16px, 4vw, 32px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
