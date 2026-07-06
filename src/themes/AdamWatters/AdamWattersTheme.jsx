@@ -21,52 +21,37 @@ import {
  * CV. We rebuild that voice and layout from useCV(), never Adam's content.
  */
 
-const MONO =
-  'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+const SANS =
+  'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
-// Dark is the site's native mode: near-black, slightly blue-tinted, muted grey.
+// The source site is black-first with Tailwind gray/yellow accents.
 const darkTheme = {
-  bg: '#0a0c10',
-  text: '#8a8f98',
-  bright: '#e6e8ec',
-  faint: '#5b626d',
-  link: '#9aa0a8',
-  linkHover: '#f4f5f7',
-  linkLine: '#39424f',
-  navBg: '#141b28',
-  navBorder: '#26303f',
-  navText: '#8a8f98',
-  navLine: '#3a4557',
-  navHoverBg: '#182234',
-  navActiveBg: '#1c2740',
-  navActiveBorder: '#33405a',
-  navActiveText: '#e6e8ec',
-  focus: '#5b83c0',
+  bg: '#000000',
+  text: '#d1d5db',
+  bright: '#ffffff',
+  faint: '#9ca3af',
+  dim: '#6b7280',
+  link: '#d1d5db',
+  linkHover: '#fef08a',
+  linkLine: 'currentColor',
+  yellow: '#fef08a',
+  navBg: '#1f2937',
+  navBorder: '#4b5563',
+  navText: '#ffffff',
+  navHoverBg: '#263244',
+  cardBorder: '#d1d5db',
+  softBorder: '#374151',
+  focus: '#fef08a',
 };
 
-// A tasteful light variant so the shell's dark-mode toggle still reads well.
-const lightTheme = {
-  bg: '#f6f7f9',
-  text: '#5a6472',
-  bright: '#1b2430',
-  faint: '#8a93a1',
-  link: '#4b5563',
-  linkHover: '#0a0c10',
-  linkLine: '#c4ccd6',
-  navBg: '#eceff3',
-  navBorder: '#d5dae1',
-  navText: '#5a6472',
-  navLine: '#b7c0cc',
-  navHoverBg: '#e4e8ee',
-  navActiveBg: '#dde3ec',
-  navActiveBorder: '#c2cad6',
-  navActiveText: '#1b2430',
-  focus: '#3b6fbf',
-};
+const lightTheme = darkTheme;
 
 const GlobalStyle = createGlobalStyle`
-  body { background-color: ${(props) => props.theme.bg}; }
+  html, body { background-color: ${(props) => props.theme.bg}; }
 `;
+
+const EMPTY_CV = {};
+const EMPTY_ARRAY = [];
 
 // A sortable numeric key from a CV date ("2025", "2024-08", "present").
 function sortKey(value) {
@@ -91,16 +76,16 @@ function rangeLabel(start, end) {
 }
 
 export function AdamWattersTheme({ darkMode = false }) {
-  const cv = useCV() || {};
+  const cv = useCV() ?? EMPTY_CV;
   const theme = darkMode ? darkTheme : lightTheme;
 
-  const [view, setView] = useState('home');
+  const [view, setView] = useState('sidequests');
 
   const name = cv.name || 'Your Name';
   const website = cv.website || null;
   const location = cv.location || null;
 
-  const socials = cv.social || [];
+  const socials = cv.social ?? EMPTY_ARRAY;
   const github = pickSocialUrl(socials, ['github']);
   const linkedin = pickSocialUrl(socials, ['linkedin']);
 
@@ -203,6 +188,16 @@ export function AdamWattersTheme({ darkMode = false }) {
   const projects = useMemo(() => (cv.projects || []).slice(0, 16), [cv.projects]);
   const volunteer = useMemo(() => (cv.volunteer || []).slice(0, 12), [cv.volunteer]);
   const awards = useMemo(() => (cv.awards || []).slice(0, 12), [cv.awards]);
+  const profDev = useMemo(
+    () => (cv.professionalDevelopment || []).slice(0, 12),
+    [cv.professionalDevelopment],
+  );
+  const certList = useMemo(() => {
+    const entries = cv.certificationsSkills || [];
+    const cert = entries.find((e) => /cert/i.test(e.label || ''));
+    if (!cert?.details) return [];
+    return String(cert.details).split(';').map((s) => s.trim()).filter(Boolean).slice(0, 6);
+  }, [cv.certificationsSkills]);
 
   const views = [
     { id: 'home', label: 'home' },
@@ -212,9 +207,9 @@ export function AdamWattersTheme({ darkMode = false }) {
     { id: 'sidequests', label: 'side quests' },
   ];
 
-  const renderHome = () => (
-    <>
-      <Lede>
+  const renderIntro = () => (
+    <IntroHeader>
+      <span>
         {website ? (
           <A href={website} target="_blank" rel="noopener noreferrer">
             {name}
@@ -232,13 +227,17 @@ export function AdamWattersTheme({ darkMode = false }) {
         ) : (
           'making software'
         )}
-        {sinceYear ? ` since ${sinceYear}, with ` : ', with '}
+        {sinceYear ? ` since around ${sinceYear}, with ` : ', with '}
         <LinkButton type="button" onClick={() => setView('sidequests')}>
           side quests
         </LinkButton>
-        {' along the way.'}
-      </Lede>
+        {' along the way'}
+      </span>
+    </IntroHeader>
+  );
 
+  const renderHome = () => (
+    <>
       {newestEssay && (
         <NewestBlock>
           <NewestLabel>newest essay:</NewestLabel>
@@ -324,43 +323,105 @@ export function AdamWattersTheme({ darkMode = false }) {
       </Block>
     );
 
-  const renderSideQuests = () => (
-    <>
-      {volunteer.length === 0 && awards.length === 0 && (
-        <Para>No side quests logged.</Para>
-      )}
-      {volunteer.length > 0 && (
-        <Block>
-          <MiniLabel>volunteering</MiniLabel>
-          {volunteer.map((v, i) => (
-            <Row key={`vol-${i}`}>
-              <RowMain>
-                <Bright>{v.company}</Bright>
-                {v.title ? ` · ${v.title}` : ''}
-              </RowMain>
-              {rangeLabel(v.startDate, v.endDate) && (
-                <RowMeta>{rangeLabel(v.startDate, v.endDate)}</RowMeta>
-              )}
-            </Row>
+  const renderQuestBand = (key, heading, summary, items) => {
+    if (!items.length) return null;
+    const visibleItems = items.slice(0, 5);
+    return (
+      <QuestCluster key={key}>
+        <QuestRow>
+          <QuestTextCard>
+            <QuestTitle>{heading}</QuestTitle>
+            <p>{summary}</p>
+          </QuestTextCard>
+          {visibleItems.slice(0, 2).map((item, i) => (
+            <QuestTile key={`${key}-top-${i}`} as={item.href ? 'a' : 'div'} href={item.href || undefined} target={item.href ? '_blank' : undefined} rel={item.href ? 'noopener noreferrer' : undefined}>
+              <QuestMeta>{item.meta}</QuestMeta>
+              <QuestTileTitle>{item.title}</QuestTileTitle>
+              {item.body && <p>{item.body}</p>}
+            </QuestTile>
           ))}
-        </Block>
-      )}
-      {awards.length > 0 && (
-        <Block>
-          <MiniLabel>awards</MiniLabel>
-          {awards.map((a, i) => (
-            <Row key={`award-${i}`}>
-              <RowMain>
-                <Bright>{a.name}</Bright>
-                {a.summary && <RowSub>{a.summary}</RowSub>}
-              </RowMain>
-              {yearLabel(a.date) && <RowMeta>{yearLabel(a.date)}</RowMeta>}
-            </Row>
-          ))}
-        </Block>
-      )}
-    </>
-  );
+        </QuestRow>
+        {visibleItems.length > 2 && (
+          <QuestRow>
+            {visibleItems.slice(2).map((item, i) => (
+              <QuestTile key={`${key}-bottom-${i}`} as={item.href ? 'a' : 'div'} href={item.href || undefined} target={item.href ? '_blank' : undefined} rel={item.href ? 'noopener noreferrer' : undefined}>
+                <QuestMeta>{item.meta}</QuestMeta>
+                <QuestTileTitle>{item.title}</QuestTileTitle>
+                {item.body && <p>{item.body}</p>}
+              </QuestTile>
+            ))}
+          </QuestRow>
+        )}
+      </QuestCluster>
+    );
+  };
+
+  const renderSideQuests = () => {
+    const communityItems = volunteer.map((v) => ({
+      title: v.company || v.title || 'Volunteer work',
+      body: [v.title, v.location, (v.highlights || [])[0]].filter(Boolean).join(' · '),
+      meta: rangeLabel(v.startDate, v.endDate) || 'community',
+    }));
+    const awardItems = awards.map((a) => ({
+      title: a.name || 'Award',
+      body: a.summary || '',
+      meta: yearLabel(a.date) || 'recognition',
+    }));
+    const developmentItems = [
+      ...profDev.map((p) => ({
+        title: p.name || 'Professional development',
+        body: [p.summary, p.location].filter(Boolean).join(' · '),
+        meta: yearLabel(p.date) || 'course',
+      })),
+      ...certList.map((c) => ({
+        title: c,
+        body: 'certification / skill credential',
+        meta: 'certification',
+      })),
+    ];
+    const makerItems = projects.slice(0, 5).map((p) => ({
+      title: p.name || 'Project',
+      body: p.summary || '',
+      meta: p.date || 'project',
+      href: p.url || null,
+    }));
+
+    const hasAny =
+      communityItems.length || awardItems.length || developmentItems.length || makerItems.length;
+
+    return (
+      <>
+        <PageTitle>SIDE QUESTS</PageTitle>
+        {!hasAny && <Para>No side quests logged.</Para>}
+        <QuestStack>
+          {renderQuestBand(
+            'community',
+            'Community / service',
+            'Volunteer roles, student work, and community-facing projects that sit outside the straight resume line.',
+            communityItems,
+          )}
+          {renderQuestBand(
+            'recognition',
+            'Awards & recognition',
+            'Honours and scholarships collected along the way.',
+            awardItems,
+          )}
+          {renderQuestBand(
+            'development',
+            'Professional development',
+            'Courses, credentials, and skill-building work that support the main practice.',
+            developmentItems,
+          )}
+          {renderQuestBand(
+            'makers',
+            'Small software',
+            'Side builds and utilities with the same compact gallery rhythm as the source.',
+            makerItems,
+          )}
+        </QuestStack>
+      </>
+    );
+  };
 
   const content = {
     home: renderHome,
@@ -400,7 +461,10 @@ export function AdamWattersTheme({ darkMode = false }) {
             </NavList>
           </Sidebar>
 
-          <Content>{(content[view] || renderHome)()}</Content>
+          <Content>
+            {renderIntro()}
+            {(content[view] || renderHome)()}
+          </Content>
         </Shell>
       </Page>
     </ThemeProvider>
@@ -412,53 +476,52 @@ const Page = styled.div`
   width: 100%;
   background-color: ${(props) => props.theme.bg};
   color: ${(props) => props.theme.text};
-  font-family: ${MONO};
-  font-size: 15px;
-  line-height: 1.7;
+  font-family: ${SANS};
+  font-size: 16px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  transition: background-color 0.25s ease, color 0.25s ease;
 `;
 
 const Shell = styled.div`
   display: flex;
   align-items: flex-start;
-  gap: clamp(2rem, 6vw, 5rem);
-  max-width: 62rem;
-  margin: 0 auto;
-  padding: clamp(2.5rem, 9vh, 5.5rem) 1.75rem 5rem;
+  gap: 0;
+  max-width: none;
+  margin: 0;
+  padding: 0 16px 48px;
   box-sizing: border-box;
 
   @media (max-width: 640px) {
-    flex-direction: column;
-    gap: 1.75rem;
-    padding: 1.5rem 1.25rem 4rem;
+    flex-direction: column-reverse;
+    padding: 0 16px 48px;
   }
 `;
 
 const Sidebar = styled.nav`
-  flex: 0 0 auto;
+  flex: 0 0 240px;
   align-self: flex-start;
-  position: sticky;
-  top: calc(var(--app-top-offset, 0px) + clamp(2.5rem, 9vh, 5.5rem));
+  padding: 56px 48px 0 0;
+  position: static;
+  top: auto;
 
   @media (max-width: 640px) {
-    position: static;
-    top: auto;
     width: 100%;
+    flex-basis: auto;
+    padding: 28px 0 0;
   }
 `;
 
 const NavList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  width: 190px;
+  gap: 16px;
+  width: 192px;
 
   @media (max-width: 640px) {
     flex-direction: row;
     flex-wrap: wrap;
     width: 100%;
-    gap: 10px;
+    gap: 8px;
   }
 `;
 
@@ -467,28 +530,26 @@ const navButtonStyles = css`
   align-items: center;
   width: 100%;
   box-sizing: border-box;
-  min-height: 44px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid
-    ${(props) => (props.$active ? props.theme.navActiveBorder : props.theme.navBorder)};
-  background: ${(props) => (props.$active ? props.theme.navActiveBg : props.theme.navBg)};
-  color: ${(props) => (props.$active ? props.theme.navActiveText : props.theme.navText)};
+  min-height: 38px;
+  padding: 8px;
+  border-radius: 2px;
+  border: 2px solid ${(props) => props.theme.navBorder};
+  background: ${(props) => props.theme.navBg};
+  color: ${(props) => props.theme.navText};
   font-family: inherit;
   font-size: 0.875rem;
-  line-height: 1.4;
+  line-height: 1.25;
+  font-weight: 700;
   text-align: left;
   text-transform: lowercase;
-  text-decoration: underline;
-  text-decoration-color: ${(props) => props.theme.navLine};
-  text-underline-offset: 3px;
+  text-decoration: none;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  opacity: ${(props) => (props.$active ? 1 : 0.6)};
+  transition: background 0.15s ease, opacity 0.15s ease, border-color 0.15s ease;
 
   &:hover {
     background: ${(props) => props.theme.navHoverBg};
-    color: ${(props) => props.theme.navActiveText};
-    text-decoration-color: currentColor;
+    opacity: 1;
   }
 
   &:focus-visible {
@@ -513,14 +574,21 @@ const NavExternal = styled.a`
 const Content = styled.div`
   flex: 1 1 auto;
   min-width: 0;
-  max-width: 42rem;
+  max-width: 36rem;
+  padding-top: 56px;
+
+  @media (max-width: 640px) {
+    max-width: none;
+    width: 100%;
+  }
 `;
 
 const A = styled.a`
   color: ${(props) => props.theme.link};
   text-decoration: underline;
   text-decoration-color: ${(props) => props.theme.linkLine};
-  text-underline-offset: 3px;
+  text-underline-offset: 0.3em;
+  text-decoration-thickness: 1px;
   transition: color 0.15s ease, text-decoration-color 0.15s ease;
 
   &:hover,
@@ -538,7 +606,8 @@ const A = styled.a`
 `;
 
 const ABright = styled(A)`
-  color: ${(props) => props.theme.bright};
+  color: ${(props) => props.theme.yellow};
+  font-weight: 700;
 `;
 
 const LinkButton = styled.button`
@@ -550,7 +619,8 @@ const LinkButton = styled.button`
   cursor: pointer;
   text-decoration: underline;
   text-decoration-color: ${(props) => props.theme.linkLine};
-  text-underline-offset: 3px;
+  text-underline-offset: 0.3em;
+  text-decoration-thickness: 1px;
   transition: color 0.15s ease, text-decoration-color 0.15s ease;
 
   &:hover {
@@ -569,23 +639,24 @@ const Bright = styled.span`
   color: ${(props) => props.theme.bright};
 `;
 
-const Lede = styled.p`
-  margin: 0;
-  font-size: 1rem;
-  line-height: 2;
+const IntroHeader = styled.header`
+  padding-bottom: 16px;
   color: ${(props) => props.theme.text};
-  max-width: 40rem;
+  font-size: 0.75rem;
+  line-height: 20px;
+  font-weight: 700;
+  opacity: 0.5;
 `;
 
 const NewestBlock = styled.div`
-  margin-top: 2.5rem;
-  line-height: 2;
+  margin-top: 16px;
+  line-height: 1.5;
 `;
 
 const NewestLabel = styled.span`
   display: block;
-  color: ${(props) => props.theme.bright};
-  font-weight: 600;
+  color: ${(props) => props.theme.yellow};
+  font-weight: 700;
 `;
 
 const Para = styled.p`
@@ -613,6 +684,99 @@ const MiniLabel = styled.h2`
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: ${(props) => props.theme.faint};
+`;
+
+const PageTitle = styled.h1`
+  margin: 16px 0 8px;
+  color: ${(props) => props.theme.text};
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 700;
+  opacity: 0.5;
+`;
+
+const QuestStack = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+const QuestCluster = styled.section`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+const QuestRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+`;
+
+const questPanel = css`
+  flex: 1 1 170px;
+  min-width: min(100%, 170px);
+  border-radius: 8px;
+  padding: 16px;
+  color: ${(props) => props.theme.text};
+  font-size: 0.875rem;
+  line-height: 1.35;
+  text-decoration: none;
+
+  p {
+    margin: 0 0 16px;
+  }
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+`;
+
+const QuestTextCard = styled.div`
+  ${questPanel}
+  min-height: 190px;
+  border: 2px solid ${(props) => props.theme.cardBorder};
+  display: flex;
+  flex-direction: column;
+`;
+
+const QuestTile = styled.div`
+  ${questPanel}
+  min-height: 190px;
+  border: 1px solid ${(props) => props.theme.softBorder};
+  background:
+    linear-gradient(135deg, rgba(31, 41, 55, 0.9), rgba(0, 0, 0, 0.35));
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+
+  &:is(a):hover {
+    border-color: ${(props) => props.theme.yellow};
+  }
+`;
+
+const QuestTitle = styled.span`
+  display: block;
+  margin-bottom: 8px;
+  color: ${(props) => props.theme.yellow};
+  font-weight: 700;
+`;
+
+const QuestMeta = styled.span`
+  display: block;
+  margin-bottom: auto;
+  color: ${(props) => props.theme.dim};
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: lowercase;
+`;
+
+const QuestTileTitle = styled.span`
+  display: block;
+  margin-bottom: 8px;
+  color: ${(props) => props.theme.yellow};
+  font-weight: 700;
 `;
 
 const Row = styled.div`

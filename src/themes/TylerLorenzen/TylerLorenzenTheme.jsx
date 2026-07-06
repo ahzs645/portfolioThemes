@@ -10,6 +10,7 @@ import {
   uniqueByNormalizedValue,
 } from '../../utils/cvHelpers';
 import { withBase } from '../../utils/assetPath';
+import robotoFont from './assets/fonts/roboto-regular-webfont.woff2';
 
 /**
  * TylerLorenzenTheme — a CV-driven remake of tylerlorenzen.tech, which is a
@@ -24,58 +25,46 @@ import { withBase } from '../../utils/assetPath';
 /* ---------- palette ---------- */
 
 const darkTheme = {
-  bg: '#121212',
-  bgTop: 'rgba(18, 18, 18, 0.78)',
-  sidebar: '#000000',
-  sidebarPanel: '#0b0b0b',
+  bg: '#181818',
+  bgTop: '#282828',
+  sidebar: '#282828',
+  sidebarPanel: '#282828',
   elevated: '#181818',
-  card: '#181818',
-  cardHover: '#282828',
-  tile: '#2a2a2a',
-  tile2: '#3a3a3a',
+  card: '#282828',
+  cardHover: '#323232',
+  tile: '#383838',
+  tile2: '#4a4a4a',
   text: '#ffffff',
-  muted: '#b3b3b3',
-  faint: '#7a7a7a',
-  border: 'rgba(255, 255, 255, 0.08)',
-  borderStrong: 'rgba(255, 255, 255, 0.16)',
-  rowHover: 'rgba(255, 255, 255, 0.07)',
-  accent: '#1db954',
-  accentHover: '#1ed760',
+  muted: '#aaaaaa',
+  faint: '#7f7f7f',
+  border: '#181818',
+  borderStrong: 'rgba(200, 200, 200, 0.34)',
+  rowHover: '#282828',
+  accent: '#1ed760',
+  accentHover: '#21e968',
   accentText: '#000000',
-  onAccentGlow: 'rgba(29, 185, 84, 0.35)',
+  onAccentGlow: 'rgba(30, 215, 96, 0.28)',
   coral: '#fc615c',
-  heroA: 'rgba(29, 185, 84, 0.60)',
-  heroB: 'rgba(29, 185, 84, 0.10)',
+  heroA: 'rgba(40, 40, 40, 0.92)',
+  heroB: 'rgba(24, 24, 24, 0.68)',
 };
 
-const lightTheme = {
-  bg: '#f6f7f8',
-  bgTop: 'rgba(246, 247, 248, 0.85)',
-  sidebar: '#ffffff',
-  sidebarPanel: '#f1f3f3',
-  elevated: '#ffffff',
-  card: '#ffffff',
-  cardHover: '#eceeee',
-  tile: '#e6e9e9',
-  tile2: '#dbdfdf',
-  text: '#0a0c0c',
-  muted: '#5a6060',
-  faint: '#8b9191',
-  border: 'rgba(0, 0, 0, 0.09)',
-  borderStrong: 'rgba(0, 0, 0, 0.16)',
-  rowHover: 'rgba(0, 0, 0, 0.045)',
-  accent: '#1db954',
-  accentHover: '#18a648',
-  accentText: '#000000',
-  onAccentGlow: 'rgba(29, 185, 84, 0.22)',
-  coral: '#e5514c',
-  heroA: 'rgba(29, 185, 84, 0.42)',
-  heroB: 'rgba(29, 185, 84, 0.10)',
-};
+const lightTheme = darkTheme;
 
 const GlobalStyle = createGlobalStyle`
+  @font-face {
+    font-family: 'TylerSpotifyRoboto';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('${robotoFont}') format('woff2');
+  }
+
   body { background-color: ${(p) => p.theme.bg}; }
 `;
+
+const EMPTY_CV = {};
+const EMPTY_ARRAY = [];
 
 /* ---------- deterministic fake metrics ---------- */
 
@@ -310,22 +299,24 @@ function Equalizer({ playing }) {
 }
 
 export function TylerLorenzenTheme({ darkMode = true, onDarkModeChange }) {
-  const cv = useCV() || {};
+  const rawCv = useCV();
+  const cv = rawCv ?? EMPTY_CV;
   const theme = darkMode ? darkTheme : lightTheme;
   const isDark = darkMode;
 
   const name = cv.name || 'Your Name';
   const initials = getInitials(name, 2, '♪');
   const avatarSrc = resolveAvatar(cv.avatar);
+  const hasAvatar = Boolean(avatarSrc);
   const bio = useMemo(() => synthesizeBio(cv), [cv]);
   const email = cv.email || null;
 
-  const experience = cv.experience || [];
-  const education = cv.education || [];
-  const awards = cv.awards || [];
-  const projects = cv.projects || [];
-  const publications = cv.publications || [];
-  const profDev = cv.professionalDevelopment || [];
+  const experience = cv.experience ?? EMPTY_ARRAY;
+  const education = cv.education ?? EMPTY_ARRAY;
+  const awards = cv.awards ?? EMPTY_ARRAY;
+  const projects = cv.projects ?? EMPTY_ARRAY;
+  const publications = cv.publications ?? EMPTY_ARRAY;
+  const profDev = cv.professionalDevelopment ?? EMPTY_ARRAY;
 
   const currentExp = useMemo(
     () => experience.find((e) => e.isCurrent) || experience[0] || null,
@@ -334,7 +325,7 @@ export function TylerLorenzenTheme({ darkMode = true, onDarkModeChange }) {
   const role = currentExp?.title || cv.currentJobTitle || 'Researcher';
   const roleLine = currentExp ? `${currentExp.title} · ${currentExp.company}` : role;
 
-  const socials = cv.social || [];
+  const socials = cv.social ?? EMPTY_ARRAY;
   const socialLinks = useMemo(() => {
     const order = ['linkedin', 'twitter', 'github', 'facebook', 'instagram'];
     return order
@@ -612,7 +603,7 @@ export function TylerLorenzenTheme({ darkMode = true, onDarkModeChange }) {
                   <HeroRight>
                     <BigStatNum>{formatInt(monthlyListeners)}</BigStatNum>
                     <BigStatLabel>Monthly Listeners</BigStatLabel>
-                    {collaborators.length > 0 && (
+                    {hasAvatar && collaborators.length > 0 && (
                       <Collaborators>
                         <CollabStack>
                           {collaborators.map((c) => (
@@ -649,9 +640,11 @@ export function TylerLorenzenTheme({ darkMode = true, onDarkModeChange }) {
                 <ContentMain>
                   {/* ---------- about ---------- */}
                   <AboutSection ref={aboutRef}>
-                    <AboutThumb>
-                      {avatarSrc ? <img src={avatarSrc} alt={name} /> : <span>{initials}</span>}
-                    </AboutThumb>
+                    {hasAvatar && (
+                      <AboutThumb>
+                        <img src={avatarSrc} alt={name} />
+                      </AboutThumb>
+                    )}
                     <AboutBody>
                       <SectionTitle as="h2">About {name}</SectionTitle>
                       <p>{bio}</p>
@@ -854,7 +847,7 @@ export function TylerLorenzenTheme({ darkMode = true, onDarkModeChange }) {
                           return (
                             <ProjectCard key={`proj-${i}`} {...linkProps}>
                               <ProjectCover aria-hidden="true">
-                                <span>{getInitials(p.name, 2, '♪')}</span>
+                                <span><NoteGlyph size={30} /></span>
                                 {p.url && <ProjectPlay><PlayGlyph size={18} /></ProjectPlay>}
                               </ProjectCover>
                               <ProjectBody>
@@ -916,7 +909,7 @@ export function TylerLorenzenTheme({ darkMode = true, onDarkModeChange }) {
                       {tools.map((t) => (
                         <DiscoRow key={t.label} title={t.label}>
                           <DiscoTile $glyph={!!t.glyph}>
-                            {t.glyph || getInitials(t.label, 2, '·')}
+                            {t.glyph || <NoteGlyph size={18} />}
                           </DiscoTile>
                           <DiscoMeta>
                             <span className="name">{t.label}</span>
@@ -945,10 +938,12 @@ export function TylerLorenzenTheme({ darkMode = true, onDarkModeChange }) {
         <Player>
           <PlayerInner>
             <NowPlaying>
-              <NowArt data-play={isPlaying ? 'on' : 'off'}>
-                {avatarSrc ? <img src={avatarSrc} alt="" /> : <span>{initials}</span>}
-                {isPlaying && <NowArtEq aria-hidden="true"><Equalizer playing /></NowArtEq>}
-              </NowArt>
+              {hasAvatar && (
+                <NowArt data-play={isPlaying ? 'on' : 'off'}>
+                  <img src={avatarSrc} alt="" />
+                  {isPlaying && <NowArtEq aria-hidden="true"><Equalizer playing /></NowArtEq>}
+                </NowArt>
+              )}
               <NowMeta>
                 <span className="t">{nowTitle}</span>
                 <span className="s">{isPlaying ? 'Now playing' : 'Paused'} · {nowSubtitle}</span>
@@ -997,28 +992,35 @@ const eq = keyframes`
 /* ---------- shell / layout ---------- */
 
 const Page = styled.div`
-  --player-h: 88px;
-  --sidebar-w: 240px;
-  min-height: 100%;
+  --player-h: 72px;
+  --sidebar-w: clamp(220px, 15vw, 280px);
+  height: calc(100dvh - var(--app-top-offset, 0px));
+  min-height: calc(100dvh - var(--app-top-offset, 0px));
   width: 100%;
   background: ${(p) => p.theme.bg};
   color: ${(p) => p.theme.text};
-  font-family: 'Inter', 'Circular', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'TylerSpotifyRoboto', Roboto, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 16px;
   -webkit-font-smoothing: antialiased;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 
   *, *::before, *::after { box-sizing: border-box; }
 
-  @media (max-width: 640px) { --player-h: 66px; }
+  @media (max-width: 1400px) { --sidebar-w: clamp(220px, 20vw, 300px); }
+  @media (max-width: 640px) { --player-h: 64px; }
 `;
 
 const Shell = styled.div`
-  flex: 1 0 auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: calc(100dvh - var(--app-top-offset, 0px) - var(--player-h));
   display: flex;
   align-items: flex-start;
   width: 100%;
+  overflow: hidden;
 `;
 
 const Backdrop = styled.div`
@@ -1026,15 +1028,15 @@ const Backdrop = styled.div`
   @media (max-width: 900px) {
     display: ${(p) => (p.$open ? 'block' : 'none')};
     position: fixed;
-    inset: var(--app-top-offset, 0px) 0 0 0;
+    inset: 0 0 var(--player-h) 0;
     background: rgba(0, 0, 0, 0.55);
     z-index: 55;
   }
 `;
 
 const Sidebar = styled.aside`
-  position: sticky;
-  top: var(--app-top-offset, 0px);
+  position: relative;
+  top: 0;
   align-self: flex-start;
   flex: 0 0 var(--sidebar-w);
   width: var(--sidebar-w);
@@ -1047,7 +1049,7 @@ const Sidebar = styled.aside`
 
   @media (max-width: 900px) {
     position: fixed;
-    top: var(--app-top-offset, 0px);
+    top: 0;
     left: 0;
     width: 280px;
     flex-basis: 0;
@@ -1063,7 +1065,7 @@ const Sidebar = styled.aside`
 const SideScroll = styled.div`
   flex: 1 1 auto;
   overflow-y: auto;
-  padding: 1rem 0.5rem 0.5rem;
+  padding: 15px 0 5px;
   scrollbar-width: thin;
   scrollbar-color: ${(p) => p.theme.tile2} transparent;
 
@@ -1074,16 +1076,16 @@ const SideScroll = styled.div`
 const SideLogo = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.55rem;
-  padding: 0.25rem 0.6rem 1rem;
-  font-weight: 800;
-  font-size: 1.05rem;
-  letter-spacing: -0.01em;
+  gap: 10px;
+  padding: 0 15px 18px;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0;
 `;
 
 const SideLogoMark = styled.span`
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: ${(p) => p.theme.accent};
   color: ${(p) => p.theme.accentText};
@@ -1093,33 +1095,34 @@ const SideLogoMark = styled.span`
 `;
 
 const SideGroup = styled.div`
-  margin-bottom: 1.1rem;
+  margin-bottom: 15px;
 `;
 
 const SideGroupTitle = styled.div`
-  padding: 0 0.65rem;
-  margin-bottom: 0.4rem;
+  padding: 0 15px;
+  margin-bottom: 8px;
   color: ${(p) => p.theme.faint};
-  font-size: 0.68rem;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 1px;
 `;
 
 const sideRow = `
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0.65rem;
+  gap: 10px;
+  padding: 8px 15px;
   border: none;
   background: transparent;
-  border-radius: 6px;
+  border-radius: 0;
+  border-right: 3px solid transparent;
   cursor: pointer;
   text-align: left;
   text-decoration: none;
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 400;
   line-height: 1.2;
 `;
 
@@ -1128,7 +1131,7 @@ const SideItem = styled.button`
   color: ${(p) => p.theme.muted};
   transition: color 0.15s ease, background 0.15s ease;
   svg { flex: 0 0 auto; }
-  &:hover { color: ${(p) => p.theme.text}; background: ${(p) => p.theme.rowHover}; }
+  &:hover { color: ${(p) => p.theme.text}; background: transparent; border-right-color: ${(p) => p.theme.accent}; }
 `;
 
 const SideLink = styled.a`
@@ -1136,7 +1139,7 @@ const SideLink = styled.a`
   color: ${(p) => p.theme.muted};
   transition: color 0.15s ease, background 0.15s ease;
   span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  &:hover { color: ${(p) => p.theme.text}; background: ${(p) => p.theme.rowHover}; }
+  &:hover { color: ${(p) => p.theme.text}; background: transparent; border-right-color: ${(p) => p.theme.accent}; }
 `;
 
 const SideLinkIcon = styled.span`
@@ -1157,20 +1160,21 @@ const SkillTrack = styled.div`
   display: grid;
   grid-template-columns: 20px 20px 1fr;
   align-items: center;
-  gap: 0.55rem;
-  padding: 0.4rem 0.65rem;
-  border-radius: 6px;
+  gap: 10px;
+  padding: 7px 15px;
+  border-radius: 0;
+  border-right: 3px solid transparent;
   color: ${(p) => p.theme.muted};
   transition: color 0.15s ease, background 0.15s ease;
 
   .label {
-    font-size: 0.86rem;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 400;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  &:hover { color: ${(p) => p.theme.text}; background: ${(p) => p.theme.rowHover}; }
+  &:hover { color: ${(p) => p.theme.text}; background: transparent; border-right-color: ${(p) => p.theme.accent}; }
 `;
 
 const SkillNo = styled.span`
@@ -1187,43 +1191,48 @@ const SkillNote = styled.span`
 
 const NewPlaylistBtn = styled.button`
   flex: 0 0 auto;
-  margin: 0.4rem 0.75rem 0.9rem;
+  margin: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1rem;
-  border: 1px solid ${(p) => p.theme.borderStrong};
-  border-radius: 999px;
-  background: transparent;
-  color: ${(p) => p.theme.text};
-  font-weight: 700;
-  font-size: 0.85rem;
+  gap: 15px;
+  padding: 15px;
+  border: none;
+  border-top: 1px solid ${(p) => p.theme.border};
+  border-bottom: 1px solid ${(p) => p.theme.border};
+  border-radius: 0;
+  background: ${(p) => p.theme.sidebar};
+  color: ${(p) => p.theme.muted};
+  font-weight: 400;
+  font-size: 14px;
   cursor: pointer;
   transition: border-color 0.15s ease, transform 0.15s ease;
-  &:hover { border-color: ${(p) => p.theme.text}; transform: scale(1.02); }
+  &:hover { color: ${(p) => p.theme.text}; background: ${(p) => p.theme.cardHover}; }
 `;
 
 const MainCol = styled.div`
   flex: 1 1 auto;
   min-width: 0;
+  min-height: 0;
+  height: calc(100dvh - var(--app-top-offset, 0px) - var(--player-h));
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 `;
 
 /* ---------- top bar ---------- */
 
 const TopBar = styled.div`
-  position: sticky;
-  top: var(--app-top-offset, 0px);
+  position: relative;
+  flex: 0 0 auto;
   z-index: 25;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.7rem 1.25rem;
+  gap: 15px;
+  padding: 5px 15px;
   background: ${(p) => p.theme.bgTop};
-  backdrop-filter: saturate(150%) blur(16px);
   border-bottom: 1px solid ${(p) => p.theme.border};
+  min-height: 48px;
 
   @media (max-width: 520px) { padding: 0.6rem 0.85rem; gap: 0.5rem; }
 `;
@@ -1254,36 +1263,36 @@ const Hamburger = styled.button`
 `;
 
 const RoundNav = styled.button`
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   flex: 0 0 auto;
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  background: ${(p) => p.theme.sidebar};
-  color: ${(p) => p.theme.text};
+  background: transparent;
+  color: ${(p) => p.theme.muted};
   display: inline-flex;
   align-items: center;
   justify-content: center;
   opacity: 0.85;
   transition: opacity 0.15s ease, transform 0.15s ease;
-  &:hover { opacity: 1; transform: scale(1.05); }
+  &:hover { opacity: 1; color: ${(p) => p.theme.text}; transform: none; }
   &.fwd { @media (max-width: 420px) { display: none; } }
 `;
 
 const SearchPill = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 7px;
   min-width: 0;
-  max-width: 360px;
-  flex: 1 1 auto;
-  margin-left: 0.4rem;
-  padding: 0.5rem 0.9rem;
-  border-radius: 999px;
-  background: ${(p) => p.theme.tile};
+  max-width: 240px;
+  flex: 1 1 200px;
+  margin-left: 1%;
+  padding: 4px 10px;
+  border-radius: 15px;
+  background: ${(p) => p.theme.text};
   border: 1px solid transparent;
-  color: ${(p) => p.theme.muted};
+  color: ${(p) => p.theme.bg};
   transition: border-color 0.15s ease;
 
   &:focus-within { border-color: ${(p) => p.theme.text}; }
@@ -1293,59 +1302,60 @@ const SearchPill = styled.div`
     min-width: 0;
     border: none;
     background: transparent;
-    color: ${(p) => p.theme.text};
-    font-size: 0.9rem;
+    color: ${(p) => p.theme.bg};
+    font-size: 14px;
     outline: none;
-    &::placeholder { color: ${(p) => p.theme.faint}; }
+    &::placeholder { color: #666; }
   }
 `;
 
 const TopRight = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  flex: 0 0 auto;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 0 0 min(300px, 38vw);
 `;
 
 const IconBtn = styled.button`
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  background: ${(p) => p.theme.tile};
-  color: ${(p) => p.theme.text};
+  background: transparent;
+  color: ${(p) => p.theme.muted};
   display: inline-flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
   transition: background 0.15s ease, transform 0.15s ease;
-  &:hover { background: ${(p) => p.theme.cardHover}; transform: scale(1.05); }
+  &:hover { color: ${(p) => p.theme.text}; background: transparent; transform: none; }
   &.hide-sm { @media (max-width: 560px) { display: none; } }
 `;
 
 const ToggleBtn = styled.button`
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  background: ${(p) => p.theme.tile};
-  color: ${(p) => p.theme.text};
+  background: transparent;
+  color: ${(p) => p.theme.muted};
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: background 0.15s ease, transform 0.15s ease;
-  &:hover { background: ${(p) => p.theme.cardHover}; transform: scale(1.05); }
+  &:hover { color: ${(p) => p.theme.text}; background: transparent; transform: none; }
 `;
 
 const AccountChip = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.2rem 0.6rem 0.2rem 0.25rem;
-  border-radius: 999px;
-  background: ${(p) => p.theme.sidebar};
+  gap: 8px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
 
   .who {
     font-size: 0.85rem;
@@ -1365,8 +1375,8 @@ const AvatarCircle = styled.div`
   border-radius: 50%;
   overflow: hidden;
   flex: 0 0 auto;
-  background: ${(p) => p.theme.accent};
-  color: ${(p) => p.theme.accentText};
+  background: ${(p) => p.theme.tile2};
+  color: ${(p) => p.theme.text};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1378,19 +1388,29 @@ const AvatarCircle = styled.div`
 /* ---------- main scroll ---------- */
 
 const MainScroll = styled.main`
-  flex: 1 0 auto;
-  padding: 0 clamp(1rem, 3vw, 2rem) calc(var(--player-h) + 2rem);
-  max-width: 1320px;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0 15px calc(var(--player-h) + 30px);
   width: 100%;
+  max-width: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: ${(p) => p.theme.tile2} transparent;
+
+  &::-webkit-scrollbar { width: 12px; }
+  &::-webkit-scrollbar-thumb { background: ${(p) => p.theme.tile2}; border-radius: 8px; }
 `;
 
 /* ---------- hero ---------- */
 
 const HeroWrap = styled.section`
-  margin: 0 calc(-1 * clamp(1rem, 3vw, 2rem));
-  padding: 0 clamp(1rem, 3vw, 2rem);
+  margin: 0 -15px;
+  padding: 0 15px;
   background:
-    linear-gradient(180deg, ${(p) => p.theme.heroA} 0%, ${(p) => p.theme.heroB} 42%, transparent 88%);
+    linear-gradient(180deg, ${(p) => p.theme.heroA} 0%, ${(p) => p.theme.heroB} 100%),
+    radial-gradient(circle at 18% 8%, rgba(255, 255, 255, 0.08), transparent 34%);
+  border-bottom: 1px solid ${(p) => p.theme.card};
 `;
 
 const Hero = styled.div`
@@ -1398,8 +1418,8 @@ const Hero = styled.div`
   align-items: flex-end;
   justify-content: space-between;
   gap: 1.5rem;
-  min-height: 300px;
-  padding: clamp(1.5rem, 5vw, 3rem) 0 1.25rem;
+  min-height: 260px;
+  padding: 60px 0 15px;
 
   @media (max-width: 760px) {
     flex-direction: column;
@@ -1418,8 +1438,8 @@ const VerifiedRow = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.82rem;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 400;
   color: ${(p) => p.theme.text};
   margin-bottom: 0.75rem;
 `;
@@ -1431,9 +1451,9 @@ const VerifiedBadge = styled.span`
 
 const Eyebrow = styled.div`
   text-transform: uppercase;
-  letter-spacing: 0.16em;
-  font-size: 0.72rem;
-  font-weight: 800;
+  letter-spacing: 1px;
+  font-size: 18px;
+  font-weight: 600;
   color: ${(p) => p.theme.text};
   opacity: 0.9;
   margin-bottom: 0.4rem;
@@ -1441,23 +1461,23 @@ const Eyebrow = styled.div`
 
 const HeroTitle = styled.h1`
   margin: 0;
-  font-size: clamp(2.4rem, 8vw, 5.5rem);
-  line-height: 0.98;
-  font-weight: 900;
-  letter-spacing: -0.03em;
+  font-size: clamp(32px, 4vw, 52px);
+  line-height: 1.05;
+  font-weight: 400;
+  letter-spacing: 0;
 `;
 
 const HeroRole = styled.div`
-  margin-top: 0.9rem;
-  font-size: clamp(1rem, 2.4vw, 1.35rem);
-  font-weight: 700;
-  color: ${(p) => p.theme.text};
+  margin-top: 10px;
+  font-size: 16px;
+  font-weight: 400;
+  color: ${(p) => p.theme.muted};
 `;
 
 const HeroPlace = styled.div`
-  margin-top: 0.4rem;
-  font-size: 0.9rem;
-  font-weight: 600;
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 400;
   color: ${(p) => p.theme.muted};
 `;
 
@@ -1472,15 +1492,15 @@ const HeroRight = styled.div`
 `;
 
 const BigStatNum = styled.div`
-  font-size: clamp(1.6rem, 3.6vw, 2.6rem);
-  font-weight: 900;
-  letter-spacing: -0.02em;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 1px;
   font-variant-numeric: tabular-nums;
 `;
 
 const BigStatLabel = styled.div`
-  font-size: 0.78rem;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: ${(p) => p.theme.muted};
@@ -1525,13 +1545,13 @@ const CollabLabel = styled.span`
 const HeroActions = styled.div`
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  padding: 0.5rem 0 1.75rem;
+  gap: 15px;
+  padding: 15px 0;
 `;
 
 const PlayCircleBig = styled.button`
-  width: 56px;
-  height: 56px;
+  width: 54px;
+  height: 54px;
   flex: 0 0 auto;
   border: none;
   border-radius: 50%;
@@ -1541,7 +1561,7 @@ const PlayCircleBig = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px ${(p) => p.theme.onAccentGlow};
+  box-shadow: none;
   transition: transform 0.15s ease, background 0.15s ease;
   &:hover { transform: scale(1.06); background: ${(p) => p.theme.accentHover}; }
 `;
@@ -1551,12 +1571,12 @@ const FollowPill = styled.button`
   background: transparent;
   color: ${(p) => p.theme.text};
   text-decoration: none;
-  font-weight: 800;
-  font-size: 0.82rem;
-  letter-spacing: 0.06em;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1px;
   text-transform: uppercase;
-  padding: 0.55rem 1.3rem;
-  border-radius: 999px;
+  padding: 8px 18px;
+  border-radius: 2px;
   cursor: pointer;
   transition: border-color 0.15s ease, transform 0.15s ease;
   &:hover { border-color: ${(p) => p.theme.text}; transform: scale(1.04); }
@@ -1579,9 +1599,12 @@ const MenuDots = styled.button`
 
 const Tabs = styled.div`
   display: flex;
-  gap: 1.75rem;
-  border-bottom: 1px solid ${(p) => p.theme.border};
-  margin-bottom: 1.75rem;
+  justify-content: flex-start;
+  gap: 18px;
+  border-bottom: none;
+  margin: 0 -15px 15px;
+  padding: 0 15px;
+  background: rgba(24, 24, 24, 0.6);
 `;
 
 const Tab = styled.button`
@@ -1589,9 +1612,11 @@ const Tab = styled.button`
   border: none;
   background: transparent;
   cursor: pointer;
-  padding: 0 0 0.85rem;
-  font-size: 1rem;
-  font-weight: 800;
+  padding: 15px 0 12px;
+  font-size: 16px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   color: ${(p) => (p.$active ? p.theme.text : p.theme.muted)};
   transition: color 0.15s ease;
   &:hover { color: ${(p) => p.theme.text}; }
@@ -1600,7 +1625,7 @@ const Tab = styled.button`
     position: absolute;
     left: 0;
     right: 0;
-    bottom: -1px;
+    bottom: 0;
     height: 3px;
     border-radius: 3px;
     background: ${(p) => (p.$active ? p.theme.accent : 'transparent')};
@@ -1612,10 +1637,10 @@ const Tab = styled.button`
 const ContentGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2.25rem;
+  gap: 30px;
 
   @media (min-width: 1080px) {
-    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-columns: minmax(0, 70%) minmax(260px, 30%);
     align-items: start;
   }
 `;
@@ -1628,7 +1653,7 @@ const ContentAside = styled.aside`
   min-width: 0;
   @media (min-width: 1080px) {
     position: sticky;
-    top: calc(var(--app-top-offset, 0px) + 76px);
+    top: 15px;
   }
 `;
 
@@ -1642,44 +1667,47 @@ const AsideSub = styled.div`
 /* ---------- section headings ---------- */
 
 const SectionTitle = styled.h2`
-  margin: 0 0 0.9rem;
-  font-size: clamp(1.3rem, 3.2vw, 1.6rem);
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  margin: 0 0 15px;
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0;
 `;
 
 /* ---------- about ---------- */
 
 const AboutSection = styled.section`
   display: flex;
-  gap: 1.25rem;
+  gap: 15px;
   align-items: flex-start;
-  margin-bottom: 2.5rem;
-  scroll-margin-top: calc(var(--app-top-offset, 0px) + 76px);
+  margin-bottom: 30px;
+  scroll-margin-top: 15px;
 
   @media (max-width: 520px) { flex-direction: column; gap: 0.9rem; }
 `;
 
 const AboutThumb = styled.div`
-  width: 128px;
-  height: 128px;
+  width: 75px;
+  height: 75px;
   flex: 0 0 auto;
-  border-radius: 10px;
+  border-radius: 0;
   overflow: hidden;
-  background: linear-gradient(135deg, ${(p) => p.theme.accent}, ${(p) => p.theme.tile2});
+  background: ${(p) => p.theme.card};
   color: ${(p) => p.theme.accentText};
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2.4rem;
   font-weight: 900;
-  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.3);
+  box-shadow: none;
   img { width: 100%; height: 100%; object-fit: cover; }
   @media (max-width: 520px) { width: 96px; height: 96px; font-size: 2rem; }
 `;
 
 const AboutBody = styled.div`
   min-width: 0;
+  flex: 1 1 auto;
+  background: ${(p) => p.theme.card};
+  padding: 12px 15px;
   h2 { margin-bottom: 0.5rem; }
   p {
     margin: 0;
@@ -1693,14 +1721,14 @@ const AboutBody = styled.div`
 /* ---------- table of contents ---------- */
 
 const TocSection = styled.section`
-  margin-bottom: 2.75rem;
+  margin-bottom: 30px;
 `;
 
 const TocTable = styled.div`
-  background: ${(p) => p.theme.elevated};
-  border: 1px solid ${(p) => p.theme.border};
-  border-radius: 12px;
-  padding: 0.35rem 0.4rem 0.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
 `;
 
 const tocCols = `
@@ -1712,8 +1740,8 @@ const tocCols = `
 
 const TocHead = styled.div`
   ${tocCols}
-  padding: 0.5rem 0.85rem;
-  border-bottom: 1px solid ${(p) => p.theme.border};
+  padding: 0 10px 8px;
+  border-bottom: 1px solid ${(p) => p.theme.card};
   color: ${(p) => p.theme.faint};
   font-size: 0.7rem;
   font-weight: 800;
@@ -1729,9 +1757,10 @@ const TocHead = styled.div`
 
 const TocRow = styled.div`
   ${tocCols}
-  padding: 0.6rem 0.85rem;
-  margin-top: 2px;
-  border-radius: 8px;
+  min-height: 42px;
+  padding: 6px 10px;
+  margin-top: 0;
+  border-radius: 0;
   cursor: ${(p) => (p.$soon ? 'default' : 'pointer')};
   opacity: ${(p) => (p.$soon ? 0.62 : 1)};
   transition: background 0.14s ease;
@@ -1796,7 +1825,7 @@ const LearnMore = styled.button`
   font-weight: 700;
   font-size: 0.76rem;
   padding: 0.38rem 0.9rem;
-  border-radius: 999px;
+  border-radius: 2px;
   cursor: pointer;
   white-space: nowrap;
   transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
@@ -1825,8 +1854,8 @@ const TocPlays = styled.span`
 /* ---------- detail blocks ---------- */
 
 const DetailBlock = styled.section`
-  margin-bottom: 2.5rem;
-  scroll-margin-top: calc(var(--app-top-offset, 0px) + 76px);
+  margin-bottom: 30px;
+  scroll-margin-top: 15px;
 `;
 
 const DetailHead = styled.div`
@@ -1850,10 +1879,10 @@ const DetailMeta = styled.span`
 /* ---------- playlist ---------- */
 
 const Playlist = styled.div`
-  background: ${(p) => p.theme.elevated};
-  border: 1px solid ${(p) => p.theme.border};
-  border-radius: 12px;
-  padding: 0.35rem 0.4rem 0.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
 `;
 
 const PlaylistHeadRow = styled.div`
@@ -1861,8 +1890,8 @@ const PlaylistHeadRow = styled.div`
   grid-template-columns: 40px 1fr auto 26px;
   gap: 0.75rem;
   align-items: center;
-  padding: 0.5rem 0.85rem;
-  border-bottom: 1px solid ${(p) => p.theme.border};
+  padding: 0 10px 8px;
+  border-bottom: 1px solid ${(p) => p.theme.card};
   color: ${(p) => p.theme.faint};
   font-size: 0.7rem;
   font-weight: 800;
@@ -1876,9 +1905,9 @@ const PlaylistHeadRow = styled.div`
 `;
 
 const TrackWrap = styled.div`
-  border-radius: 8px;
+  border-radius: 0;
   background: ${(p) => (p.$active ? p.theme.cardHover : 'transparent')};
-  margin-top: 2px;
+  margin-top: 0;
 `;
 
 const TrackRow = styled.button`
@@ -1887,13 +1916,14 @@ const TrackRow = styled.button`
   grid-template-columns: 40px 1fr auto 26px;
   gap: 0.75rem;
   align-items: center;
-  padding: 0.55rem 0.85rem;
+  min-height: 42px;
+  padding: 6px 10px;
   background: transparent;
   border: none;
   cursor: pointer;
   text-align: left;
   color: ${(p) => p.theme.text};
-  border-radius: 8px;
+  border-radius: 0;
   transition: background 0.14s ease;
   &:hover { background: ${(p) => p.theme.rowHover}; }
   &:hover .num { display: none; }
@@ -1953,7 +1983,8 @@ const TrackChevron = styled.span`
 `;
 
 const TrackDetail = styled.div`
-  padding: 0 0.85rem 0.85rem 3.3rem;
+  padding: 0 10px 12px 58px;
+  background: ${(p) => p.theme.card};
   ul {
     margin: 0.2rem 0 0;
     padding: 0;
@@ -2009,17 +2040,17 @@ const EqWrap = styled.span`
 const CardGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 0.9rem;
+  gap: 2px;
   @media (max-width: 480px) { grid-template-columns: 1fr; }
 `;
 
 const InfoCard = styled.div`
   background: ${(p) => p.theme.card};
-  border: 1px solid ${(p) => p.theme.border};
-  border-radius: 12px;
-  padding: 1.05rem 1.1rem;
-  transition: background 0.16s ease, transform 0.16s ease;
-  &:hover { background: ${(p) => p.theme.cardHover}; transform: translateY(-2px); }
+  border: none;
+  border-radius: 0;
+  padding: 15px;
+  transition: background 0.16s ease;
+  &:hover { background: ${(p) => p.theme.cardHover}; }
 `;
 
 const CardKicker = styled.div`
@@ -2074,7 +2105,7 @@ const CertChip = styled.span`
   border: 1px solid ${(p) => p.theme.borderStrong};
   color: ${(p) => p.theme.text};
   padding: 0.42rem 0.9rem;
-  border-radius: 999px;
+  border-radius: 2px;
   font-size: 0.83rem;
   font-weight: 600;
   svg { color: ${(p) => p.theme.accent}; }
@@ -2084,27 +2115,28 @@ const CertChip = styled.span`
 
 const ProjectCard = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   background: ${(p) => p.theme.card};
-  border: 1px solid ${(p) => p.theme.border};
-  border-radius: 12px;
+  border: none;
+  border-radius: 0;
   overflow: hidden;
   text-decoration: none;
   color: inherit;
-  transition: background 0.16s ease, transform 0.16s ease;
-  &:hover { background: ${(p) => p.theme.cardHover}; transform: translateY(-3px); }
+  transition: background 0.16s ease;
+  &:hover { background: ${(p) => p.theme.cardHover}; }
 `;
 
 const ProjectCover = styled.div`
   position: relative;
-  height: 116px;
+  width: 76px;
+  min-height: 76px;
+  flex: 0 0 76px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, ${(p) => p.theme.tile}, ${(p) => p.theme.cardHover});
+  background: ${(p) => p.theme.tile};
   > span {
-    font-size: 2rem;
-    font-weight: 900;
+    display: inline-flex;
     color: ${(p) => p.theme.faint};
   }
 `;
@@ -2129,7 +2161,8 @@ const ProjectPlay = styled.span`
 `;
 
 const ProjectBody = styled.div`
-  padding: 0.9rem 1.05rem 1.1rem;
+  min-width: 0;
+  padding: 12px 15px;
 `;
 
 const TechRow = styled.div`
@@ -2143,7 +2176,7 @@ const TechChip = styled.span`
   background: ${(p) => p.theme.tile};
   color: ${(p) => p.theme.muted};
   padding: 0.26rem 0.6rem;
-  border-radius: 6px;
+  border-radius: 2px;
   font-size: 0.72rem;
   font-weight: 600;
 `;
@@ -2151,10 +2184,10 @@ const TechChip = styled.span`
 /* ---------- publications ---------- */
 
 const PubList = styled.div`
-  background: ${(p) => p.theme.elevated};
-  border: 1px solid ${(p) => p.theme.border};
-  border-radius: 12px;
-  padding: 0.4rem 0.4rem 0.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
 `;
 
 const PubItem = styled.div`
@@ -2162,9 +2195,10 @@ const PubItem = styled.div`
   grid-template-columns: 34px 1fr;
   gap: 0.75rem;
   align-items: start;
-  padding: 0.7rem 0.85rem;
-  border-radius: 8px;
-  margin-top: 2px;
+  min-height: 42px;
+  padding: 9px 10px;
+  border-radius: 0;
+  margin-top: 0;
   transition: background 0.14s ease;
   &:hover { background: ${(p) => p.theme.rowHover}; }
 `;
@@ -2200,10 +2234,10 @@ const PubMeta = styled.div`
 /* ---------- discography (tools) ---------- */
 
 const Discography = styled.div`
-  background: ${(p) => p.theme.elevated};
-  border: 1px solid ${(p) => p.theme.border};
-  border-radius: 12px;
-  padding: 0.4rem;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
 `;
 
 const DiscoPlay = styled.span`
@@ -2216,9 +2250,10 @@ const DiscoPlay = styled.span`
 const DiscoRow = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  padding: 0.5rem 0.55rem;
-  border-radius: 8px;
+  gap: 10px;
+  min-height: 52px;
+  padding: 5px;
+  border-radius: 0;
   transition: background 0.14s ease;
   &:hover { background: ${(p) => p.theme.rowHover}; }
   &:hover ${DiscoPlay} { opacity: 1; }
@@ -2228,14 +2263,14 @@ const DiscoTile = styled.div`
   width: 42px;
   height: 42px;
   flex: 0 0 auto;
-  border-radius: 8px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: ${(p) => (p.$glyph ? '1.3rem' : '0.85rem')};
   font-weight: 800;
-  background: ${(p) => (p.$glyph ? p.theme.tile : p.theme.accent)};
-  color: ${(p) => (p.$glyph ? p.theme.text : p.theme.accentText)};
+  background: ${(p) => p.theme.card};
+  color: ${(p) => (p.$glyph ? p.theme.text : p.theme.muted)};
 `;
 
 const DiscoMeta = styled.div`
@@ -2266,9 +2301,9 @@ const FootNote = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
-  margin-top: 2.5rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid ${(p) => p.theme.border};
+  margin-top: 30px;
+  padding-top: 15px;
+  border-top: 1px solid ${(p) => p.theme.card};
   color: ${(p) => p.theme.faint};
   font-size: 0.82rem;
   em { color: ${(p) => p.theme.muted}; font-style: italic; }
@@ -2277,20 +2312,20 @@ const FootNote = styled.div`
 /* ---------- player bar ---------- */
 
 const Player = styled.footer`
-  position: sticky;
-  bottom: 0;
+  position: relative;
+  flex: 0 0 var(--player-h);
   z-index: 40;
-  background: ${(p) => p.theme.elevated};
+  background: ${(p) => p.theme.sidebar};
   border-top: 1px solid ${(p) => p.theme.border};
-  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.28);
+  box-shadow: none;
 `;
 
 const PlayerInner = styled.div`
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(220px, 25%) minmax(260px, 50%) minmax(160px, 25%);
   align-items: center;
   gap: 1rem;
-  padding: 0.55rem 1.25rem;
+  padding: 5px 15px;
   min-height: var(--player-h);
   @media (max-width: 640px) {
     grid-template-columns: 1fr auto;
@@ -2308,10 +2343,10 @@ const NowPlaying = styled.div`
 
 const NowArt = styled.div`
   position: relative;
-  width: 46px;
-  height: 46px;
+  width: 50px;
+  height: 50px;
   flex: 0 0 auto;
-  border-radius: 6px;
+  border-radius: 0;
   overflow: hidden;
   background: ${(p) => p.theme.accent};
   color: ${(p) => p.theme.accentText};
@@ -2321,7 +2356,7 @@ const NowArt = styled.div`
   font-weight: 800;
   font-size: 0.82rem;
   img { width: 100%; height: 100%; object-fit: cover; }
-  &[data-play='on'] { box-shadow: 0 0 0 2px ${(p) => p.theme.accent}, 0 0 16px ${(p) => p.theme.onAccentGlow}; }
+  &[data-play='on'] { box-shadow: none; }
   @media (max-width: 640px) { width: 40px; height: 40px; }
 `;
 
