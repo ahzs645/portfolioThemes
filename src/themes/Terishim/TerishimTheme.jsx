@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import styled, { createGlobalStyle, keyframes } from 'styled-components';
 import { useCV } from '../../contexts/ConfigContext';
 import { formatDate, formatDateRange, normalizeHighlights } from '../../utils/cvHelpers';
+import { toHangul } from '../../utils/transliterate';
 
 /* ──────────────────────────────────────────────────────────────
    Terishim — "in orbit"
@@ -61,84 +62,11 @@ function articleFor(word = '') {
   return /^[aeiou]/i.test(word.trim()) ? 'an' : 'a';
 }
 
-/* ───── english → hangul transliterator (phonetic, approximate) ───── */
-const H_CHO = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']; // eslint-disable-line no-unused-vars
-const H_CHO_R = ['g', 'kk', 'n', 'd', 'tt', 'r', 'm', 'b', 'pp', 's', 'ss', '', 'j', 'jj', 'ch', 'k', 't', 'p', 'h'];
-const H_JUNG_R = ['a', 'ae', 'ya', 'yae', 'eo', 'e', 'yeo', 'ye', 'o', 'wa', 'wae', 'oe', 'yo', 'u', 'wo', 'we', 'wi', 'yu', 'eu', 'ui', 'i'];
-const H_JONG_R = ['', 'k', 'kk', '', 'n', '', '', 't', 'l', '', '', '', '', '', '', '', 'm', 'p', '', 't', 't', 'ng', 't', 't', 'k', 't', 'p', 'h'];
-const H_ONSET = { b: 7, c: 15, d: 3, f: 17, g: 0, h: 18, j: 12, k: 15, l: 5, m: 6, n: 2, p: 17, q: 15, r: 5, s: 9, t: 16, v: 7, z: 12 };
-const H_ONSET2 = { ch: 14, sh: 9, th: 9, ph: 17, gh: 0, ck: 15, kh: 15, wh: 18, zh: 12 };
-const H_FINAL = { n: 4, m: 16, l: 8, r: 8 };
-const H_VOWELS = {
-  yae: 3, yeo: 6, eau: 8, ee: 20, ea: 20, oo: 13, ou: 8, ow: 8, oa: 8, oe: 11, au: 8, aw: 8, ai: 1, ay: 5, ei: 5, ey: 5,
-  ie: 20, ue: 13, ui: 16, eu: 18, ew: 17, oy: 8, ya: 2, ye: 7, yo: 12, yu: 17, yi: 20, wa: 9, wo: 14, wi: 16, we: 15, wu: 13,
-  a: 0, e: 5, i: 20, o: 8, u: 13, y: 20, w: 13,
-};
-function hVowelIdx(g) {
-  if (H_VOWELS[g] !== undefined) return H_VOWELS[g];
-  if (g.length > 1 && g.endsWith('y') && H_VOWELS[g.slice(0, -1)] !== undefined) return H_VOWELS[g.slice(0, -1)];
-  const base = g.replace(/[^aeiou]/g, '');
-  for (let n = base.length; n >= 1; n -= 1) if (H_VOWELS[base.slice(0, n)] !== undefined) return H_VOWELS[base.slice(0, n)];
-  return 18;
-}
-const hCompose = (c, j, k) => String.fromCharCode(0xac00 + (c * 21 + j) * 28 + k);
 function krSize(hangul, scale = 1) {
   const n = (hangul || '').length || 1;
   const px = n <= 2 ? 64 : n === 3 ? 52 : n === 4 ? 44 : n === 5 ? 36 : 30;
   return Math.round(px * scale);
 }
-function hSplitCons(cluster) {
-  const list = [];
-  let i = 0;
-  while (i < cluster.length) {
-    const two = cluster.substr(i, 2);
-    if (H_ONSET2[two] !== undefined) {
-      list.push({ idx: H_ONSET2[two], ch: two });
-      i += 2;
-    } else if (H_ONSET[cluster[i]] !== undefined) {
-      list.push({ idx: H_ONSET[cluster[i]], ch: cluster[i] });
-      i += 1;
-    } else i += 1;
-  }
-  return list;
-}
-function toHangul(token = '') {
-  let s = token.toLowerCase().replace(/qu/g, 'kw').replace(/x/g, 'ks').replace(/[^a-z]/g, '');
-  s = s.replace(/([bcdfghjkpqstvwz])\1+/g, '$1');
-  if (!s) return { hangul: '', roman: '' };
-  const parts = [];
-  const re = /([yw]?[aeiou]+y?|y)/g;
-  let last = 0;
-  let m;
-  while ((m = re.exec(s))) {
-    if (m.index > last) parts.push({ t: 'c', v: s.slice(last, m.index) });
-    parts.push({ t: 'v', v: m[0] });
-    last = re.lastIndex;
-  }
-  if (last < s.length) parts.push({ t: 'c', v: s.slice(last) });
-  const syl = [];
-  const distribute = (cons) =>
-    cons.forEach((c, idx) => {
-      if (idx === 0 && syl.length && syl[syl.length - 1].k === 0 && H_FINAL[c.ch] !== undefined) {
-        syl[syl.length - 1].k = H_FINAL[c.ch];
-      } else {
-        syl.push({ c: c.idx, j: 18, k: 0 });
-      }
-    });
-  for (let p = 0; p < parts.length; p += 1) {
-    if (parts[p].t !== 'v') continue;
-    const prev = p > 0 && parts[p - 1].t === 'c' ? hSplitCons(parts[p - 1].v) : [];
-    const onset = prev.length ? prev[prev.length - 1] : null;
-    distribute(prev.slice(0, -1));
-    syl.push({ c: onset ? onset.idx : 11, j: hVowelIdx(parts[p].v), k: 0 });
-  }
-  if (parts.length && parts[parts.length - 1].t === 'c') distribute(hSplitCons(parts[parts.length - 1].v));
-  return {
-    hangul: syl.map((x) => hCompose(x.c, x.j, x.k)).join(''),
-    roman: syl.map((x) => `${H_CHO_R[x.c]}${H_JUNG_R[x.j]}${H_JONG_R[x.k]}`).join(' · '),
-  };
-}
-
 function useTypewriter(text, speed = 28) {
   const [out, setOut] = useState('');
   useEffect(() => {

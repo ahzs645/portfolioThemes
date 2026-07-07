@@ -24,7 +24,7 @@ const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
 
 export default defineConfig({
   plugins: [react(), glsl({ compress: false }), spa404Plugin()],
-  assetsInclude: ['**/*.yaml', '**/*.yml'],
+  assetsInclude: ['**/*.yaml', '**/*.yml', '**/*.glb', '**/*.gltf'],
   base,
   build: {
     chunkSizeWarningLimit: 700,
