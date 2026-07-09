@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 // Keyboard navigation for the catalog: arrow keys move the focused row, Enter
 // selects it, Escape closes the inspect popup (if open) or the catalog. Also
@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from 'react';
 export function useCatalogKeyboard({
   filteredThemes,
   searchQuery,
+  currentThemeId,
   inspectThemeId,
   setInspectThemeId,
   tableContainerRef,
@@ -15,7 +16,20 @@ export function useCatalogKeyboard({
   onClose,
   onClearHover,
 }) {
-  const [focusedThemeIndex, setFocusedThemeIndex] = useState(0);
+  // Open focused on the active theme so the catalog reveals where you already
+  // are in the (long) list instead of always starting at the top.
+  const [focusedThemeIndex, setFocusedThemeIndex] = useState(() => {
+    const activeIndex = filteredThemes.findIndex((t) => t.id === currentThemeId);
+    return activeIndex >= 0 ? activeIndex : 0;
+  });
+  // Tracks the last query we reset focus for, so the reset effect can tell a real
+  // search change from its initial run (where focus must stay on the active
+  // theme). Comparing values — not a "mounted yet?" flag — keeps it correct under
+  // StrictMode's double-invoked effects.
+  const lastResetQueryRef = useRef(searchQuery);
+  // Center (vs. nudge) only the first auto-scroll, so opening the catalog lands
+  // the active theme in the middle of view.
+  const didFirstScrollRef = useRef(false);
 
   const focusThemeByDelta = useCallback((delta) => {
     setFocusedThemeIndex((index) => {
@@ -58,13 +72,18 @@ export function useCatalogKeyboard({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleCatalogKeyDown]);
 
+  // Reset to the top when the query changes — but not on the initial mount,
+  // where focus should stay on the active theme resolved above.
   useEffect(() => {
+    if (lastResetQueryRef.current === searchQuery) return;
+    lastResetQueryRef.current = searchQuery;
     setFocusedThemeIndex(0);
   }, [searchQuery]);
 
   useEffect(() => {
     const row = tableContainerRef.current?.querySelector(`[data-theme-index="${focusedThemeIndex}"]`);
-    row?.scrollIntoView({ block: 'nearest' });
+    row?.scrollIntoView({ block: didFirstScrollRef.current ? 'nearest' : 'center' });
+    didFirstScrollRef.current = true;
   }, [focusedThemeIndex, tableContainerRef]);
 
   return { focusedThemeIndex, setFocusedThemeIndex, handleCatalogKeyDown };

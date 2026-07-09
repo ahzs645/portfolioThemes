@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { sourceDomain } from '../../utils/sourceDomain';
 import {
   MobileCardList as MobileCardListRoot,
@@ -20,8 +21,19 @@ export function MobileCardList({
   onPressEnd,
   onSelect,
 }) {
+  const listRef = useRef(null);
+
+  // On open, bring the active theme's card into view so the catalog reveals
+  // where you already are in the list instead of starting at the top.
+  useEffect(() => {
+    const card = listRef.current?.querySelector(`[data-theme-id="${currentThemeId}"]`);
+    card?.scrollIntoView({ block: 'center' });
+    // Run once on mount only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <MobileCardListRoot $darkMode={darkMode}>
+    <MobileCardListRoot ref={listRef} $darkMode={darkMode}>
       {filteredThemes.length === 0 ? (
         <EmptyMobileState $darkMode={darkMode}>
           No themes found for "{searchQuery}".
@@ -29,6 +41,7 @@ export function MobileCardList({
       ) : filteredThemes.map((theme) => (
         <MobileCard
           key={theme.id}
+          data-theme-id={theme.id}
           $active={theme.id === currentThemeId}
           $darkMode={darkMode}
           role="button"

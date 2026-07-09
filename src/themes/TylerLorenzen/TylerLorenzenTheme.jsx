@@ -95,31 +95,26 @@ function formatCompact(n) {
   return String(n);
 }
 
-/* ---------- tool glyphs ---------- */
+/* ---------- tool classification ---------- */
 
-const TOOL_GLYPHS = [
-  { match: /power\s*bi/i, glyph: '📊' },
-  { match: /\bgis\b/i, glyph: '🗺️' },
-  { match: /r\s*studio/i, glyph: '📈' },
-  { match: /adobe/i, glyph: '🎨' },
-  { match: /spss/i, glyph: '🧮' },
-  { match: /excel/i, glyph: '📗' },
-  { match: /prism/i, glyph: '🔬' },
-  { match: /python/i, glyph: '🐍' },
-  { match: /\bcad\b/i, glyph: '📐' },
-  { match: /research/i, glyph: '🔎' },
-  { match: /grant/i, glyph: '📝' },
-  { match: /logistic/i, glyph: '📦' },
-  { match: /brand/i, glyph: '🧭' },
-  { match: /arabic|language|fluent/i, glyph: '🗣️' },
-  { match: /decision/i, glyph: '⚡' },
-  { match: /process|reengineer/i, glyph: '⚙️' },
-  { match: /analyt/i, glyph: '💡' },
+// The source lists every skill with the same music-note icon (bi-music-note-
+// beamed), never emoji. We keep a light matcher only to label a tool as
+// "Software" vs "Skill" in its sub-line — the tile itself always renders the
+// music note (NoteGlyph), matching the source.
+const SOFTWARE_TOOLS = [
+  /power\s*bi/i,
+  /\bgis\b/i,
+  /r\s*studio/i,
+  /adobe/i,
+  /spss/i,
+  /excel/i,
+  /prism/i,
+  /python/i,
+  /\bcad\b/i,
 ];
 
-function glyphFor(label = '') {
-  const found = TOOL_GLYPHS.find((t) => t.match.test(label));
-  return found ? found.glyph : null;
+function isSoftware(label = '') {
+  return SOFTWARE_TOOLS.some((re) => re.test(label));
 }
 
 function resolveAvatar(avatar) {
@@ -140,7 +135,7 @@ function synthesizeBio(cv) {
   return `${name} is ${roleLead}${place ? `, based in ${place}` : ''}. `
     + `The work moves between the lab, the field, and the data — turning environmental `
     + `samples into clear signals that inform public and environmental health. `
-    + `This profile plays like a record: press ▶ and let the résumé run.`;
+    + `This profile plays like a record: press play and let the résumé run.`;
 }
 
 /* ---------- icons ---------- */
@@ -359,7 +354,7 @@ export function TylerLorenzenTheme({ darkMode = true, onDarkModeChange }) {
   }, [cv]);
 
   const tools = useMemo(
-    () => skillList.map((label) => ({ label, glyph: glyphFor(label) })),
+    () => skillList.map((label) => ({ label, software: isSoftware(label) })),
     [skillList],
   );
 
@@ -908,12 +903,12 @@ export function TylerLorenzenTheme({ darkMode = true, onDarkModeChange }) {
                     <Discography>
                       {tools.map((t) => (
                         <DiscoRow key={t.label} title={t.label}>
-                          <DiscoTile $glyph={!!t.glyph}>
-                            {t.glyph || <NoteGlyph size={18} />}
+                          <DiscoTile>
+                            <NoteGlyph size={18} />
                           </DiscoTile>
                           <DiscoMeta>
                             <span className="name">{t.label}</span>
-                            <span className="sub">{t.glyph ? 'Software' : 'Skill'} · {formatCompact(fakeCount(`tool:${t.label}`, 40000, 4200000))} plays</span>
+                            <span className="sub">{t.software ? 'Software' : 'Skill'} · {formatCompact(fakeCount(`tool:${t.label}`, 40000, 4200000))} plays</span>
                           </DiscoMeta>
                           <DiscoPlay aria-hidden="true"><PlayGlyph size={14} /></DiscoPlay>
                         </DiscoRow>
@@ -2267,10 +2262,8 @@ const DiscoTile = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: ${(p) => (p.$glyph ? '1.3rem' : '0.85rem')};
-  font-weight: 800;
   background: ${(p) => p.theme.card};
-  color: ${(p) => (p.$glyph ? p.theme.text : p.theme.muted)};
+  color: ${(p) => p.theme.muted};
 `;
 
 const DiscoMeta = styled.div`
