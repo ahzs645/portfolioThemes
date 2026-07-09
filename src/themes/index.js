@@ -754,6 +754,14 @@ export const PORTFOLIO_THEMES = [
     source: 'https://tylerlorenzen.tech',
     Component: lazyTheme(() => import('./TylerLorenzen/TylerLorenzenTheme'), 'TylerLorenzenTheme'),
   },
+  {
+    id: 'sean-thielen',
+    slug: 'solar',
+    name: 'Solar',
+    description: 'A quiet centred column whose whole palette tracks the real sun — dawn rose, sky azure, golden dusk, moonlit night — blended continuously by the sun\'s altitude for the local clock, framed by faint sun/moon arcs, a 24h clock, and a time scrubber, inspired by seanxthielen.com.',
+    source: 'https://seanxthielen.com',
+    Component: lazyTheme(() => import('./Solar/SolarTheme'), 'SolarTheme'),
+  },
 ];
 
 if (import.meta.env?.DEV) {
