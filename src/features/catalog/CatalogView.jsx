@@ -55,6 +55,7 @@ export function CatalogView({ darkMode, setDarkMode, currentThemeId, onSelectThe
   const { focusedThemeIndex, setFocusedThemeIndex, handleCatalogKeyDown } = useCatalogKeyboard({
     filteredThemes,
     searchQuery,
+    currentThemeId,
     inspectThemeId,
     setInspectThemeId,
     tableContainerRef,

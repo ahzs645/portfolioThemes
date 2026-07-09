@@ -86,8 +86,30 @@ export function SadaleTheme({ darkMode = false, onDarkModeChange }) {
   const linkedin = pickSocialUrl(socials, ['linkedin']);
   const facebook = pickSocialUrl(socials, ['facebook']);
   const instagram = pickSocialUrl(socials, ['instagram']);
+  const twitter = pickSocialUrl(socials, ['twitter', 'x']);
+  const youtube = pickSocialUrl(socials, ['youtube']);
+  const reddit = pickSocialUrl(socials, ['reddit']);
+  const mastodon = pickSocialUrl(socials, ['mastodon']);
+  const bluesky = pickSocialUrl(socials, ['bluesky', 'bsky']);
   const githubEntry = socials.find((s) => String(s.network || '').toLowerCase() === 'github');
   const alias = githubEntry?.username || firstName.toLowerCase();
+
+  // The source splits its footer into "External Presence" (profiles) and
+  // "Contact" (direct lines). Build the presence list from whichever socials the
+  // CV actually has, in the source's rough order (YouTube/GitHub/Reddit/X first).
+  const cleanHost = (url) => String(url).replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const externalPresence = [
+    website && { label: 'Website', href: website, handle: cleanHost(website) },
+    youtube && { label: 'YouTube', href: youtube, handle: `@${alias}` },
+    github && { label: 'GitHub', href: github, handle: `@${alias}` },
+    reddit && { label: 'Reddit', href: reddit, handle: `/u/${alias}` },
+    twitter && { label: 'Twitter/X', href: twitter, handle: `@${alias}` },
+    linkedin && { label: 'LinkedIn', href: linkedin, handle: firstName },
+    mastodon && { label: 'Mastodon', href: mastodon, handle: `@${alias}` },
+    bluesky && { label: 'Bluesky', href: bluesky, handle: `@${alias}` },
+    instagram && { label: 'Instagram', href: instagram, handle: `@${alias}` },
+    facebook && { label: 'Facebook', href: facebook, handle: `@${alias}` },
+  ].filter(Boolean);
 
   // Section anchors — scroll via refs so nav works inside preview shadow DOM
   // without touching the app router's URL hash.
@@ -242,6 +264,7 @@ export function SadaleTheme({ darkMode = false, onDarkModeChange }) {
                   >
                     😀 click me 😀
                   </ClickMe>
+                  {clicked && <Reveal aria-hidden="true">✨ GOTCHA ✨</Reveal>}
                 </BounceBox>
                 {clicked && (
                   <Whisper>you clicked it. incredible. 10/10 — would click again.</Whisper>
@@ -378,37 +401,36 @@ export function SadaleTheme({ darkMode = false, onDarkModeChange }) {
             </Section>
           )}
 
+          {externalPresence.length > 0 && (
+            <Section>
+              <Label>External Presence:</Label>
+              <UL>
+                {externalPresence.map((s) => (
+                  <li key={s.label}>
+                    {s.label} —{' '}
+                    <Link href={s.href} target="_blank" rel="noopener noreferrer">
+                      {s.handle}
+                    </Link>
+                  </li>
+                ))}
+              </UL>
+            </Section>
+          )}
+
           <Section>
-            <Label>Find me elsewhere:</Label>
+            <Label>Contact:</Label>
             <UL>
-              {email && (
+              {email ? (
                 <li>
                   Email —{' '}
                   <Link href={`mailto:${email}`}>{email.replace('@', ' [at] ')}</Link>
                 </li>
+              ) : (
+                <li>Email — say hi through any of the profiles above 👋</li>
               )}
-              {github && (
+              {location && (
                 <li>
-                  GitHub —{' '}
-                  <Link href={github} target="_blank" rel="noopener noreferrer">@{alias}</Link>
-                </li>
-              )}
-              {linkedin && (
-                <li>
-                  LinkedIn —{' '}
-                  <Link href={linkedin} target="_blank" rel="noopener noreferrer">{firstName}</Link>
-                </li>
-              )}
-              {facebook && (
-                <li>
-                  Facebook —{' '}
-                  <Link href={facebook} target="_blank" rel="noopener noreferrer">@{alias}</Link>
-                </li>
-              )}
-              {instagram && (
-                <li>
-                  Instagram —{' '}
-                  <Link href={instagram} target="_blank" rel="noopener noreferrer">@{alias}</Link>
+                  Based in — {location}
                 </li>
               )}
             </UL>
@@ -733,6 +755,33 @@ const ClickMe = styled.button`
 const Whisper = styled.span`
   color: ${(p) => p.theme.faint};
   font-style: italic;
+`;
+
+// The source hides a black box behind "click me" that pops over the whole
+// widget when toggled (its nested-marquee easter egg). We reproduce the reveal
+// as an overlay that covers the bounce box, minus the source's profanity.
+const revealFlash = keyframes`
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+`;
+
+const Reveal = styled.div`
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000000;
+  color: #ffffff;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: ${revealFlash} 0.12s ease-out;
+  }
 `;
 
 const Rule = styled.hr`

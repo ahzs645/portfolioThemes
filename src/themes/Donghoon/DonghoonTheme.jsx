@@ -42,6 +42,13 @@ const lightTheme = {
   page: '#f9f6f0',
   card: '#f9f6f0',
   cardAlt: '#efeae0',
+  // Card surfaces + on-card ink. Kept as explicit tokens so the publication and
+  // project cards track dark mode instead of staying cream (they used to hardcode
+  // these light literals inline).
+  cardGrad: 'linear-gradient(180deg, rgb(249 246 240 / 0.98), rgb(239 234 224 / 0.96))',
+  cardBorder: 'rgb(138 133 12 / 0.10)',
+  cardTitle: 'rgb(72 57 33)',
+  cardBody: 'rgb(88 72 46 / 0.78)',
   ink: '#2c2925',
   inkSoft: 'rgba(44, 41, 37, 0.66)',
   inkFaint: 'rgba(44, 41, 37, 0.46)',
@@ -63,6 +70,10 @@ const darkTheme = {
   page: '#1c1a16',
   card: '#211e19',
   cardAlt: '#26221c',
+  cardGrad: 'linear-gradient(180deg, rgb(33 30 25 / 0.98), rgb(38 34 28 / 0.96))',
+  cardBorder: 'rgb(201 194 78 / 0.16)',
+  cardTitle: 'rgb(236 231 220)',
+  cardBody: 'rgb(236 231 220 / 0.66)',
   ink: '#ece7dc',
   inkSoft: 'rgba(236, 231, 220, 0.64)',
   inkFaint: 'rgba(236, 231, 220, 0.42)',
@@ -917,8 +928,8 @@ const PubCard = styled.article`
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid rgb(138 133 12 / 0.1);
-  background: linear-gradient(180deg, rgb(249 246 240 / 0.98), rgb(239 234 224 / 0.96));
+  border: 1px solid ${(p) => p.theme.cardBorder};
+  background: ${(p) => p.theme.cardGrad};
   box-sizing: border-box;
 
   @media (min-width: 1560px) {
@@ -954,7 +965,7 @@ const Badge = styled.span`
   white-space: nowrap;
   color: ${(p) => p.theme.ink};
   background: ${(p) => p.theme.card};
-  border: 1px solid rgb(138 133 12 / 0.1);
+  border: 1px solid ${(p) => p.theme.cardBorder};
   flex: 0 0 auto;
 `;
 
@@ -1028,8 +1039,8 @@ const ProjectCard = styled.article`
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid rgb(138 133 12 / 0.1);
-  background: linear-gradient(180deg, rgb(249 246 240 / 0.98), rgb(239 234 224 / 0.96));
+  border: 1px solid ${(p) => p.theme.cardBorder};
+  background: ${(p) => p.theme.cardGrad};
   transition: border-color 0.18s ease;
 
   &:hover {
@@ -1063,11 +1074,11 @@ const ProjectTitle = styled.h3`
   font-size: 0.9rem;
   font-weight: 400;
   line-height: 1.25;
-  color: rgb(72 57 33);
+  color: ${(p) => p.theme.cardTitle};
   min-width: 0;
 
   a {
-    color: rgb(72 57 33);
+    color: ${(p) => p.theme.cardTitle};
     text-decoration: none;
   }
   a:hover {
@@ -1084,7 +1095,7 @@ const ProjectSummary = styled.p`
   font-size: 0.78rem;
   font-weight: 300;
   line-height: 1.35;
-  color: rgb(88 72 46 / 0.78);
+  color: ${(p) => p.theme.cardBody};
 `;
 
 const ProjectMeta = styled.p`
@@ -1096,11 +1107,11 @@ const ProjectMeta = styled.p`
   font-size: 0.75rem;
   font-weight: 300;
   line-height: 1.35;
-  color: rgb(88 72 46 / 0.78);
+  color: ${(p) => p.theme.cardBody};
 
   span,
   a {
-    color: rgb(72 57 33);
+    color: ${(p) => p.theme.cardTitle};
     font-weight: 350;
     white-space: nowrap;
   }
