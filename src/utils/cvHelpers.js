@@ -226,6 +226,19 @@ export function formatMonthYear(dateStr) {
 }
 
 /**
+ * Check if an entry (education, position, …) is still in progress: its
+ * end_date is "present" or later than `now`. Entries without an end_date are
+ * treated as finished, since undated degrees are usually completed ones.
+ */
+export function isOngoing(entry, now = new Date()) {
+  const end = parseDateParts(entry?.end_date ?? entry?.endDate);
+  if (!end) return false;
+  if (end.present) return true;
+  const nowMonth = now.getFullYear() * 12 + now.getMonth() + 1;
+  return end.year * 12 + (end.month ?? 12) > nowMonth;
+}
+
+/**
  * Filter out archived items from an array
  */
 export function filterActive(items = [], limit = null) {

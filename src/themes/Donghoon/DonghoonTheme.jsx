@@ -6,6 +6,7 @@ import {
   formatDate,
   formatRange,
   isArchived,
+  isOngoing,
   pickSocialUrl,
 } from '../../utils/cvHelpers';
 import { withBase } from '../../utils/assetPath';
@@ -119,6 +120,12 @@ const NAV_ITEMS = [
   { id: 'links', label: 'others' },
 ];
 
+function withArticle(phrase) {
+  const text = String(phrase || '').trim();
+  if (!text) return 'a researcher';
+  return `${/^[aeiou]/i.test(text) ? 'an' : 'a'} ${text}`;
+}
+
 function yearOf(date) {
   return formatDate(date, { month: 'none', fallback: '' });
 }
@@ -186,19 +193,25 @@ export function DonghoonTheme({ darkMode = false }) {
   const awards = useMemo(() => filterActive(cv.awards || []), [cv]);
   const projects = useMemo(() => filterActive(cv.projects || []), [cv]);
 
-  // Derive a research field from the primary degree's highlights, e.g.
-  // "Focus on air quality and environmental health" → "air quality and…".
+  // The intro is driven by whichever is current: a degree still in progress
+  // ("PhD candidate in …") or else the current position ("… at …").
   const primaryEdu = education[0] || null;
+  const studying = isOngoing(primaryEdu);
+  const currentRole = experience.find((e) => e.isCurrent) || null;
+  const about = typeof cv.about === 'string' ? cv.about.trim() : '';
+
+  // Research field from the primary degree's highlights, e.g.
+  // "Focus on air quality and environmental health" → "air quality and…".
   const field = useMemo(() => {
     const hs = primaryEdu?.highlights || [];
     const focus = hs.find((h) => /focus/i.test(String(h)));
-    if (focus) return String(focus).replace(/^\s*focus on\s*/i, '').replace(/\.$/, '').trim();
-    return 'environmental health';
+    if (!focus) return null;
+    return String(focus).replace(/^\s*focus on\s*/i, '').replace(/\.$/, '').trim() || null;
   }, [primaryEdu]);
 
   const degreeWord = (primaryEdu?.degree || 'PhD').replace(/\./g, '');
   const subtitle = [
-    primaryEdu ? `${degreeWord} candidate` : cv.currentJobTitle,
+    studying ? `${degreeWord} candidate` : cv.currentJobTitle,
     location,
   ]
     .filter(Boolean)
@@ -219,8 +232,8 @@ export function DonghoonTheme({ darkMode = false }) {
   }, [experience]);
 
   const priorDegrees = useMemo(
-    () => education.filter((e) => e !== primaryEdu).slice(0, 2),
-    [education, primaryEdu],
+    () => (studying ? education.filter((e) => e !== primaryEdu) : education).slice(0, 3),
+    [education, primaryEdu, studying],
   );
   const priorSameInst =
     priorDegrees.length > 0 &&
@@ -319,29 +332,39 @@ export function DonghoonTheme({ darkMode = false }) {
               {avatarSrc && <MobilePortrait>{renderPortrait()}</MobilePortrait>}
 
               <Bio>
-                <p>
-                  I am a researcher working on{' '}
-                  <FauxLink>{field}</FauxLink>
-                  {primaryEdu ? (
-                    <>
-                      {' '}and a {degreeWord} candidate in{' '}
-                      <FauxLink>{primaryEdu.area}</FauxLink> at the{' '}
-                      <RefLink href={primaryEdu.url}>{primaryEdu.institution}</RefLink>
-                    </>
-                  ) : null}
-                  {location ? (
-                    <>
-                      , based in <FauxLink>{location}</FauxLink>
-                    </>
-                  ) : null}
-                  .
-                </p>
-
-                <p>
-                  My work measures particulate matter, black carbon, and airborne
-                  metals across northern communities, and turns those measurements
-                  into evidence that supports public and environmental health.
-                </p>
+                {about ? (
+                  about.split(/\n\s*\n/).map((para, i) => <p key={`about-${i}`}>{para}</p>)
+                ) : (
+                  <p>
+                    I am {studying ? (
+                      <>
+                        a {degreeWord} candidate in{' '}
+                        <FauxLink>{primaryEdu.area}</FauxLink> at the{' '}
+                        <RefLink href={primaryEdu.url}>{primaryEdu.institution}</RefLink>
+                      </>
+                    ) : currentRole ? (
+                      <>
+                        {withArticle(currentRole.title)}
+                        {currentRole.company ? (
+                          <> at <RefLink href={currentRole.url}>{currentRole.company}</RefLink></>
+                        ) : null}
+                      </>
+                    ) : (
+                      'a researcher'
+                    )}
+                    {field ? (
+                      <>
+                        , working on <FauxLink>{field}</FauxLink>
+                      </>
+                    ) : null}
+                    {location ? (
+                      <>
+                        , based in <FauxLink>{location}</FauxLink>
+                      </>
+                    ) : null}
+                    .
+                  </p>
+                )}
 
                 {(priorDegrees.length > 0 || backgroundRoles.length > 0) && (
                   <p>

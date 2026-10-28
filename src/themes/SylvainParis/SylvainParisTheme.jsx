@@ -6,7 +6,9 @@ import {
   formatRange,
   formatDate,
   getInitials,
+  isOngoing,
 } from '../../utils/cvHelpers';
+import { getBioText } from '../../utils/bioText';
 
 /**
  * SylvainParisTheme — a CV-driven remake of the classic early-2000s academic
@@ -109,10 +111,15 @@ export function SylvainParisTheme({ darkMode = false, onDarkModeChange }) {
     ? cv.professionalDevelopment
     : [];
 
-  // Current graduate program drives the affiliation block.
-  const currentEdu = education[0] || null;
-  const institution = currentEdu?.institution || cv.currentJobTitle || null;
-  const department = currentEdu?.area || null;
+  // The affiliation block shows a degree still in progress, else the current
+  // position, else the most recent degree.
+  const latestEdu = education[0] || null;
+  const studying = isOngoing(latestEdu);
+  const currentRole = experience.find((e) => e.isCurrent) || null;
+  const institution = studying
+    ? latestEdu.institution
+    : currentRole?.company || latestEdu?.institution || cv.currentJobTitle || null;
+  const department = studying ? latestEdu.area : currentRole?.title || latestEdu?.area || null;
 
   const mapsUrl = location
     ? `https://maps.google.com/maps?q=${encodeURIComponent(
@@ -126,57 +133,37 @@ export function SylvainParisTheme({ darkMode = false, onDarkModeChange }) {
     [],
   );
 
-  // Synthesize a "Research Interest" bio from field + education + current role.
+  // "Research Interest" copy: the CV's about text, else a sentence built from
+  // the current degree or position.
+  const about = typeof cv.about === 'string' ? cv.about.trim() : '';
   const researchParagraphs = useMemo(() => {
-    const field = 'air quality and environmental health';
-    const current = experience.find((e) => e.isCurrent) || experience[0] || null;
+    if (about) return about.split(/\n\s*\n/);
 
-    const degreeWord = (() => {
-      const d = String(currentEdu?.degree || '').toLowerCase();
-      if (d.includes('phd') || d.includes('ph.d')) return 'doctoral';
-      if (d.includes('m.sc') || d.includes('msc') || d.includes('master')) return 'graduate';
-      return 'graduate';
-    })();
+    const role = studying
+      ? [latestEdu.degree && `${latestEdu.degree} candidate`, latestEdu.area && `in ${latestEdu.area}`]
+      : [currentRole?.title];
+    const where = studying ? latestEdu.institution : currentRole?.company;
+    const parts = [...role, where && `at ${where}`, location && `in ${location}`].filter(Boolean);
+    return parts.length > 0 && (studying || currentRole)
+      ? [`I am ${/^[aeiou]/i.test(parts[0]) ? 'an' : 'a'} ${parts.join(' ')}.`]
+      : [getBioText({ about })];
+  }, [about, studying, latestEdu, currentRole, location]);
 
-    const affiliation = [
-      currentEdu?.area ? `${currentEdu.area}` : null,
-      institution ? `at ${institution}` : null,
-      location ? `in ${location}` : null,
-    ]
-      .filter(Boolean)
-      .join(' ');
-
-    const p1 =
-      `My research centers on ${field}, examining how ambient air pollution and ` +
-      `airborne particulate matter affect the well-being of northern and rural ` +
-      `communities. As a ${degreeWord} researcher` +
-      (affiliation ? ` in ${affiliation}` : '') +
-      `, I combine field measurement, laboratory analysis, and data-driven ` +
-      `methods — from black carbon and particulate-bound metals to road-dust ` +
-      `chemistry — to understand the exposures faced by the populations most ` +
-      `affected by poor air quality.`;
-
-    const p2 = current
-      ? `Alongside my graduate studies, I work as ${current.title}` +
-        (current.company ? ` at ${current.company}` : '') +
-        `, where I collect and process environmental samples, maintain and ` +
-        `calibrate analytical instrumentation, and translate laboratory results ` +
-        `into reports and peer-reviewed research. I am broadly interested in ` +
-        `bridging environmental monitoring, public-health informatics, and the ` +
-        `tools that make research reproducible.`
-      : `I am broadly interested in bridging environmental monitoring, ` +
-        `public-health informatics, and the tools that make research reproducible.`;
-
-    return [p1, p2];
-  }, [experience, currentEdu, institution, location]);
-
+  const hasPublications = publications.length > 0 || presentations.length > 0;
   const navItems = [
     { href: '#contact', label: 'Contact' },
     { href: '#info', label: 'Information' },
-    { href: '#publications', label: 'Publications' },
-    { href: '#awards', label: 'Awards' },
+    hasPublications && { href: '#publications', label: 'Publications' },
+    awards.length > 0 && { href: '#awards', label: 'Awards' },
     { href: '#development', label: 'Development' },
-  ];
+  ].filter(Boolean);
+
+  // "What's new?" links only to sections that have entries.
+  const newsLinks = [
+    publications.length > 0 && { href: '#publications', label: 'publications' },
+    presentations.length > 0 && { href: '#publications', label: 'talks' },
+    awards.length > 0 && { href: '#awards', label: 'awards' },
+  ].filter(Boolean);
 
   const scrollTo = (event, href) => {
     event.preventDefault();
@@ -288,18 +275,23 @@ export function SylvainParisTheme({ darkMode = false, onDarkModeChange }) {
               )}
             </IdBlock>
 
-            <SmallTitle>What&apos;s new?</SmallTitle>
-            <News>
-              <InlineTitle>Updated {updatedLabel}:</InlineTitle> added recent{' '}
-              <a href="#publications" onClick={(e) => scrollTo(e, '#publications')}>
-                publications
-              </a>{' '}
-              and{' '}
-              <a href="#awards" onClick={(e) => scrollTo(e, '#awards')}>
-                awards
-              </a>
-              .
-            </News>
+            {newsLinks.length > 0 && (
+              <>
+                <SmallTitle>What&apos;s new?</SmallTitle>
+                <News>
+                  <InlineTitle>Updated {updatedLabel}:</InlineTitle> added recent{' '}
+                  {newsLinks.map((link, i) => (
+                    <React.Fragment key={link.label}>
+                      {i > 0 && (i === newsLinks.length - 1 ? ' and ' : ', ')}
+                      <a href={link.href} onClick={(e) => scrollTo(e, link.href)}>
+                        {link.label}
+                      </a>
+                    </React.Fragment>
+                  ))}
+                  .
+                </News>
+              </>
+            )}
 
             {/* ---- Useful Information ---- */}
             <Anchor id="info" />
@@ -385,8 +377,12 @@ export function SylvainParisTheme({ darkMode = false, onDarkModeChange }) {
             )}
 
             {/* ---- Publications & Talks ---- */}
-            <Anchor id="publications" />
-            <Bar>Publications &amp; Talks</Bar>
+            {hasPublications && (
+              <>
+                <Anchor id="publications" />
+                <Bar>Publications &amp; Talks</Bar>
+              </>
+            )}
 
             {publications.length > 0 && (
               <>
@@ -458,8 +454,12 @@ export function SylvainParisTheme({ darkMode = false, onDarkModeChange }) {
             )}
 
             {/* ---- Honors & Awards ---- */}
-            <Anchor id="awards" />
-            <Bar>Honors &amp; Awards</Bar>
+            {awards.length > 0 && (
+              <>
+                <Anchor id="awards" />
+                <Bar>Honors &amp; Awards</Bar>
+              </>
+            )}
 
             {awards.length > 0 && (
               <>
