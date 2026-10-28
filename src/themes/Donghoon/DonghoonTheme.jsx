@@ -170,7 +170,9 @@ export function DonghoonTheme({ darkMode = false }) {
   const theme = darkMode ? darkTheme : lightTheme;
 
   const name = cv.name || 'Your Name';
-  const avatarSrc = cv.avatar ? withBase(cv.avatar) : null;
+  const avatarSrc = cv.avatar
+    ? (/^https?:\/\//i.test(cv.avatar) ? cv.avatar : withBase(cv.avatar))
+    : null;
   const location = cv.location || null;
   const website = cv.website || null;
   const email = cv.email || null;

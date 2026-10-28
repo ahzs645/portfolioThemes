@@ -19,6 +19,7 @@
 #       with:
 #         cv-file: 'CV.yaml'
 #         build-mode: 'production'
+#         public-dir: 'public'   # optional: extra files (e.g. avatar.jpg) served next to CV.yaml
 
 name: Deploy Portfolio (Reusable)
 
@@ -29,6 +30,10 @@ on:
         description: 'Path to the CV.yaml file in the calling repository'
         type: string
         default: 'CV.yaml'
+      public-dir:
+        description: 'Optional directory in the calling repository whose files are copied into the site root (e.g. an avatar image referenced from CV.yaml)'
+        type: string
+        default: ''
       build-mode:
         description: 'Build mode: production, fixed, static, random-static'
         type: string
@@ -73,6 +78,19 @@ jobs:
             echo "✓ Copied ${{ inputs.cv-file }}"
           else
             echo "::error::CV file not found at '${{ inputs.cv-file }}'"
+            exit 1
+          fi
+
+      - name: Copy public files
+        if: inputs.public-dir != ''
+        env:
+          PUBLIC_DIR: ${{ inputs.public-dir }}
+        run: |
+          if [ -d "$PUBLIC_DIR" ]; then
+            cp -R "$PUBLIC_DIR"/. .portfolio-engine/public/
+            echo "✓ Copied $PUBLIC_DIR/ into the site root"
+          else
+            echo "::error::public-dir not found at '$PUBLIC_DIR'"
             exit 1
           fi
 

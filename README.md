@@ -113,6 +113,7 @@ cv:
   location: City, Country
   email: you@example.com
   website: https://yoursite.com
+  avatar: avatar.jpg        # optional: full URL, or a file served next to CV.yaml
   features:
     git_contribution_graph: true
   social:
@@ -188,6 +189,10 @@ The project auto-deploys to GitHub Pages on push to `main`. The workflow:
 3. Deploys `dist/` folder to GitHub Pages
 
 For custom domains, add a `CNAME` file in the `public/` folder.
+
+When deploying from another repository with the reusable workflow, pass
+`public-dir: <dir>` to copy extra files (such as the avatar image referenced
+by `cv.avatar`) into the site root alongside `CV.yaml`.
 
 ## License
 

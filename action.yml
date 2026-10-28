@@ -6,6 +6,10 @@ inputs:
     description: 'Path to the CV.yaml file in your repository'
     required: false
     default: 'CV.yaml'
+  public-dir:
+    description: 'Optional directory whose files are copied into the site root (e.g. an avatar image referenced from CV.yaml)'
+    required: false
+    default: ''
   build-mode:
     description: 'Build mode: production (random theme + theme bar), static (fixed theme, no bar), random-static (random, no bar)'
     required: false
@@ -45,6 +49,20 @@ runs:
           echo "✓ Copied ${{ inputs.cv-file }} to build"
         else
           echo "::error::CV file not found at '${{ inputs.cv-file }}'"
+          exit 1
+        fi
+
+    - name: Copy public files
+      if: inputs.public-dir != ''
+      shell: bash
+      env:
+        PUBLIC_DIR: ${{ inputs.public-dir }}
+      run: |
+        if [ -d "$PUBLIC_DIR" ]; then
+          cp -R "$PUBLIC_DIR"/. .portfolio-engine/public/
+          echo "✓ Copied $PUBLIC_DIR/ into the site root"
+        else
+          echo "::error::public-dir not found at '$PUBLIC_DIR'"
           exit 1
         fi
 

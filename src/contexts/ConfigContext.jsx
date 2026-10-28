@@ -22,6 +22,15 @@ function pickFirstString(...values) {
   return null;
 }
 
+// Resolve a CV image path (e.g. "avatar.jpg") against the deploy base path
+// and return an absolute URL, so themes can use it as-is regardless of the
+// current route or whether they also apply withBase().
+function resolveAssetUrl(value) {
+  if (!value || /^(?:[a-z][a-z\d+.-]*:|\/\/)/i.test(value)) return value;
+  if (typeof window === 'undefined') return withBase(value);
+  return new URL(withBase(value), window.location.origin).href;
+}
+
 function parsePositiveNumber(value) {
   const parsed = Number.parseFloat(String(value ?? ''));
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
@@ -115,7 +124,7 @@ export function ConfigProvider({ children }) {
       certifications: normalizeSectionEntries(sections.certifications),
       professional_development: normalizeSectionEntries(sections.professional_development),
     };
-    const avatar = pickFirstString(
+    const avatar = resolveAssetUrl(pickFirstString(
       raw.avatar,
       raw.avatar_url,
       raw.image,
@@ -126,7 +135,7 @@ export function ConfigProvider({ children }) {
       raw.headshot,
       raw.hero_image,
       raw.heroImage,
-    );
+    ));
     const avatarAspect = parsePositiveNumber(
       raw.avatar_aspect ??
         raw.image_aspect ??
